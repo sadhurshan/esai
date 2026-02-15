@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListRfqLines200ResponseAllOfData } from './ListRfqLines200ResponseAllOfData';
 import {
     ListRfqLines200ResponseAllOfDataFromJSON,
-    ListRfqLines200ResponseAllOfDataFromJSONTyped,
     ListRfqLines200ResponseAllOfDataToJSON,
-    ListRfqLines200ResponseAllOfDataToJSONTyped,
 } from './ListRfqLines200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListRfqLines200Response
  */
 export interface ListRfqLines200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqLines200Response
      */
     status: ListRfqLines200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqLines200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListRfqLines200ResponseAllOfData}
      * @memberof ListRfqLines200Response
      */
     data: ListRfqLines200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListRfqLines200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListRfqLines200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListRfqLines200ResponseStatusEnum = typeof ListRfqLines200ResponseStatusEnum[keyof typeof ListRfqLines200ResponseStatusEnum];
-
+export type ListRfqLines200ResponseStatusEnum =
+    (typeof ListRfqLines200ResponseStatusEnum)[keyof typeof ListRfqLines200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListRfqLines200Response interface.
  */
-export function instanceOfListRfqLines200Response(value: object): value is ListRfqLines200Response {
+export function instanceOfListRfqLines200Response(
+    value: object,
+): value is ListRfqLines200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListRfqLines200ResponseFromJSON(json: any): ListRfqLines200Response {
+export function ListRfqLines200ResponseFromJSON(
+    json: any,
+): ListRfqLines200Response {
     return ListRfqLines200ResponseFromJSONTyped(json, false);
 }
 
-export function ListRfqLines200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRfqLines200Response {
+export function ListRfqLines200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRfqLines200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListRfqLines200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListRfqLines200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListRfqLines200ResponseToJSON(json: any): ListRfqLines200Response {
+export function ListRfqLines200ResponseToJSON(
+    json: any,
+): ListRfqLines200Response {
     return ListRfqLines200ResponseToJSONTyped(json, false);
 }
 
-export function ListRfqLines200ResponseToJSONTyped(value?: ListRfqLines200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListRfqLines200ResponseToJSONTyped(
+    value?: ListRfqLines200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListRfqLines200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListRfqLines200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

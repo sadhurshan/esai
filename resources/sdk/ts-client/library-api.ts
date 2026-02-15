@@ -1,6 +1,13 @@
 import * as runtime from './generated/runtime';
 
-export type DigitalTwinAssetType = 'CAD' | 'STEP' | 'STL' | 'PDF' | 'IMAGE' | 'DATA' | 'OTHER';
+export type DigitalTwinAssetType =
+    | 'CAD'
+    | 'STEP'
+    | 'STL'
+    | 'PDF'
+    | 'IMAGE'
+    | 'DATA'
+    | 'OTHER';
 
 export interface DigitalTwinCategoryNode {
     id: number;
@@ -132,11 +139,13 @@ export interface ListDigitalTwinsRequest {
     updated_from?: string;
     updated_to?: string;
     sort?: 'relevance' | 'updated_at' | 'title';
-    include?: ('categories')[];
+    include?: 'categories'[];
 }
 
 export class DigitalTwinLibraryApi extends runtime.BaseAPI {
-    private async applyAuthHeaders(headers: runtime.HTTPHeaders): Promise<void> {
+    private async applyAuthHeaders(
+        headers: runtime.HTTPHeaders,
+    ): Promise<void> {
         if (this.configuration && this.configuration.apiKey) {
             const apiKey = await this.configuration.apiKey('X-API-Key');
             if (apiKey) {
@@ -226,14 +235,20 @@ export class DigitalTwinLibraryApi extends runtime.BaseAPI {
             initOverrides,
         );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue as DigitalTwinLibraryIndexResponse);
+        return new runtime.JSONApiResponse(
+            response,
+            (jsonValue) => jsonValue as DigitalTwinLibraryIndexResponse,
+        );
     }
 
     async listDigitalTwins(
         requestParameters: ListDigitalTwinsRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction,
     ): Promise<DigitalTwinLibraryIndexResponse> {
-        const response = await this.listDigitalTwinsRaw(requestParameters, initOverrides);
+        const response = await this.listDigitalTwinsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
@@ -253,14 +268,20 @@ export class DigitalTwinLibraryApi extends runtime.BaseAPI {
             initOverrides,
         );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue as DigitalTwinLibraryDetailResponse);
+        return new runtime.JSONApiResponse(
+            response,
+            (jsonValue) => jsonValue as DigitalTwinLibraryDetailResponse,
+        );
     }
 
     async getDigitalTwin(
         digitalTwinId: number | string,
         initOverrides?: RequestInit | runtime.InitOverrideFunction,
     ): Promise<DigitalTwinLibraryDetailResponse> {
-        const response = await this.getDigitalTwinRaw(digitalTwinId, initOverrides);
+        const response = await this.getDigitalTwinRaw(
+            digitalTwinId,
+            initOverrides,
+        );
         return await response.value();
     }
 
@@ -283,14 +304,20 @@ export class DigitalTwinLibraryApi extends runtime.BaseAPI {
             initOverrides,
         );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue as DigitalTwinUseForRfqResponse);
+        return new runtime.JSONApiResponse(
+            response,
+            (jsonValue) => jsonValue as DigitalTwinUseForRfqResponse,
+        );
     }
 
     async useDigitalTwinForRfq(
         digitalTwinId: number | string,
         initOverrides?: RequestInit | runtime.InitOverrideFunction,
     ): Promise<DigitalTwinUseForRfqResponse> {
-        const response = await this.useDigitalTwinForRfqRaw(digitalTwinId, initOverrides);
+        const response = await this.useDigitalTwinForRfqRaw(
+            digitalTwinId,
+            initOverrides,
+        );
         return await response.value();
     }
 }

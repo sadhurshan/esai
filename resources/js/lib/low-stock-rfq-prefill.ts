@@ -11,7 +11,10 @@ export interface LowStockRfqPrefillItem {
 const PREFILL_KEY = 'inventory.low-stock-rfq-prefill';
 
 function isBrowser(): boolean {
-    return typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
+    return (
+        typeof window !== 'undefined' &&
+        typeof window.sessionStorage !== 'undefined'
+    );
 }
 
 export function saveLowStockRfqPrefill(items: LowStockRfqPrefillItem[]): void {
@@ -38,7 +41,10 @@ export function consumeLowStockRfqPrefill(): LowStockRfqPrefillItem[] | null {
     try {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-            return parsed.filter((entry): entry is LowStockRfqPrefillItem => typeof entry === 'object' && entry !== null);
+            return parsed.filter(
+                (entry): entry is LowStockRfqPrefillItem =>
+                    typeof entry === 'object' && entry !== null,
+            );
         }
     } catch (error) {
         console.error('Failed to parse low-stock RFQ prefill payload', error);
@@ -47,11 +53,16 @@ export function consumeLowStockRfqPrefill(): LowStockRfqPrefillItem[] | null {
     return null;
 }
 
-export function createPrefillFromAlerts(alerts: LowStockAlertRow[]): LowStockRfqPrefillItem[] {
+export function createPrefillFromAlerts(
+    alerts: LowStockAlertRow[],
+): LowStockRfqPrefillItem[] {
     return alerts.map((alert, index) => {
         const delta = Math.max(alert.minStock - alert.onHand, 0);
         const fallbackQty = delta > 0 ? delta : 1;
-        const quantity = alert.reorderQty && alert.reorderQty > 0 ? alert.reorderQty : fallbackQty;
+        const quantity =
+            alert.reorderQty && alert.reorderQty > 0
+                ? alert.reorderQty
+                : fallbackQty;
         const requiredDate = resolveRequiredDate(alert);
         return {
             sku: alert.sku,

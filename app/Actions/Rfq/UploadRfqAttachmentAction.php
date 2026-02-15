@@ -7,6 +7,7 @@ use App\Enums\DocumentKind;
 use App\Models\Document;
 use App\Models\RFQ;
 use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Services\RfqVersionService;
 use App\Support\Documents\DocumentStorer;
 use Illuminate\Http\UploadedFile;
@@ -18,6 +19,7 @@ class UploadRfqAttachmentAction
     public function __construct(
         private readonly DocumentStorer $documentStorer,
         private readonly RfqVersionService $rfqVersionService,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {
     }
 
@@ -57,6 +59,8 @@ class UploadRfqAttachmentAction
         $this->rfqVersionService->bump($rfq, null, 'rfq_attachment_uploaded', [
             'document_id' => $document->id,
         ]);
+
+        $this->digitalTwinLinkService->linkRfqDocument($rfq, $document, $user, 'rfq_attachment');
 
         return $document;
     }

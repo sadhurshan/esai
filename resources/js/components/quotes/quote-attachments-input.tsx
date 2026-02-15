@@ -2,8 +2,8 @@ import { useWatch, type UseFormReturn } from 'react-hook-form';
 
 import { FileDropzone } from '@/components/file-dropzone';
 import { Button } from '@/components/ui/button';
-import { useUploadDocument } from '@/hooks/api/documents/use-upload-document';
 import { useDeleteDocument } from '@/hooks/api/documents/use-delete-document';
+import { useUploadDocument } from '@/hooks/api/documents/use-upload-document';
 import type { SupplierQuoteFormValues } from '@/pages/quotes/supplier-quote-schema';
 
 function formatAttachmentSize(bytes?: number): string {
@@ -34,14 +34,25 @@ export interface QuoteAttachmentsInputProps {
     disabled?: boolean;
 }
 
-export function QuoteAttachmentsInput({ form, entity, entityId, disabled = false }: QuoteAttachmentsInputProps) {
-    const attachments = useWatch({ control: form.control, name: 'attachments' }) ?? [];
+export function QuoteAttachmentsInput({
+    form,
+    entity,
+    entityId,
+    disabled = false,
+}: QuoteAttachmentsInputProps) {
+    const attachments =
+        useWatch({ control: form.control, name: 'attachments' }) ?? [];
     const uploadDocument = useUploadDocument();
     const deleteDocument = useDeleteDocument();
     const numericEntityId = Number(entityId);
 
     const handleFilesSelected = async (files: File[]) => {
-        if (disabled || !Number.isFinite(numericEntityId) || numericEntityId <= 0 || files.length === 0) {
+        if (
+            disabled ||
+            !Number.isFinite(numericEntityId) ||
+            numericEntityId <= 0 ||
+            files.length === 0
+        ) {
             return;
         }
 
@@ -57,7 +68,10 @@ export function QuoteAttachmentsInput({ form, entity, entityId, disabled = false
 
                 if (document) {
                     const current = form.getValues('attachments') ?? [];
-                    form.setValue('attachments', [...current, document], { shouldDirty: true, shouldTouch: true });
+                    form.setValue('attachments', [...current, document], {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                    });
                 }
             } catch {
                 break;
@@ -80,7 +94,10 @@ export function QuoteAttachmentsInput({ form, entity, entityId, disabled = false
             await deleteDocument.mutateAsync({ documentId: target.id });
             const current = form.getValues('attachments') ?? [];
             const next = current.filter((_, idx) => idx !== index);
-            form.setValue('attachments', next, { shouldDirty: true, shouldTouch: true });
+            form.setValue('attachments', next, {
+                shouldDirty: true,
+                shouldTouch: true,
+            });
         } catch {
             // handled by hook toast
         }
@@ -92,11 +109,18 @@ export function QuoteAttachmentsInput({ form, entity, entityId, disabled = false
                 label="Upload supporting files"
                 description="CAD, PDF, DOCX, XLSX up to 50 MB each."
                 multiple
-                disabled={disabled || uploadDocument.isPending || !Number.isFinite(numericEntityId) || numericEntityId <= 0}
+                disabled={
+                    disabled ||
+                    uploadDocument.isPending ||
+                    !Number.isFinite(numericEntityId) ||
+                    numericEntityId <= 0
+                }
                 onFilesSelected={handleFilesSelected}
             />
             {attachments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No attachments uploaded yet.</p>
+                <p className="text-sm text-muted-foreground">
+                    No attachments uploaded yet.
+                </p>
             ) : (
                 <ul className="space-y-2">
                     {attachments.map((attachment, index) => (
@@ -115,10 +139,13 @@ export function QuoteAttachmentsInput({ form, entity, entityId, disabled = false
                                         {attachment.filename}
                                     </a>
                                 ) : (
-                                    <p className="font-medium text-foreground">{attachment.filename}</p>
+                                    <p className="font-medium text-foreground">
+                                        {attachment.filename}
+                                    </p>
                                 )}
                                 <p className="text-xs text-muted-foreground">
-                                    {attachment.mime ?? 'Document'} · {formatAttachmentSize(attachment.sizeBytes)}
+                                    {attachment.mime ?? 'Document'} ·{' '}
+                                    {formatAttachmentSize(attachment.sizeBytes)}
                                 </p>
                             </div>
                             <Button
@@ -134,7 +161,11 @@ export function QuoteAttachmentsInput({ form, entity, entityId, disabled = false
                     ))}
                 </ul>
             )}
-            {uploadDocument.isPending ? <p className="text-xs text-muted-foreground">Uploading attachments…</p> : null}
+            {uploadDocument.isPending ? (
+                <p className="text-xs text-muted-foreground">
+                    Uploading attachments…
+                </p>
+            ) : null}
         </div>
     );
 }

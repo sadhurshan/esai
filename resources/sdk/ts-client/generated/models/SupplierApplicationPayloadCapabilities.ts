@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SupplierApplicationPayloadCapabilities
  */
 export interface SupplierApplicationPayloadCapabilities {
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SupplierApplicationPayloadCapabilities
      */
     methods?: Array<string>;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SupplierApplicationPayloadCapabilities
      */
     materials?: Array<string>;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SupplierApplicationPayloadCapabilities
      */
     tolerances?: Array<string>;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SupplierApplicationPayloadCapabilities
      */
     finishes?: Array<string>;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SupplierApplicationPayloadCapabilities
      */
@@ -54,44 +53,53 @@ export interface SupplierApplicationPayloadCapabilities {
 /**
  * Check if a given object implements the SupplierApplicationPayloadCapabilities interface.
  */
-export function instanceOfSupplierApplicationPayloadCapabilities(value: object): value is SupplierApplicationPayloadCapabilities {
+export function instanceOfSupplierApplicationPayloadCapabilities(
+    value: object,
+): value is SupplierApplicationPayloadCapabilities {
     return true;
 }
 
-export function SupplierApplicationPayloadCapabilitiesFromJSON(json: any): SupplierApplicationPayloadCapabilities {
+export function SupplierApplicationPayloadCapabilitiesFromJSON(
+    json: any,
+): SupplierApplicationPayloadCapabilities {
     return SupplierApplicationPayloadCapabilitiesFromJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadCapabilitiesFromJSONTyped(json: any, ignoreDiscriminator: boolean): SupplierApplicationPayloadCapabilities {
+export function SupplierApplicationPayloadCapabilitiesFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SupplierApplicationPayloadCapabilities {
     if (json == null) {
         return json;
     }
     return {
-        
-        'methods': json['methods'] == null ? undefined : json['methods'],
-        'materials': json['materials'] == null ? undefined : json['materials'],
-        'tolerances': json['tolerances'] == null ? undefined : json['tolerances'],
-        'finishes': json['finishes'] == null ? undefined : json['finishes'],
-        'industries': json['industries'] == null ? undefined : json['industries'],
+        methods: json['methods'] == null ? undefined : json['methods'],
+        materials: json['materials'] == null ? undefined : json['materials'],
+        tolerances: json['tolerances'] == null ? undefined : json['tolerances'],
+        finishes: json['finishes'] == null ? undefined : json['finishes'],
+        industries: json['industries'] == null ? undefined : json['industries'],
     };
 }
 
-export function SupplierApplicationPayloadCapabilitiesToJSON(json: any): SupplierApplicationPayloadCapabilities {
+export function SupplierApplicationPayloadCapabilitiesToJSON(
+    json: any,
+): SupplierApplicationPayloadCapabilities {
     return SupplierApplicationPayloadCapabilitiesToJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadCapabilitiesToJSONTyped(value?: SupplierApplicationPayloadCapabilities | null, ignoreDiscriminator: boolean = false): any {
+export function SupplierApplicationPayloadCapabilitiesToJSONTyped(
+    value?: SupplierApplicationPayloadCapabilities | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'methods': value['methods'],
-        'materials': value['materials'],
-        'tolerances': value['tolerances'],
-        'finishes': value['finishes'],
-        'industries': value['industries'],
+        methods: value['methods'],
+        materials: value['materials'],
+        tolerances: value['tolerances'],
+        finishes: value['finishes'],
+        industries: value['industries'],
     };
 }
-

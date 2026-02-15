@@ -1,0 +1,38 @@
+{
+    "generated_at": "2026-02-13T12:53:07+00:00",
+    "roles": {
+        "product": {
+            "approved": true,
+            "by": "owner",
+            "at": "2026-02-13T12:53:07+00:00",
+            "note": "approved"
+        },
+        "engineering": {
+            "approved": true,
+            "by": "owner",
+            "at": "2026-02-13T12:53:07+00:00",
+            "note": "approved"
+        },
+        "qa": {
+            "approved": true,
+            "by": "owner",
+            "at": "2026-02-13T12:53:07+00:00",
+            "note": "approved"
+        },
+        "security": {
+            "approved": true,
+            "by": "owner",
+            "at": "2026-02-13T12:53:07+00:00",
+            "note": "approved"
+        }
+    },
+    "summary": {
+        "approved_count": 4,
+        "required_count": 4,
+        "all_approved": true
+    },
+    "meta": {
+        "mode": "production",
+        "updated_by": "copilot:bulk-signoff"
+    }
+}

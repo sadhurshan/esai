@@ -186,20 +186,38 @@ class ChatService
             'thread_summary' => $this->normalizeThreadSummary($thread->thread_summary),
         ];
 
-        $startedAt = microtime(true);
+        $operationStartedAt = microtime(true);
+        $providerStartedAt = microtime(true);
 
         try {
             $response = $this->client->chatContinue($payload);
         } catch (AiServiceUnavailableException $exception) {
-            $this->recordToolEvent($thread, $user, $toolCalls, $structuredContext, null, null, $exception->getMessage());
+            $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+            $telemetry = $this->buildLatencyBreakdownTelemetry(
+                operation: 'ai_chat_tool_resolve',
+                mode: 'sync',
+                totalMs: $totalLatency,
+                providerMs: null,
+                appMs: null,
+            );
+
+            $this->recordToolEvent($thread, $user, $toolCalls, $structuredContext, null, null, $exception->getMessage(), $telemetry);
 
             throw $exception;
         }
 
-        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+        $latency = (int) round((microtime(true) - $providerStartedAt) * 1000);
+        $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+        $telemetry = $this->buildLatencyBreakdownTelemetry(
+            operation: 'ai_chat_tool_resolve',
+            mode: 'sync',
+            totalMs: $totalLatency,
+            providerMs: $latency,
+            appMs: max(0, $totalLatency - $latency),
+        );
 
         if ($response['status'] !== 'success' || ! is_array($response['data'])) {
-            $this->recordToolEvent($thread, $user, $toolCalls, $structuredContext, $latency, null, $response['message'] ?? 'Chat service error.');
+            $this->recordToolEvent($thread, $user, $toolCalls, $structuredContext, $latency, null, $response['message'] ?? 'Chat service error.', $telemetry);
 
             throw new AiChatException($response['message'] ?? 'Failed to continue chat response.', $response['errors'] ?? null);
         }
@@ -221,7 +239,16 @@ class ChatService
 
         $this->applyThreadMemory($thread, $memoryPayload);
 
-        $this->recordToolEvent($thread, $user, $toolCalls, $structuredContext, $latency, $assistantPayload, null);
+        $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+        $telemetry = $this->buildLatencyBreakdownTelemetry(
+            operation: 'ai_chat_tool_resolve',
+            mode: 'sync',
+            totalMs: $totalLatency,
+            providerMs: $latency,
+            appMs: max(0, $totalLatency - $latency),
+        );
+
+        $this->recordToolEvent($thread, $user, $toolCalls, $structuredContext, $latency, $assistantPayload, null, $telemetry);
 
         return [
             'tool_message' => $toolMessage->fresh(),
@@ -427,20 +454,38 @@ class ChatService
             'allow_general' => $allowGeneral,
         ];
 
-        $startedAt = microtime(true);
+        $operationStartedAt = microtime(true);
+        $providerStartedAt = microtime(true);
 
         try {
             $response = $this->client->chatRespond($payload);
         } catch (AiServiceUnavailableException $exception) {
-            $this->recordChatEvent($thread, $user, $message, $structuredContext, null, null, $exception->getMessage());
+            $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+            $telemetry = $this->buildLatencyBreakdownTelemetry(
+                operation: 'ai_chat_message_send',
+                mode: 'sync',
+                totalMs: $totalLatency,
+                providerMs: null,
+                appMs: null,
+            );
+
+            $this->recordChatEvent($thread, $user, $message, $structuredContext, null, null, $exception->getMessage(), $telemetry);
 
             throw $exception;
         }
 
-        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+        $latency = (int) round((microtime(true) - $providerStartedAt) * 1000);
+        $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+        $telemetry = $this->buildLatencyBreakdownTelemetry(
+            operation: 'ai_chat_message_send',
+            mode: 'sync',
+            totalMs: $totalLatency,
+            providerMs: $latency,
+            appMs: max(0, $totalLatency - $latency),
+        );
 
         if ($response['status'] !== 'success' || ! is_array($response['data'])) {
-            $this->recordChatEvent($thread, $user, $message, $structuredContext, $latency, null, $response['message'] ?? 'Chat service error.');
+            $this->recordChatEvent($thread, $user, $message, $structuredContext, $latency, null, $response['message'] ?? 'Chat service error.', $telemetry);
 
             throw new AiChatException($response['message'] ?? 'Failed to process chat response.', $response['errors'] ?? null);
         }
@@ -462,7 +507,16 @@ class ChatService
 
         $this->applyThreadMemory($thread, $memoryPayload);
 
-        $this->recordChatEvent($thread, $user, $message, $structuredContext, $latency, $assistantPayload, null);
+        $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+        $telemetry = $this->buildLatencyBreakdownTelemetry(
+            operation: 'ai_chat_message_send',
+            mode: 'sync',
+            totalMs: $totalLatency,
+            providerMs: $latency,
+            appMs: max(0, $totalLatency - $latency),
+        );
+
+        $this->recordChatEvent($thread, $user, $message, $structuredContext, $latency, $assistantPayload, null, $telemetry);
 
         return [
             'user_message' => $userMessage->fresh(),
@@ -576,7 +630,8 @@ class ChatService
 
         $assistantPayload = null;
         $accumulatedMarkdown = '';
-        $startedAt = microtime(true);
+        $operationStartedAt = microtime(true);
+        $providerStartedAt = microtime(true);
         $memoryPayload = null;
 
         try {
@@ -598,7 +653,16 @@ class ChatService
             });
         } catch (Throwable $exception) {
             $emitter($this->buildSseFrame('error', ['message' => 'Streaming failed. Please retry shortly.']));
-            $this->recordChatEvent($thread, $user, $latestPrompt ?? '', $structuredContext, null, null, $exception->getMessage());
+            $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+            $telemetry = $this->buildLatencyBreakdownTelemetry(
+                operation: 'ai_chat_message_send',
+                mode: 'stream',
+                totalMs: $totalLatency,
+                providerMs: null,
+                appMs: null,
+            );
+
+            $this->recordChatEvent($thread, $user, $latestPrompt ?? '', $structuredContext, null, null, $exception->getMessage(), $telemetry);
             report($exception);
 
             return;
@@ -606,7 +670,16 @@ class ChatService
 
         if (! is_array($assistantPayload)) {
             $emitter($this->buildSseFrame('error', ['message' => 'Streaming finished without a response.']));
-            $this->recordChatEvent($thread, $user, $latestPrompt ?? '', $structuredContext, null, null, 'Streaming response incomplete.');
+            $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+            $telemetry = $this->buildLatencyBreakdownTelemetry(
+                operation: 'ai_chat_message_send',
+                mode: 'stream',
+                totalMs: $totalLatency,
+                providerMs: null,
+                appMs: null,
+            );
+
+            $this->recordChatEvent($thread, $user, $latestPrompt ?? '', $structuredContext, null, null, 'Streaming response incomplete.', $telemetry);
 
             return;
         }
@@ -617,7 +690,15 @@ class ChatService
 
         $assistantPayload = $this->attachDraftSnapshot($thread, $user, $assistantPayload, $latestPrompt, $structuredContext);
 
-        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+        $latency = (int) round((microtime(true) - $providerStartedAt) * 1000);
+        $totalLatency = (int) round((microtime(true) - $operationStartedAt) * 1000);
+        $telemetry = $this->buildLatencyBreakdownTelemetry(
+            operation: 'ai_chat_message_send',
+            mode: 'stream',
+            totalMs: $totalLatency,
+            providerMs: $latency,
+            appMs: max(0, $totalLatency - $latency),
+        );
 
         $assistantMessage = $thread->appendMessage(AiChatMessage::ROLE_ASSISTANT, [
             'content_text' => (string) ($assistantPayload['assistant_message_markdown'] ?? ''),
@@ -629,7 +710,7 @@ class ChatService
             'status' => AiChatMessage::STATUS_COMPLETED,
         ]);
 
-        $this->recordChatEvent($thread, $user, $latestPrompt ?? '', $structuredContext, $latency, $assistantPayload, null);
+        $this->recordChatEvent($thread, $user, $latestPrompt ?? '', $structuredContext, $latency, $assistantPayload, null, $telemetry);
 
         $this->applyThreadMemory($thread, $memoryPayload);
 
@@ -3996,7 +4077,8 @@ class ChatService
         array $context,
         ?int $latency,
         ?array $assistantPayload,
-        ?string $errorMessage
+        ?string $errorMessage,
+        ?array $latencyBreakdown = null
     ): void {
         $requestPayload = [
             'thread_id' => $thread->id,
@@ -4008,12 +4090,14 @@ class ChatService
             ? AiEvent::STATUS_SUCCESS
             : AiEvent::STATUS_ERROR;
 
+        $responsePayload = $this->attachLatencyBreakdown($assistantPayload, $latencyBreakdown);
+
         $this->recorder->record(
             companyId: $thread->company_id,
             userId: $user->id,
             feature: 'ai_chat_message_send',
             requestPayload: $requestPayload,
-            responsePayload: $assistantPayload,
+            responsePayload: $responsePayload,
             latencyMs: $latency,
             status: $status,
             errorMessage: $errorMessage,
@@ -4033,7 +4117,8 @@ class ChatService
         array $context,
         ?int $latency,
         ?array $assistantPayload,
-        ?string $errorMessage
+        ?string $errorMessage,
+        ?array $latencyBreakdown = null
     ): void {
         $requestPayload = [
             'thread_id' => $thread->id,
@@ -4045,12 +4130,14 @@ class ChatService
             ? AiEvent::STATUS_SUCCESS
             : AiEvent::STATUS_ERROR;
 
+        $responsePayload = $this->attachLatencyBreakdown($assistantPayload, $latencyBreakdown);
+
         $this->recorder->record(
             companyId: $thread->company_id,
             userId: $user->id,
             feature: 'ai_chat_tool_resolve',
             requestPayload: $requestPayload,
-            responsePayload: $assistantPayload,
+            responsePayload: $responsePayload,
             latencyMs: $latency,
             status: $status,
             errorMessage: $errorMessage,
@@ -4070,7 +4157,7 @@ class ChatService
                     'help_calls' => $helpCalls,
                     'context_meta' => $this->sanitizeContextForLogging($context),
                 ],
-                responsePayload: $assistantPayload,
+                responsePayload: $responsePayload,
                 latencyMs: $latency,
                 status: $status,
                 errorMessage: $errorMessage,
@@ -4078,6 +4165,76 @@ class ChatService
                 entityId: $thread->id,
             );
         }
+    }
+
+    /**
+     * @param array<string, mixed>|null $payload
+     * @param array<string, mixed>|null $latencyBreakdown
+     * @return array<string, mixed>|null
+     */
+    private function attachLatencyBreakdown(?array $payload, ?array $latencyBreakdown): ?array
+    {
+        if (! is_array($latencyBreakdown) || $latencyBreakdown === []) {
+            return $payload;
+        }
+
+        $normalized = [];
+        foreach ($latencyBreakdown as $key => $value) {
+            if (! is_string($key) || $key === '') {
+                continue;
+            }
+
+            if (is_int($value) || is_float($value)) {
+                $normalized[$key] = max(0, (int) round((float) $value));
+
+                continue;
+            }
+
+            if (is_string($value) && $value !== '') {
+                $normalized[$key] = $value;
+            }
+        }
+
+        if ($normalized === []) {
+            return $payload;
+        }
+
+        $result = is_array($payload) ? $payload : [];
+        $result['latency_breakdown_ms'] = $normalized;
+
+        return $result;
+    }
+
+    /**
+     * @return array<string, int|string>|null
+     */
+    private function buildLatencyBreakdownTelemetry(
+        string $operation,
+        string $mode,
+        ?int $totalMs,
+        ?int $providerMs,
+        ?int $appMs
+    ): ?array {
+        $telemetry = [
+            'operation' => $operation,
+            'mode' => $mode,
+        ];
+
+        if ($totalMs !== null) {
+            $telemetry['total_ms'] = max(0, $totalMs);
+        }
+
+        if ($providerMs !== null) {
+            $telemetry['provider_ms'] = max(0, $providerMs);
+        }
+
+        if ($appMs !== null) {
+            $telemetry['app_ms'] = max(0, $appMs);
+        }
+
+        return isset($telemetry['total_ms']) || isset($telemetry['provider_ms']) || isset($telemetry['app_ms'])
+            ? $telemetry
+            : null;
     }
 
     /**

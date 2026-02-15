@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
@@ -16,7 +20,9 @@ export function useRecalcPo(): UseMutationResult<void, unknown, RecalcPoInput> {
     return useMutation<void, unknown, RecalcPoInput>({
         mutationFn: async ({ poId }) => {
             if (!Number.isFinite(poId) || poId <= 0) {
-                throw new Error('A valid PO id is required to recalculate totals.');
+                throw new Error(
+                    'A valid PO id is required to recalculate totals.',
+                );
             }
 
             await moneyApi.recalcPurchaseOrderTotals({
@@ -30,8 +36,12 @@ export function useRecalcPo(): UseMutationResult<void, unknown, RecalcPoInput> {
                 description: 'Latest pricing and taxes applied to this PO.',
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(poId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.root() });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.detail(poId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.root(),
+            });
         },
     });
 }

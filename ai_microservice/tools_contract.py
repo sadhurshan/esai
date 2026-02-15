@@ -121,6 +121,7 @@ def build_rfq_draft(context: Sequence[MutableMapping[str, Any]], inputs: Mutable
         normalized_context = _normalize_context(context)
         normalized_inputs = inputs or {}
         today = datetime.now(timezone.utc).date().isoformat()
+        inferred = _extract_rfq_prompt_fields(normalized_inputs)
 
         rfq_title = None
         for key in ("rfq_title", "rfq_name", "name", "title", "category"):
@@ -129,12 +130,31 @@ def build_rfq_draft(context: Sequence[MutableMapping[str, Any]], inputs: Mutable
                 rfq_title = candidate
                 break
         if not rfq_title:
+            rfq_title = inferred.get("title")
+        if not rfq_title:
             rfq_title = f"RFQ Draft - {today}"
-        scope_summary = _text(normalized_inputs.get("scope_summary")) or "Scope derived from retrieved documents."
+        scope_summary = _text(normalized_inputs.get("scope_summary"))
+        if not scope_summary:
+            scope_summary = inferred.get("scope_summary") or "Scope derived from retrieved documents."
 
         line_items = _build_line_items(normalized_inputs.get("items"), normalized_context, today)
+        if not normalized_inputs.get("items"):
+            line_items = _build_inferred_line_items(inferred, today, line_items)
+
         terms = _collect_terms(normalized_inputs, normalized_context)
+        terms = _merge_unique(
+            terms,
+            _build_inferred_terms(inferred),
+            limit=6,
+        )
+
         questions = _collect_questions(normalized_inputs)
+        questions = _merge_unique(
+            questions,
+            _build_inferred_questions(inferred),
+            limit=6,
+        )
+
         evaluation_rubric = _collect_rubric(normalized_inputs)
 
         return {
@@ -145,6 +165,160 @@ def build_rfq_draft(context: Sequence[MutableMapping[str, Any]], inputs: Mutable
             "questions_for_suppliers": questions,
             "evaluation_rubric": evaluation_rubric,
         }
+
+
+def _extract_rfq_prompt_fields(inputs: MutableMapping[str, Any]) -> Dict[str, Any]:
+    raw_prompt = ""
+    for key in ("query", "prompt", "user_query", "request"):
+        candidate = _text(inputs.get(key))
+        if candidate:
+            raw_prompt = candidate
+            break
+
+    if not raw_prompt:
+        return {}
+
+    normalized = raw_prompt.strip()
+    lowered = normalized.lower()
+    fields: Dict[str, Any] = {}
+
+    title_match = re.search(
+        r"\b(?:draft|create|prepare|start)\s+(?:an?\s+)?rfq\s+for\s+(.+?)(?:,|;|$)",
+        normalized,
+        re.IGNORECASE,
+    )
+    if title_match:
+        title_value = _clean_phrase(title_match.group(1))
+        if title_value:
+            fields["title"] = title_value[:140]
+
+    quantity_match = re.search(r"\b(?:qty|quantity)\s*[:=]?\s*(\d{1,9})\b", lowered)
+    if not quantity_match:
+        quantity_match = re.search(r"\b(\d{1,9})\s*(?:pcs|pieces|units|ea)\b", lowered)
+    if quantity_match:
+        try:
+            qty = int(quantity_match.group(1))
+            if qty > 0:
+                fields["quantity"] = qty
+        except (TypeError, ValueError):
+            pass
+
+    material_match = re.search(r"\bmaterial\s+(.+?)(?:,|;|$)", normalized, re.IGNORECASE)
+    if material_match:
+        material_value = _clean_phrase(material_match.group(1))
+        if material_value:
+            fields["material"] = material_value[:80]
+
+    lead_match = re.search(r"\blead\s*time\s*(\d{1,3})\s*(day|days|week|weeks)\b", lowered)
+    if lead_match:
+        try:
+            amount = int(lead_match.group(1))
+            unit = lead_match.group(2)
+            fields["lead_time_days"] = amount * 7 if unit.startswith("week") else amount
+        except (TypeError, ValueError):
+            pass
+
+    delivery_match = re.search(r"\bdelivery\s+(?:to\s+)?(.+?)(?:,|;|$)", normalized, re.IGNORECASE)
+    if delivery_match:
+        delivery_value = _clean_phrase(delivery_match.group(1))
+        if delivery_value:
+            fields["delivery_location"] = delivery_value[:120]
+
+    qa_required = bool(
+        re.search(r"\bqa\s*cert(?:ificate)?\b", lowered)
+        or re.search(r"\bquality\s*cert(?:ificate)?\b", lowered)
+        or re.search(r"\bcert(?:ification|ifications|ificates?)\b", lowered)
+    )
+    if qa_required:
+        fields["qa_cert_required"] = True
+
+    if fields:
+        title = fields.get("title")
+        material = fields.get("material")
+        delivery = fields.get("delivery_location")
+        fragments = [
+            f"RFQ drafted from request: {title}." if isinstance(title, str) and title else "RFQ drafted from user request.",
+            f"Material target: {material}." if isinstance(material, str) and material else "",
+            f"Delivery location: {delivery}." if isinstance(delivery, str) and delivery else "",
+        ]
+        fields["scope_summary"] = " ".join(fragment for fragment in fragments if fragment).strip()
+
+    return fields
+
+
+def _build_inferred_line_items(inferred: Dict[str, Any], today: str, fallback: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    title = _text(inferred.get("title")) or "Pending sourcing inputs"
+    material = _text(inferred.get("material"))
+    quantity = inferred.get("quantity")
+    lead_time_days = inferred.get("lead_time_days")
+
+    target_date = today
+    try:
+        if isinstance(lead_time_days, int) and lead_time_days > 0:
+            target_date = (datetime.now(timezone.utc).date() + timedelta(days=lead_time_days)).isoformat()
+    except Exception:
+        target_date = today
+
+    description = title
+    if material:
+        description = f"{description} | Material: {material}"
+
+    qty_value = float(quantity) if isinstance(quantity, int) and quantity > 0 else 1.0
+
+    inferred_item = {
+        "part_id": "TBD-1",
+        "description": description,
+        "quantity": qty_value,
+        "target_date": target_date,
+        "source_citation_ids": [],
+    }
+
+    if fallback and fallback[0].get("description") != "Pending sourcing inputs":
+        return fallback[:20]
+
+    return [inferred_item]
+
+
+def _build_inferred_terms(inferred: Dict[str, Any]) -> List[str]:
+    terms: List[str] = []
+    lead_time_days = inferred.get("lead_time_days")
+    delivery_location = _text(inferred.get("delivery_location"))
+
+    if isinstance(lead_time_days, int) and lead_time_days > 0:
+        terms.append(f"Requested lead time: {lead_time_days} days")
+    if delivery_location:
+        terms.append(f"Delivery location: {delivery_location}")
+    if bool(inferred.get("qa_cert_required")):
+        terms.append("Supplier must provide QA certification documents with quote")
+
+    return terms
+
+
+def _build_inferred_questions(inferred: Dict[str, Any]) -> List[str]:
+    if not bool(inferred.get("qa_cert_required")):
+        return []
+    return [
+        "Please attach current QA certification(s) and expiry dates.",
+    ]
+
+
+def _merge_unique(existing: List[str], additions: List[str], *, limit: int) -> List[str]:
+    merged: List[str] = []
+    for entry in [*existing, *additions]:
+        value = _text(entry)
+        if not value:
+            continue
+        if value in merged:
+            continue
+        merged.append(value)
+        if len(merged) >= limit:
+            break
+    return merged
+
+
+def _clean_phrase(value: str) -> str:
+    cleaned = re.sub(r"\s+", " ", value).strip(" .,:;\t\n\r")
+    return cleaned
 
 
 def build_supplier_message(context: Sequence[MutableMapping[str, Any]], inputs: MutableMapping[str, Any]) -> Dict[str, Any]:

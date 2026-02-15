@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createPrefillFromAlerts } from '../low-stock-rfq-prefill';
 import type { LowStockAlertRow } from '@/types/inventory';
+import { createPrefillFromAlerts } from '../low-stock-rfq-prefill';
 
 describe('createPrefillFromAlerts', () => {
     afterEach(() => {

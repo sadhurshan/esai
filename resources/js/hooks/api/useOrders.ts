@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -6,7 +10,12 @@ import type { Order, Paged } from '@/types/sourcing';
 
 export interface OrderListParams extends Record<string, unknown> {
     tab?: 'requested' | 'received';
-    status?: 'pending' | 'confirmed' | 'in_production' | 'delivered' | 'cancelled';
+    status?:
+        | 'pending'
+        | 'confirmed'
+        | 'in_production'
+        | 'delivered'
+        | 'cancelled';
     date_from?: string;
     date_to?: string;
     sort?: 'ordered_at';
@@ -39,12 +48,16 @@ const mapOrder = (payload: OrderListResponse['items'][number]): Order => ({
 
 type OrderListResult = { items: Order[]; meta: OrderListResponse['meta'] };
 
-export function useOrders(params: OrderListParams = {}): UseQueryResult<OrderListResult, ApiError> {
+export function useOrders(
+    params: OrderListParams = {},
+): UseQueryResult<OrderListResult, ApiError> {
     return useQuery<OrderListResult, ApiError, OrderListResult>({
         queryKey: queryKeys.orders.list(params),
         queryFn: async () => {
             const query = buildQuery(params);
-            const response = (await api.get<OrderListResponse>(`/orders${query}`)) as unknown as OrderListResponse;
+            const response = (await api.get<OrderListResponse>(
+                `/orders${query}`,
+            )) as unknown as OrderListResponse;
 
             return {
                 items: response.items.map(mapOrder),

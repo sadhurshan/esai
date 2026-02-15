@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { AdminListRateLimits200ResponseAllOfData } from './AdminListRateLimits200ResponseAllOfData';
 import {
     AdminListRateLimits200ResponseAllOfDataFromJSON,
-    AdminListRateLimits200ResponseAllOfDataFromJSONTyped,
     AdminListRateLimits200ResponseAllOfDataToJSON,
-    AdminListRateLimits200ResponseAllOfDataToJSONTyped,
 } from './AdminListRateLimits200ResponseAllOfData';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListRateLimits200Response
  */
 export interface AdminListRateLimits200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminListRateLimits200Response
      */
     status: AdminListRateLimits200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminListRateLimits200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {AdminListRateLimits200ResponseAllOfData}
      * @memberof AdminListRateLimits200Response
      */
     data: AdminListRateLimits200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof AdminListRateLimits200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const AdminListRateLimits200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type AdminListRateLimits200ResponseStatusEnum = typeof AdminListRateLimits200ResponseStatusEnum[keyof typeof AdminListRateLimits200ResponseStatusEnum];
-
+export type AdminListRateLimits200ResponseStatusEnum =
+    (typeof AdminListRateLimits200ResponseStatusEnum)[keyof typeof AdminListRateLimits200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the AdminListRateLimits200Response interface.
  */
-export function instanceOfAdminListRateLimits200Response(value: object): value is AdminListRateLimits200Response {
+export function instanceOfAdminListRateLimits200Response(
+    value: object,
+): value is AdminListRateLimits200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function AdminListRateLimits200ResponseFromJSON(json: any): AdminListRateLimits200Response {
+export function AdminListRateLimits200ResponseFromJSON(
+    json: any,
+): AdminListRateLimits200Response {
     return AdminListRateLimits200ResponseFromJSONTyped(json, false);
 }
 
-export function AdminListRateLimits200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListRateLimits200Response {
+export function AdminListRateLimits200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListRateLimits200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': AdminListRateLimits200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: AdminListRateLimits200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminListRateLimits200ResponseToJSON(json: any): AdminListRateLimits200Response {
+export function AdminListRateLimits200ResponseToJSON(
+    json: any,
+): AdminListRateLimits200Response {
     return AdminListRateLimits200ResponseToJSONTyped(json, false);
 }
 
-export function AdminListRateLimits200ResponseToJSONTyped(value?: AdminListRateLimits200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListRateLimits200ResponseToJSONTyped(
+    value?: AdminListRateLimits200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': AdminListRateLimits200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: AdminListRateLimits200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

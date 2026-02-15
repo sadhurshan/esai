@@ -1,9 +1,9 @@
-import { render } from '@testing-library/react';
 import { screen, waitFor } from '@testing-library/dom';
+import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoginPage } from '../login-page';
 
@@ -11,7 +11,10 @@ const mockedNavigate = vi.fn();
 const loginMock = vi.fn();
 
 vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+    const actual =
+        await vi.importActual<typeof import('react-router-dom')>(
+            'react-router-dom',
+        );
 
     return {
         ...actual,
@@ -58,7 +61,7 @@ describe('LoginPage', () => {
 
         render(
             <HelmetProvider>
-                <MemoryRouter initialEntries={[{ pathname: '/login' }] }>
+                <MemoryRouter initialEntries={[{ pathname: '/login' }]}>
                     <LoginPage />
                 </MemoryRouter>
             </HelmetProvider>,
@@ -76,7 +79,11 @@ describe('LoginPage', () => {
             }),
         );
 
-        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/app', { replace: true }));
+        await waitFor(() =>
+            expect(mockedNavigate).toHaveBeenCalledWith('/app', {
+                replace: true,
+            }),
+        );
     });
 
     it('redirects platform operators to the admin console when no explicit target is provided', async () => {
@@ -91,7 +98,7 @@ describe('LoginPage', () => {
 
         render(
             <HelmetProvider>
-                <MemoryRouter initialEntries={[{ pathname: '/login' }] }>
+                <MemoryRouter initialEntries={[{ pathname: '/login' }]}>
                     <LoginPage />
                 </MemoryRouter>
             </HelmetProvider>,
@@ -109,6 +116,10 @@ describe('LoginPage', () => {
             }),
         );
 
-        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith('/app/admin', { replace: true }));
+        await waitFor(() =>
+            expect(mockedNavigate).toHaveBeenCalledWith('/app/admin', {
+                replace: true,
+            }),
+        );
     });
 });

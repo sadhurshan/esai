@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { FeatureFlag } from './FeatureFlag';
-import {
-    FeatureFlagFromJSON,
-    FeatureFlagFromJSONTyped,
-    FeatureFlagToJSON,
-    FeatureFlagToJSONTyped,
-} from './FeatureFlag';
+import { FeatureFlagFromJSON, FeatureFlagToJSON } from './FeatureFlag';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListFeatureFlags200ResponseAllOfData
  */
 export interface AdminListFeatureFlags200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<FeatureFlag>}
      * @memberof AdminListFeatureFlags200ResponseAllOfData
      */
@@ -38,36 +32,51 @@ export interface AdminListFeatureFlags200ResponseAllOfData {
 /**
  * Check if a given object implements the AdminListFeatureFlags200ResponseAllOfData interface.
  */
-export function instanceOfAdminListFeatureFlags200ResponseAllOfData(value: object): value is AdminListFeatureFlags200ResponseAllOfData {
+export function instanceOfAdminListFeatureFlags200ResponseAllOfData(
+    value: object,
+): value is AdminListFeatureFlags200ResponseAllOfData {
     return true;
 }
 
-export function AdminListFeatureFlags200ResponseAllOfDataFromJSON(json: any): AdminListFeatureFlags200ResponseAllOfData {
+export function AdminListFeatureFlags200ResponseAllOfDataFromJSON(
+    json: any,
+): AdminListFeatureFlags200ResponseAllOfData {
     return AdminListFeatureFlags200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AdminListFeatureFlags200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListFeatureFlags200ResponseAllOfData {
+export function AdminListFeatureFlags200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListFeatureFlags200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(FeatureFlagFromJSON)),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(FeatureFlagFromJSON),
     };
 }
 
-export function AdminListFeatureFlags200ResponseAllOfDataToJSON(json: any): AdminListFeatureFlags200ResponseAllOfData {
+export function AdminListFeatureFlags200ResponseAllOfDataToJSON(
+    json: any,
+): AdminListFeatureFlags200ResponseAllOfData {
     return AdminListFeatureFlags200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AdminListFeatureFlags200ResponseAllOfDataToJSONTyped(value?: AdminListFeatureFlags200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListFeatureFlags200ResponseAllOfDataToJSONTyped(
+    value?: AdminListFeatureFlags200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(FeatureFlagToJSON)),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(FeatureFlagToJSON),
     };
 }
-

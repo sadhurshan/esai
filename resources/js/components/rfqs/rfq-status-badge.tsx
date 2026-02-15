@@ -3,7 +3,13 @@ import type { RfqStatusEnum } from '@/sdk';
 
 type RfqStatusLike = RfqStatusEnum | 'draft';
 
-const STATUS_VARIANTS: Record<RfqStatusLike, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const STATUS_VARIANTS: Record<
+    RfqStatusLike,
+    {
+        label: string;
+        variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    }
+> = {
     awaiting: { label: 'Draft', variant: 'secondary' },
     draft: { label: 'Draft', variant: 'secondary' },
     open: { label: 'Open', variant: 'default' },
@@ -17,8 +23,12 @@ export interface RfqStatusBadgeProps {
 }
 
 export function RfqStatusBadge({ status }: RfqStatusBadgeProps) {
-    const normalizedStatus: RfqStatusLike = status === 'draft' ? 'draft' : status;
-    const config = STATUS_VARIANTS[normalizedStatus] ?? { label: status, variant: 'outline' as const };
+    const normalizedStatus: RfqStatusLike =
+        status === 'draft' ? 'draft' : status;
+    const config = STATUS_VARIANTS[normalizedStatus] ?? {
+        label: status,
+        variant: 'outline' as const,
+    };
 
     return <Badge variant={config.variant}>{config.label}</Badge>;
 }

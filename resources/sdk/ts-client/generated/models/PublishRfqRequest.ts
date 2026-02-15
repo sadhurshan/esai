@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface PublishRfqRequest
  */
 export interface PublishRfqRequest {
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PublishRfqRequest
      */
     dueAt: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PublishRfqRequest
      */
     publishAt?: Date;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PublishRfqRequest
      */
@@ -48,7 +47,9 @@ export interface PublishRfqRequest {
 /**
  * Check if a given object implements the PublishRfqRequest interface.
  */
-export function instanceOfPublishRfqRequest(value: object): value is PublishRfqRequest {
+export function instanceOfPublishRfqRequest(
+    value: object,
+): value is PublishRfqRequest {
     if (!('dueAt' in value) || value['dueAt'] === undefined) return false;
     return true;
 }
@@ -57,16 +58,24 @@ export function PublishRfqRequestFromJSON(json: any): PublishRfqRequest {
     return PublishRfqRequestFromJSONTyped(json, false);
 }
 
-export function PublishRfqRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): PublishRfqRequest {
+export function PublishRfqRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PublishRfqRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'dueAt': (new Date(json['due_at'])),
-        'publishAt': json['publish_at'] == null ? undefined : (new Date(json['publish_at'])),
-        'notifySuppliers': json['notify_suppliers'] == null ? undefined : json['notify_suppliers'],
-        'message': json['message'] == null ? undefined : json['message'],
+        dueAt: new Date(json['due_at']),
+        publishAt:
+            json['publish_at'] == null
+                ? undefined
+                : new Date(json['publish_at']),
+        notifySuppliers:
+            json['notify_suppliers'] == null
+                ? undefined
+                : json['notify_suppliers'],
+        message: json['message'] == null ? undefined : json['message'],
     };
 }
 
@@ -74,17 +83,21 @@ export function PublishRfqRequestToJSON(json: any): PublishRfqRequest {
     return PublishRfqRequestToJSONTyped(json, false);
 }
 
-export function PublishRfqRequestToJSONTyped(value?: PublishRfqRequest | null, ignoreDiscriminator: boolean = false): any {
+export function PublishRfqRequestToJSONTyped(
+    value?: PublishRfqRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'due_at': value['dueAt'].toISOString(),
-        'publish_at': value['publishAt'] == null ? value['publishAt'] : value['publishAt'].toISOString(),
-        'notify_suppliers': value['notifySuppliers'],
-        'message': value['message'],
+        due_at: value['dueAt'].toISOString(),
+        publish_at:
+            value['publishAt'] == null
+                ? value['publishAt']
+                : value['publishAt'].toISOString(),
+        notify_suppliers: value['notifySuppliers'],
+        message: value['message'],
     };
 }
-

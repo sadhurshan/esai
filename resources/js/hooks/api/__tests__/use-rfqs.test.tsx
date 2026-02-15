@@ -1,20 +1,20 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useRfqs } from '../use-rfqs';
 import { useApiClientContext } from '@/contexts/api-client-context';
 import {
+    ListRfqs200ResponseStatusEnum,
     ListRfqsSortDirectionEnum,
     ListRfqsSortEnum,
     ListRfqsStatusEnum,
-    ListRfqs200ResponseStatusEnum,
     RfqStatusEnum,
     RfqTypeEnum,
     type Rfq,
 } from '@/sdk';
+import { useRfqs } from '../use-rfqs';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useApiClientContext: vi.fn(),
@@ -32,7 +32,11 @@ function createWrapper() {
     });
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return Wrapper;
@@ -111,12 +115,16 @@ describe('useRfqs', () => {
 
         expect(calledUrl).toContain('per_page=25');
         expect(calledUrl).toContain('cursor=CURSOR_TOKEN');
-        expect(calledUrl).toContain(`status=${encodeURIComponent(ListRfqsStatusEnum.Open)}`);
+        expect(calledUrl).toContain(
+            `status=${encodeURIComponent(ListRfqsStatusEnum.Open)}`,
+        );
         expect(calledUrl).toContain('search=open+rfq');
         expect(calledUrl).toContain('due_from=2025-10-01');
         expect(calledUrl).toContain('due_to=2025-10-15');
         expect(calledUrl).toContain(`sort=${ListRfqsSortEnum.DueAt}`);
-        expect(calledUrl).toContain(`sort_direction=${ListRfqsSortDirectionEnum.Asc}`);
+        expect(calledUrl).toContain(
+            `sort_direction=${ListRfqsSortDirectionEnum.Asc}`,
+        );
 
         expect(result.current.items[0]).toMatchObject({
             id: rfq.id,
@@ -187,7 +195,9 @@ describe('useRfqs', () => {
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
         const calledUrl: string = fetchMock.mock.calls[0][0];
-        expect(calledUrl).toContain(`status=${encodeURIComponent(ListRfqsStatusEnum.Draft)}`);
+        expect(calledUrl).toContain(
+            `status=${encodeURIComponent(ListRfqsStatusEnum.Draft)}`,
+        );
 
         expect(result.current.items[0]).toMatchObject({
             id: rfq.id,

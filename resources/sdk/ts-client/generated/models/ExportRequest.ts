@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ExportRequestRequestedBy } from './ExportRequestRequestedBy';
 import {
     ExportRequestRequestedByFromJSON,
-    ExportRequestRequestedByFromJSONTyped,
     ExportRequestRequestedByToJSON,
-    ExportRequestRequestedByToJSONTyped,
 } from './ExportRequestRequestedBy';
 
 /**
- * 
+ *
  * @export
  * @interface ExportRequest
  */
 export interface ExportRequest {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ExportRequest
      */
@@ -40,31 +37,31 @@ export interface ExportRequest {
      */
     type: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ExportRequest
      */
     status: ExportRequestStatusEnum;
     /**
-     * 
+     *
      * @type {object}
      * @memberof ExportRequest
      */
     filters: object;
     /**
-     * 
+     *
      * @type {ExportRequestRequestedBy}
      * @memberof ExportRequest
      */
     requestedBy?: ExportRequestRequestedBy;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ExportRequest
      */
     createdAt: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ExportRequest
      */
@@ -76,19 +73,18 @@ export interface ExportRequest {
      */
     expiresAt?: Date;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ExportRequest
      */
     downloadUrl?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ExportRequest
      */
     errorMessage?: string;
 }
-
 
 /**
  * @export
@@ -98,10 +94,10 @@ export const ExportRequestStatusEnum = {
     Processing: 'processing',
     Completed: 'completed',
     Failed: 'failed',
-    Expired: 'expired'
+    Expired: 'expired',
 } as const;
-export type ExportRequestStatusEnum = typeof ExportRequestStatusEnum[keyof typeof ExportRequestStatusEnum];
-
+export type ExportRequestStatusEnum =
+    (typeof ExportRequestStatusEnum)[keyof typeof ExportRequestStatusEnum];
 
 /**
  * Check if a given object implements the ExportRequest interface.
@@ -111,7 +107,8 @@ export function instanceOfExportRequest(value: object): value is ExportRequest {
     if (!('type' in value) || value['type'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('filters' in value) || value['filters'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
+    if (!('createdAt' in value) || value['createdAt'] === undefined)
+        return false;
     return true;
 }
 
@@ -119,22 +116,35 @@ export function ExportRequestFromJSON(json: any): ExportRequest {
     return ExportRequestFromJSONTyped(json, false);
 }
 
-export function ExportRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): ExportRequest {
+export function ExportRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ExportRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'type': json['type'],
-        'status': json['status'],
-        'filters': json['filters'],
-        'requestedBy': json['requested_by'] == null ? undefined : ExportRequestRequestedByFromJSON(json['requested_by']),
-        'createdAt': (new Date(json['created_at'])),
-        'completedAt': json['completed_at'] == null ? undefined : (new Date(json['completed_at'])),
-        'expiresAt': json['expires_at'] == null ? undefined : (new Date(json['expires_at'])),
-        'downloadUrl': json['download_url'] == null ? undefined : json['download_url'],
-        'errorMessage': json['error_message'] == null ? undefined : json['error_message'],
+        id: json['id'],
+        type: json['type'],
+        status: json['status'],
+        filters: json['filters'],
+        requestedBy:
+            json['requested_by'] == null
+                ? undefined
+                : ExportRequestRequestedByFromJSON(json['requested_by']),
+        createdAt: new Date(json['created_at']),
+        completedAt:
+            json['completed_at'] == null
+                ? undefined
+                : new Date(json['completed_at']),
+        expiresAt:
+            json['expires_at'] == null
+                ? undefined
+                : new Date(json['expires_at']),
+        downloadUrl:
+            json['download_url'] == null ? undefined : json['download_url'],
+        errorMessage:
+            json['error_message'] == null ? undefined : json['error_message'],
     };
 }
 
@@ -142,23 +152,30 @@ export function ExportRequestToJSON(json: any): ExportRequest {
     return ExportRequestToJSONTyped(json, false);
 }
 
-export function ExportRequestToJSONTyped(value?: ExportRequest | null, ignoreDiscriminator: boolean = false): any {
+export function ExportRequestToJSONTyped(
+    value?: ExportRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'type': value['type'],
-        'status': value['status'],
-        'filters': value['filters'],
-        'requested_by': ExportRequestRequestedByToJSON(value['requestedBy']),
-        'created_at': value['createdAt'].toISOString(),
-        'completed_at': value['completedAt'] == null ? value['completedAt'] : value['completedAt'].toISOString(),
-        'expires_at': value['expiresAt'] == null ? value['expiresAt'] : value['expiresAt'].toISOString(),
-        'download_url': value['downloadUrl'],
-        'error_message': value['errorMessage'],
+        id: value['id'],
+        type: value['type'],
+        status: value['status'],
+        filters: value['filters'],
+        requested_by: ExportRequestRequestedByToJSON(value['requestedBy']),
+        created_at: value['createdAt'].toISOString(),
+        completed_at:
+            value['completedAt'] == null
+                ? value['completedAt']
+                : value['completedAt'].toISOString(),
+        expires_at:
+            value['expiresAt'] == null
+                ? value['expiresAt']
+                : value['expiresAt'].toISOString(),
+        download_url: value['downloadUrl'],
+        error_message: value['errorMessage'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RfqInvitation } from './RfqInvitation';
-import {
-    RfqInvitationFromJSON,
-    RfqInvitationFromJSONTyped,
-    RfqInvitationToJSON,
-    RfqInvitationToJSONTyped,
-} from './RfqInvitation';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
+import type { RfqInvitation } from './RfqInvitation';
+import { RfqInvitationFromJSON, RfqInvitationToJSON } from './RfqInvitation';
 
 /**
- * 
+ *
  * @export
  * @interface ListRfqInvitations200ResponseAllOfData
  */
 export interface ListRfqInvitations200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<RfqInvitation>}
      * @memberof ListRfqInvitations200ResponseAllOfData
      */
     items: Array<RfqInvitation>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof ListRfqInvitations200ResponseAllOfData
      */
@@ -51,40 +40,49 @@ export interface ListRfqInvitations200ResponseAllOfData {
 /**
  * Check if a given object implements the ListRfqInvitations200ResponseAllOfData interface.
  */
-export function instanceOfListRfqInvitations200ResponseAllOfData(value: object): value is ListRfqInvitations200ResponseAllOfData {
+export function instanceOfListRfqInvitations200ResponseAllOfData(
+    value: object,
+): value is ListRfqInvitations200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function ListRfqInvitations200ResponseAllOfDataFromJSON(json: any): ListRfqInvitations200ResponseAllOfData {
+export function ListRfqInvitations200ResponseAllOfDataFromJSON(
+    json: any,
+): ListRfqInvitations200ResponseAllOfData {
     return ListRfqInvitations200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListRfqInvitations200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRfqInvitations200ResponseAllOfData {
+export function ListRfqInvitations200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRfqInvitations200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(RfqInvitationFromJSON)),
-        'meta': PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(RfqInvitationFromJSON),
+        meta: PageMetaFromJSON(json['meta']),
     };
 }
 
-export function ListRfqInvitations200ResponseAllOfDataToJSON(json: any): ListRfqInvitations200ResponseAllOfData {
+export function ListRfqInvitations200ResponseAllOfDataToJSON(
+    json: any,
+): ListRfqInvitations200ResponseAllOfData {
     return ListRfqInvitations200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListRfqInvitations200ResponseAllOfDataToJSONTyped(value?: ListRfqInvitations200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListRfqInvitations200ResponseAllOfDataToJSONTyped(
+    value?: ListRfqInvitations200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(RfqInvitationToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(RfqInvitationToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

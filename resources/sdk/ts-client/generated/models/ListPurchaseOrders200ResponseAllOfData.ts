@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { PurchaseOrder } from './PurchaseOrder';
-import {
-    PurchaseOrderFromJSON,
-    PurchaseOrderFromJSONTyped,
-    PurchaseOrderToJSON,
-    PurchaseOrderToJSONTyped,
-} from './PurchaseOrder';
+import { PurchaseOrderFromJSON, PurchaseOrderToJSON } from './PurchaseOrder';
 
 /**
- * 
+ *
  * @export
  * @interface ListPurchaseOrders200ResponseAllOfData
  */
 export interface ListPurchaseOrders200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<PurchaseOrder>}
      * @memberof ListPurchaseOrders200ResponseAllOfData
      */
     items: Array<PurchaseOrder>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof ListPurchaseOrders200ResponseAllOfData
      */
@@ -51,40 +40,49 @@ export interface ListPurchaseOrders200ResponseAllOfData {
 /**
  * Check if a given object implements the ListPurchaseOrders200ResponseAllOfData interface.
  */
-export function instanceOfListPurchaseOrders200ResponseAllOfData(value: object): value is ListPurchaseOrders200ResponseAllOfData {
+export function instanceOfListPurchaseOrders200ResponseAllOfData(
+    value: object,
+): value is ListPurchaseOrders200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function ListPurchaseOrders200ResponseAllOfDataFromJSON(json: any): ListPurchaseOrders200ResponseAllOfData {
+export function ListPurchaseOrders200ResponseAllOfDataFromJSON(
+    json: any,
+): ListPurchaseOrders200ResponseAllOfData {
     return ListPurchaseOrders200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListPurchaseOrders200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListPurchaseOrders200ResponseAllOfData {
+export function ListPurchaseOrders200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListPurchaseOrders200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(PurchaseOrderFromJSON)),
-        'meta': PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(PurchaseOrderFromJSON),
+        meta: PageMetaFromJSON(json['meta']),
     };
 }
 
-export function ListPurchaseOrders200ResponseAllOfDataToJSON(json: any): ListPurchaseOrders200ResponseAllOfData {
+export function ListPurchaseOrders200ResponseAllOfDataToJSON(
+    json: any,
+): ListPurchaseOrders200ResponseAllOfData {
     return ListPurchaseOrders200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListPurchaseOrders200ResponseAllOfDataToJSONTyped(value?: ListPurchaseOrders200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListPurchaseOrders200ResponseAllOfDataToJSONTyped(
+    value?: ListPurchaseOrders200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(PurchaseOrderToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(PurchaseOrderToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

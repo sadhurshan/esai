@@ -1,19 +1,65 @@
-import { AlertTriangle, CheckCircle2, Clock9, FileText, RefreshCcw, Send, XCircle } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import {
+    AlertTriangle,
+    CheckCircle2,
+    Clock9,
+    FileText,
+    RefreshCcw,
+    Send,
+    XCircle,
+} from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { PurchaseOrderEvent } from '@/types/sourcing';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 
-const EVENT_ICON_MAP: Array<{ matcher: (type?: string) => boolean; icon: React.ComponentType<{ className?: string }>; color: string }> = [
-    { matcher: (type) => (type ?? '').includes('created'), icon: FileText, color: 'text-foreground' },
-    { matcher: (type) => (type ?? '').includes('recalculated'), icon: RefreshCcw, color: 'text-foreground' },
-    { matcher: (type) => (type ?? '').includes('delivery') && (type ?? '').includes('failed'), icon: AlertTriangle, color: 'text-destructive' },
-    { matcher: (type) => (type ?? '').includes('delivery') || (type ?? '').includes('sent'), icon: Send, color: 'text-primary' },
-    { matcher: (type) => (type ?? '').includes('ack') || (type ?? '').includes('acknowledge'), icon: CheckCircle2, color: 'text-emerald-600' },
-    { matcher: (type) => (type ?? '').includes('decline') || (type ?? '').includes('reject'), icon: XCircle, color: 'text-destructive' },
-    { matcher: (type) => (type ?? '').includes('invoice'), icon: FileText, color: 'text-sky-600' },
+const EVENT_ICON_MAP: Array<{
+    matcher: (type?: string) => boolean;
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+}> = [
+    {
+        matcher: (type) => (type ?? '').includes('created'),
+        icon: FileText,
+        color: 'text-foreground',
+    },
+    {
+        matcher: (type) => (type ?? '').includes('recalculated'),
+        icon: RefreshCcw,
+        color: 'text-foreground',
+    },
+    {
+        matcher: (type) =>
+            (type ?? '').includes('delivery') &&
+            (type ?? '').includes('failed'),
+        icon: AlertTriangle,
+        color: 'text-destructive',
+    },
+    {
+        matcher: (type) =>
+            (type ?? '').includes('delivery') || (type ?? '').includes('sent'),
+        icon: Send,
+        color: 'text-primary',
+    },
+    {
+        matcher: (type) =>
+            (type ?? '').includes('ack') ||
+            (type ?? '').includes('acknowledge'),
+        icon: CheckCircle2,
+        color: 'text-emerald-600',
+    },
+    {
+        matcher: (type) =>
+            (type ?? '').includes('decline') || (type ?? '').includes('reject'),
+        icon: XCircle,
+        color: 'text-destructive',
+    },
+    {
+        matcher: (type) => (type ?? '').includes('invoice'),
+        icon: FileText,
+        color: 'text-sky-600',
+    },
 ];
 
 function resolveIcon(type?: string) {
@@ -21,7 +67,9 @@ function resolveIcon(type?: string) {
     return match ?? { icon: Clock9, color: 'text-muted-foreground' };
 }
 
-function formatTimestamp(value?: string | null): { relative: string; absolute: string } | null {
+function formatTimestamp(
+    value?: string | null,
+): { relative: string; absolute: string } | null {
     if (!value) {
         return null;
     }
@@ -44,7 +92,12 @@ export interface PoActivityTimelineProps {
     onRetry?: () => void;
 }
 
-export function PoActivityTimeline({ events, isLoading, error, onRetry }: PoActivityTimelineProps) {
+export function PoActivityTimeline({
+    events,
+    isLoading,
+    error,
+    onRetry,
+}: PoActivityTimelineProps) {
     if (isLoading) {
         return (
             <div className="space-y-4">
@@ -64,8 +117,15 @@ export function PoActivityTimeline({ events, isLoading, error, onRetry }: PoActi
     if (error) {
         return (
             <div className="flex flex-col gap-3 text-sm">
-                <p className="text-muted-foreground">Unable to load the latest activity.</p>
-                <Button variant="outline" size="sm" className="w-fit" onClick={onRetry}>
+                <p className="text-muted-foreground">
+                    Unable to load the latest activity.
+                </p>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-fit"
+                    onClick={onRetry}
+                >
                     Retry
                 </Button>
             </div>
@@ -73,19 +133,29 @@ export function PoActivityTimeline({ events, isLoading, error, onRetry }: PoActi
     }
 
     if (!events || events.length === 0) {
-        return <p className="text-sm text-muted-foreground">No timeline entries yet.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                No timeline entries yet.
+            </p>
+        );
     }
 
     const sorted = [...events].sort((left, right) => {
-        const leftDate = new Date(left.occurredAt ?? left.createdAt ?? 0).getTime();
-        const rightDate = new Date(right.occurredAt ?? right.createdAt ?? 0).getTime();
+        const leftDate = new Date(
+            left.occurredAt ?? left.createdAt ?? 0,
+        ).getTime();
+        const rightDate = new Date(
+            right.occurredAt ?? right.createdAt ?? 0,
+        ).getTime();
         return rightDate - leftDate;
     });
 
     return (
         <ol className="relative space-y-6 border-l border-border/50 pl-6">
             {sorted.map((event) => {
-                const timestamp = formatTimestamp(event.occurredAt ?? event.createdAt);
+                const timestamp = formatTimestamp(
+                    event.occurredAt ?? event.createdAt,
+                );
                 const { icon: Icon, color } = resolveIcon(event.type);
                 return (
                     <li key={event.id} className="space-y-1">
@@ -97,12 +167,18 @@ export function PoActivityTimeline({ events, isLoading, error, onRetry }: PoActi
                         >
                             <Icon className="h-3.5 w-3.5" />
                         </span>
-                        <div className="text-sm font-semibold text-foreground">{event.summary ?? event.type ?? 'Event'}</div>
+                        <div className="text-sm font-semibold text-foreground">
+                            {event.summary ?? event.type ?? 'Event'}
+                        </div>
                         {event.description ? (
-                            <p className="text-sm text-muted-foreground">{event.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                                {event.description}
+                            </p>
                         ) : null}
                         {event.actor?.name ? (
-                            <p className="text-xs text-muted-foreground">By {event.actor.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                By {event.actor.name}
+                            </p>
                         ) : null}
                         {timestamp ? (
                             <p className="text-xs text-muted-foreground">

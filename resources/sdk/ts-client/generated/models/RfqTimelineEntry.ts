@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,17 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RfqTimelineEntryAllOfActor } from './RfqTimelineEntryAllOfActor';
 import {
     RfqTimelineEntryAllOfActorFromJSON,
-    RfqTimelineEntryAllOfActorFromJSONTyped,
     RfqTimelineEntryAllOfActorToJSON,
-    RfqTimelineEntryAllOfActorToJSONTyped,
 } from './RfqTimelineEntryAllOfActor';
 
 /**
- * 
+ *
  * @export
  * @interface RfqTimelineEntry
  */
@@ -52,7 +49,7 @@ export interface RfqTimelineEntry {
      */
     event: string;
     /**
-     * 
+     *
      * @type {RfqTimelineEntryAllOfActor}
      * @memberof RfqTimelineEntry
      */
@@ -68,7 +65,9 @@ export interface RfqTimelineEntry {
 /**
  * Check if a given object implements the RfqTimelineEntry interface.
  */
-export function instanceOfRfqTimelineEntry(value: object): value is RfqTimelineEntry {
+export function instanceOfRfqTimelineEntry(
+    value: object,
+): value is RfqTimelineEntry {
     if (!('event' in value) || value['event'] === undefined) return false;
     return true;
 }
@@ -77,18 +76,32 @@ export function RfqTimelineEntryFromJSON(json: any): RfqTimelineEntry {
     return RfqTimelineEntryFromJSONTyped(json, false);
 }
 
-export function RfqTimelineEntryFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqTimelineEntry {
+export function RfqTimelineEntryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqTimelineEntry {
     if (json == null) {
         return json;
     }
     return {
-        
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
-        'deletedAt': json['deleted_at'] == null ? undefined : (new Date(json['deleted_at'])),
-        'event': json['event'],
-        'actor': json['actor'] == null ? undefined : RfqTimelineEntryAllOfActorFromJSON(json['actor']),
-        'context': json['context'] == null ? undefined : json['context'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
+        deletedAt:
+            json['deleted_at'] == null
+                ? undefined
+                : new Date(json['deleted_at']),
+        event: json['event'],
+        actor:
+            json['actor'] == null
+                ? undefined
+                : RfqTimelineEntryAllOfActorFromJSON(json['actor']),
+        context: json['context'] == null ? undefined : json['context'],
     };
 }
 
@@ -96,19 +109,29 @@ export function RfqTimelineEntryToJSON(json: any): RfqTimelineEntry {
     return RfqTimelineEntryToJSONTyped(json, false);
 }
 
-export function RfqTimelineEntryToJSONTyped(value?: RfqTimelineEntry | null, ignoreDiscriminator: boolean = false): any {
+export function RfqTimelineEntryToJSONTyped(
+    value?: RfqTimelineEntry | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
-        'deleted_at': value['deletedAt'] == null ? value['deletedAt'] : value['deletedAt'].toISOString(),
-        'event': value['event'],
-        'actor': RfqTimelineEntryAllOfActorToJSON(value['actor']),
-        'context': value['context'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
+        deleted_at:
+            value['deletedAt'] == null
+                ? value['deletedAt']
+                : value['deletedAt'].toISOString(),
+        event: value['event'],
+        actor: RfqTimelineEntryAllOfActorToJSON(value['actor']),
+        context: value['context'],
     };
 }
-

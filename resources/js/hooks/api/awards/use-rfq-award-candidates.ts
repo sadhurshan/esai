@@ -1,8 +1,11 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { RFQsApi } from '@/sdk';
 import type {
     ListRfqAwardCandidates200ResponseAllOfData,
     ListRfqAwardCandidates200ResponseAllOfDataMeta,
@@ -10,8 +13,12 @@ import type {
     RfqAwardCandidateLine,
     RfqItemAwardSummary,
 } from '@/sdk';
+import { RFQsApi } from '@/sdk';
 
-export type UseRfqAwardCandidatesResult = UseQueryResult<ListRfqAwardCandidates200ResponseAllOfData, unknown> & {
+export type UseRfqAwardCandidatesResult = UseQueryResult<
+    ListRfqAwardCandidates200ResponseAllOfData,
+    unknown
+> & {
     rfq?: ListRfqAwardCandidates200ResponseAllOfDataRfq;
     companyCurrency?: string;
     lines: RfqAwardCandidateLine[];
@@ -19,7 +26,9 @@ export type UseRfqAwardCandidatesResult = UseQueryResult<ListRfqAwardCandidates2
     meta?: ListRfqAwardCandidates200ResponseAllOfDataMeta;
 };
 
-export function useRfqAwardCandidates(rfqId: number): UseRfqAwardCandidatesResult {
+export function useRfqAwardCandidates(
+    rfqId: number,
+): UseRfqAwardCandidatesResult {
     const rfqsApi = useSdkClient(RFQsApi);
 
     const query = useQuery<ListRfqAwardCandidates200ResponseAllOfData>({

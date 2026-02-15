@@ -1,6 +1,3 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link, useNavigate, type NavigateFunction } from 'react-router-dom';
 import {
     ArrowRight,
     FileText,
@@ -10,30 +7,50 @@ import {
     ShieldAlert,
     Sparkles,
 } from 'lucide-react';
+import { useEffect, useMemo, type ReactNode } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { Link, useNavigate, type NavigateFunction } from 'react-router-dom';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { useDigitalTwins, useUseForRfq } from '@/hooks/api/digital-twins';
 import type { CursorPaginationMeta } from '@/lib/pagination';
-import type { DigitalTwinCategoryNode, DigitalTwinLibraryListItem } from '@/sdk';
+import type {
+    DigitalTwinCategoryNode,
+    DigitalTwinLibraryListItem,
+} from '@/sdk';
 
-const DIGITAL_TWIN_FEATURE_KEYS = ['digital_twin_enabled', 'digital_twin.access'];
+const DIGITAL_TWIN_FEATURE_KEYS = [
+    'digital_twin_enabled',
+    'digital_twin.access',
+];
 const SUPPLIER_ROLE_PREFIX = 'supplier_';
 
 export function AssetsPage() {
     const navigate = useNavigate();
     const { hasFeature, state, notifyPlanLimit } = useAuth();
 
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const hasDigitalTwinAccess = DIGITAL_TWIN_FEATURE_KEYS.some((key) => hasFeature(key));
-    const isSupplierRole = (state.user?.role ?? '').startsWith(SUPPLIER_ROLE_PREFIX);
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
+    const hasDigitalTwinAccess = DIGITAL_TWIN_FEATURE_KEYS.some((key) =>
+        hasFeature(key),
+    );
+    const isSupplierRole = (state.user?.role ?? '').startsWith(
+        SUPPLIER_ROLE_PREFIX,
+    );
 
     useEffect(() => {
         if (featureFlagsLoaded && !hasDigitalTwinAccess) {
@@ -51,7 +68,8 @@ export function AssetsPage() {
             includeCategories: true,
         },
         {
-            enabled: featureFlagsLoaded && hasDigitalTwinAccess && !isSupplierRole,
+            enabled:
+                featureFlagsLoaded && hasDigitalTwinAccess && !isSupplierRole,
         },
     );
 
@@ -62,7 +80,8 @@ export function AssetsPage() {
                 publishToast({
                     variant: 'destructive',
                     title: 'Unable to open RFQ wizard',
-                    description: 'The server response was missing the digital twin draft.',
+                    description:
+                        'The server response was missing the digital twin draft.',
                 });
                 return;
             }
@@ -70,7 +89,8 @@ export function AssetsPage() {
             publishToast({
                 variant: 'success',
                 title: 'Draft ready',
-                description: 'Launching the RFQ wizard with this twin attached.',
+                description:
+                    'Launching the RFQ wizard with this twin attached.',
             });
 
             navigate('/app/rfqs/new', {
@@ -81,27 +101,50 @@ export function AssetsPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to use digital twin',
-                description: 'Try again in a few seconds or open the library detail page.',
+                description:
+                    'Try again in a few seconds or open the library detail page.',
             });
         },
     });
 
     const totalPublished = useMemo(() => {
-        return resolveMetaNumber(twinsQuery.meta, [
-            ['totals', 'digital_twins'],
-            ['totals', 'items'],
-            ['total'],
-            ['count'],
-        ], twinsQuery.items.length);
+        return resolveMetaNumber(
+            twinsQuery.meta,
+            [
+                ['totals', 'digital_twins'],
+                ['totals', 'items'],
+                ['total'],
+                ['count'],
+            ],
+            twinsQuery.items.length,
+        );
     }, [twinsQuery.meta, twinsQuery.items.length]);
 
-    const cadReadyCount = useMemo(() => countWithAssetType(twinsQuery.items, 'CAD'), [twinsQuery.items]);
-    const activeCategories = useMemo(() => flattenCategories(twinsQuery.categories).length, [twinsQuery.categories]);
+    const cadReadyCount = useMemo(
+        () => countWithAssetType(twinsQuery.items, 'CAD'),
+        [twinsQuery.items],
+    );
+    const activeCategories = useMemo(
+        () => flattenCategories(twinsQuery.categories).length,
+        [twinsQuery.categories],
+    );
 
-    const spotlightTwins = useMemo(() => twinsQuery.items.slice(0, 6), [twinsQuery.items]);
-    const cadSpotlights = useMemo(() => selectWithAssetType(twinsQuery.items, 'CAD', 3), [twinsQuery.items]);
-    const docBundles = useMemo(() => selectWithAssetType(twinsQuery.items, 'PDF', 3), [twinsQuery.items]);
-    const topCategories = useMemo(() => flattenCategories(twinsQuery.categories).slice(0, 6), [twinsQuery.categories]);
+    const spotlightTwins = useMemo(
+        () => twinsQuery.items.slice(0, 6),
+        [twinsQuery.items],
+    );
+    const cadSpotlights = useMemo(
+        () => selectWithAssetType(twinsQuery.items, 'CAD', 3),
+        [twinsQuery.items],
+    );
+    const docBundles = useMemo(
+        () => selectWithAssetType(twinsQuery.items, 'PDF', 3),
+        [twinsQuery.items],
+    );
+    const topCategories = useMemo(
+        () => flattenCategories(twinsQuery.categories).slice(0, 6),
+        [twinsQuery.categories],
+    );
 
     if (isSupplierRole) {
         return (
@@ -132,7 +175,9 @@ export function AssetsPage() {
                     description="Growth plans and above include the curated twin library, CAD bundles, and RFQ prefills."
                     icon={<ShieldAlert className="h-12 w-12 text-amber-500" />}
                     ctaLabel="View billing options"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </section>
         );
@@ -148,17 +193,32 @@ export function AssetsPage() {
 
             <header className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Assets</p>
-                    <h1 className="text-3xl font-semibold tracking-tight">Digital Twin Workspace</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Assets
+                    </p>
+                    <h1 className="text-3xl font-semibold tracking-tight">
+                        Digital Twin Workspace
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Keep specs, CAD, manuals, and sourcing context synchronized for every mission-critical asset.
+                        Keep specs, CAD, manuals, and sourcing context
+                        synchronized for every mission-critical asset.
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => twinsQuery.refetch()} disabled={twinsQuery.isFetching}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => twinsQuery.refetch()}
+                        disabled={twinsQuery.isFetching}
+                    >
                         <RefreshCw className="mr-2 h-4 w-4" /> Refresh
                     </Button>
-                    <Button type="button" size="sm" onClick={() => navigate('/app/rfqs/new')}>
+                    <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => navigate('/app/rfqs/new')}
+                    >
                         <Sparkles className="mr-2 h-4 w-4" /> Launch RFQ
                     </Button>
                 </div>
@@ -167,9 +227,21 @@ export function AssetsPage() {
             <StatGrid
                 isLoading={twinsQuery.isLoading}
                 stats={[
-                    { label: 'Published twins', value: totalPublished, description: 'Curated + audit ready.' },
-                    { label: 'CAD ready bundles', value: cadReadyCount, description: 'STEP / CAD attachments available.' },
-                    { label: 'Active categories', value: activeCategories, description: 'Asset families mapped by Ops.' },
+                    {
+                        label: 'Published twins',
+                        value: totalPublished,
+                        description: 'Curated + audit ready.',
+                    },
+                    {
+                        label: 'CAD ready bundles',
+                        value: cadReadyCount,
+                        description: 'STEP / CAD attachments available.',
+                    },
+                    {
+                        label: 'Active categories',
+                        value: activeCategories,
+                        description: 'Asset families mapped by Ops.',
+                    },
                 ]}
             />
 
@@ -180,17 +252,25 @@ export function AssetsPage() {
                     <CardHeader className="flex flex-row items-start justify-between gap-3 pb-2">
                         <div>
                             <CardTitle>Spotlight digital twins</CardTitle>
-                            <p className="text-sm text-muted-foreground">Recently updated releases from the Elements curation team.</p>
+                            <p className="text-sm text-muted-foreground">
+                                Recently updated releases from the Elements
+                                curation team.
+                            </p>
                         </div>
                         <Button asChild variant="ghost" size="sm">
-                            <Link to="/app/library/digital-twins">Browse library</Link>
+                            <Link to="/app/library/digital-twins">
+                                Browse library
+                            </Link>
                         </Button>
                     </CardHeader>
                     <CardContent>
                         {twinsQuery.isLoading ? (
                             <div className="grid gap-4 md:grid-cols-2">
                                 {Array.from({ length: 4 }).map((_, index) => (
-                                    <Skeleton key={index} className="h-48 w-full" />
+                                    <Skeleton
+                                        key={index}
+                                        className="h-48 w-full"
+                                    />
                                 ))}
                             </div>
                         ) : spotlightTwins.length === 0 ? (
@@ -198,9 +278,14 @@ export function AssetsPage() {
                                 className="border-none bg-transparent"
                                 title="No published digital twins yet"
                                 description="Work with the Elements team to onboard your first asset pack."
-                                icon={<Layers className="h-12 w-12 text-muted-foreground" />}
+                                icon={
+                                    <Layers className="h-12 w-12 text-muted-foreground" />
+                                }
                                 ctaLabel="Contact support"
-                                ctaProps={{ onClick: () => navigate('/app/settings?tab=help') }}
+                                ctaProps={{
+                                    onClick: () =>
+                                        navigate('/app/settings?tab=help'),
+                                }}
                             />
                         ) : (
                             <div className="grid gap-4 md:grid-cols-2">
@@ -208,8 +293,16 @@ export function AssetsPage() {
                                     <TwinSpotlightCard
                                         key={twin.id}
                                         twin={twin}
-                                        onView={() => navigate(`/app/library/digital-twins/${twin.id}`)}
-                                        onUse={() => useForRfq.mutate({ digitalTwinId: twin.id })}
+                                        onView={() =>
+                                            navigate(
+                                                `/app/library/digital-twins/${twin.id}`,
+                                            )
+                                        }
+                                        onUse={() =>
+                                            useForRfq.mutate({
+                                                digitalTwinId: twin.id,
+                                            })
+                                        }
                                         isUsing={useForRfq.isPending}
                                     />
                                 ))}
@@ -221,13 +314,19 @@ export function AssetsPage() {
                 <Card className="border-border/70">
                     <CardHeader className="gap-2 pb-2">
                         <CardTitle>Active asset families</CardTitle>
-                        <p className="text-sm text-muted-foreground">Jump straight into a filtered library view for your top programs.</p>
+                        <p className="text-sm text-muted-foreground">
+                            Jump straight into a filtered library view for your
+                            top programs.
+                        </p>
                     </CardHeader>
                     <CardContent>
                         {twinsQuery.isLoading ? (
                             <div className="space-y-2">
                                 {Array.from({ length: 5 }).map((_, index) => (
-                                    <Skeleton key={index} className="h-10 w-full" />
+                                    <Skeleton
+                                        key={index}
+                                        className="h-10 w-full"
+                                    />
                                 ))}
                             </div>
                         ) : topCategories.length === 0 ? (
@@ -235,7 +334,9 @@ export function AssetsPage() {
                                 className="border-none bg-transparent"
                                 title="No categories yet"
                                 description="Categories appear after the first batch of digital twins is published."
-                                icon={<Layers className="h-10 w-10 text-muted-foreground" />}
+                                icon={
+                                    <Layers className="h-10 w-10 text-muted-foreground" />
+                                }
                             />
                         ) : (
                             <div className="flex flex-wrap gap-2">
@@ -245,8 +346,13 @@ export function AssetsPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
-                                            const params = new URLSearchParams({ categoryId: category.id.toString() });
-                                            navigate(`/app/library/digital-twins?${params.toString()}`);
+                                            const params = new URLSearchParams({
+                                                categoryId:
+                                                    category.id.toString(),
+                                            });
+                                            navigate(
+                                                `/app/library/digital-twins?${params.toString()}`,
+                                            );
                                         }}
                                     >
                                         {category.name}
@@ -268,7 +374,9 @@ export function AssetsPage() {
                     isLoading={twinsQuery.isLoading}
                     emptyDescription="No CAD-ready bundles yet. Tag uploads with CAD to feature them here."
                     navigate={navigate}
-                    onUse={(twinId) => useForRfq.mutate({ digitalTwinId: twinId })}
+                    onUse={(twinId) =>
+                        useForRfq.mutate({ digitalTwinId: twinId })
+                    }
                     isUsing={useForRfq.isPending}
                 />
                 <AssetBundlePanel
@@ -279,7 +387,9 @@ export function AssetsPage() {
                     isLoading={twinsQuery.isLoading}
                     emptyDescription="Upload PDF/IMAGE assets to surface manuals here."
                     navigate={navigate}
-                    onUse={(twinId) => useForRfq.mutate({ digitalTwinId: twinId })}
+                    onUse={(twinId) =>
+                        useForRfq.mutate({ digitalTwinId: twinId })
+                    }
                     isUsing={useForRfq.isPending}
                 />
             </section>
@@ -298,13 +408,19 @@ function StatGrid({ stats, isLoading }: StatGridProps) {
             {stats.map((stat) => (
                 <Card key={stat.label} className="border-border/70">
                     <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">{stat.label}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {stat.label}
+                        </p>
                         {isLoading ? (
                             <Skeleton className="mt-2 h-7 w-24" />
                         ) : (
-                            <p className="mt-1 text-3xl font-semibold">{stat.value}</p>
+                            <p className="mt-1 text-3xl font-semibold">
+                                {stat.value}
+                            </p>
                         )}
-                        <p className="text-xs text-muted-foreground">{stat.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                            {stat.description}
+                        </p>
                     </CardContent>
                 </Card>
             ))}
@@ -317,7 +433,9 @@ function QuickActions({ navigate }: { navigate: NavigateFunction }) {
         <Card className="border-border/70">
             <CardHeader className="gap-2 pb-2">
                 <CardTitle>Workspace shortcuts</CardTitle>
-                <p className="text-sm text-muted-foreground">Go from spec to RFQ or pull manuals with two clicks.</p>
+                <p className="text-sm text-muted-foreground">
+                    Go from spec to RFQ or pull manuals with two clicks.
+                </p>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-3">
                 <ActionTile
@@ -373,21 +491,34 @@ interface TwinSpotlightCardProps {
     isUsing: boolean;
 }
 
-function TwinSpotlightCard({ twin, onUse, onView, isUsing }: TwinSpotlightCardProps) {
+function TwinSpotlightCard({
+    twin,
+    onUse,
+    onView,
+    isUsing,
+}: TwinSpotlightCardProps) {
     const assetLabel = twin.primary_asset?.type ?? twin.asset_types?.[0];
 
     return (
         <Card className="h-full overflow-hidden border-border/70">
             <div className="relative h-32 w-full bg-muted">
                 {twin.thumbnail_url ? (
-                    <img src={twin.thumbnail_url} alt={`${twin.title} thumbnail`} className="h-full w-full object-cover" loading="lazy" />
+                    <img
+                        src={twin.thumbnail_url}
+                        alt={`${twin.title} thumbnail`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                    />
                 ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
                         <ImageIcon className="h-10 w-10" />
                     </div>
                 )}
                 {assetLabel && (
-                    <Badge variant="secondary" className="absolute left-3 top-3 text-[11px]">
+                    <Badge
+                        variant="secondary"
+                        className="absolute top-3 left-3 text-[11px]"
+                    >
                         {assetLabel}
                     </Badge>
                 )}
@@ -395,13 +526,26 @@ function TwinSpotlightCard({ twin, onUse, onView, isUsing }: TwinSpotlightCardPr
             <CardHeader className="gap-2">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {twin.category?.name && <span>{twin.category.name}</span>}
-                    {twin.version && <span className="rounded-full border px-2 py-0.5 text-[11px]">v{twin.version}</span>}
+                    {twin.version && (
+                        <span className="rounded-full border px-2 py-0.5 text-[11px]">
+                            v{twin.version}
+                        </span>
+                    )}
                 </div>
                 <CardTitle className="text-base">{twin.title}</CardTitle>
-                {twin.summary && <p className="text-sm text-muted-foreground line-clamp-2">{twin.summary}</p>}
+                {twin.summary && (
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                        {twin.summary}
+                    </p>
+                )}
             </CardHeader>
             <CardFooter className="flex flex-wrap gap-2">
-                <Button variant="secondary" size="sm" onClick={onUse} disabled={isUsing}>
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={onUse}
+                    disabled={isUsing}
+                >
                     Use for RFQ
                 </Button>
                 <Button variant="ghost" size="sm" onClick={onView}>
@@ -456,30 +600,59 @@ function AssetBundlePanel({
                         className="border-none bg-transparent"
                         title="Nothing to show yet"
                         description={emptyDescription}
-                        icon={<Layers className="h-10 w-10 text-muted-foreground" />}
+                        icon={
+                            <Layers className="h-10 w-10 text-muted-foreground" />
+                        }
                     />
                 ) : (
                     <div className="space-y-4">
                         {items.map((item) => (
-                            <div key={item.id} className="rounded-lg border border-border/60 p-4">
+                            <div
+                                key={item.id}
+                                className="rounded-lg border border-border/60 p-4"
+                            >
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
-                                        <p className="font-semibold text-foreground">{item.title}</p>
-                                        <p className="text-sm text-muted-foreground">{item.category?.name ?? 'Uncategorized'}</p>
+                                        <p className="font-semibold text-foreground">
+                                            {item.title}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {item.category?.name ??
+                                                'Uncategorized'}
+                                        </p>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {(item.asset_types ?? []).slice(0, 3).map((type) => (
-                                            <Badge key={`${item.id}-${type}`} variant="outline" className="text-[11px] uppercase">
-                                                {type}
-                                            </Badge>
-                                        ))}
+                                        {(item.asset_types ?? [])
+                                            .slice(0, 3)
+                                            .map((type) => (
+                                                <Badge
+                                                    key={`${item.id}-${type}`}
+                                                    variant="outline"
+                                                    className="text-[11px] uppercase"
+                                                >
+                                                    {type}
+                                                </Badge>
+                                            ))}
                                     </div>
                                 </div>
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <Button variant="secondary" size="sm" onClick={() => onUse(item.id)} disabled={isUsing}>
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => onUse(item.id)}
+                                        disabled={isUsing}
+                                    >
                                         Use for RFQ
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => navigate(`/app/library/digital-twins/${item.id}`)}>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            navigate(
+                                                `/app/library/digital-twins/${item.id}`,
+                                            )
+                                        }
+                                    >
                                         View detail
                                     </Button>
                                 </div>
@@ -492,7 +665,9 @@ function AssetBundlePanel({
     );
 }
 
-function flattenCategories(nodes: DigitalTwinCategoryNode[] | undefined): Array<{ id: number; name: string }> {
+function flattenCategories(
+    nodes: DigitalTwinCategoryNode[] | undefined,
+): Array<{ id: number; name: string }> {
     if (!nodes || nodes.length === 0) {
         return [];
     }
@@ -503,20 +678,32 @@ function flattenCategories(nodes: DigitalTwinCategoryNode[] | undefined): Array<
     ]);
 }
 
-function countWithAssetType(items: DigitalTwinLibraryListItem[], type: string): number {
+function countWithAssetType(
+    items: DigitalTwinLibraryListItem[],
+    type: string,
+): number {
     const normalized = type.toUpperCase();
     return items.filter((item) => hasAssetType(item, normalized)).length;
 }
 
-function selectWithAssetType(items: DigitalTwinLibraryListItem[], type: string, limit: number): DigitalTwinLibraryListItem[] {
+function selectWithAssetType(
+    items: DigitalTwinLibraryListItem[],
+    type: string,
+    limit: number,
+): DigitalTwinLibraryListItem[] {
     const normalized = type.toUpperCase();
-    return items.filter((item) => hasAssetType(item, normalized)).slice(0, limit);
+    return items
+        .filter((item) => hasAssetType(item, normalized))
+        .slice(0, limit);
 }
 
 function hasAssetType(item: DigitalTwinLibraryListItem, type: string): boolean {
     const assetTypes = item.asset_types ?? [];
     const primaryType = item.primary_asset?.type;
-    return assetTypes.some((assetType) => assetType?.toUpperCase() === type) || primaryType?.toUpperCase() === type;
+    return (
+        assetTypes.some((assetType) => assetType?.toUpperCase() === type) ||
+        primaryType?.toUpperCase() === type
+    );
 }
 
 function resolveMetaNumber(

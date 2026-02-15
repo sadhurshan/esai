@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    type ReactNode,
+} from 'react';
 
 const STORAGE_KEY = 'esai.copilotWidget.open.v1';
 
@@ -13,16 +21,21 @@ interface CopilotWidgetContextValue {
     lastActionType: string | null;
     activeTab: string | null;
     errorCount: number;
+    toolErrorCount: number;
+    draftRejectCount: number;
     open: () => void;
     close: () => void;
     toggle: () => void;
     setLastActionType: (value: string | null) => void;
     setActiveTab: (value: string | null) => void;
-    incrementErrors: () => void;
+    incrementToolErrors: () => void;
+    incrementDraftRejects: () => void;
     resetErrors: () => void;
 }
 
-const CopilotWidgetContext = createContext<CopilotWidgetContextValue | undefined>(undefined);
+const CopilotWidgetContext = createContext<
+    CopilotWidgetContextValue | undefined
+>(undefined);
 
 const DEFAULT_STATE: StoredWidgetState = {
     isOpen: false,
@@ -69,11 +82,22 @@ interface CopilotWidgetProviderProps {
     children: ReactNode;
 }
 
-export function CopilotWidgetProvider({ children }: CopilotWidgetProviderProps) {
-    const [isOpen, setIsOpen] = useState<boolean>(() => readStoredState().isOpen);
-    const [lastActionType, setLastActionType] = useState<string | null>(() => readStoredState().lastActionType ?? null);
-    const [activeTab, setActiveTab] = useState<string | null>(() => readStoredState().activeTab ?? null);
-    const [errorCount, setErrorCount] = useState(0);
+export function CopilotWidgetProvider({
+    children,
+}: CopilotWidgetProviderProps) {
+    const [isOpen, setIsOpen] = useState<boolean>(
+        () => readStoredState().isOpen,
+    );
+    const [lastActionType, setLastActionType] = useState<string | null>(
+        () => readStoredState().lastActionType ?? null,
+    );
+    const [activeTab, setActiveTab] = useState<string | null>(
+        () => readStoredState().activeTab ?? null,
+    );
+    const [toolErrorCount, setToolErrorCount] = useState(0);
+    const [draftRejectCount, setDraftRejectCount] = useState(0);
+
+    const errorCount = toolErrorCount + draftRejectCount;
 
     useEffect(() => {
         writeStoredState({ isOpen, lastActionType, activeTab });
@@ -85,7 +109,11 @@ export function CopilotWidgetProvider({ children }: CopilotWidgetProviderProps) 
         }
 
         const handleStorage = (event: StorageEvent) => {
-            if (event.key !== STORAGE_KEY || event.newValue === event.oldValue || !event.newValue) {
+            if (
+                event.key !== STORAGE_KEY ||
+                event.newValue === event.oldValue ||
+                !event.newValue
+            ) {
                 return;
             }
 
@@ -139,7 +167,9 @@ export function CopilotWidgetProvider({ children }: CopilotWidgetProviderProps) 
             setIsOpen((prev) => !prev);
         };
 
-        window.addEventListener('keydown', handleToggleShortcut, { passive: false });
+        window.addEventListener('keydown', handleToggleShortcut, {
+            passive: false,
+        });
 
         return () => {
             window.removeEventListener('keydown', handleToggleShortcut);
@@ -149,33 +179,65 @@ export function CopilotWidgetProvider({ children }: CopilotWidgetProviderProps) 
     const open = useCallback(() => setIsOpen(true), []);
     const close = useCallback(() => setIsOpen(false), []);
     const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
-    const incrementErrors = useCallback(() => setErrorCount((value) => value + 1), []);
-    const resetErrors = useCallback(() => setErrorCount(0), []);
+    const incrementToolErrors = useCallback(
+        () => setToolErrorCount((value) => value + 1),
+        [],
+    );
+    const incrementDraftRejects = useCallback(
+        () => setDraftRejectCount((value) => value + 1),
+        [],
+    );
+    const resetErrors = useCallback(() => {
+        setToolErrorCount(0);
+        setDraftRejectCount(0);
+    }, []);
 
     const value = useMemo<CopilotWidgetContextValue>(() => {
         return {
             isOpen,
             lastActionType,
             activeTab,
-             errorCount,
+            errorCount,
+            toolErrorCount,
+            draftRejectCount,
             open,
             close,
             toggle,
             setLastActionType,
             setActiveTab,
-             incrementErrors,
-             resetErrors,
+            incrementToolErrors,
+            incrementDraftRejects,
+            resetErrors,
         };
-    }, [isOpen, lastActionType, activeTab, errorCount, open, close, toggle, incrementErrors, resetErrors]);
+    }, [
+        isOpen,
+        lastActionType,
+        activeTab,
+        errorCount,
+        toolErrorCount,
+        draftRejectCount,
+        open,
+        close,
+        toggle,
+        incrementToolErrors,
+        incrementDraftRejects,
+        resetErrors,
+    ]);
 
-    return <CopilotWidgetContext.Provider value={value}>{children}</CopilotWidgetContext.Provider>;
+    return (
+        <CopilotWidgetContext.Provider value={value}>
+            {children}
+        </CopilotWidgetContext.Provider>
+    );
 }
 
 export function useCopilotWidget(): CopilotWidgetContextValue {
     const context = useContext(CopilotWidgetContext);
 
     if (!context) {
-        throw new Error('useCopilotWidget must be used within a CopilotWidgetProvider');
+        throw new Error(
+            'useCopilotWidget must be used within a CopilotWidgetProvider',
+        );
     }
 
     return context;

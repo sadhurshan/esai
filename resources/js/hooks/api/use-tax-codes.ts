@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
@@ -26,7 +26,10 @@ interface UseTaxCodesOptions {
     enabled?: boolean;
 }
 
-export function useTaxCodes(params?: UseTaxCodesParams, options?: UseTaxCodesOptions): UseTaxCodesResult {
+export function useTaxCodes(
+    params?: UseTaxCodesParams,
+    options?: UseTaxCodesOptions,
+): UseTaxCodesResult {
     const moneyApi = useSdkClient(MoneyApi);
     const queryKey = queryKeys.money.taxCodes(params ?? {});
 
@@ -49,7 +52,10 @@ export function useTaxCodes(params?: UseTaxCodesParams, options?: UseTaxCodesOpt
         enabled: options?.enabled ?? true,
     });
 
-    const payload = useMemo<TaxCodeListPayload>(() => query.data ?? { items: [], meta: undefined }, [query.data]);
+    const payload = useMemo<TaxCodeListPayload>(
+        () => query.data ?? { items: [], meta: undefined },
+        [query.data],
+    );
 
     return {
         ...query,

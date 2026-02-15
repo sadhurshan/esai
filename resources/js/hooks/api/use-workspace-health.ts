@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { HealthApi } from '@/sdk';
 import { useSdkClient } from '@/contexts/api-client-context';
+import { HealthApi } from '@/sdk';
+import { useQuery } from '@tanstack/react-query';
 
 export function useWorkspaceHealth() {
     const client = useSdkClient(HealthApi);

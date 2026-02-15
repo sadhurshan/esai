@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,42 +12,37 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { AuthSessionCompany } from './AuthSessionCompany';
 import {
     AuthSessionCompanyFromJSON,
-    AuthSessionCompanyFromJSONTyped,
     AuthSessionCompanyToJSON,
-    AuthSessionCompanyToJSONTyped,
 } from './AuthSessionCompany';
 import type { AuthSessionUser } from './AuthSessionUser';
 import {
     AuthSessionUserFromJSON,
-    AuthSessionUserFromJSONTyped,
     AuthSessionUserToJSON,
-    AuthSessionUserToJSONTyped,
 } from './AuthSessionUser';
 
 /**
- * 
+ *
  * @export
  * @interface AuthRegister200ResponseAllOfData
  */
 export interface AuthRegister200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthRegister200ResponseAllOfData
      */
     token?: string;
     /**
-     * 
+     *
      * @type {AuthSessionUser}
      * @memberof AuthRegister200ResponseAllOfData
      */
     user?: AuthSessionUser;
     /**
-     * 
+     *
      * @type {AuthSessionCompany}
      * @memberof AuthRegister200ResponseAllOfData
      */
@@ -57,40 +52,55 @@ export interface AuthRegister200ResponseAllOfData {
 /**
  * Check if a given object implements the AuthRegister200ResponseAllOfData interface.
  */
-export function instanceOfAuthRegister200ResponseAllOfData(value: object): value is AuthRegister200ResponseAllOfData {
+export function instanceOfAuthRegister200ResponseAllOfData(
+    value: object,
+): value is AuthRegister200ResponseAllOfData {
     return true;
 }
 
-export function AuthRegister200ResponseAllOfDataFromJSON(json: any): AuthRegister200ResponseAllOfData {
+export function AuthRegister200ResponseAllOfDataFromJSON(
+    json: any,
+): AuthRegister200ResponseAllOfData {
     return AuthRegister200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AuthRegister200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthRegister200ResponseAllOfData {
+export function AuthRegister200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthRegister200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'token': json['token'] == null ? undefined : json['token'],
-        'user': json['user'] == null ? undefined : AuthSessionUserFromJSON(json['user']),
-        'company': json['company'] == null ? undefined : AuthSessionCompanyFromJSON(json['company']),
+        token: json['token'] == null ? undefined : json['token'],
+        user:
+            json['user'] == null
+                ? undefined
+                : AuthSessionUserFromJSON(json['user']),
+        company:
+            json['company'] == null
+                ? undefined
+                : AuthSessionCompanyFromJSON(json['company']),
     };
 }
 
-export function AuthRegister200ResponseAllOfDataToJSON(json: any): AuthRegister200ResponseAllOfData {
+export function AuthRegister200ResponseAllOfDataToJSON(
+    json: any,
+): AuthRegister200ResponseAllOfData {
     return AuthRegister200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AuthRegister200ResponseAllOfDataToJSONTyped(value?: AuthRegister200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AuthRegister200ResponseAllOfDataToJSONTyped(
+    value?: AuthRegister200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'token': value['token'],
-        'user': AuthSessionUserToJSON(value['user']),
-        'company': AuthSessionCompanyToJSON(value['company']),
+        token: value['token'],
+        user: AuthSessionUserToJSON(value['user']),
+        company: AuthSessionCompanyToJSON(value['company']),
     };
 }
-

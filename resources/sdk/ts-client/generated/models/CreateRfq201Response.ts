@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,68 +12,58 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 import type { Rfq } from './Rfq';
-import {
-    RfqFromJSON,
-    RfqFromJSONTyped,
-    RfqToJSON,
-    RfqToJSONTyped,
-} from './Rfq';
+import { RfqFromJSON, RfqToJSON } from './Rfq';
 
 /**
- * 
+ *
  * @export
  * @interface CreateRfq201Response
  */
 export interface CreateRfq201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfq201Response
      */
     status: CreateRfq201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfq201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {Rfq}
      * @memberof CreateRfq201Response
      */
     data: Rfq;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof CreateRfq201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const CreateRfq201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type CreateRfq201ResponseStatusEnum = typeof CreateRfq201ResponseStatusEnum[keyof typeof CreateRfq201ResponseStatusEnum];
-
+export type CreateRfq201ResponseStatusEnum =
+    (typeof CreateRfq201ResponseStatusEnum)[keyof typeof CreateRfq201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the CreateRfq201Response interface.
  */
-export function instanceOfCreateRfq201Response(value: object): value is CreateRfq201Response {
+export function instanceOfCreateRfq201Response(
+    value: object,
+): value is CreateRfq201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
@@ -83,16 +73,21 @@ export function CreateRfq201ResponseFromJSON(json: any): CreateRfq201Response {
     return CreateRfq201ResponseFromJSONTyped(json, false);
 }
 
-export function CreateRfq201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateRfq201Response {
+export function CreateRfq201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateRfq201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': RfqFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: RfqFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
@@ -100,17 +95,18 @@ export function CreateRfq201ResponseToJSON(json: any): CreateRfq201Response {
     return CreateRfq201ResponseToJSONTyped(json, false);
 }
 
-export function CreateRfq201ResponseToJSONTyped(value?: CreateRfq201Response | null, ignoreDiscriminator: boolean = false): any {
+export function CreateRfq201ResponseToJSONTyped(
+    value?: CreateRfq201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': RfqToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: RfqToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

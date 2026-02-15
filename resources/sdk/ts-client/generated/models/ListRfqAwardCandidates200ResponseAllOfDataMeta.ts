@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ListRfqAwardCandidates200ResponseAllOfDataMeta
  */
 export interface ListRfqAwardCandidates200ResponseAllOfDataMeta {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataMeta
      */
     quotes?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataMeta
      */
@@ -36,38 +35,53 @@ export interface ListRfqAwardCandidates200ResponseAllOfDataMeta {
 /**
  * Check if a given object implements the ListRfqAwardCandidates200ResponseAllOfDataMeta interface.
  */
-export function instanceOfListRfqAwardCandidates200ResponseAllOfDataMeta(value: object): value is ListRfqAwardCandidates200ResponseAllOfDataMeta {
+export function instanceOfListRfqAwardCandidates200ResponseAllOfDataMeta(
+    value: object,
+): value is ListRfqAwardCandidates200ResponseAllOfDataMeta {
     return true;
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSON(json: any): ListRfqAwardCandidates200ResponseAllOfDataMeta {
-    return ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSONTyped(json, false);
+export function ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSON(
+    json: any,
+): ListRfqAwardCandidates200ResponseAllOfDataMeta {
+    return ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRfqAwardCandidates200ResponseAllOfDataMeta {
+export function ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRfqAwardCandidates200ResponseAllOfDataMeta {
     if (json == null) {
         return json;
     }
     return {
-        
-        'quotes': json['quotes'] == null ? undefined : json['quotes'],
-        'suppliers': json['suppliers'] == null ? undefined : json['suppliers'],
+        quotes: json['quotes'] == null ? undefined : json['quotes'],
+        suppliers: json['suppliers'] == null ? undefined : json['suppliers'],
     };
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataMetaToJSON(json: any): ListRfqAwardCandidates200ResponseAllOfDataMeta {
-    return ListRfqAwardCandidates200ResponseAllOfDataMetaToJSONTyped(json, false);
+export function ListRfqAwardCandidates200ResponseAllOfDataMetaToJSON(
+    json: any,
+): ListRfqAwardCandidates200ResponseAllOfDataMeta {
+    return ListRfqAwardCandidates200ResponseAllOfDataMetaToJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataMetaToJSONTyped(value?: ListRfqAwardCandidates200ResponseAllOfDataMeta | null, ignoreDiscriminator: boolean = false): any {
+export function ListRfqAwardCandidates200ResponseAllOfDataMetaToJSONTyped(
+    value?: ListRfqAwardCandidates200ResponseAllOfDataMeta | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'quotes': value['quotes'],
-        'suppliers': value['suppliers'],
+        quotes: value['quotes'],
+        suppliers: value['suppliers'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { WebhookDelivery } from './WebhookDelivery';
 import {
     WebhookDeliveryFromJSON,
-    WebhookDeliveryFromJSONTyped,
     WebhookDeliveryToJSON,
-    WebhookDeliveryToJSONTyped,
 } from './WebhookDelivery';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListWebhookDeliveries200ResponseAllOfData
  */
 export interface AdminListWebhookDeliveries200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<WebhookDelivery>}
      * @memberof AdminListWebhookDeliveries200ResponseAllOfData
      */
     items?: Array<WebhookDelivery>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof AdminListWebhookDeliveries200ResponseAllOfData
      */
@@ -51,38 +43,59 @@ export interface AdminListWebhookDeliveries200ResponseAllOfData {
 /**
  * Check if a given object implements the AdminListWebhookDeliveries200ResponseAllOfData interface.
  */
-export function instanceOfAdminListWebhookDeliveries200ResponseAllOfData(value: object): value is AdminListWebhookDeliveries200ResponseAllOfData {
+export function instanceOfAdminListWebhookDeliveries200ResponseAllOfData(
+    value: object,
+): value is AdminListWebhookDeliveries200ResponseAllOfData {
     return true;
 }
 
-export function AdminListWebhookDeliveries200ResponseAllOfDataFromJSON(json: any): AdminListWebhookDeliveries200ResponseAllOfData {
-    return AdminListWebhookDeliveries200ResponseAllOfDataFromJSONTyped(json, false);
+export function AdminListWebhookDeliveries200ResponseAllOfDataFromJSON(
+    json: any,
+): AdminListWebhookDeliveries200ResponseAllOfData {
+    return AdminListWebhookDeliveries200ResponseAllOfDataFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function AdminListWebhookDeliveries200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListWebhookDeliveries200ResponseAllOfData {
+export function AdminListWebhookDeliveries200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListWebhookDeliveries200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(WebhookDeliveryFromJSON)),
-        'meta': json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(WebhookDeliveryFromJSON),
+        meta: json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminListWebhookDeliveries200ResponseAllOfDataToJSON(json: any): AdminListWebhookDeliveries200ResponseAllOfData {
-    return AdminListWebhookDeliveries200ResponseAllOfDataToJSONTyped(json, false);
+export function AdminListWebhookDeliveries200ResponseAllOfDataToJSON(
+    json: any,
+): AdminListWebhookDeliveries200ResponseAllOfData {
+    return AdminListWebhookDeliveries200ResponseAllOfDataToJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function AdminListWebhookDeliveries200ResponseAllOfDataToJSONTyped(value?: AdminListWebhookDeliveries200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListWebhookDeliveries200ResponseAllOfDataToJSONTyped(
+    value?: AdminListWebhookDeliveries200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(WebhookDeliveryToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(WebhookDeliveryToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

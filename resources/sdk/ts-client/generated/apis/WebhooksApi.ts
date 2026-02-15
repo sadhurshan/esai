@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,30 +12,23 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  AdminCreateWebhookSubscriptionRequest,
-  AdminListWebhookDeliveries200Response,
-  AdminListWebhookSubscriptions200Response,
-  AdminShowWebhookSubscription200Response,
-  AdminUpdateWebhookSubscriptionRequest,
-  ApiSuccessResponse,
+    AdminCreateWebhookSubscriptionRequest,
+    AdminListWebhookDeliveries200Response,
+    AdminListWebhookSubscriptions200Response,
+    AdminShowWebhookSubscription200Response,
+    AdminUpdateWebhookSubscriptionRequest,
+    ApiSuccessResponse,
 } from '../models/index';
 import {
-    AdminCreateWebhookSubscriptionRequestFromJSON,
     AdminCreateWebhookSubscriptionRequestToJSON,
     AdminListWebhookDeliveries200ResponseFromJSON,
-    AdminListWebhookDeliveries200ResponseToJSON,
     AdminListWebhookSubscriptions200ResponseFromJSON,
-    AdminListWebhookSubscriptions200ResponseToJSON,
     AdminShowWebhookSubscription200ResponseFromJSON,
-    AdminShowWebhookSubscription200ResponseToJSON,
-    AdminUpdateWebhookSubscriptionRequestFromJSON,
     AdminUpdateWebhookSubscriptionRequestToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AdminCreateWebhookSubscriptionOperationRequest {
     adminCreateWebhookSubscriptionRequest: AdminCreateWebhookSubscriptionRequest;
@@ -65,191 +58,255 @@ export interface AdminUpdateWebhookSubscriptionOperationRequest {
 }
 
 export interface StripeInvoicePaymentFailedRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface StripeInvoicePaymentSucceededRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface StripeSubscriptionUpdatedRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 /**
  * WebhooksApi - interface
- * 
+ *
  * @export
  * @interface WebhooksApiInterface
  */
 export interface WebhooksApiInterface {
     /**
-     * 
+     *
      * @summary Create webhook subscription
-     * @param {AdminCreateWebhookSubscriptionRequest} adminCreateWebhookSubscriptionRequest 
+     * @param {AdminCreateWebhookSubscriptionRequest} adminCreateWebhookSubscriptionRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminCreateWebhookSubscriptionRaw(requestParameters: AdminCreateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    adminCreateWebhookSubscriptionRaw(
+        requestParameters: AdminCreateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create webhook subscription
      */
-    adminCreateWebhookSubscription(requestParameters: AdminCreateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    adminCreateWebhookSubscription(
+        requestParameters: AdminCreateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Remove webhook subscription
-     * @param {string} subscriptionId 
+     * @param {string} subscriptionId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminDeleteWebhookSubscriptionRaw(requestParameters: AdminDeleteWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    adminDeleteWebhookSubscriptionRaw(
+        requestParameters: AdminDeleteWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Remove webhook subscription
      */
-    adminDeleteWebhookSubscription(requestParameters: AdminDeleteWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    adminDeleteWebhookSubscription(
+        requestParameters: AdminDeleteWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List webhook deliveries
-     * @param {string} [subscriptionId] 
-     * @param {number} [page] 
-     * @param {number} [perPage] 
+     * @param {string} [subscriptionId]
+     * @param {number} [page]
+     * @param {number} [perPage]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminListWebhookDeliveriesRaw(requestParameters: AdminListWebhookDeliveriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminListWebhookDeliveries200Response>>;
+    adminListWebhookDeliveriesRaw(
+        requestParameters: AdminListWebhookDeliveriesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AdminListWebhookDeliveries200Response>>;
 
     /**
      * List webhook deliveries
      */
-    adminListWebhookDeliveries(requestParameters: AdminListWebhookDeliveriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminListWebhookDeliveries200Response>;
+    adminListWebhookDeliveries(
+        requestParameters: AdminListWebhookDeliveriesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AdminListWebhookDeliveries200Response>;
 
     /**
-     * 
+     *
      * @summary List webhook subscriptions
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminListWebhookSubscriptionsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminListWebhookSubscriptions200Response>>;
+    adminListWebhookSubscriptionsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AdminListWebhookSubscriptions200Response>>;
 
     /**
      * List webhook subscriptions
      */
-    adminListWebhookSubscriptions(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminListWebhookSubscriptions200Response>;
+    adminListWebhookSubscriptions(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AdminListWebhookSubscriptions200Response>;
 
     /**
-     * 
+     *
      * @summary Retry failed webhook delivery
-     * @param {string} deliveryId 
+     * @param {string} deliveryId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminRetryWebhookDeliveryRaw(requestParameters: AdminRetryWebhookDeliveryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    adminRetryWebhookDeliveryRaw(
+        requestParameters: AdminRetryWebhookDeliveryRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Retry failed webhook delivery
      */
-    adminRetryWebhookDelivery(requestParameters: AdminRetryWebhookDeliveryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    adminRetryWebhookDelivery(
+        requestParameters: AdminRetryWebhookDeliveryRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Retrieve webhook subscription
-     * @param {string} subscriptionId 
+     * @param {string} subscriptionId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminShowWebhookSubscriptionRaw(requestParameters: AdminShowWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminShowWebhookSubscription200Response>>;
+    adminShowWebhookSubscriptionRaw(
+        requestParameters: AdminShowWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AdminShowWebhookSubscription200Response>>;
 
     /**
      * Retrieve webhook subscription
      */
-    adminShowWebhookSubscription(requestParameters: AdminShowWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminShowWebhookSubscription200Response>;
+    adminShowWebhookSubscription(
+        requestParameters: AdminShowWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AdminShowWebhookSubscription200Response>;
 
     /**
-     * 
+     *
      * @summary Update webhook subscription
-     * @param {string} subscriptionId 
-     * @param {AdminUpdateWebhookSubscriptionRequest} adminUpdateWebhookSubscriptionRequest 
+     * @param {string} subscriptionId
+     * @param {AdminUpdateWebhookSubscriptionRequest} adminUpdateWebhookSubscriptionRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    adminUpdateWebhookSubscriptionRaw(requestParameters: AdminUpdateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    adminUpdateWebhookSubscriptionRaw(
+        requestParameters: AdminUpdateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update webhook subscription
      */
-    adminUpdateWebhookSubscription(requestParameters: AdminUpdateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    adminUpdateWebhookSubscription(
+        requestParameters: AdminUpdateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Stripe invoice payment failed event hook
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    stripeInvoicePaymentFailedRaw(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    stripeInvoicePaymentFailedRaw(
+        requestParameters: StripeInvoicePaymentFailedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Stripe invoice payment failed event hook
      */
-    stripeInvoicePaymentFailed(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    stripeInvoicePaymentFailed(
+        requestParameters: StripeInvoicePaymentFailedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Stripe invoice payment succeeded event hook
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    stripeInvoicePaymentSucceededRaw(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    stripeInvoicePaymentSucceededRaw(
+        requestParameters: StripeInvoicePaymentSucceededRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Stripe invoice payment succeeded event hook
      */
-    stripeInvoicePaymentSucceeded(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    stripeInvoicePaymentSucceeded(
+        requestParameters: StripeInvoicePaymentSucceededRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Stripe subscription updated webhook
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WebhooksApiInterface
      */
-    stripeSubscriptionUpdatedRaw(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    stripeSubscriptionUpdatedRaw(
+        requestParameters: StripeSubscriptionUpdatedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Stripe subscription updated webhook
      */
-    stripeSubscriptionUpdated(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    stripeSubscriptionUpdated(
+        requestParameters: StripeSubscriptionUpdatedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface {
-
+export class WebhooksApi
+    extends runtime.BaseAPI
+    implements WebhooksApiInterface
+{
     /**
      * Create webhook subscription
      */
-    async adminCreateWebhookSubscriptionRaw(requestParameters: AdminCreateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
-        if (requestParameters['adminCreateWebhookSubscriptionRequest'] == null) {
+    async adminCreateWebhookSubscriptionRaw(
+        requestParameters: AdminCreateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+        if (
+            requestParameters['adminCreateWebhookSubscriptionRequest'] == null
+        ) {
             throw new runtime.RequiredError(
                 'adminCreateWebhookSubscriptionRequest',
-                'Required parameter "adminCreateWebhookSubscriptionRequest" was null or undefined when calling adminCreateWebhookSubscription().'
+                'Required parameter "adminCreateWebhookSubscriptionRequest" was null or undefined when calling adminCreateWebhookSubscription().',
             );
         }
 
@@ -260,47 +317,64 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-subscriptions`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AdminCreateWebhookSubscriptionRequestToJSON(requestParameters['adminCreateWebhookSubscriptionRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: AdminCreateWebhookSubscriptionRequestToJSON(
+                    requestParameters['adminCreateWebhookSubscriptionRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create webhook subscription
      */
-    async adminCreateWebhookSubscription(requestParameters: AdminCreateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.adminCreateWebhookSubscriptionRaw(requestParameters, initOverrides);
+    async adminCreateWebhookSubscription(
+        requestParameters: AdminCreateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.adminCreateWebhookSubscriptionRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Remove webhook subscription
      */
-    async adminDeleteWebhookSubscriptionRaw(requestParameters: AdminDeleteWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async adminDeleteWebhookSubscriptionRaw(
+        requestParameters: AdminDeleteWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['subscriptionId'] == null) {
             throw new runtime.RequiredError(
                 'subscriptionId',
-                'Required parameter "subscriptionId" was null or undefined when calling adminDeleteWebhookSubscription().'
+                'Required parameter "subscriptionId" was null or undefined when calling adminDeleteWebhookSubscription().',
             );
         }
 
@@ -309,47 +383,66 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-subscriptions/{subscriptionId}`;
-        urlPath = urlPath.replace(`{${"subscriptionId"}}`, encodeURIComponent(String(requestParameters['subscriptionId'])));
+        urlPath = urlPath.replace(
+            `{${'subscriptionId'}}`,
+            encodeURIComponent(String(requestParameters['subscriptionId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Remove webhook subscription
      */
-    async adminDeleteWebhookSubscription(requestParameters: AdminDeleteWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.adminDeleteWebhookSubscriptionRaw(requestParameters, initOverrides);
+    async adminDeleteWebhookSubscription(
+        requestParameters: AdminDeleteWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.adminDeleteWebhookSubscriptionRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List webhook deliveries
      */
-    async adminListWebhookDeliveriesRaw(requestParameters: AdminListWebhookDeliveriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminListWebhookDeliveries200Response>> {
+    async adminListWebhookDeliveriesRaw(
+        requestParameters: AdminListWebhookDeliveriesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AdminListWebhookDeliveries200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['subscriptionId'] != null) {
-            queryParameters['subscription_id'] = requestParameters['subscriptionId'];
+            queryParameters['subscription_id'] =
+                requestParameters['subscriptionId'];
         }
 
         if (requestParameters['page'] != null) {
@@ -363,87 +456,113 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-deliveries`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AdminListWebhookDeliveries200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AdminListWebhookDeliveries200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List webhook deliveries
      */
-    async adminListWebhookDeliveries(requestParameters: AdminListWebhookDeliveriesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminListWebhookDeliveries200Response> {
-        const response = await this.adminListWebhookDeliveriesRaw(requestParameters, initOverrides);
+    async adminListWebhookDeliveries(
+        requestParameters: AdminListWebhookDeliveriesRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AdminListWebhookDeliveries200Response> {
+        const response = await this.adminListWebhookDeliveriesRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List webhook subscriptions
      */
-    async adminListWebhookSubscriptionsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminListWebhookSubscriptions200Response>> {
+    async adminListWebhookSubscriptionsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AdminListWebhookSubscriptions200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-subscriptions`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AdminListWebhookSubscriptions200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AdminListWebhookSubscriptions200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List webhook subscriptions
      */
-    async adminListWebhookSubscriptions(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminListWebhookSubscriptions200Response> {
-        const response = await this.adminListWebhookSubscriptionsRaw(initOverrides);
+    async adminListWebhookSubscriptions(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AdminListWebhookSubscriptions200Response> {
+        const response =
+            await this.adminListWebhookSubscriptionsRaw(initOverrides);
         return await response.value();
     }
 
     /**
      * Retry failed webhook delivery
      */
-    async adminRetryWebhookDeliveryRaw(requestParameters: AdminRetryWebhookDeliveryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async adminRetryWebhookDeliveryRaw(
+        requestParameters: AdminRetryWebhookDeliveryRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['deliveryId'] == null) {
             throw new runtime.RequiredError(
                 'deliveryId',
-                'Required parameter "deliveryId" was null or undefined when calling adminRetryWebhookDelivery().'
+                'Required parameter "deliveryId" was null or undefined when calling adminRetryWebhookDelivery().',
             );
         }
 
@@ -452,47 +571,65 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-deliveries/{deliveryId}/retry`;
-        urlPath = urlPath.replace(`{${"deliveryId"}}`, encodeURIComponent(String(requestParameters['deliveryId'])));
+        urlPath = urlPath.replace(
+            `{${'deliveryId'}}`,
+            encodeURIComponent(String(requestParameters['deliveryId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retry failed webhook delivery
      */
-    async adminRetryWebhookDelivery(requestParameters: AdminRetryWebhookDeliveryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.adminRetryWebhookDeliveryRaw(requestParameters, initOverrides);
+    async adminRetryWebhookDelivery(
+        requestParameters: AdminRetryWebhookDeliveryRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.adminRetryWebhookDeliveryRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve webhook subscription
      */
-    async adminShowWebhookSubscriptionRaw(requestParameters: AdminShowWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminShowWebhookSubscription200Response>> {
+    async adminShowWebhookSubscriptionRaw(
+        requestParameters: AdminShowWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AdminShowWebhookSubscription200Response>> {
         if (requestParameters['subscriptionId'] == null) {
             throw new runtime.RequiredError(
                 'subscriptionId',
-                'Required parameter "subscriptionId" was null or undefined when calling adminShowWebhookSubscription().'
+                'Required parameter "subscriptionId" was null or undefined when calling adminShowWebhookSubscription().',
             );
         }
 
@@ -501,54 +638,74 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-subscriptions/{subscriptionId}`;
-        urlPath = urlPath.replace(`{${"subscriptionId"}}`, encodeURIComponent(String(requestParameters['subscriptionId'])));
+        urlPath = urlPath.replace(
+            `{${'subscriptionId'}}`,
+            encodeURIComponent(String(requestParameters['subscriptionId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AdminShowWebhookSubscription200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AdminShowWebhookSubscription200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve webhook subscription
      */
-    async adminShowWebhookSubscription(requestParameters: AdminShowWebhookSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminShowWebhookSubscription200Response> {
-        const response = await this.adminShowWebhookSubscriptionRaw(requestParameters, initOverrides);
+    async adminShowWebhookSubscription(
+        requestParameters: AdminShowWebhookSubscriptionRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AdminShowWebhookSubscription200Response> {
+        const response = await this.adminShowWebhookSubscriptionRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update webhook subscription
      */
-    async adminUpdateWebhookSubscriptionRaw(requestParameters: AdminUpdateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async adminUpdateWebhookSubscriptionRaw(
+        requestParameters: AdminUpdateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['subscriptionId'] == null) {
             throw new runtime.RequiredError(
                 'subscriptionId',
-                'Required parameter "subscriptionId" was null or undefined when calling adminUpdateWebhookSubscription().'
+                'Required parameter "subscriptionId" was null or undefined when calling adminUpdateWebhookSubscription().',
             );
         }
 
-        if (requestParameters['adminUpdateWebhookSubscriptionRequest'] == null) {
+        if (
+            requestParameters['adminUpdateWebhookSubscriptionRequest'] == null
+        ) {
             throw new runtime.RequiredError(
                 'adminUpdateWebhookSubscriptionRequest',
-                'Required parameter "adminUpdateWebhookSubscriptionRequest" was null or undefined when calling adminUpdateWebhookSubscription().'
+                'Required parameter "adminUpdateWebhookSubscriptionRequest" was null or undefined when calling adminUpdateWebhookSubscription().',
             );
         }
 
@@ -559,48 +716,68 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/admin/webhook-subscriptions/{subscriptionId}`;
-        urlPath = urlPath.replace(`{${"subscriptionId"}}`, encodeURIComponent(String(requestParameters['subscriptionId'])));
+        urlPath = urlPath.replace(
+            `{${'subscriptionId'}}`,
+            encodeURIComponent(String(requestParameters['subscriptionId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AdminUpdateWebhookSubscriptionRequestToJSON(requestParameters['adminUpdateWebhookSubscriptionRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: AdminUpdateWebhookSubscriptionRequestToJSON(
+                    requestParameters['adminUpdateWebhookSubscriptionRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update webhook subscription
      */
-    async adminUpdateWebhookSubscription(requestParameters: AdminUpdateWebhookSubscriptionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.adminUpdateWebhookSubscriptionRaw(requestParameters, initOverrides);
+    async adminUpdateWebhookSubscription(
+        requestParameters: AdminUpdateWebhookSubscriptionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.adminUpdateWebhookSubscriptionRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Stripe invoice payment failed event hook
      */
-    async stripeInvoicePaymentFailedRaw(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async stripeInvoicePaymentFailedRaw(
+        requestParameters: StripeInvoicePaymentFailedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling stripeInvoicePaymentFailed().'
+                'Required parameter "requestBody" was null or undefined when calling stripeInvoicePaymentFailed().',
             );
         }
 
@@ -611,47 +788,62 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/webhooks/stripe/invoice/payment-failed`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Stripe invoice payment failed event hook
      */
-    async stripeInvoicePaymentFailed(requestParameters: StripeInvoicePaymentFailedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.stripeInvoicePaymentFailedRaw(requestParameters, initOverrides);
+    async stripeInvoicePaymentFailed(
+        requestParameters: StripeInvoicePaymentFailedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.stripeInvoicePaymentFailedRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Stripe invoice payment succeeded event hook
      */
-    async stripeInvoicePaymentSucceededRaw(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async stripeInvoicePaymentSucceededRaw(
+        requestParameters: StripeInvoicePaymentSucceededRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling stripeInvoicePaymentSucceeded().'
+                'Required parameter "requestBody" was null or undefined when calling stripeInvoicePaymentSucceeded().',
             );
         }
 
@@ -662,47 +854,62 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/webhooks/stripe/invoice/payment-succeeded`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Stripe invoice payment succeeded event hook
      */
-    async stripeInvoicePaymentSucceeded(requestParameters: StripeInvoicePaymentSucceededRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.stripeInvoicePaymentSucceededRaw(requestParameters, initOverrides);
+    async stripeInvoicePaymentSucceeded(
+        requestParameters: StripeInvoicePaymentSucceededRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.stripeInvoicePaymentSucceededRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Stripe subscription updated webhook
      */
-    async stripeSubscriptionUpdatedRaw(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async stripeSubscriptionUpdatedRaw(
+        requestParameters: StripeSubscriptionUpdatedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling stripeSubscriptionUpdated().'
+                'Required parameter "requestBody" was null or undefined when calling stripeSubscriptionUpdated().',
             );
         }
 
@@ -713,37 +920,48 @@ export class WebhooksApi extends runtime.BaseAPI implements WebhooksApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/webhooks/stripe/customer/subscription-updated`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Stripe subscription updated webhook
      */
-    async stripeSubscriptionUpdated(requestParameters: StripeSubscriptionUpdatedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.stripeSubscriptionUpdatedRaw(requestParameters, initOverrides);
+    async stripeSubscriptionUpdated(
+        requestParameters: StripeSubscriptionUpdatedRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.stripeSubscriptionUpdatedRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

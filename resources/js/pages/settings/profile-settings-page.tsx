@@ -1,23 +1,50 @@
-import { useEffect, useMemo, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useProfile, useUpdateProfile, type UpdateProfilePayload } from '@/hooks/api/settings';
 import { useAuth } from '@/contexts/auth-context';
-import { ApiError } from '@/lib/api';
+import {
+    useProfile,
+    useUpdateProfile,
+    type UpdateProfilePayload,
+} from '@/hooks/api/settings';
+import {
+    useSwitchCompany,
+    useUserCompanies,
+} from '@/hooks/api/use-user-companies';
 import { useInitials } from '@/hooks/use-initials';
+import { ApiError } from '@/lib/api';
 import type { User } from '@/types';
-import { useSwitchCompany, useUserCompanies } from '@/hooks/api/use-user-companies';
 
 const LOCALE_OPTIONS = [
     { value: 'en', label: 'English (EN)' },
@@ -47,13 +74,17 @@ const TIMEZONE_OPTIONS = [
 const MAX_AVATAR_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
 const ACCEPTED_AVATAR_TYPES = 'image/png,image/jpeg,image/webp';
 
-const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File;
+const isFile = (value: unknown): value is File =>
+    typeof File !== 'undefined' && value instanceof File;
 
 const avatarFileSchema = z
     .custom<File>((value) => isFile(value), {
         message: 'Upload must be an image file.',
     })
-    .refine((file) => file.size <= MAX_AVATAR_FILE_SIZE, 'Avatar must be 4 MB or smaller.');
+    .refine(
+        (file) => file.size <= MAX_AVATAR_FILE_SIZE,
+        'Avatar must be 4 MB or smaller.',
+    );
 
 const profileSchema = z.object({
     name: z.string().min(1, 'Name is required.').max(255),
@@ -98,7 +129,8 @@ function toFormValues(profile?: User | null): ProfileFormValues {
 
 function toPayload(values: ProfileFormValues): UpdateProfilePayload {
     const trimmedAvatarPath = values.avatarPath?.trim() ?? '';
-    const normalizedAvatarPath = trimmedAvatarPath.length > 0 ? trimmedAvatarPath : null;
+    const normalizedAvatarPath =
+        trimmedAvatarPath.length > 0 ? trimmedAvatarPath : null;
 
     const payload: UpdateProfilePayload = {
         name: values.name.trim(),
@@ -141,26 +173,34 @@ export function ProfileSettingsPage() {
     const avatarFile = useWatch({ control: form.control, name: 'avatarFile' });
     const watchedName = useWatch({ control: form.control, name: 'name' });
 
-    const [avatarFilePreview, setAvatarFilePreview] = useState<string | null>(null);
+    const avatarFilePreview = useMemo(
+        () =>
+            avatarFile && isFile(avatarFile)
+                ? URL.createObjectURL(avatarFile)
+                : null,
+        [avatarFile],
+    );
 
     useEffect(() => {
-        if (!avatarFile || !isFile(avatarFile)) {
-            setAvatarFilePreview(null);
+        if (!avatarFilePreview) {
             return;
         }
 
-        const objectUrl = URL.createObjectURL(avatarFile);
-        setAvatarFilePreview(objectUrl);
-
         return () => {
-            URL.revokeObjectURL(objectUrl);
+            URL.revokeObjectURL(avatarFilePreview);
         };
-    }, [avatarFile]);
+    }, [avatarFilePreview]);
 
     const hasStoredAvatar = Boolean(avatarPath && avatarPath.length > 0);
-    const avatarPreview = avatarFilePreview ?? (hasStoredAvatar ? profileQuery.data?.avatar_url ?? '' : '');
+    const avatarPreview =
+        avatarFilePreview ??
+        (hasStoredAvatar ? (profileQuery.data?.avatar_url ?? '') : '');
     const canRemoveAvatar = Boolean(avatarFile || hasStoredAvatar);
-    const nameFallback = watchedName || profileQuery.data?.name || profileQuery.data?.email || '';
+    const nameFallback =
+        watchedName ||
+        profileQuery.data?.name ||
+        profileQuery.data?.email ||
+        '';
 
     const handleSubmit = form.handleSubmit(async (values) => {
         try {
@@ -173,7 +213,10 @@ export function ProfileSettingsPage() {
                 description: 'Personal information saved successfully.',
             });
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unable to update your profile.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unable to update your profile.';
             publishToast({
                 variant: 'destructive',
                 title: 'Update failed',
@@ -192,7 +235,10 @@ export function ProfileSettingsPage() {
     const companiesLoading = companiesQuery.isLoading && companies.length === 0;
     const canManageCompanies = companies.length > 1;
 
-    const timezoneOptions = useMemo(() => TIMEZONE_OPTIONS.map((value) => ({ value, label: value })), []);
+    const timezoneOptions = useMemo(
+        () => TIMEZONE_OPTIONS.map((value) => ({ value, label: value })),
+        [],
+    );
 
     if (isLoading) {
         return <Skeleton className="h-[480px] w-full" />;
@@ -204,15 +250,23 @@ export function ProfileSettingsPage() {
                 <title>Personal profile · Elements Supply</title>
             </Helmet>
             <div>
-                <p className="text-sm text-muted-foreground">Workspace · Settings</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Personal profile</h1>
                 <p className="text-sm text-muted-foreground">
-                    Update your name, contact info, locale preferences, and avatar so teammates know who they are collaborating with.
+                    Workspace · Settings
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Personal profile
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Update your name, contact info, locale preferences, and
+                    avatar so teammates know who they are collaborating with.
                 </p>
             </div>
 
             <Form {...form}>
-                <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                <form
+                    onSubmit={handleSubmit}
+                    className="grid gap-6 lg:grid-cols-[2fr_1fr]"
+                >
                     <Card>
                         <CardHeader>
                             <CardTitle>Contact information</CardTitle>
@@ -226,7 +280,10 @@ export function ProfileSettingsPage() {
                                         <FormItem>
                                             <FormLabel>Full name</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Alex Procurement" {...field} />
+                                                <Input
+                                                    placeholder="Alex Procurement"
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -239,7 +296,11 @@ export function ProfileSettingsPage() {
                                         <FormItem>
                                             <FormLabel>Email</FormLabel>
                                             <FormControl>
-                                                <Input type="email" placeholder="alex@example.com" {...field} />
+                                                <Input
+                                                    type="email"
+                                                    placeholder="alex@example.com"
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -254,7 +315,11 @@ export function ProfileSettingsPage() {
                                         <FormItem>
                                             <FormLabel>Job title</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Sr. Procurement Manager" {...field} value={field.value ?? ''} />
+                                                <Input
+                                                    placeholder="Sr. Procurement Manager"
+                                                    {...field}
+                                                    value={field.value ?? ''}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -267,7 +332,11 @@ export function ProfileSettingsPage() {
                                         <FormItem>
                                             <FormLabel>Phone number</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="+1 555 0100" {...field} value={field.value ?? ''} />
+                                                <Input
+                                                    placeholder="+1 555 0100"
+                                                    {...field}
+                                                    value={field.value ?? ''}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -286,9 +355,19 @@ export function ProfileSettingsPage() {
                                     <FormItem>
                                         <FormLabel>Locale</FormLabel>
                                         <Select
-                                            value={field.value && field.value.length > 0 ? field.value : SYSTEM_DEFAULT_VALUE}
+                                            value={
+                                                field.value &&
+                                                field.value.length > 0
+                                                    ? field.value
+                                                    : SYSTEM_DEFAULT_VALUE
+                                            }
                                             onValueChange={(next) =>
-                                                field.onChange(next === SYSTEM_DEFAULT_VALUE ? '' : next)
+                                                field.onChange(
+                                                    next ===
+                                                        SYSTEM_DEFAULT_VALUE
+                                                        ? ''
+                                                        : next,
+                                                )
                                             }
                                         >
                                             <FormControl>
@@ -297,12 +376,21 @@ export function ProfileSettingsPage() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value={SYSTEM_DEFAULT_VALUE}>System default</SelectItem>
-                                                {LOCALE_OPTIONS.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
+                                                <SelectItem
+                                                    value={SYSTEM_DEFAULT_VALUE}
+                                                >
+                                                    System default
+                                                </SelectItem>
+                                                {LOCALE_OPTIONS.map(
+                                                    (option) => (
+                                                        <SelectItem
+                                                            key={option.value}
+                                                            value={option.value}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -316,9 +404,19 @@ export function ProfileSettingsPage() {
                                     <FormItem>
                                         <FormLabel>Timezone</FormLabel>
                                         <Select
-                                            value={field.value && field.value.length > 0 ? field.value : SYSTEM_DEFAULT_VALUE}
+                                            value={
+                                                field.value &&
+                                                field.value.length > 0
+                                                    ? field.value
+                                                    : SYSTEM_DEFAULT_VALUE
+                                            }
                                             onValueChange={(next) =>
-                                                field.onChange(next === SYSTEM_DEFAULT_VALUE ? '' : next)
+                                                field.onChange(
+                                                    next ===
+                                                        SYSTEM_DEFAULT_VALUE
+                                                        ? ''
+                                                        : next,
+                                                )
                                             }
                                         >
                                             <FormControl>
@@ -327,12 +425,21 @@ export function ProfileSettingsPage() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="max-h-72">
-                                                <SelectItem value={SYSTEM_DEFAULT_VALUE}>System default</SelectItem>
-                                                {timezoneOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
+                                                <SelectItem
+                                                    value={SYSTEM_DEFAULT_VALUE}
+                                                >
+                                                    System default
+                                                </SelectItem>
+                                                {timezoneOptions.map(
+                                                    (option) => (
+                                                        <SelectItem
+                                                            key={option.value}
+                                                            value={option.value}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -348,20 +455,33 @@ export function ProfileSettingsPage() {
                                 <FormField
                                     control={form.control}
                                     name="avatarPath"
-                                    render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />}
+                                    render={({ field }) => (
+                                        <input
+                                            type="hidden"
+                                            {...field}
+                                            value={field.value ?? ''}
+                                        />
+                                    )}
                                 />
                                 <FormField
                                     control={form.control}
                                     name="avatarFile"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Upload a photo</FormLabel>
+                                            <FormLabel>
+                                                Upload a photo
+                                            </FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="file"
-                                                    accept={ACCEPTED_AVATAR_TYPES}
+                                                    accept={
+                                                        ACCEPTED_AVATAR_TYPES
+                                                    }
                                                     onChange={(event) => {
-                                                        const file = event.target.files?.[0] ?? null;
+                                                        const file =
+                                                            event.target
+                                                                .files?.[0] ??
+                                                            null;
                                                         field.onChange(file);
                                                         event.target.value = '';
                                                     }}
@@ -369,7 +489,9 @@ export function ProfileSettingsPage() {
                                                     ref={field.ref}
                                                 />
                                             </FormControl>
-                                            <FormDescription>PNG, JPG, or WebP up to 4 MB.</FormDescription>
+                                            <FormDescription>
+                                                PNG, JPG, or WebP up to 4 MB.
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -387,17 +509,29 @@ export function ProfileSettingsPage() {
                             <div className="flex flex-col items-center gap-2">
                                 <Avatar className="h-20 w-20">
                                     {avatarPreview ? (
-                                        <AvatarImage src={avatarPreview} alt={nameFallback} />
+                                        <AvatarImage
+                                            src={avatarPreview}
+                                            alt={nameFallback}
+                                        />
                                     ) : (
-                                        <AvatarFallback>{initials(nameFallback)}</AvatarFallback>
+                                        <AvatarFallback>
+                                            {initials(nameFallback)}
+                                        </AvatarFallback>
                                     )}
                                 </Avatar>
-                                <p className="text-xs text-muted-foreground text-center">This is how teammates see you.</p>
+                                <p className="text-center text-xs text-muted-foreground">
+                                    This is how teammates see you.
+                                </p>
                             </div>
                         </CardContent>
                         <CardFooter className="justify-end border-t pt-6">
-                            <Button type="submit" disabled={updateProfile.isPending}>
-                                {updateProfile.isPending ? 'Saving…' : 'Save profile'}
+                            <Button
+                                type="submit"
+                                disabled={updateProfile.isPending}
+                            >
+                                {updateProfile.isPending
+                                    ? 'Saving…'
+                                    : 'Save profile'}
                             </Button>
                         </CardFooter>
                     </Card>
@@ -421,7 +555,9 @@ export function ProfileSettingsPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Choose which organization loads by default whenever you sign in. You can still switch at any time from the top bar.
+                                Choose which organization loads by default
+                                whenever you sign in. You can still switch at
+                                any time from the top bar.
                             </p>
                             <div className="space-y-3">
                                 {companies.map((company) => (
@@ -430,20 +566,34 @@ export function ProfileSettingsPage() {
                                         className="flex flex-col gap-2 rounded-lg border p-3 md:flex-row md:items-center md:justify-between"
                                     >
                                         <div>
-                                            <p className="font-medium">{company.name}</p>
+                                            <p className="font-medium">
+                                                {company.name}
+                                            </p>
                                             {company.role ? (
-                                                <p className="text-sm capitalize text-muted-foreground">
-                                                    {company.role.replace(/_/g, ' ')}
+                                                <p className="text-sm text-muted-foreground capitalize">
+                                                    {company.role.replace(
+                                                        /_/g,
+                                                        ' ',
+                                                    )}
                                                 </p>
                                             ) : null}
                                             {company.isActive ? (
-                                                <p className="text-xs text-primary">Currently active</p>
+                                                <p className="text-xs text-primary">
+                                                    Currently active
+                                                </p>
                                             ) : null}
                                         </div>
                                         <Button
-                                            variant={company.isDefault ? 'secondary' : 'outline'}
+                                            variant={
+                                                company.isDefault
+                                                    ? 'secondary'
+                                                    : 'outline'
+                                            }
                                             size="sm"
-                                            disabled={company.isDefault || switchCompany.isPending}
+                                            disabled={
+                                                company.isDefault ||
+                                                switchCompany.isPending
+                                            }
                                             onClick={() => {
                                                 switchCompany
                                                     .mutateAsync(company.id)
@@ -456,18 +606,23 @@ export function ProfileSettingsPage() {
                                                     })
                                                     .catch((error) => {
                                                         const message =
-                                                            error instanceof ApiError
+                                                            error instanceof
+                                                            ApiError
                                                                 ? error.message
                                                                 : 'Unable to update your default organization right now.';
                                                         publishToast({
-                                                            variant: 'destructive',
+                                                            variant:
+                                                                'destructive',
                                                             title: 'Update failed',
-                                                            description: message,
+                                                            description:
+                                                                message,
                                                         });
                                                     });
                                             }}
                                         >
-                                            {company.isDefault ? 'Default' : 'Set as default'}
+                                            {company.isDefault
+                                                ? 'Default'
+                                                : 'Set as default'}
                                         </Button>
                                     </div>
                                 ))}
@@ -481,7 +636,9 @@ export function ProfileSettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm text-muted-foreground">
-                                You currently belong to a single organization. Once another company invites you, you can set a default tenant here.
+                                You currently belong to a single organization.
+                                Once another company invites you, you can set a
+                                default tenant here.
                             </p>
                         </CardContent>
                     </Card>

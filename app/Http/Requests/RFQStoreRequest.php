@@ -97,6 +97,7 @@ class RFQStoreRequest extends ApiFormRequest
             'currency' => ['nullable', 'string', 'size:3'],
             'tax_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'payment_terms' => ['nullable', 'string', 'max:120'],
+            'digital_twin_id' => ['nullable', 'integer', 'exists:digital_twins,id'],
             'status' => ['prohibited'],
             'publish_at' => ['nullable', 'date'],
             'due_at' => ['required', 'date', 'after:now'],

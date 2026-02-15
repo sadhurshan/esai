@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import type { ApiSuccessResponse, HttpError } from '@/sdk';
@@ -12,7 +16,11 @@ export interface WithdrawQuoteVariables {
     reason: string;
 }
 
-export function useWithdrawQuote(): UseMutationResult<ApiSuccessResponse, HttpError, WithdrawQuoteVariables> {
+export function useWithdrawQuote(): UseMutationResult<
+    ApiSuccessResponse,
+    HttpError,
+    WithdrawQuoteVariables
+> {
     const quotesApi = useSdkClient(QuotesApi);
     const queryClient = useQueryClient();
 

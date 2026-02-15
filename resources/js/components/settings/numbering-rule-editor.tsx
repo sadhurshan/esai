@@ -1,10 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useWatch, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
+import {
+    useWatch,
+    type Control,
+    type FieldPath,
+    type FieldValues,
+} from 'react-hook-form';
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { formatNumberingSample } from '@/lib/numbering';
 import type { NumberingRule, NumberResetPolicy } from '@/types/settings';
 
@@ -16,13 +33,28 @@ interface NumberingRuleEditorProps<TFieldValues extends FieldValues> {
     disabled?: boolean;
 }
 
-function composeName<TFieldValues extends FieldValues>(name: FieldPath<TFieldValues>, key: keyof NumberingRule) {
+function composeName<TFieldValues extends FieldValues>(
+    name: FieldPath<TFieldValues>,
+    key: keyof NumberingRule,
+) {
     return `${name}.${key}` as FieldPath<TFieldValues>;
 }
 
-const resetOptions: { label: string; value: NumberResetPolicy; description: string }[] = [
-    { label: 'Never', value: 'never', description: 'Sequences continue incrementing indefinitely.' },
-    { label: 'Yearly', value: 'yearly', description: 'Reset the counter at the start of each fiscal year.' },
+const resetOptions: {
+    label: string;
+    value: NumberResetPolicy;
+    description: string;
+}[] = [
+    {
+        label: 'Never',
+        value: 'never',
+        description: 'Sequences continue incrementing indefinitely.',
+    },
+    {
+        label: 'Yearly',
+        value: 'yearly',
+        description: 'Reset the counter at the start of each fiscal year.',
+    },
 ];
 
 export function NumberingRuleEditor<TFieldValues extends FieldValues>({
@@ -32,9 +64,15 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
     description,
     disabled,
 }: NumberingRuleEditorProps<TFieldValues>) {
-    const watchedRule = useWatch({ control, name }) as NumberingRule | undefined;
+    const watchedRule = useWatch({ control, name }) as
+        | NumberingRule
+        | undefined;
     const [confirmOpen, setConfirmOpen] = useState(false);
-    const [confirmCopy, setConfirmCopy] = useState({ title: '', description: '', confirmLabel: 'Continue' });
+    const [confirmCopy, setConfirmCopy] = useState({
+        title: '',
+        description: '',
+        confirmLabel: 'Continue',
+    });
     const pendingAction = useRef<(() => void) | null>(null);
     const lastSequenceLength = useRef<number | null>(null);
     const lastReset = useRef<NumberResetPolicy | null>(null);
@@ -47,7 +85,10 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
         lastReset.current = watchedRule?.reset ?? null;
     }, [watchedRule?.reset]);
 
-    const sample = useMemo(() => formatNumberingSample(watchedRule), [watchedRule]);
+    const sample = useMemo(
+        () => formatNumberingSample(watchedRule),
+        [watchedRule],
+    );
 
     const requestConfirm = (type: 'sequence' | 'reset', action: () => void) => {
         pendingAction.current = action;
@@ -84,8 +125,14 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
         <div className="space-y-4 rounded-lg border p-4">
             <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">{label}</p>
-                {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-                <p className="text-xs text-muted-foreground">Sample: {sample}</p>
+                {description ? (
+                    <p className="text-sm text-muted-foreground">
+                        {description}
+                    </p>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                    Sample: {sample}
+                </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
                 <FormField
@@ -95,7 +142,11 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>Prefix</FormLabel>
                             <FormControl>
-                                <Input placeholder="PO-" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="PO-"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -125,10 +176,13 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
                                             return;
                                         }
                                         if (
-                                            lastSequenceLength.current !== null &&
+                                            lastSequenceLength.current !==
+                                                null &&
                                             value < lastSequenceLength.current
                                         ) {
-                        requestConfirm('sequence', () => field.onChange(value));
+                                            requestConfirm('sequence', () =>
+                                                field.onChange(value),
+                                            );
                                             return;
                                         }
                                         field.onChange(value);
@@ -176,10 +230,19 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>Reset cadence</FormLabel>
                             <Select
-                                value={(field.value as NumberResetPolicy | undefined) ?? ''}
+                                value={
+                                    (field.value as
+                                        | NumberResetPolicy
+                                        | undefined) ?? ''
+                                }
                                 onValueChange={(value: NumberResetPolicy) => {
-                                    if (lastReset.current && value !== lastReset.current) {
-                                        requestConfirm('reset', () => field.onChange(value));
+                                    if (
+                                        lastReset.current &&
+                                        value !== lastReset.current
+                                    ) {
+                                        requestConfirm('reset', () =>
+                                            field.onChange(value),
+                                        );
                                         return;
                                     }
                                     field.onChange(value);
@@ -193,14 +256,22 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
                                 </FormControl>
                                 <SelectContent>
                                     {resetOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
                                             {option.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">
-                                {resetOptions.find((option) => option.value === field.value)?.description}
+                                {
+                                    resetOptions.find(
+                                        (option) =>
+                                            option.value === field.value,
+                                    )?.description
+                                }
                             </p>
                             <FormMessage />
                         </FormItem>
@@ -209,7 +280,9 @@ export function NumberingRuleEditor<TFieldValues extends FieldValues>({
             </div>
             <ConfirmDialog
                 open={confirmOpen}
-                onOpenChange={(open) => (open ? setConfirmOpen(true) : handleCancel())}
+                onOpenChange={(open) =>
+                    open ? setConfirmOpen(true) : handleCancel()
+                }
                 title={confirmCopy.title}
                 description={confirmCopy.description}
                 confirmLabel={confirmCopy.confirmLabel}

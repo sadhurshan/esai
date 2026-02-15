@@ -1,6 +1,10 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
-import { successToast, errorToast } from '@/components/toasts';
+import { errorToast, successToast } from '@/components/toasts';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { AdminApi, type AdminPlansUpdateRequest } from '@/sdk';
@@ -10,7 +14,11 @@ export interface UpdatePlanInput {
     payload: AdminPlansUpdateRequest;
 }
 
-export function useUpdatePlan(): UseMutationResult<void, unknown, UpdatePlanInput> {
+export function useUpdatePlan(): UseMutationResult<
+    void,
+    unknown,
+    UpdatePlanInput
+> {
     const adminApi = useSdkClient(AdminApi);
     const queryClient = useQueryClient();
 
@@ -23,11 +31,18 @@ export function useUpdatePlan(): UseMutationResult<void, unknown, UpdatePlanInpu
         },
         onSuccess: (_data, variables) => {
             successToast('Plan updated', 'Feature matrix saved successfully.');
-            queryClient.invalidateQueries({ queryKey: queryKeys.admin.plans() });
-            queryClient.invalidateQueries({ queryKey: queryKeys.admin.plan(variables.planId) });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.admin.plans(),
+            });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.admin.plan(variables.planId),
+            });
         },
         onError: () => {
-            errorToast('Unable to update plan', 'Please review your changes and try again.');
+            errorToast(
+                'Unable to update plan',
+                'Please review your changes and try again.',
+            );
         },
     });
 }

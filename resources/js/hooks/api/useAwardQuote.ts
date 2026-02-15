@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -31,13 +35,21 @@ export function useAwardQuote(
             return {
                 ...mapPurchaseOrder(response),
                 lines: (response.lines ?? []).map(mapPurchaseOrderLine),
-                changeOrders: (response.change_orders ?? []).map(mapChangeOrder),
+                changeOrders: (response.change_orders ?? []).map(
+                    mapChangeOrder,
+                ),
             };
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.quotes(rfqId) });
-            queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.root() });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.quotes(rfqId),
+            });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.root(),
+            });
         },
     });
 }

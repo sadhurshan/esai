@@ -1,0 +1,67 @@
+{
+    "generated_at": "2026-02-13T19:14:45+00:00",
+    "decision": "NO-GO",
+    "inputs": {
+        "runtime_evidence": "docs/evidence/copilot-runtime-gates-2026-02-13.json",
+        "runtime_evidence_sha256": "84bc4d8e8fbd2ceca344623fc3f01a19fa37ee4b7f0d39bbd41abc7f72e064f8",
+        "latency_evidence": "docs/evidence/copilot-latency-2026-02-13.json",
+        "latency_evidence_sha256": "f96fb7bc4f603ef00c93c836659fbd5f0880744f11381883e59093343fd3bba9",
+        "trace_evidence": "docs/evidence/copilot-latency-trace-attribution-2026-02-13.json",
+        "trace_evidence_sha256": "05f782f70353a376e17e988ccd2cfde0269dbb8d967ee2d02e4f1f643a1c3720",
+        "signoff_evidence": "docs/evidence/copilot-signoffs-2026-02-13.json",
+        "signoff_evidence_sha256": "8dcb5fe2f603c79b2a2ab9d8ad3d2173d8a50f726f6162888ced1b4bdb7aa4d8",
+        "p95_target_ms": 5000,
+        "latency_min_samples": 10,
+        "require_rollout_flag": true,
+        "require_trace_coverage": true,
+        "trace_coverage_min": 0.1,
+        "allow_simulation_signoffs": false
+    },
+    "blockers": [
+        "feature_rollout",
+        "latency(sample_count=2,min=10,p95=420,target=5000)"
+    ],
+    "next_actions": [
+        "php artisan copilot:latency-evidence --hours=1 --format=json --output=docs/evidence/copilot-latency-2026-02-13.json",
+        "php artisan copilot:verify-readiness-artifact --artifact=docs/evidence/copilot-launch-readiness-2026-02-13.json --format=json --output=docs/evidence/copilot-readiness-verification-2026-02-13.json"
+    ],
+    "gates": {
+        "runtime": {
+            "pass": true,
+            "failed_checks": 0,
+            "result": "pass"
+        },
+        "feature_rollout": {
+            "pass": false,
+            "status": "warn",
+            "required": true
+        },
+        "latency": {
+            "pass": false,
+            "sample_count": 2,
+            "minimum_samples": 10,
+            "p95_ms": 420,
+            "target_ms": 5000
+        },
+        "trace_coverage": {
+            "pass": true,
+            "required": true,
+            "coverage_ratio": 0.5,
+            "minimum_ratio": 0.1,
+            "sample_size": 8
+        },
+        "signoff_artifact": {
+            "pass": true,
+            "mode": "production",
+            "allow_simulation": false
+        },
+        "signoffs": {
+            "pass": true,
+            "product": true,
+            "engineering": true,
+            "qa": true,
+            "security": true,
+            "missing_roles": []
+        }
+    }
+}

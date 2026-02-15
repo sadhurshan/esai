@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,51 +12,50 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface FxRate
  */
 export interface FxRate {
     /**
-     * 
+     *
      * @type {number}
      * @memberof FxRate
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof FxRate
      */
     baseCode: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof FxRate
      */
     quoteCode: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof FxRate
      */
     rate: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof FxRate
      */
     asOf: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof FxRate
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof FxRate
      */
@@ -69,7 +68,8 @@ export interface FxRate {
 export function instanceOfFxRate(value: object): value is FxRate {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('baseCode' in value) || value['baseCode'] === undefined) return false;
-    if (!('quoteCode' in value) || value['quoteCode'] === undefined) return false;
+    if (!('quoteCode' in value) || value['quoteCode'] === undefined)
+        return false;
     if (!('rate' in value) || value['rate'] === undefined) return false;
     if (!('asOf' in value) || value['asOf'] === undefined) return false;
     return true;
@@ -79,19 +79,27 @@ export function FxRateFromJSON(json: any): FxRate {
     return FxRateFromJSONTyped(json, false);
 }
 
-export function FxRateFromJSONTyped(json: any, ignoreDiscriminator: boolean): FxRate {
+export function FxRateFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): FxRate {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'baseCode': json['base_code'],
-        'quoteCode': json['quote_code'],
-        'rate': json['rate'],
-        'asOf': (new Date(json['as_of'])),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        baseCode: json['base_code'],
+        quoteCode: json['quote_code'],
+        rate: json['rate'],
+        asOf: new Date(json['as_of']),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -99,20 +107,27 @@ export function FxRateToJSON(json: any): FxRate {
     return FxRateToJSONTyped(json, false);
 }
 
-export function FxRateToJSONTyped(value?: FxRate | null, ignoreDiscriminator: boolean = false): any {
+export function FxRateToJSONTyped(
+    value?: FxRate | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'base_code': value['baseCode'],
-        'quote_code': value['quoteCode'],
-        'rate': value['rate'],
-        'as_of': value['asOf'].toISOString().substring(0,10),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        base_code: value['baseCode'],
+        quote_code: value['quoteCode'],
+        rate: value['rate'],
+        as_of: value['asOf'].toISOString().substring(0, 10),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

@@ -16,11 +16,17 @@ export function useRfpProposals(
     const id = rfpId ? String(rfpId) : '';
     const enabled = options.enabled ?? id.length > 0;
 
-    return useQuery<Record<string, unknown>, ApiError, RfpProposalSummaryResponse>({
+    return useQuery<
+        Record<string, unknown>,
+        ApiError,
+        RfpProposalSummaryResponse
+    >({
         queryKey: queryKeys.rfps.proposals(id || 'undefined'),
         enabled,
         queryFn: async () => {
-            const response = (await api.get<Record<string, unknown>>(`/rfps/${id}/proposals`)) as unknown as Record<string, unknown>;
+            const response = (await api.get<Record<string, unknown>>(
+                `/rfps/${id}/proposals`,
+            )) as unknown as Record<string, unknown>;
             return response;
         },
         select: (payload) => mapRfpProposalCollection(payload),

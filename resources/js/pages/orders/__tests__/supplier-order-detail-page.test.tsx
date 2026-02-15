@@ -1,17 +1,17 @@
-import { ReactNode } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SupplierOrderDetailPage } from '@/pages/orders/supplier-order-detail-page';
-import type { SalesOrderDetail } from '@/types/orders';
-import { useSupplierOrder } from '@/hooks/api/orders/use-supplier-order';
+import type { ShipmentCreateDialogProps } from '@/components/orders/shipment-create-dialog';
 import { useAckOrder } from '@/hooks/api/orders/use-ack-order';
 import { useCreateShipment } from '@/hooks/api/orders/use-create-shipment';
+import { useSupplierOrder } from '@/hooks/api/orders/use-supplier-order';
 import { useUpdateShipmentStatus } from '@/hooks/api/orders/use-update-shipment-status';
-import type { ShipmentCreateDialogProps } from '@/components/orders/shipment-create-dialog';
+import { SupplierOrderDetailPage } from '@/pages/orders/supplier-order-detail-page';
+import type { SalesOrderDetail } from '@/types/orders';
 
 vi.mock('@/components/breadcrumbs', () => ({
     WorkspaceBreadcrumbs: () => <div data-testid="breadcrumbs" />,
@@ -40,7 +40,10 @@ vi.mock('@/components/orders/shipment-create-dialog', () => ({
     ShipmentCreateDialog: ({ open, onSubmit }: ShipmentCreateDialogProps) => (
         <div data-testid="shipment-dialog">
             {open ? (
-                <button type="button" onClick={() => onSubmit(mockShipmentPayload)}>
+                <button
+                    type="button"
+                    onClick={() => onSubmit(mockShipmentPayload)}
+                >
                     Submit mock shipment
                 </button>
             ) : null}
@@ -51,8 +54,10 @@ vi.mock('@/components/orders/shipment-create-dialog', () => ({
 vi.mock('@/contexts/formatting-context', () => ({
     useFormatting: () => ({
         formatDate: (value?: string | null) => (value ? `date:${value}` : '—'),
-        formatMoney: (value?: number | null) => (value === null || value === undefined ? '—' : `$${value}`),
-        formatNumber: (value?: number | null) => (value === null || value === undefined ? '0' : value.toString()),
+        formatMoney: (value?: number | null) =>
+            value === null || value === undefined ? '—' : `$${value}`,
+        formatNumber: (value?: number | null) =>
+            value === null || value === undefined ? '0' : value.toString(),
     }),
 }));
 
@@ -127,7 +132,10 @@ function renderWithRouter(children: ReactNode) {
         <HelmetProvider>
             <MemoryRouter initialEntries={['/app/supplier/orders/101']}>
                 <Routes>
-                    <Route path="/app/supplier/orders/:soId" element={children} />
+                    <Route
+                        path="/app/supplier/orders/:soId"
+                        element={children}
+                    />
                 </Routes>
             </MemoryRouter>
         </HelmetProvider>,
@@ -142,12 +150,19 @@ describe('SupplierOrderDetailPage', () => {
     it('renders pending acknowledgement state and triggers accept mutation', async () => {
         const user = userEvent.setup();
         renderWithRouter(<SupplierOrderDetailPage />);
-        expect(screen.getByText(/Awaiting acknowledgement/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/Awaiting acknowledgement/i),
+        ).toBeInTheDocument();
 
-        const acceptButton = screen.getByRole('button', { name: /accept order/i });
+        const acceptButton = screen.getByRole('button', {
+            name: /accept order/i,
+        });
         await user.click(acceptButton);
 
-        expect(ackMutateSpy).toHaveBeenCalledWith({ orderId: 101, decision: 'accept' });
+        expect(ackMutateSpy).toHaveBeenCalledWith({
+            orderId: 101,
+            decision: 'accept',
+        });
     });
 
     it('submits shipment creation from the dialog happy path', async () => {
@@ -169,11 +184,15 @@ describe('SupplierOrderDetailPage', () => {
         renderWithRouter(<SupplierOrderDetailPage />);
 
         await user.click(screen.getByRole('tab', { name: /Shipments/i }));
-        const createShipmentButton = screen.getByRole('button', { name: /Create shipment/i });
+        const createShipmentButton = screen.getByRole('button', {
+            name: /Create shipment/i,
+        });
         expect(createShipmentButton).toBeEnabled();
         await user.click(createShipmentButton);
 
-        const mockSubmitButton = await screen.findByRole('button', { name: /Submit mock shipment/i });
+        const mockSubmitButton = await screen.findByRole('button', {
+            name: /Submit mock shipment/i,
+        });
         await user.click(mockSubmitButton);
 
         expect(createShipmentMutateAsyncSpy).toHaveBeenCalledWith({

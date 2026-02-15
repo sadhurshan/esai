@@ -1,11 +1,29 @@
 import { publishToast } from '@/components/ui/use-toast';
-import { AuthApi, type LoginRequest, type RegisterDocumentPayload } from '@/sdk/auth-client';
 import { HttpError, createConfiguration } from '@/sdk';
-import { useCallback, useEffect, useMemo, useReducer, useRef, createContext, useContext, type ReactNode } from 'react';
+import {
+    AuthApi,
+    type LoginRequest,
+    type RegisterDocumentPayload,
+} from '@/sdk/auth-client';
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useReducer,
+    useRef,
+    type ReactNode,
+} from 'react';
 
 const STORAGE_KEY = 'esai.auth.state';
 const PLATFORM_ROLES = new Set(['platform_super', 'platform_support']);
-const ADMIN_ROLES = new Set(['owner', 'buyer_admin', 'platform_super', 'platform_support']);
+const ADMIN_ROLES = new Set([
+    'owner',
+    'buyer_admin',
+    'platform_super',
+    'platform_support',
+]);
 const PLATFORM_SUPER_ROLES = new Set(['platform_super']);
 const ADMIN_CONSOLE_FEATURE_KEY = 'admin_console_enabled';
 
@@ -215,9 +233,12 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 featureFlags,
                 plan: action.payload.plan ?? state.plan ?? null,
                 error: null,
-                requiresPlanSelection: action.payload.requiresPlanSelection ?? false,
-                requiresEmailVerification: action.payload.requiresEmailVerification ?? false,
-                needsSupplierApproval: action.payload.needsSupplierApproval ?? false,
+                requiresPlanSelection:
+                    action.payload.requiresPlanSelection ?? false,
+                requiresEmailVerification:
+                    action.payload.requiresEmailVerification ?? false,
+                needsSupplierApproval:
+                    action.payload.needsSupplierApproval ?? false,
                 personas,
                 activePersonaKey: alignActivePersonaKey(
                     personas,
@@ -249,7 +270,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         case 'SET_IDENTITIES': {
             const personas = action.payload.personas ?? state.personas;
             const preferredPersonaKey =
-                action.payload.activePersonaKey ?? (action.payload.personas ? null : state.activePersonaKey);
+                action.payload.activePersonaKey ??
+                (action.payload.personas ? null : state.activePersonaKey);
 
             return {
                 ...state,
@@ -258,13 +280,19 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
                 featureFlags: action.payload.featureFlags ?? state.featureFlags,
                 plan: action.payload.plan ?? state.plan,
                 requiresPlanSelection:
-                    action.payload.requiresPlanSelection ?? state.requiresPlanSelection,
+                    action.payload.requiresPlanSelection ??
+                    state.requiresPlanSelection,
                 requiresEmailVerification:
-                    action.payload.requiresEmailVerification ?? state.requiresEmailVerification,
+                    action.payload.requiresEmailVerification ??
+                    state.requiresEmailVerification,
                 needsSupplierApproval:
-                    action.payload.needsSupplierApproval ?? state.needsSupplierApproval,
+                    action.payload.needsSupplierApproval ??
+                    state.needsSupplierApproval,
                 personas,
-                activePersonaKey: alignActivePersonaKey(personas, preferredPersonaKey),
+                activePersonaKey: alignActivePersonaKey(
+                    personas,
+                    preferredPersonaKey,
+                ),
             };
         }
         case 'SET_PLAN_LIMIT':
@@ -275,7 +303,10 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         case 'SET_ACTIVE_PERSONA':
             return {
                 ...state,
-                activePersonaKey: alignActivePersonaKey(state.personas, action.payload),
+                activePersonaKey: alignActivePersonaKey(
+                    state.personas,
+                    action.payload,
+                ),
             };
         default:
             return state;
@@ -308,7 +339,8 @@ function readStoredState(): AuthState {
             error: null,
             planLimit: null,
             requiresPlanSelection: parsed.requiresPlanSelection ?? false,
-            requiresEmailVerification: parsed.requiresEmailVerification ?? false,
+            requiresEmailVerification:
+                parsed.requiresEmailVerification ?? false,
             needsSupplierApproval: parsed.needsSupplierApproval ?? false,
             personas: parsed.personas ?? [],
             activePersonaKey: parsed.activePersonaKey ?? null,
@@ -360,15 +392,14 @@ function normalizeFeatureFlags(flags: unknown): Record<string, boolean> {
     }
 
     if (typeof flags === 'object') {
-        return Object.entries(flags as Record<string, unknown>).reduce<Record<string, boolean>>(
-            (acc, [key, value]) => {
-                if (typeof value === 'boolean') {
-                    acc[key] = value;
-                }
-                return acc;
-            },
-            {},
-        );
+        return Object.entries(flags as Record<string, unknown>).reduce<
+            Record<string, boolean>
+        >((acc, [key, value]) => {
+            if (typeof value === 'boolean') {
+                acc[key] = value;
+            }
+            return acc;
+        }, {});
     }
 
     return {};
@@ -381,7 +412,11 @@ function normalizeToken(payload: Record<string, unknown>): string | null {
     }
 
     const nestedToken = payload.token;
-    if (nestedToken && typeof nestedToken === 'object' && typeof (nestedToken as { token?: string }).token === 'string') {
+    if (
+        nestedToken &&
+        typeof nestedToken === 'object' &&
+        typeof (nestedToken as { token?: string }).token === 'string'
+    ) {
         return (nestedToken as { token?: string }).token ?? null;
     }
 
@@ -420,7 +455,10 @@ function normalizePersonas(payload: unknown): Persona[] {
 
         const record = entry as Record<string, unknown>;
         const key = typeof record.key === 'string' ? record.key : null;
-        const type = record.type === 'buyer' || record.type === 'supplier' ? (record.type as 'buyer' | 'supplier') : null;
+        const type =
+            record.type === 'buyer' || record.type === 'supplier'
+                ? (record.type as 'buyer' | 'supplier')
+                : null;
         const companyId = toNumber(record.company_id);
 
         if (!key || !type || companyId === null) {
@@ -433,17 +471,33 @@ function normalizePersonas(payload: unknown): Persona[] {
             key,
             type,
             company_id: companyId,
-            company_name: typeof record.company_name === 'string' ? record.company_name : null,
-            company_status: typeof record.company_status === 'string' ? record.company_status : null,
+            company_name:
+                typeof record.company_name === 'string'
+                    ? record.company_name
+                    : null,
+            company_status:
+                typeof record.company_status === 'string'
+                    ? record.company_status
+                    : null,
             company_supplier_status:
-                typeof record.company_supplier_status === 'string' ? record.company_supplier_status : null,
+                typeof record.company_supplier_status === 'string'
+                    ? record.company_supplier_status
+                    : null,
             role: typeof record.role === 'string' ? record.role : null,
-            is_default: record.is_default === true || record.is_default === 1 || record.is_default === '1',
+            is_default:
+                record.is_default === true ||
+                record.is_default === 1 ||
+                record.is_default === '1',
             supplier_id: supplierId,
-            supplier_name: typeof record.supplier_name === 'string' ? record.supplier_name : null,
+            supplier_name:
+                typeof record.supplier_name === 'string'
+                    ? record.supplier_name
+                    : null,
             supplier_company_id: toNumber(record.supplier_company_id),
             supplier_company_name:
-                typeof record.supplier_company_name === 'string' ? record.supplier_company_name : null,
+                typeof record.supplier_company_name === 'string'
+                    ? record.supplier_company_name
+                    : null,
         });
     });
 
@@ -456,10 +510,15 @@ function extractPersonaKey(payload: unknown): string | null {
     }
 
     const candidate = (payload as { key?: unknown }).key;
-    return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
+    return typeof candidate === 'string' && candidate.length > 0
+        ? candidate
+        : null;
 }
 
-function alignActivePersonaKey(personas: Persona[], preferredKey?: string | null): string | null {
+function alignActivePersonaKey(
+    personas: Persona[],
+    preferredKey?: string | null,
+): string | null {
     if (personas.length === 0) {
         return null;
     }
@@ -471,7 +530,9 @@ function alignActivePersonaKey(personas: Persona[], preferredKey?: string | null
         }
     }
 
-    const defaultBuyer = personas.find((persona) => persona.type === 'buyer' && persona.is_default);
+    const defaultBuyer = personas.find(
+        (persona) => persona.type === 'buyer' && persona.is_default,
+    );
     if (defaultBuyer) {
         return defaultBuyer.key;
     }
@@ -486,21 +547,38 @@ function alignActivePersonaKey(personas: Persona[], preferredKey?: string | null
 
 function normalizeAuthResponse(data: Record<string, unknown>) {
     const token = normalizeToken(data);
-    const user = (data.user ?? data.account ?? null) as AuthenticatedUser | null;
-    const company = (data.company ?? data.tenant ?? null) as CompanySummary | null;
+    const user = (data.user ??
+        data.account ??
+        null) as AuthenticatedUser | null;
+    const company = (data.company ??
+        data.tenant ??
+        null) as CompanySummary | null;
     const rawFlags = data.feature_flags ?? data.features;
     const featureFlags = normalizeFeatureFlags(rawFlags);
     const plan = (data.plan ?? company?.plan ?? null) as string | null;
     const requiresPlanSelection = Boolean(
-        (data.requires_plan_selection ?? company?.requires_plan_selection ?? false) as boolean,
+        (data.requires_plan_selection ??
+            company?.requires_plan_selection ??
+            false) as boolean,
     );
-    const requiresEmailVerification = computeRequiresEmailVerification(data, user);
-    const needsSupplierApproval = (company?.supplier_status ?? null) === 'pending';
-    const personas = normalizePersonas((data as { personas?: unknown }).personas);
-    const preferredKey = extractPersonaKey((data as { active_persona?: unknown }).active_persona);
+    const requiresEmailVerification = computeRequiresEmailVerification(
+        data,
+        user,
+    );
+    const needsSupplierApproval =
+        (company?.supplier_status ?? null) === 'pending';
+    const personas = normalizePersonas(
+        (data as { personas?: unknown }).personas,
+    );
+    const preferredKey = extractPersonaKey(
+        (data as { active_persona?: unknown }).active_persona,
+    );
     const supplierFirst = company?.start_mode === 'supplier';
-    const supplierPersona = supplierFirst ? personas.find((persona) => persona.type === 'supplier') : undefined;
-    const activePersonaKey = supplierPersona?.key ?? alignActivePersonaKey(personas, preferredKey);
+    const supplierPersona = supplierFirst
+        ? personas.find((persona) => persona.type === 'supplier')
+        : undefined;
+    const activePersonaKey =
+        supplierPersona?.key ?? alignActivePersonaKey(personas, preferredKey);
 
     return {
         token,
@@ -516,7 +594,10 @@ function normalizeAuthResponse(data: Record<string, unknown>) {
     };
 }
 
-function computeRequiresEmailVerification(payload: Record<string, unknown>, user: AuthenticatedUser | null): boolean {
+function computeRequiresEmailVerification(
+    payload: Record<string, unknown>,
+    user: AuthenticatedUser | null,
+): boolean {
     if (typeof payload.requires_email_verification === 'boolean') {
         return payload.requires_email_verification;
     }
@@ -528,7 +609,10 @@ function computeRequiresEmailVerification(payload: Record<string, unknown>, user
         }
 
         if ('email_verified_at' in candidate) {
-            const timestamp = candidate.email_verified_at as string | null | undefined;
+            const timestamp = candidate.email_verified_at as
+                | string
+                | null
+                | undefined;
             return !timestamp;
         }
     }
@@ -548,7 +632,9 @@ function extractFirstValidationMessage(errors: unknown): string | null {
         }
 
         if (Array.isArray(value)) {
-            const candidate = value.find((entry) => typeof entry === 'string' && entry.trim().length > 0);
+            const candidate = value.find(
+                (entry) => typeof entry === 'string' && entry.trim().length > 0,
+            );
             if (candidate) {
                 return candidate;
             }
@@ -558,10 +644,25 @@ function extractFirstValidationMessage(errors: unknown): string | null {
     return null;
 }
 
-export function AuthProvider({ children, onPersonaChange }: { children: ReactNode; onPersonaChange?: () => void }) {
-    const [state, dispatch] = useReducer(authReducer, initialState, readStoredState);
-    const baseUrl = useMemo(() => (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, ''), []);
-    const bootstrappedFromStorageRef = useRef(state.status === 'authenticated' && state.token !== null);
+export function AuthProvider({
+    children,
+    onPersonaChange,
+}: {
+    children: ReactNode;
+    onPersonaChange?: () => void;
+}) {
+    const [state, dispatch] = useReducer(
+        authReducer,
+        initialState,
+        readStoredState,
+    );
+    const baseUrl = useMemo(
+        () => (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, ''),
+        [],
+    );
+    const bootstrappedFromStorageRef = useRef(
+        state.status === 'authenticated' && state.token !== null,
+    );
 
     const activePersonaKey = state.activePersonaKey ?? null;
 
@@ -573,7 +674,9 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 defaultHeaders: {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                activePersona: activePersonaKey ? () => activePersonaKey : undefined,
+                activePersona: activePersonaKey
+                    ? () => activePersonaKey
+                    : undefined,
             }),
         );
     }, [activePersonaKey, baseUrl, state.token]);
@@ -594,17 +697,21 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
         [state.featureFlags],
     );
 
-    const notifyPlanLimit = useCallback((notice: PlanLimitNotice) => {
-        const supplierStatus = state.company?.supplier_status ?? null;
-        const isSupplierStart =
-            state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+    const notifyPlanLimit = useCallback(
+        (notice: PlanLimitNotice) => {
+            const supplierStatus = state.company?.supplier_status ?? null;
+            const isSupplierStart =
+                state.company?.start_mode === 'supplier' ||
+                (supplierStatus && supplierStatus !== 'none');
 
-        if (isSupplierStart) {
-            return;
-        }
+            if (isSupplierStart) {
+                return;
+            }
 
-        dispatch({ type: 'SET_PLAN_LIMIT', payload: notice });
-    }, [state.company?.start_mode, state.company?.supplier_status]);
+            dispatch({ type: 'SET_PLAN_LIMIT', payload: notice });
+        },
+        [state.company?.start_mode, state.company?.supplier_status],
+    );
 
     const clearPlanLimit = useCallback(() => {
         dispatch({ type: 'SET_PLAN_LIMIT', payload: null });
@@ -616,11 +723,9 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
 
     const logout = useCallback(() => {
         dispatch({ type: 'LOGOUT' });
-        authClient
-            .logout()
-            .catch((error) => {
-                console.warn('Failed to revoke session token during logout', error);
-            });
+        authClient.logout().catch((error) => {
+            console.warn('Failed to revoke session token during logout', error);
+        });
         publishToast({
             variant: 'default',
             title: 'Signed out',
@@ -637,7 +742,10 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
 
         const hydrateSession = async (): Promise<void> => {
             try {
-                const data = (await authClient.current()) as Record<string, unknown>;
+                const data = (await authClient.current()) as Record<
+                    string,
+                    unknown
+                >;
                 if (isCancelled) {
                     return;
                 }
@@ -673,12 +781,18 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     return;
                 }
 
-                if (error instanceof HttpError && error.response.status === 401) {
+                if (
+                    error instanceof HttpError &&
+                    error.response.status === 401
+                ) {
                     logout();
                     return;
                 }
 
-                console.error('Failed to refresh authentication session', error);
+                console.error(
+                    'Failed to refresh authentication session',
+                    error,
+                );
             } finally {
                 bootstrappedFromStorageRef.current = false;
             }
@@ -702,7 +816,10 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     remember: remember ?? false,
                 };
 
-                const envelope = (await authClient.login(request)) as Record<string, unknown>;
+                const envelope = (await authClient.login(request)) as Record<
+                    string,
+                    unknown
+                >;
                 const {
                     token,
                     user,
@@ -719,14 +836,19 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 if (!token || !user) {
                     dispatch({
                         type: 'LOGIN_FAILURE',
-                        payload: { error: 'Authentication response missing token or user.' },
+                        payload: {
+                            error: 'Authentication response missing token or user.',
+                        },
                     });
                     publishToast({
                         variant: 'destructive',
                         title: 'Unexpected response',
-                        description: 'Authentication response missing token or user.',
+                        description:
+                            'Authentication response missing token or user.',
                     });
-                    throw new Error('Authentication response missing token or user.');
+                    throw new Error(
+                        'Authentication response missing token or user.',
+                    );
                 }
 
                 dispatch({
@@ -758,18 +880,28 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                     userRole: user.role ?? null,
                 };
             } catch (error) {
-                let message = 'Unable to sign in. Please check your credentials.';
+                let message =
+                    'Unable to sign in. Please check your credentials.';
 
                 if (error instanceof HttpError) {
-                    const body = error.body as Record<string, unknown> | undefined;
-                    if (body && typeof body.message === 'string' && body.message.length > 0) {
+                    const body = error.body as
+                        | Record<string, unknown>
+                        | undefined;
+                    if (
+                        body &&
+                        typeof body.message === 'string' &&
+                        body.message.length > 0
+                    ) {
                         message = body.message;
                     }
                 } else if (error instanceof Error && error.message) {
                     message = error.message;
                 }
 
-                dispatch({ type: 'LOGIN_FAILURE', payload: { error: message } });
+                dispatch({
+                    type: 'LOGIN_FAILURE',
+                    payload: { error: message },
+                });
                 publishToast({
                     variant: 'destructive',
                     title: 'Login failed',
@@ -806,7 +938,9 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
 
             try {
                 const normalizedDomain = companyDomain.trim().toLowerCase();
-                const normalizedCountry = country ? country.trim().toUpperCase() : undefined;
+                const normalizedCountry = country
+                    ? country.trim().toUpperCase()
+                    : undefined;
                 const formData = new FormData();
                 formData.append('name', name.trim());
                 formData.append('email', email.trim());
@@ -832,11 +966,19 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 }
 
                 companyDocuments.forEach((document, index) => {
-                    formData.append(`company_documents[${index}][type]`, document.type);
-                    formData.append(`company_documents[${index}][file]`, document.file);
+                    formData.append(
+                        `company_documents[${index}][type]`,
+                        document.type,
+                    );
+                    formData.append(
+                        `company_documents[${index}][file]`,
+                        document.file,
+                    );
                 });
 
-                const envelope = (await authClient.register(formData)) as Record<string, unknown>;
+                const envelope = (await authClient.register(
+                    formData,
+                )) as Record<string, unknown>;
                 const {
                     token,
                     user,
@@ -851,20 +993,28 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 } = normalizeAuthResponse(envelope);
 
                 const isSupplierStart = startMode === 'supplier';
-                const resolvedRequiresPlanSelection = isSupplierStart ? false : requiresPlanSelection ?? false;
-                const resolvedNeedsSupplierApproval = isSupplierStart || needsSupplierApproval;
+                const resolvedRequiresPlanSelection = isSupplierStart
+                    ? false
+                    : (requiresPlanSelection ?? false);
+                const resolvedNeedsSupplierApproval =
+                    isSupplierStart || needsSupplierApproval;
 
                 if (!token || !user) {
                     dispatch({
                         type: 'LOGIN_FAILURE',
-                        payload: { error: 'Registration response missing token or user.' },
+                        payload: {
+                            error: 'Registration response missing token or user.',
+                        },
                     });
                     publishToast({
                         variant: 'destructive',
                         title: 'Unexpected response',
-                        description: 'Registration response missing token or user.',
+                        description:
+                            'Registration response missing token or user.',
                     });
-                    throw new Error('Registration response missing token or user.');
+                    throw new Error(
+                        'Registration response missing token or user.',
+                    );
                 }
 
                 dispatch({
@@ -900,20 +1050,33 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
                 let validationMessage: string | null = null;
 
                 if (error instanceof HttpError) {
-                    const body = error.body as Record<string, unknown> | undefined;
-                    if (body && typeof body.message === 'string' && body.message.length > 0) {
+                    const body = error.body as
+                        | Record<string, unknown>
+                        | undefined;
+                    if (
+                        body &&
+                        typeof body.message === 'string' &&
+                        body.message.length > 0
+                    ) {
                         message = body.message;
                     }
 
-                    const errorsBag = body && typeof body === 'object' ? (body as { errors?: unknown }).errors : undefined;
-                    validationMessage = extractFirstValidationMessage(errorsBag);
+                    const errorsBag =
+                        body && typeof body === 'object'
+                            ? (body as { errors?: unknown }).errors
+                            : undefined;
+                    validationMessage =
+                        extractFirstValidationMessage(errorsBag);
                 } else if (error instanceof Error && error.message) {
                     message = error.message;
                 }
 
                 const toastDescription = validationMessage ?? message;
 
-                dispatch({ type: 'LOGIN_FAILURE', payload: { error: toastDescription } });
+                dispatch({
+                    type: 'LOGIN_FAILURE',
+                    payload: { error: toastDescription },
+                });
                 publishToast({
                     variant: 'destructive',
                     title: 'Registration failed',
@@ -942,7 +1105,10 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
         }
 
         try {
-            const data = (await authClient.current()) as Record<string, unknown>;
+            const data = (await authClient.current()) as Record<
+                string,
+                unknown
+            >;
             const {
                 user,
                 company,
@@ -989,7 +1155,15 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             console.error('Failed to refresh auth state', error);
             return snapshot;
         }
-    }, [authClient, logout, state.requiresEmailVerification, state.requiresPlanSelection, state.token, state.user?.role]);
+    }, [
+        authClient,
+        logout,
+        state.needsSupplierApproval,
+        state.requiresEmailVerification,
+        state.requiresPlanSelection,
+        state.token,
+        state.user?.role,
+    ]);
 
     const userRole = state.user?.role ?? null;
 
@@ -1011,7 +1185,9 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             return true;
         }
 
-        return isAdmin && state.featureFlags[ADMIN_CONSOLE_FEATURE_KEY] === true;
+        return (
+            isAdmin && state.featureFlags[ADMIN_CONSOLE_FEATURE_KEY] === true
+        );
     }, [isAdmin, state.featureFlags, userRole]);
 
     const canTrainAi = useMemo(() => {
@@ -1025,14 +1201,21 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             return true;
         }
 
-        return PLATFORM_ROLES.has(role) && state.featureFlags.ai_training_enabled === true;
+        return (
+            PLATFORM_ROLES.has(role) &&
+            state.featureFlags.ai_training_enabled === true
+        );
     }, [state.featureFlags, userRole]);
 
     const personas = state.personas;
 
     const activePersona = useMemo(() => {
         if (state.activePersonaKey) {
-            return personas.find((persona) => persona.key === state.activePersonaKey) ?? null;
+            return (
+                personas.find(
+                    (persona) => persona.key === state.activePersonaKey,
+                ) ?? null
+            );
         }
 
         if (personas.length > 0) {
@@ -1055,11 +1238,18 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
             }
 
             try {
-                const payload = (await authClient.switchPersona({ key })) as Record<string, unknown>;
-                const personas = normalizePersonas((payload as { personas?: unknown }).personas);
+                const payload = (await authClient.switchPersona({
+                    key,
+                })) as Record<string, unknown>;
+                const personas = normalizePersonas(
+                    (payload as { personas?: unknown }).personas,
+                );
                 const nextActiveKey = alignActivePersonaKey(
                     personas,
-                    extractPersonaKey((payload as { active_persona?: unknown }).active_persona) ?? key,
+                    extractPersonaKey(
+                        (payload as { active_persona?: unknown })
+                            .active_persona,
+                    ) ?? key,
                 );
 
                 dispatch({
@@ -1090,7 +1280,8 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
     const value = useMemo<AuthContextValue>(
         () => ({
             state,
-            isAuthenticated: state.status === 'authenticated' && Boolean(state.token),
+            isAuthenticated:
+                state.status === 'authenticated' && Boolean(state.token),
             isLoading: state.status === 'loading',
             isAdmin,
             canTrainAi,
@@ -1129,7 +1320,9 @@ export function AuthProvider({ children, onPersonaChange }: { children: ReactNod
         ],
     );
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    );
 }
 
 export function useAuth(): AuthContextValue {

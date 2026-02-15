@@ -2,16 +2,14 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**authForgotPassword**](AuthApi.md#authforgotpasswordoperation) | **POST** /api/auth/forgot-password | Send password reset link |
-| [**authLogin**](AuthApi.md#authloginoperation) | **POST** /api/auth/login | Create an authenticated session |
-| [**authLogout**](AuthApi.md#authlogout) | **POST** /api/auth/logout | Terminate the authenticated session |
-| [**authRegister**](AuthApi.md#authregister) | **POST** /api/auth/register | Self-register a buyer company and primary owner |
-| [**authResetPassword**](AuthApi.md#authresetpasswordoperation) | **POST** /api/auth/reset-password | Reset password with token |
-| [**authSession**](AuthApi.md#authsession) | **GET** /api/auth/me | Inspect the current authenticated session |
-
-
+| Method                                                           | HTTP request                       | Description                                     |
+| ---------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------- |
+| [**authForgotPassword**](AuthApi.md#authforgotpasswordoperation) | **POST** /api/auth/forgot-password | Send password reset link                        |
+| [**authLogin**](AuthApi.md#authloginoperation)                   | **POST** /api/auth/login           | Create an authenticated session                 |
+| [**authLogout**](AuthApi.md#authlogout)                          | **POST** /api/auth/logout          | Terminate the authenticated session             |
+| [**authRegister**](AuthApi.md#authregister)                      | **POST** /api/auth/register        | Self-register a buyer company and primary owner |
+| [**authResetPassword**](AuthApi.md#authresetpasswordoperation)   | **POST** /api/auth/reset-password  | Reset password with token                       |
+| [**authSession**](AuthApi.md#authsession)                        | **GET** /api/auth/me               | Inspect the current authenticated session       |
 
 ## authForgotPassword
 
@@ -53,10 +51,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **authForgotPasswordRequest** | [AuthForgotPasswordRequest](AuthForgotPasswordRequest.md) |  | |
+| Name                          | Type                                                      | Description | Notes |
+| ----------------------------- | --------------------------------------------------------- | ----------- | ----- |
+| **authForgotPasswordRequest** | [AuthForgotPasswordRequest](AuthForgotPasswordRequest.md) |             |       |
 
 ### Return type
 
@@ -71,15 +68,14 @@ No authorization required
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Reset email dispatched (or suppressed for privacy). |  -  |
-| **422** | Invalid email payload. |  -  |
+
+| Status code | Description                                         | Response headers |
+| ----------- | --------------------------------------------------- | ---------------- |
+| **200**     | Reset email dispatched (or suppressed for privacy). | -                |
+| **422**     | Invalid email payload.                              | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## authLogin
 
@@ -121,10 +117,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **authLoginRequest** | [AuthLoginRequest](AuthLoginRequest.md) |  | |
+| Name                 | Type                                    | Description | Notes |
+| -------------------- | --------------------------------------- | ----------- | ----- |
+| **authLoginRequest** | [AuthLoginRequest](AuthLoginRequest.md) |             |       |
 
 ### Return type
 
@@ -139,15 +134,14 @@ No authorization required
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Authenticated session payload. |  -  |
-| **422** | Invalid credentials supplied. |  -  |
+
+| Status code | Description                    | Response headers |
+| ----------- | ------------------------------ | ---------------- |
+| **200**     | Authenticated session payload. | -                |
+| **422**     | Invalid credentials supplied.  | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## authLogout
 
@@ -158,26 +152,23 @@ Terminate the authenticated session
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AuthApi,
-} from '';
+import { Configuration, AuthApi } from '';
 import type { AuthLogoutRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AuthApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AuthApi(config);
 
-  try {
-    const data = await api.authLogout();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.authLogout();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -201,15 +192,14 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Session destroyed successfully. |  -  |
-| **401** | No active session. |  -  |
+
+| Status code | Description                     | Response headers |
+| ----------- | ------------------------------- | ---------------- |
+| **200**     | Session destroyed successfully. | -                |
+| **401**     | No active session.              | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## authRegister
 
@@ -275,22 +265,21 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **name** | `string` |  | [Defaults to `undefined`] |
-| **email** | `string` |  | [Defaults to `undefined`] |
-| **password** | `string` |  | [Defaults to `undefined`] |
-| **passwordConfirmation** | `string` | Must match &#x60;password&#x60;. | [Defaults to `undefined`] |
-| **companyName** | `string` |  | [Defaults to `undefined`] |
-| **companyDomain** | `string` | Public email domain used for verification. | [Defaults to `undefined`] |
-| **registrationNo** | `string` |  | [Defaults to `undefined`] |
-| **taxId** | `string` |  | [Defaults to `undefined`] |
-| **website** | `string` |  | [Defaults to `undefined`] |
-| **companyDocuments** | `Array<SelfRegistrationRequestCompanyDocumentsInner>` |  | |
-| **address** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **phone** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **country** | `string` | ISO 3166-1 alpha-2 country code. | [Optional] [Defaults to `undefined`] |
+| Name                     | Type                                                  | Description                                | Notes                                |
+| ------------------------ | ----------------------------------------------------- | ------------------------------------------ | ------------------------------------ |
+| **name**                 | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **email**                | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **password**             | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **passwordConfirmation** | `string`                                              | Must match &#x60;password&#x60;.           | [Defaults to `undefined`]            |
+| **companyName**          | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **companyDomain**        | `string`                                              | Public email domain used for verification. | [Defaults to `undefined`]            |
+| **registrationNo**       | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **taxId**                | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **website**              | `string`                                              |                                            | [Defaults to `undefined`]            |
+| **companyDocuments**     | `Array<SelfRegistrationRequestCompanyDocumentsInner>` |                                            |                                      |
+| **address**              | `string`                                              |                                            | [Optional] [Defaults to `undefined`] |
+| **phone**                | `string`                                              |                                            | [Optional] [Defaults to `undefined`] |
+| **country**              | `string`                                              | ISO 3166-1 alpha-2 country code.           | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -305,16 +294,15 @@ No authorization required
 - **Content-Type**: `multipart/form-data`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Registration succeeded and the caller is authenticated. |  -  |
-| **409** | Attempted to register while already authenticated. |  -  |
-| **422** | Invalid registration payload. |  -  |
+
+| Status code | Description                                             | Response headers |
+| ----------- | ------------------------------------------------------- | ---------------- |
+| **200**     | Registration succeeded and the caller is authenticated. | -                |
+| **409**     | Attempted to register while already authenticated.      | -                |
+| **422**     | Invalid registration payload.                           | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## authResetPassword
 
@@ -356,10 +344,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **authResetPasswordRequest** | [AuthResetPasswordRequest](AuthResetPasswordRequest.md) |  | |
+| Name                         | Type                                                    | Description | Notes |
+| ---------------------------- | ------------------------------------------------------- | ----------- | ----- |
+| **authResetPasswordRequest** | [AuthResetPasswordRequest](AuthResetPasswordRequest.md) |             |       |
 
 ### Return type
 
@@ -374,15 +361,14 @@ No authorization required
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Password reset successfully. |  -  |
-| **422** | Invalid reset token or password payload. |  -  |
+
+| Status code | Description                              | Response headers |
+| ----------- | ---------------------------------------- | ---------------- |
+| **200**     | Password reset successfully.             | -                |
+| **422**     | Invalid reset token or password payload. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## authSession
 
@@ -395,26 +381,23 @@ Returns the authenticated user, company context, feature flags, and active plan 
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AuthApi,
-} from '';
+import { Configuration, AuthApi } from '';
 import type { AuthSessionRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AuthApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AuthApi(config);
 
-  try {
-    const data = await api.authSession();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.authSession();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -438,12 +421,11 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Session metadata. |  -  |
-| **401** | Missing or invalid session. |  -  |
+
+| Status code | Description                 | Response headers |
+| ----------- | --------------------------- | ---------------- |
+| **200**     | Session metadata.           | -                |
+| **401**     | Missing or invalid session. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

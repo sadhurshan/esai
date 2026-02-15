@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListSavedSearches200ResponseAllOfData } from './ListSavedSearches200ResponseAllOfData';
 import {
     ListSavedSearches200ResponseAllOfDataFromJSON,
-    ListSavedSearches200ResponseAllOfDataFromJSONTyped,
     ListSavedSearches200ResponseAllOfDataToJSON,
-    ListSavedSearches200ResponseAllOfDataToJSONTyped,
 } from './ListSavedSearches200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListSavedSearches200Response
  */
 export interface ListSavedSearches200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListSavedSearches200Response
      */
     status: ListSavedSearches200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListSavedSearches200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListSavedSearches200ResponseAllOfData}
      * @memberof ListSavedSearches200Response
      */
     data: ListSavedSearches200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListSavedSearches200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListSavedSearches200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListSavedSearches200ResponseStatusEnum = typeof ListSavedSearches200ResponseStatusEnum[keyof typeof ListSavedSearches200ResponseStatusEnum];
-
+export type ListSavedSearches200ResponseStatusEnum =
+    (typeof ListSavedSearches200ResponseStatusEnum)[keyof typeof ListSavedSearches200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListSavedSearches200Response interface.
  */
-export function instanceOfListSavedSearches200Response(value: object): value is ListSavedSearches200Response {
+export function instanceOfListSavedSearches200Response(
+    value: object,
+): value is ListSavedSearches200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListSavedSearches200ResponseFromJSON(json: any): ListSavedSearches200Response {
+export function ListSavedSearches200ResponseFromJSON(
+    json: any,
+): ListSavedSearches200Response {
     return ListSavedSearches200ResponseFromJSONTyped(json, false);
 }
 
-export function ListSavedSearches200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListSavedSearches200Response {
+export function ListSavedSearches200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListSavedSearches200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListSavedSearches200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListSavedSearches200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListSavedSearches200ResponseToJSON(json: any): ListSavedSearches200Response {
+export function ListSavedSearches200ResponseToJSON(
+    json: any,
+): ListSavedSearches200Response {
     return ListSavedSearches200ResponseToJSONTyped(json, false);
 }
 
-export function ListSavedSearches200ResponseToJSONTyped(value?: ListSavedSearches200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListSavedSearches200ResponseToJSONTyped(
+    value?: ListSavedSearches200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListSavedSearches200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListSavedSearches200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

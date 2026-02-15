@@ -11,7 +11,10 @@ type FetchTimelineParams = {
     rfqId: string | number;
 };
 
-async function fetchRfqTimeline({ rfqsApi, rfqId }: FetchTimelineParams): Promise<RfqTimelineEntry[]> {
+async function fetchRfqTimeline({
+    rfqsApi,
+    rfqId,
+}: FetchTimelineParams): Promise<RfqTimelineEntry[]> {
     const response = await rfqsApi.listRfqTimeline({
         rfqId: String(rfqId),
     });
@@ -30,7 +33,8 @@ export function useRfqTimeline(rfqId: RfqIdentifier): UseRfqTimelineResult {
     const query = useQuery<RfqTimelineEntry[]>({
         queryKey: queryKeys.rfqs.timeline(rfqId ?? 'undefined'),
         enabled,
-        queryFn: () => fetchRfqTimeline({ rfqsApi, rfqId: rfqId as string | number }),
+        queryFn: () =>
+            fetchRfqTimeline({ rfqsApi, rfqId: rfqId as string | number }),
     });
 
     return {

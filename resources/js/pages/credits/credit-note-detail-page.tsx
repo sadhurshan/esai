@@ -1,34 +1,47 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+    BadgeCheck,
+    Download,
+    FileWarning,
+    Loader2,
+    Paperclip,
+    ShieldAlert,
+} from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
-import { BadgeCheck, Download, FileWarning, Loader2, Paperclip, ShieldAlert } from 'lucide-react';
 
 import { ExportButtons } from '@/components/downloads/export-buttons';
 
-import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
+import {
+    CreditLineEditor,
+    type CreditLineFormValue,
+} from '@/components/credits/credit-line-editor';
+import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
+import { EmptyState } from '@/components/empty-state';
+import { FileDropzone } from '@/components/file-dropzone';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { MoneyCell } from '@/components/quotes/money-cell';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { EmptyState } from '@/components/empty-state';
-import { FileDropzone } from '@/components/file-dropzone';
-import { CreditLineEditor, type CreditLineFormValue } from '@/components/credits/credit-line-editor';
 import { useAuth } from '@/contexts/auth-context';
-import { useCreditNote } from '@/hooks/api/credits/use-credit-note';
-import { useAttachCreditFile } from '@/hooks/api/credits/use-attach-credit-file';
-import { useIssueCreditNote } from '@/hooks/api/credits/use-issue-credit-note';
 import { useApproveCreditNote } from '@/hooks/api/credits/use-approve-credit-note';
+import { useAttachCreditFile } from '@/hooks/api/credits/use-attach-credit-file';
+import { useCreditNote } from '@/hooks/api/credits/use-credit-note';
+import { useIssueCreditNote } from '@/hooks/api/credits/use-issue-credit-note';
 import { useUpdateCreditLines } from '@/hooks/api/credits/use-update-credit-lines';
 import { formatDate } from '@/lib/format';
 import type { CreditNoteDetail } from '@/types/sourcing';
 
-const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+const STATUS_VARIANTS: Record<
+    string,
+    'default' | 'secondary' | 'outline' | 'destructive'
+> = {
     draft: 'secondary',
     pending_review: 'outline',
     issued: 'outline',
@@ -44,7 +57,9 @@ const creditLineSchema = z
         qtyInvoiced: z.number().nonnegative(),
         qtyAlreadyCredited: z.number().nonnegative().nullable().optional(),
         qtyRemaining: z.number().nonnegative(),
-        qtyToCredit: z.number({ invalid_type_error: 'Enter a quantity to credit' }).min(0, 'Quantity must be at least 0'),
+        qtyToCredit: z
+            .number({ invalid_type_error: 'Enter a quantity to credit' })
+            .min(0, 'Quantity must be at least 0'),
         unitPriceMinor: z.number().nonnegative(),
         currency: z.string().optional(),
         uom: z.string().nullable().optional(),
@@ -71,7 +86,8 @@ export function CreditNoteDetailPage() {
     const navigate = useNavigate();
     const { creditId } = useParams();
     const { hasFeature, state } = useAuth();
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const financeEnabled = hasFeature('finance_enabled');
 
     const creditNoteQuery = useCreditNote(creditId);
@@ -87,21 +103,28 @@ export function CreditNoteDetailPage() {
         defaultValues: { lines: [] },
     });
 
-    const creditLineDefaults = useMemo(() => buildCreditLineFormValues(credit), [credit]);
+    const creditLineDefaults = useMemo(
+        () => buildCreditLineFormValues(credit),
+        [credit],
+    );
 
     useEffect(() => {
         creditLinesForm.reset({ lines: creditLineDefaults });
     }, [creditLineDefaults, creditLinesForm]);
 
-    const isPostingCredit = issueCreditNote.isPending || approveCreditNote.isPending;
+    const isPostingCredit =
+        issueCreditNote.isPending || approveCreditNote.isPending;
     const isSavingLines = updateCreditLines.isPending;
     const canPostCredit = Boolean(
-        credit && ['draft', 'issued', 'pending_review'].includes(credit.status ?? ''),
+        credit &&
+        ['draft', 'issued', 'pending_review'].includes(credit.status ?? ''),
     );
     const canEditLines = Boolean(credit && credit.status === 'draft');
     const isLineFormDirty = creditLinesForm.formState.isDirty;
     const isLineFormValid = creditLinesForm.formState.isValid;
-    const showCreditNumberPreview = Boolean(credit && credit.status === 'draft');
+    const showCreditNumberPreview = Boolean(
+        credit && credit.status === 'draft',
+    );
 
     const postButtonLabel = (() => {
         if (!credit) {
@@ -131,7 +154,10 @@ export function CreditNoteDetailPage() {
         }
 
         if (credit.status === 'issued' || credit.status === 'pending_review') {
-            approveCreditNote.mutate({ creditNoteId: parsedId, decision: 'approve' });
+            approveCreditNote.mutate({
+                creditNoteId: parsedId,
+                decision: 'approve',
+            });
         }
     };
 
@@ -159,7 +185,9 @@ export function CreditNoteDetailPage() {
 
         const payloadLines = values.lines.map((line) => ({
             invoiceLineId: line.invoiceLineId,
-            qtyToCredit: Number.isFinite(line.qtyToCredit) ? Number(line.qtyToCredit) : 0,
+            qtyToCredit: Number.isFinite(line.qtyToCredit)
+                ? Number(line.qtyToCredit)
+                : 0,
             description: line.description ?? null,
             uom: line.uom ?? null,
         }));
@@ -187,9 +215,13 @@ export function CreditNoteDetailPage() {
                 <EmptyState
                     title="Credit notes unavailable"
                     description="Upgrade your Elements Supply plan to review and approve credit notes."
-                    icon={<ShieldAlert className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <ShieldAlert className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -209,18 +241,29 @@ export function CreditNoteDetailPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Finance / Credit note</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Finance / Credit note
+                    </p>
                     {credit ? (
                         <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-semibold text-foreground">{credit.creditNumber}</h1>
-                            <Badge variant={STATUS_VARIANTS[credit.status] ?? 'outline'} className="uppercase tracking-wide">
+                            <h1 className="text-2xl font-semibold text-foreground">
+                                {credit.creditNumber}
+                            </h1>
+                            <Badge
+                                variant={
+                                    STATUS_VARIANTS[credit.status] ?? 'outline'
+                                }
+                                className="tracking-wide uppercase"
+                            >
                                 {credit.status.replace(/_/g, ' ')}
                             </Badge>
                         </div>
                     ) : (
                         <Skeleton className="h-8 w-40" />
                     )}
-                    <p className="text-sm text-muted-foreground">Track supplier-issued credits tied to invoices.</p>
+                    <p className="text-sm text-muted-foreground">
+                        Track supplier-issued credits tied to invoices.
+                    </p>
                     {showCreditNumberPreview ? (
                         <DocumentNumberPreview
                             docType="credit"
@@ -230,7 +273,12 @@ export function CreditNoteDetailPage() {
                     ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => navigate('/app/credit-notes')}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/app/credit-notes')}
+                    >
                         Back to list
                     </Button>
                     <ExportButtons
@@ -260,7 +308,9 @@ export function CreditNoteDetailPage() {
                 <EmptyState
                     title="Unable to load credit note"
                     description="Please refresh the page or try again later."
-                    icon={<FileWarning className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileWarning className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="Back to list"
                     ctaProps={{ onClick: () => navigate('/app/credit-notes') }}
                 />
@@ -282,35 +332,58 @@ export function CreditNoteDetailPage() {
                             ) : (
                                 <div className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-1">
-                                        <p className="text-xs uppercase text-muted-foreground">Supplier</p>
+                                        <p className="text-xs text-muted-foreground uppercase">
+                                            Supplier
+                                        </p>
                                         <p className="font-medium">
                                             {credit.supplierName ?? '—'}
                                         </p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs uppercase text-muted-foreground">Invoice</p>
+                                        <p className="text-xs text-muted-foreground uppercase">
+                                            Invoice
+                                        </p>
                                         {credit.invoiceId ? (
-                                            <Link className="text-primary" to={`/app/invoices/${credit.invoiceId}`}>
-                                                {credit.invoiceNumber ?? `INV-${credit.invoiceId}`}
+                                            <Link
+                                                className="text-primary"
+                                                to={`/app/invoices/${credit.invoiceId}`}
+                                            >
+                                                {credit.invoiceNumber ??
+                                                    `INV-${credit.invoiceId}`}
                                             </Link>
                                         ) : (
-                                            <p className="text-muted-foreground">—</p>
+                                            <p className="text-muted-foreground">
+                                                —
+                                            </p>
                                         )}
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs uppercase text-muted-foreground">Reason</p>
+                                        <p className="text-xs text-muted-foreground uppercase">
+                                            Reason
+                                        </p>
                                         <p>{credit.reason ?? '—'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs uppercase text-muted-foreground">Created</p>
-                                        <p>{formatDate(credit.createdAt) ?? '—'}</p>
+                                        <p className="text-xs text-muted-foreground uppercase">
+                                            Created
+                                        </p>
+                                        <p>
+                                            {formatDate(credit.createdAt) ??
+                                                '—'}
+                                        </p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs uppercase text-muted-foreground">Issued</p>
-                                        <p>{formatDate(credit.issuedAt) ?? '—'}</p>
+                                        <p className="text-xs text-muted-foreground uppercase">
+                                            Issued
+                                        </p>
+                                        <p>
+                                            {formatDate(credit.issuedAt) ?? '—'}
+                                        </p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs uppercase text-muted-foreground">Currency</p>
+                                        <p className="text-xs text-muted-foreground uppercase">
+                                            Currency
+                                        </p>
                                         <p>{credit.currency ?? '—'}</p>
                                     </div>
                                 </div>
@@ -318,40 +391,64 @@ export function CreditNoteDetailPage() {
 
                             {credit ? (
                                 <div className="grid gap-4 sm:grid-cols-3">
-                                    <MoneyCell amountMinor={credit.totalMinor} currency={credit.currency} label="Credit total" />
-                                    <MoneyCell amountMinor={credit.balanceMinor} currency={credit.currency} label="Balance" />
-                                    <MoneyCell amountMinor={credit.totalMinor} currency={credit.currency} label="Original amount" />
+                                    <MoneyCell
+                                        amountMinor={credit.totalMinor}
+                                        currency={credit.currency}
+                                        label="Credit total"
+                                    />
+                                    <MoneyCell
+                                        amountMinor={credit.balanceMinor}
+                                        currency={credit.currency}
+                                        label="Balance"
+                                    />
+                                    <MoneyCell
+                                        amountMinor={credit.totalMinor}
+                                        currency={credit.currency}
+                                        label="Original amount"
+                                    />
                                 </div>
                             ) : null}
 
                             <div className="space-y-3">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <p className="text-sm font-semibold text-foreground">Credit lines</p>
-                                        {canEditLines ? (
-                                            <div className="flex items-center gap-2">
-                                                {isLineFormDirty ? (
-                                                    <Badge variant="outline" className="text-xs uppercase text-amber-600">
-                                                        Unsaved
-                                                    </Badge>
-                                                ) : null}
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    onClick={handleSaveLines}
-                                                    disabled={!isLineFormDirty || !isLineFormValid || isSavingLines}
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <p className="text-sm font-semibold text-foreground">
+                                        Credit lines
+                                    </p>
+                                    {canEditLines ? (
+                                        <div className="flex items-center gap-2">
+                                            {isLineFormDirty ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="text-xs text-amber-600 uppercase"
                                                 >
-                                                    {isSavingLines ? (
-                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    ) : null}
-                                                    Save lines
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <Badge variant="outline" className="text-xs uppercase">
-                                                Locked
-                                            </Badge>
-                                        )}
-                                    </div>
+                                                    Unsaved
+                                                </Badge>
+                                            ) : null}
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                onClick={handleSaveLines}
+                                                disabled={
+                                                    !isLineFormDirty ||
+                                                    !isLineFormValid ||
+                                                    isSavingLines
+                                                }
+                                            >
+                                                {isSavingLines ? (
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                ) : null}
+                                                Save lines
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <Badge
+                                            variant="outline"
+                                            className="text-xs uppercase"
+                                        >
+                                            Locked
+                                        </Badge>
+                                    )}
+                                </div>
                                 {isLoading ? (
                                     <div className="space-y-2">
                                         <Skeleton className="h-5 w-full" />
@@ -362,7 +459,9 @@ export function CreditNoteDetailPage() {
                                     <CreditLineEditor
                                         form={creditLinesForm}
                                         currency={credit?.currency}
-                                        disabled={!canEditLines || isSavingLines}
+                                        disabled={
+                                            !canEditLines || isSavingLines
+                                        }
                                     />
                                 )}
                             </div>
@@ -383,36 +482,52 @@ export function CreditNoteDetailPage() {
                                 <div className="space-y-4">
                                     {credit && credit.attachments.length > 0 ? (
                                         <ul className="space-y-3">
-                                            {credit.attachments.map((attachment) => (
-                                                <li
-                                                    key={attachment.id}
-                                                    className="flex items-center justify-between gap-3 rounded border border-border/60 px-3 py-2"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <Paperclip className="h-4 w-4 text-muted-foreground" />
-                                                        <div>
-                                                            <p className="text-sm font-medium">{attachment.filename}</p>
-                                                            <p className="text-xs text-muted-foreground">{formatDate(attachment.createdAt)}</p>
-                                                        </div>
-                                                    </div>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        asChild
-                                                        disabled={!attachment.downloadUrl}
+                                            {credit.attachments.map(
+                                                (attachment) => (
+                                                    <li
+                                                        key={attachment.id}
+                                                        className="flex items-center justify-between gap-3 rounded border border-border/60 px-3 py-2"
                                                     >
-                                                        <a
-                                                            href={attachment.downloadUrl ?? '#'}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            aria-label={`Download ${attachment.filename}`}
+                                                        <div className="flex items-center gap-2">
+                                                            <Paperclip className="h-4 w-4 text-muted-foreground" />
+                                                            <div>
+                                                                <p className="text-sm font-medium">
+                                                                    {
+                                                                        attachment.filename
+                                                                    }
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {formatDate(
+                                                                        attachment.createdAt,
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            asChild
+                                                            disabled={
+                                                                !attachment.downloadUrl
+                                                            }
                                                         >
-                                                            <Download className="mr-2 h-4 w-4" /> Download
-                                                        </a>
-                                                    </Button>
-                                                </li>
-                                            ))}
+                                                            <a
+                                                                href={
+                                                                    attachment.downloadUrl ??
+                                                                    '#'
+                                                                }
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                aria-label={`Download ${attachment.filename}`}
+                                                            >
+                                                                <Download className="mr-2 h-4 w-4" />{' '}
+                                                                Download
+                                                            </a>
+                                                        </Button>
+                                                    </li>
+                                                ),
+                                            )}
                                         </ul>
                                     ) : (
                                         <div className="rounded border border-dashed border-border/60 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
@@ -422,13 +537,17 @@ export function CreditNoteDetailPage() {
                                     <FileDropzone
                                         label="Upload supporting PDF"
                                         description="Only PDF credit documents are supported."
-                                        accept={["application/pdf"]}
-                                        disabled={!credit || attachCreditFile.isPending}
+                                        accept={['application/pdf']}
+                                        disabled={
+                                            !credit ||
+                                            attachCreditFile.isPending
+                                        }
                                         onFilesSelected={handleFilesSelected}
                                     />
                                     {attachCreditFile.isPending ? (
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <Loader2 className="h-4 w-4 animate-spin" /> Uploading file…
+                                            <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                                            Uploading file…
                                         </div>
                                     ) : null}
                                 </div>
@@ -441,12 +560,15 @@ export function CreditNoteDetailPage() {
     );
 }
 
-function buildCreditLineFormValues(credit?: CreditNoteDetail | null): CreditLineFormValue[] {
+function buildCreditLineFormValues(
+    credit?: CreditNoteDetail | null,
+): CreditLineFormValue[] {
     if (!credit) {
         return [];
     }
 
-    const fallbackCurrency = credit.currency ?? credit.invoice?.currency ?? 'USD';
+    const fallbackCurrency =
+        credit.currency ?? credit.invoice?.currency ?? 'USD';
 
     return credit.lines.map((line, index) => {
         const qtyInvoiced = Number(line.qtyInvoiced ?? 0);
@@ -463,12 +585,18 @@ function buildCreditLineFormValues(credit?: CreditNoteDetail | null): CreditLine
 
         return {
             id: line.id ?? `line-${invoiceLineId}`,
-            invoiceLineId: Number.isFinite(invoiceLineId) && invoiceLineId > 0 ? invoiceLineId : index + 1,
+            invoiceLineId:
+                Number.isFinite(invoiceLineId) && invoiceLineId > 0
+                    ? invoiceLineId
+                    : index + 1,
             description: line.description ?? null,
             qtyInvoiced,
             qtyAlreadyCredited,
             qtyRemaining,
-            qtyToCredit: qtyToCreditRaw > 0 ? Math.min(qtyToCreditRaw, qtyRemaining || qtyToCreditRaw) : qtyRemaining,
+            qtyToCredit:
+                qtyToCreditRaw > 0
+                    ? Math.min(qtyToCreditRaw, qtyRemaining || qtyToCreditRaw)
+                    : qtyRemaining,
             unitPriceMinor,
             currency: line.currency ?? fallbackCurrency,
             uom: line.uom ?? null,

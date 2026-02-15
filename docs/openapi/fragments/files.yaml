@@ -148,6 +148,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /api/documents/{document}/cad-extraction:
+    parameters:
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Documents
+      summary: Get CAD extraction status
+      description: Returns the extraction status and any parsed CAD metadata for a document.
+      operationId: getCadExtraction
+      responses:
+        '200':
+          description: CAD extraction status payload.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          document_id:
+                            type: integer
+                          document_version:
+                            type: integer
+                          status:
+                            type: string
+                          extracted:
+                            type: object
+                            nullable: true
+                            additionalProperties: true
+                          gdt_flags:
+                            type: object
+                            nullable: true
+                            additionalProperties: true
+                          similar_parts:
+                            type: array
+                            items:
+                              type: object
+                              additionalProperties: true
+                          extracted_at:
+                            type: string
+                            format: date-time
+                            nullable: true
+                          last_error:
+                            type: string
+                            nullable: true
+        '403':
+          description: Caller is not authorized to view the requested document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Document not found within the tenant scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 components:
   schemas:
     Document:

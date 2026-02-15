@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,251 +12,232 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
+import type { InvoiceSupplier } from './InvoiceSupplier';
+import {
+    InvoiceSupplierFromJSON,
+    InvoiceSupplierToJSON,
+} from './InvoiceSupplier';
+import type { PoChangeOrder } from './PoChangeOrder';
+import { PoChangeOrderFromJSON, PoChangeOrderToJSON } from './PoChangeOrder';
+import type { PurchaseOrderDelivery } from './PurchaseOrderDelivery';
+import {
+    PurchaseOrderDeliveryFromJSON,
+    PurchaseOrderDeliveryToJSON,
+} from './PurchaseOrderDelivery';
+import type { PurchaseOrderLatestDelivery } from './PurchaseOrderLatestDelivery';
+import {
+    PurchaseOrderLatestDeliveryFromJSON,
+    PurchaseOrderLatestDeliveryToJSON,
+} from './PurchaseOrderLatestDelivery';
 import type { PurchaseOrderLine } from './PurchaseOrderLine';
 import {
     PurchaseOrderLineFromJSON,
-    PurchaseOrderLineFromJSONTyped,
     PurchaseOrderLineToJSON,
-    PurchaseOrderLineToJSONTyped,
 } from './PurchaseOrderLine';
 import type { PurchaseOrderPdfDocument } from './PurchaseOrderPdfDocument';
 import {
     PurchaseOrderPdfDocumentFromJSON,
-    PurchaseOrderPdfDocumentFromJSONTyped,
     PurchaseOrderPdfDocumentToJSON,
-    PurchaseOrderPdfDocumentToJSONTyped,
 } from './PurchaseOrderPdfDocument';
-import type { PurchaseOrderDelivery } from './PurchaseOrderDelivery';
-import {
-    PurchaseOrderDeliveryFromJSON,
-    PurchaseOrderDeliveryFromJSONTyped,
-    PurchaseOrderDeliveryToJSON,
-    PurchaseOrderDeliveryToJSONTyped,
-} from './PurchaseOrderDelivery';
 import type { PurchaseOrderRfq } from './PurchaseOrderRfq';
 import {
     PurchaseOrderRfqFromJSON,
-    PurchaseOrderRfqFromJSONTyped,
     PurchaseOrderRfqToJSON,
-    PurchaseOrderRfqToJSONTyped,
 } from './PurchaseOrderRfq';
-import type { InvoiceSupplier } from './InvoiceSupplier';
-import {
-    InvoiceSupplierFromJSON,
-    InvoiceSupplierFromJSONTyped,
-    InvoiceSupplierToJSON,
-    InvoiceSupplierToJSONTyped,
-} from './InvoiceSupplier';
-import type { PurchaseOrderLatestDelivery } from './PurchaseOrderLatestDelivery';
-import {
-    PurchaseOrderLatestDeliveryFromJSON,
-    PurchaseOrderLatestDeliveryFromJSONTyped,
-    PurchaseOrderLatestDeliveryToJSON,
-    PurchaseOrderLatestDeliveryToJSONTyped,
-} from './PurchaseOrderLatestDelivery';
-import type { PoChangeOrder } from './PoChangeOrder';
-import {
-    PoChangeOrderFromJSON,
-    PoChangeOrderFromJSONTyped,
-    PoChangeOrderToJSON,
-    PoChangeOrderToJSONTyped,
-} from './PoChangeOrder';
 
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrder
  */
 export interface PurchaseOrder {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     poNumber: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     status: PurchaseOrderStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     ackStatus?: PurchaseOrderAckStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     currency: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     incoterm?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     taxPercent?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     subtotal?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     subtotalMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     taxAmount?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     taxAmountMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     total?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     totalMinor: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrder
      */
     sentAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrder
      */
     acknowledgedAt?: Date;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrder
      */
     ackReason?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     revisionNo?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     rfqId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     quoteId?: number;
     /**
-     * 
+     *
      * @type {InvoiceSupplier}
      * @memberof PurchaseOrder
      */
     supplier?: InvoiceSupplier;
     /**
-     * 
+     *
      * @type {PurchaseOrderRfq}
      * @memberof PurchaseOrder
      */
     rfq?: PurchaseOrderRfq;
     /**
-     * 
+     *
      * @type {Array<PurchaseOrderLine>}
      * @memberof PurchaseOrder
      */
     lines?: Array<PurchaseOrderLine>;
     /**
-     * 
+     *
      * @type {Array<PoChangeOrder>}
      * @memberof PurchaseOrder
      */
     changeOrders?: Array<PoChangeOrder>;
     /**
-     * 
+     *
      * @type {Array<PurchaseOrderDelivery>}
      * @memberof PurchaseOrder
      */
     deliveries?: Array<PurchaseOrderDelivery>;
     /**
-     * 
+     *
      * @type {PurchaseOrderLatestDelivery}
      * @memberof PurchaseOrder
      */
     latestDelivery?: PurchaseOrderLatestDelivery;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrder
      */
     pdfDocumentId?: number;
     /**
-     * 
+     *
      * @type {PurchaseOrderPdfDocument}
      * @memberof PurchaseOrder
      */
     pdfDocument?: PurchaseOrderPdfDocument;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrder
      */
     cancelledAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrder
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrder
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -267,9 +248,10 @@ export const PurchaseOrderStatusEnum = {
     Acknowledged: 'acknowledged',
     Fulfilled: 'fulfilled',
     Closed: 'closed',
-    Cancelled: 'cancelled'
+    Cancelled: 'cancelled',
 } as const;
-export type PurchaseOrderStatusEnum = typeof PurchaseOrderStatusEnum[keyof typeof PurchaseOrderStatusEnum];
+export type PurchaseOrderStatusEnum =
+    (typeof PurchaseOrderStatusEnum)[keyof typeof PurchaseOrderStatusEnum];
 
 /**
  * @export
@@ -278,21 +260,23 @@ export const PurchaseOrderAckStatusEnum = {
     Draft: 'draft',
     Sent: 'sent',
     Acknowledged: 'acknowledged',
-    Declined: 'declined'
+    Declined: 'declined',
 } as const;
-export type PurchaseOrderAckStatusEnum = typeof PurchaseOrderAckStatusEnum[keyof typeof PurchaseOrderAckStatusEnum];
-
+export type PurchaseOrderAckStatusEnum =
+    (typeof PurchaseOrderAckStatusEnum)[keyof typeof PurchaseOrderAckStatusEnum];
 
 /**
  * Check if a given object implements the PurchaseOrder interface.
  */
 export function instanceOfPurchaseOrder(value: object): value is PurchaseOrder {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('poNumber' in value) || value['poNumber'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
-    if (!('totalMinor' in value) || value['totalMinor'] === undefined) return false;
+    if (!('totalMinor' in value) || value['totalMinor'] === undefined)
+        return false;
     return true;
 }
 
@@ -300,43 +284,91 @@ export function PurchaseOrderFromJSON(json: any): PurchaseOrder {
     return PurchaseOrderFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrder {
+export function PurchaseOrderFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrder {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'poNumber': json['po_number'],
-        'status': json['status'],
-        'ackStatus': json['ack_status'] == null ? undefined : json['ack_status'],
-        'currency': json['currency'],
-        'incoterm': json['incoterm'] == null ? undefined : json['incoterm'],
-        'taxPercent': json['tax_percent'] == null ? undefined : json['tax_percent'],
-        'subtotal': json['subtotal'] == null ? undefined : json['subtotal'],
-        'subtotalMinor': json['subtotal_minor'] == null ? undefined : json['subtotal_minor'],
-        'taxAmount': json['tax_amount'] == null ? undefined : json['tax_amount'],
-        'taxAmountMinor': json['tax_amount_minor'] == null ? undefined : json['tax_amount_minor'],
-        'total': json['total'] == null ? undefined : json['total'],
-        'totalMinor': json['total_minor'],
-        'sentAt': json['sent_at'] == null ? undefined : (new Date(json['sent_at'])),
-        'acknowledgedAt': json['acknowledged_at'] == null ? undefined : (new Date(json['acknowledged_at'])),
-        'ackReason': json['ack_reason'] == null ? undefined : json['ack_reason'],
-        'revisionNo': json['revision_no'] == null ? undefined : json['revision_no'],
-        'rfqId': json['rfq_id'] == null ? undefined : json['rfq_id'],
-        'quoteId': json['quote_id'] == null ? undefined : json['quote_id'],
-        'supplier': json['supplier'] == null ? undefined : InvoiceSupplierFromJSON(json['supplier']),
-        'rfq': json['rfq'] == null ? undefined : PurchaseOrderRfqFromJSON(json['rfq']),
-        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(PurchaseOrderLineFromJSON)),
-        'changeOrders': json['change_orders'] == null ? undefined : ((json['change_orders'] as Array<any>).map(PoChangeOrderFromJSON)),
-        'deliveries': json['deliveries'] == null ? undefined : ((json['deliveries'] as Array<any>).map(PurchaseOrderDeliveryFromJSON)),
-        'latestDelivery': json['latest_delivery'] == null ? undefined : PurchaseOrderLatestDeliveryFromJSON(json['latest_delivery']),
-        'pdfDocumentId': json['pdf_document_id'] == null ? undefined : json['pdf_document_id'],
-        'pdfDocument': json['pdf_document'] == null ? undefined : PurchaseOrderPdfDocumentFromJSON(json['pdf_document']),
-        'cancelledAt': json['cancelled_at'] == null ? undefined : (new Date(json['cancelled_at'])),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        poNumber: json['po_number'],
+        status: json['status'],
+        ackStatus: json['ack_status'] == null ? undefined : json['ack_status'],
+        currency: json['currency'],
+        incoterm: json['incoterm'] == null ? undefined : json['incoterm'],
+        taxPercent:
+            json['tax_percent'] == null ? undefined : json['tax_percent'],
+        subtotal: json['subtotal'] == null ? undefined : json['subtotal'],
+        subtotalMinor:
+            json['subtotal_minor'] == null ? undefined : json['subtotal_minor'],
+        taxAmount: json['tax_amount'] == null ? undefined : json['tax_amount'],
+        taxAmountMinor:
+            json['tax_amount_minor'] == null
+                ? undefined
+                : json['tax_amount_minor'],
+        total: json['total'] == null ? undefined : json['total'],
+        totalMinor: json['total_minor'],
+        sentAt: json['sent_at'] == null ? undefined : new Date(json['sent_at']),
+        acknowledgedAt:
+            json['acknowledged_at'] == null
+                ? undefined
+                : new Date(json['acknowledged_at']),
+        ackReason: json['ack_reason'] == null ? undefined : json['ack_reason'],
+        revisionNo:
+            json['revision_no'] == null ? undefined : json['revision_no'],
+        rfqId: json['rfq_id'] == null ? undefined : json['rfq_id'],
+        quoteId: json['quote_id'] == null ? undefined : json['quote_id'],
+        supplier:
+            json['supplier'] == null
+                ? undefined
+                : InvoiceSupplierFromJSON(json['supplier']),
+        rfq:
+            json['rfq'] == null
+                ? undefined
+                : PurchaseOrderRfqFromJSON(json['rfq']),
+        lines:
+            json['lines'] == null
+                ? undefined
+                : (json['lines'] as Array<any>).map(PurchaseOrderLineFromJSON),
+        changeOrders:
+            json['change_orders'] == null
+                ? undefined
+                : (json['change_orders'] as Array<any>).map(
+                      PoChangeOrderFromJSON,
+                  ),
+        deliveries:
+            json['deliveries'] == null
+                ? undefined
+                : (json['deliveries'] as Array<any>).map(
+                      PurchaseOrderDeliveryFromJSON,
+                  ),
+        latestDelivery:
+            json['latest_delivery'] == null
+                ? undefined
+                : PurchaseOrderLatestDeliveryFromJSON(json['latest_delivery']),
+        pdfDocumentId:
+            json['pdf_document_id'] == null
+                ? undefined
+                : json['pdf_document_id'],
+        pdfDocument:
+            json['pdf_document'] == null
+                ? undefined
+                : PurchaseOrderPdfDocumentFromJSON(json['pdf_document']),
+        cancelledAt:
+            json['cancelled_at'] == null
+                ? undefined
+                : new Date(json['cancelled_at']),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -344,44 +376,75 @@ export function PurchaseOrderToJSON(json: any): PurchaseOrder {
     return PurchaseOrderToJSONTyped(json, false);
 }
 
-export function PurchaseOrderToJSONTyped(value?: PurchaseOrder | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderToJSONTyped(
+    value?: PurchaseOrder | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'po_number': value['poNumber'],
-        'status': value['status'],
-        'ack_status': value['ackStatus'],
-        'currency': value['currency'],
-        'incoterm': value['incoterm'],
-        'tax_percent': value['taxPercent'],
-        'subtotal': value['subtotal'],
-        'subtotal_minor': value['subtotalMinor'],
-        'tax_amount': value['taxAmount'],
-        'tax_amount_minor': value['taxAmountMinor'],
-        'total': value['total'],
-        'total_minor': value['totalMinor'],
-        'sent_at': value['sentAt'] == null ? value['sentAt'] : value['sentAt'].toISOString(),
-        'acknowledged_at': value['acknowledgedAt'] == null ? value['acknowledgedAt'] : value['acknowledgedAt'].toISOString(),
-        'ack_reason': value['ackReason'],
-        'revision_no': value['revisionNo'],
-        'rfq_id': value['rfqId'],
-        'quote_id': value['quoteId'],
-        'supplier': InvoiceSupplierToJSON(value['supplier']),
-        'rfq': PurchaseOrderRfqToJSON(value['rfq']),
-        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(PurchaseOrderLineToJSON)),
-        'change_orders': value['changeOrders'] == null ? undefined : ((value['changeOrders'] as Array<any>).map(PoChangeOrderToJSON)),
-        'deliveries': value['deliveries'] == null ? undefined : ((value['deliveries'] as Array<any>).map(PurchaseOrderDeliveryToJSON)),
-        'latest_delivery': PurchaseOrderLatestDeliveryToJSON(value['latestDelivery']),
-        'pdf_document_id': value['pdfDocumentId'],
-        'pdf_document': PurchaseOrderPdfDocumentToJSON(value['pdfDocument']),
-        'cancelled_at': value['cancelledAt'] == null ? value['cancelledAt'] : value['cancelledAt'].toISOString(),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        po_number: value['poNumber'],
+        status: value['status'],
+        ack_status: value['ackStatus'],
+        currency: value['currency'],
+        incoterm: value['incoterm'],
+        tax_percent: value['taxPercent'],
+        subtotal: value['subtotal'],
+        subtotal_minor: value['subtotalMinor'],
+        tax_amount: value['taxAmount'],
+        tax_amount_minor: value['taxAmountMinor'],
+        total: value['total'],
+        total_minor: value['totalMinor'],
+        sent_at:
+            value['sentAt'] == null
+                ? value['sentAt']
+                : value['sentAt'].toISOString(),
+        acknowledged_at:
+            value['acknowledgedAt'] == null
+                ? value['acknowledgedAt']
+                : value['acknowledgedAt'].toISOString(),
+        ack_reason: value['ackReason'],
+        revision_no: value['revisionNo'],
+        rfq_id: value['rfqId'],
+        quote_id: value['quoteId'],
+        supplier: InvoiceSupplierToJSON(value['supplier']),
+        rfq: PurchaseOrderRfqToJSON(value['rfq']),
+        lines:
+            value['lines'] == null
+                ? undefined
+                : (value['lines'] as Array<any>).map(PurchaseOrderLineToJSON),
+        change_orders:
+            value['changeOrders'] == null
+                ? undefined
+                : (value['changeOrders'] as Array<any>).map(
+                      PoChangeOrderToJSON,
+                  ),
+        deliveries:
+            value['deliveries'] == null
+                ? undefined
+                : (value['deliveries'] as Array<any>).map(
+                      PurchaseOrderDeliveryToJSON,
+                  ),
+        latest_delivery: PurchaseOrderLatestDeliveryToJSON(
+            value['latestDelivery'],
+        ),
+        pdf_document_id: value['pdfDocumentId'],
+        pdf_document: PurchaseOrderPdfDocumentToJSON(value['pdfDocument']),
+        cancelled_at:
+            value['cancelledAt'] == null
+                ? value['cancelledAt']
+                : value['cancelledAt'].toISOString(),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

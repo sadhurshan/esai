@@ -11,6 +11,22 @@ declare module '@/sdk' {
         incoterm?: string | null;
         paymentTerms?: string | null;
         taxPercent?: number | null;
+        digitalTwinId?: number | null;
+        digitalTwinPrompts?: Array<{
+            type: string;
+            title: string;
+            description: string;
+            cta?: string | null;
+        }>;
+        meta?: {
+            digital_twin_id?: number | null;
+            digital_twin_prompts?: Array<{
+                type: string;
+                title: string;
+                description: string;
+                cta?: string | null;
+            }>;
+        };
     }
 
     interface RfqItem extends BaseRfqItem {

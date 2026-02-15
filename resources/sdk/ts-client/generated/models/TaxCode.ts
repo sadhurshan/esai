@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,81 +12,79 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface TaxCode
  */
 export interface TaxCode {
     /**
-     * 
+     *
      * @type {number}
      * @memberof TaxCode
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TaxCode
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TaxCode
      */
     code: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TaxCode
      */
     name: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof TaxCode
      */
     type: TaxCodeTypeEnum;
     /**
-     * 
+     *
      * @type {number}
      * @memberof TaxCode
      */
     ratePercent?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof TaxCode
      */
     isCompound?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof TaxCode
      */
     active?: boolean;
     /**
-     * 
+     *
      * @type {object}
      * @memberof TaxCode
      */
     meta?: object;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof TaxCode
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof TaxCode
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -96,17 +94,18 @@ export const TaxCodeTypeEnum = {
     Gst: 'gst',
     Sales: 'sales',
     Withholding: 'withholding',
-    Custom: 'custom'
+    Custom: 'custom',
 } as const;
-export type TaxCodeTypeEnum = typeof TaxCodeTypeEnum[keyof typeof TaxCodeTypeEnum];
-
+export type TaxCodeTypeEnum =
+    (typeof TaxCodeTypeEnum)[keyof typeof TaxCodeTypeEnum];
 
 /**
  * Check if a given object implements the TaxCode interface.
  */
 export function instanceOfTaxCode(value: object): value is TaxCode {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('code' in value) || value['code'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('type' in value) || value['type'] === undefined) return false;
@@ -117,23 +116,33 @@ export function TaxCodeFromJSON(json: any): TaxCode {
     return TaxCodeFromJSONTyped(json, false);
 }
 
-export function TaxCodeFromJSONTyped(json: any, ignoreDiscriminator: boolean): TaxCode {
+export function TaxCodeFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): TaxCode {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'code': json['code'],
-        'name': json['name'],
-        'type': json['type'],
-        'ratePercent': json['rate_percent'] == null ? undefined : json['rate_percent'],
-        'isCompound': json['is_compound'] == null ? undefined : json['is_compound'],
-        'active': json['active'] == null ? undefined : json['active'],
-        'meta': json['meta'] == null ? undefined : json['meta'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        code: json['code'],
+        name: json['name'],
+        type: json['type'],
+        ratePercent:
+            json['rate_percent'] == null ? undefined : json['rate_percent'],
+        isCompound:
+            json['is_compound'] == null ? undefined : json['is_compound'],
+        active: json['active'] == null ? undefined : json['active'],
+        meta: json['meta'] == null ? undefined : json['meta'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -141,24 +150,31 @@ export function TaxCodeToJSON(json: any): TaxCode {
     return TaxCodeToJSONTyped(json, false);
 }
 
-export function TaxCodeToJSONTyped(value?: TaxCode | null, ignoreDiscriminator: boolean = false): any {
+export function TaxCodeToJSONTyped(
+    value?: TaxCode | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'code': value['code'],
-        'name': value['name'],
-        'type': value['type'],
-        'rate_percent': value['ratePercent'],
-        'is_compound': value['isCompound'],
-        'active': value['active'],
-        'meta': value['meta'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        code: value['code'],
+        name: value['name'],
+        type: value['type'],
+        rate_percent: value['ratePercent'],
+        is_compound: value['isCompound'],
+        active: value['active'],
+        meta: value['meta'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

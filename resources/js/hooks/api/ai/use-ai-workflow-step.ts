@@ -15,17 +15,23 @@ export function useAiWorkflowStep(
     options: UseAiWorkflowStepOptions = {},
 ): UseQueryResult<AiWorkflowStepResponse, ApiError> {
     const isEnabled = Boolean(workflowId) && (options.enabled ?? true);
-    const queryKey = queryKeys.ai.workflows.step(workflowId ?? NO_WORKFLOW_SELECTED);
+    const queryKey = queryKeys.ai.workflows.step(
+        workflowId ?? NO_WORKFLOW_SELECTED,
+    );
 
     return useQuery<AiWorkflowStepResponse, ApiError>({
         queryKey,
         enabled: isEnabled,
         queryFn: async () => {
             if (!workflowId) {
-                throw new Error('Workflow ID is required to fetch step details.');
+                throw new Error(
+                    'Workflow ID is required to fetch step details.',
+                );
             }
 
-            const response = await api.get<AiWorkflowStepResponse>(`/v1/ai/workflows/${workflowId}/next`);
+            const response = await api.get<AiWorkflowStepResponse>(
+                `/v1/ai/workflows/${workflowId}/next`,
+            );
             return response.data;
         },
         refetchOnReconnect: true,

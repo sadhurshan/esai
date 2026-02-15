@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -67,28 +73,42 @@ export interface RegisterCompanyInput {
 
 export type UpdateCompanyInput = Partial<RegisterCompanyInput>;
 
-export function useCompany(companyId?: number | null): UseQueryResult<Company, ApiError> {
+export function useCompany(
+    companyId?: number | null,
+): UseQueryResult<Company, ApiError> {
     return useQuery<CompanyResponse, ApiError, Company>({
         queryKey: queryKeys.companies.detail(companyId ?? 0),
         enabled: Boolean(companyId) && (companyId ?? 0) > 0,
         queryFn: async () =>
-            (await api.get<CompanyResponse>(`/companies/${companyId}`)) as unknown as CompanyResponse,
+            (await api.get<CompanyResponse>(
+                `/companies/${companyId}`,
+            )) as unknown as CompanyResponse,
         select: mapCompany,
         staleTime: 30_000,
     });
 }
 
-export function useRegisterCompany(): UseMutationResult<Company, ApiError, RegisterCompanyInput> {
+export function useRegisterCompany(): UseMutationResult<
+    Company,
+    ApiError,
+    RegisterCompanyInput
+> {
     const queryClient = useQueryClient();
 
     return useMutation<Company, ApiError, RegisterCompanyInput>({
         mutationFn: async (payload) => {
-            const response = (await api.post<CompanyResponse>('/companies', payload)) as unknown as CompanyResponse;
+            const response = (await api.post<CompanyResponse>(
+                '/companies',
+                payload,
+            )) as unknown as CompanyResponse;
 
             return mapCompany(response);
         },
         onSuccess: (company) => {
-            queryClient.setQueryData(queryKeys.companies.detail(company.id), company);
+            queryClient.setQueryData(
+                queryKeys.companies.detail(company.id),
+                company,
+            );
         },
     });
 }
@@ -100,12 +120,18 @@ export function useUpdateCompany(
 
     return useMutation<Company, ApiError, UpdateCompanyInput>({
         mutationFn: async (payload) => {
-            const response = (await api.put<CompanyResponse>(`/companies/${companyId}`, payload)) as unknown as CompanyResponse;
+            const response = (await api.put<CompanyResponse>(
+                `/companies/${companyId}`,
+                payload,
+            )) as unknown as CompanyResponse;
 
             return mapCompany(response);
         },
         onSuccess: (company) => {
-            queryClient.setQueryData(queryKeys.companies.detail(company.id), company);
+            queryClient.setQueryData(
+                queryKeys.companies.detail(company.id),
+                company,
+            );
         },
     });
 }

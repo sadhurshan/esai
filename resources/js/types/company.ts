@@ -55,7 +55,11 @@ export type CompanyUserRole =
     | 'supplier_estimator'
     | 'finance';
 
-export type CompanyInvitationStatus = 'pending' | 'accepted' | 'revoked' | 'expired';
+export type CompanyInvitationStatus =
+    | 'pending'
+    | 'accepted'
+    | 'revoked'
+    | 'expired';
 
 export interface CompanyInvitation {
     id: number;

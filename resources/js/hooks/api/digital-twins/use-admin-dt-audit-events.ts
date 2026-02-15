@@ -1,10 +1,20 @@
-import { useInfiniteQuery, type InfiniteData, type UseInfiniteQueryResult } from '@tanstack/react-query';
+import {
+    useInfiniteQuery,
+    type InfiniteData,
+    type UseInfiniteQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { AdminDigitalTwinApi, type AdminDigitalTwinAuditEvent, type CursorMetaResponse } from '@/sdk';
+import {
+    AdminDigitalTwinApi,
+    type AdminDigitalTwinAuditEvent,
+    type CursorMetaResponse,
+} from '@/sdk';
 
-type AdminAuditEventsQueryKey = ReturnType<typeof queryKeys.digitalTwins.adminAuditEvents>;
+type AdminAuditEventsQueryKey = ReturnType<
+    typeof queryKeys.digitalTwins.adminAuditEvents
+>;
 
 interface UseAdminDigitalTwinAuditEventsOptions {
     enabled?: boolean;
@@ -16,9 +26,10 @@ interface AuditEventPage {
     meta: CursorMetaResponse | null;
 }
 
-export type UseAdminDigitalTwinAuditEventsResult = UseInfiniteQueryResult<AuditEventPage> & {
-    events: AdminDigitalTwinAuditEvent[];
-};
+export type UseAdminDigitalTwinAuditEventsResult =
+    UseInfiniteQueryResult<AuditEventPage> & {
+        events: AdminDigitalTwinAuditEvent[];
+    };
 
 export function useAdminDigitalTwinAuditEvents(
     digitalTwinId?: string | number,
@@ -27,8 +38,16 @@ export function useAdminDigitalTwinAuditEvents(
     const api = useSdkClient(AdminDigitalTwinApi);
     const perPage = options.perPage ?? 25;
 
-    const query = useInfiniteQuery<AuditEventPage, Error, AuditEventPage, AdminAuditEventsQueryKey, string | undefined>({
-        queryKey: queryKeys.digitalTwins.adminAuditEvents(digitalTwinId ?? 'unknown'),
+    const query = useInfiniteQuery<
+        AuditEventPage,
+        Error,
+        AuditEventPage,
+        AdminAuditEventsQueryKey,
+        string | undefined
+    >({
+        queryKey: queryKeys.digitalTwins.adminAuditEvents(
+            digitalTwinId ?? 'unknown',
+        ),
         enabled: Boolean(digitalTwinId) && (options.enabled ?? true),
         initialPageParam: undefined,
         queryFn: async ({ pageParam }) => {
@@ -36,10 +55,13 @@ export function useAdminDigitalTwinAuditEvents(
                 return { items: [], meta: null };
             }
 
-            const response = await api.listDigitalTwinAuditEvents(digitalTwinId, {
-                cursor: pageParam,
-                per_page: perPage,
-            });
+            const response = await api.listDigitalTwinAuditEvents(
+                digitalTwinId,
+                {
+                    cursor: pageParam,
+                    per_page: perPage,
+                },
+            );
 
             return {
                 items: response.data?.items ?? [],
@@ -49,7 +71,12 @@ export function useAdminDigitalTwinAuditEvents(
         getNextPageParam: (lastPage) => lastPage.meta?.next_cursor ?? undefined,
     });
 
-    const pages = (query.data as InfiniteData<AuditEventPage, string | undefined> | undefined)?.pages ?? [];
+    const pages =
+        (
+            query.data as
+                | InfiniteData<AuditEventPage, string | undefined>
+                | undefined
+        )?.pages ?? [];
     const events = pages.flatMap((page: AuditEventPage) => page.items);
 
     return {

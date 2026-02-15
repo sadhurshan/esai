@@ -1,13 +1,17 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type {
-    NotificationPreferenceMap,
-    NotificationPreferenceResponseItem,
-    NotificationEventType,
     NotificationChannel,
     NotificationDigestFrequency,
+    NotificationEventType,
+    NotificationPreferenceMap,
+    NotificationPreferenceResponseItem,
 } from '@/types/notifications';
 
 export interface UpdateNotificationPreferencePayload {
@@ -23,7 +27,11 @@ export function useUpdateNotificationPreference(): UseMutationResult<
 > {
     const queryClient = useQueryClient();
 
-    return useMutation<NotificationPreferenceResponseItem, ApiError, UpdateNotificationPreferencePayload>({
+    return useMutation<
+        NotificationPreferenceResponseItem,
+        ApiError,
+        UpdateNotificationPreferencePayload
+    >({
         mutationFn: async (payload) => {
             const data = (await api.put<NotificationPreferenceResponseItem>(
                 '/notification-preferences',

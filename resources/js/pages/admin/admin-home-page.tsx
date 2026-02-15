@@ -1,20 +1,51 @@
+import {
+    Activity,
+    AlertTriangle,
+    BadgeInfo,
+    Building2,
+    Database,
+    GaugeCircle,
+    KeyRound,
+    Layers2,
+    LineChart,
+    ListChecks,
+    RadioTower,
+    ScrollText,
+    ShieldCheck,
+    Sparkles,
+    TrendingUp,
+    Users,
+} from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, AlertTriangle, BadgeInfo, Building2, Database, GaugeCircle, KeyRound, Layers2, LineChart, ListChecks, RadioTower, ScrollText, ShieldCheck, Sparkles, Timer, TrendingUp, Users } from 'lucide-react';
 
+import { EmptyState } from '@/components/empty-state';
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/empty-state';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useAdminAnalyticsOverview } from '@/hooks/api/admin/use-admin-analytics-overview';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { AdminAnalyticsCopilotMetrics, AdminAnalyticsOverview, AdminAnalyticsRecentCompany, AdminAnalyticsTrendPoint, AdminWorkflowAlert, AdminWorkflowMetrics } from '@/types/admin';
 import { cn } from '@/lib/utils';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import type {
+    AdminAnalyticsCopilotMetrics,
+    AdminAnalyticsOverview,
+    AdminAnalyticsRecentCompany,
+    AdminAnalyticsTrendPoint,
+    AdminWorkflowAlert,
+    AdminWorkflowMetrics,
+} from '@/types/admin';
 
 type QuickLink = {
     title: string;
@@ -40,7 +71,8 @@ const quickLinks: QuickLink[] = [
     },
     {
         title: 'Supplier scrapes',
-        description: 'Launch AI-powered supplier discovery jobs and onboard vetted leads.',
+        description:
+            'Launch AI-powered supplier discovery jobs and onboard vetted leads.',
         href: '/app/admin/supplier-scrapes',
         icon: Sparkles,
         requiresSuperAdmin: true,
@@ -89,7 +121,8 @@ const quickLinks: QuickLink[] = [
     },
     {
         title: 'AI usage dashboard',
-        description: 'Monitor Copilot actions, forecasts, and help volume in one place.',
+        description:
+            'Monitor Copilot actions, forecasts, and help volume in one place.',
         href: '/app/admin/ai-usage',
         icon: TrendingUp,
     },
@@ -112,7 +145,14 @@ const SUPER_ADMIN_ROLE = 'platform_super';
 
 export function AdminHomePage() {
     const { isAdmin, canAccessAdminConsole, canTrainAi, state } = useAuth();
-    const { data: analytics, isLoading, isError, error, refetch, isRefetching } = useAdminAnalyticsOverview();
+    const {
+        data: analytics,
+        isLoading,
+        isError,
+        error,
+        refetch,
+        isRefetching,
+    } = useAdminAnalyticsOverview();
     const { formatNumber, formatDate } = useFormatting();
     const isSuperAdmin = state.user?.role === SUPER_ADMIN_ROLE;
 
@@ -128,10 +168,19 @@ export function AdminHomePage() {
                     description="Monitor multi-tenant health, usage, and privileged activity in one view."
                 />
                 <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="w-fit uppercase tracking-wide">
+                    <Badge
+                        variant="outline"
+                        className="w-fit tracking-wide uppercase"
+                    >
                         Admin only
                     </Badge>
-                    <Button type="button" variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetch()}
+                        disabled={isRefetching}
+                    >
                         Refresh
                     </Button>
                 </div>
@@ -140,10 +189,14 @@ export function AdminHomePage() {
             {!canAccessAdminConsole ? (
                 <Alert variant="destructive" className="max-w-3xl">
                     <BadgeInfo className="h-5 w-5" aria-hidden />
-                    <AlertTitle>Admin console disabled for this tenant</AlertTitle>
+                    <AlertTitle>
+                        Admin console disabled for this tenant
+                    </AlertTitle>
                     <AlertDescription>
-                        Your current plan does not include the admin console entitlement. Enable the `admin_console_enabled` feature
-                        flag in billing to expose these controls to tenant admins.
+                        Your current plan does not include the admin console
+                        entitlement. Enable the `admin_console_enabled` feature
+                        flag in billing to expose these controls to tenant
+                        admins.
                     </AlertDescription>
                 </Alert>
             ) : null}
@@ -152,7 +205,11 @@ export function AdminHomePage() {
                 <Alert variant="destructive" className="max-w-3xl">
                     <BadgeInfo className="h-5 w-5" aria-hidden />
                     <AlertTitle>Unable to load analytics</AlertTitle>
-                    <AlertDescription>{error instanceof Error ? error.message : 'Unexpected error'}</AlertDescription>
+                    <AlertDescription>
+                        {error instanceof Error
+                            ? error.message
+                            : 'Unexpected error'}
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -164,14 +221,42 @@ export function AdminHomePage() {
                     isLoading={isLoading}
                 >
                     <dl className="grid gap-4 sm:grid-cols-2">
-                        <Stat value={analytics?.tenants.total} label="Total tenants" formatNumber={formatNumber} />
-                        <Stat value={analytics?.tenants.active} label="Active" formatNumber={formatNumber} intent="success" />
-                        <Stat value={analytics?.tenants.trialing} label="Trialing" formatNumber={formatNumber} />
-                        <Stat value={analytics?.tenants.pending} label="Pending approval" formatNumber={formatNumber} intent="warning" />
-                        <Stat value={analytics?.tenants.suspended} label="Suspended" formatNumber={formatNumber} intent="danger" />
+                        <Stat
+                            value={analytics?.tenants.total}
+                            label="Total tenants"
+                            formatNumber={formatNumber}
+                        />
+                        <Stat
+                            value={analytics?.tenants.active}
+                            label="Active"
+                            formatNumber={formatNumber}
+                            intent="success"
+                        />
+                        <Stat
+                            value={analytics?.tenants.trialing}
+                            label="Trialing"
+                            formatNumber={formatNumber}
+                        />
+                        <Stat
+                            value={analytics?.tenants.pending}
+                            label="Pending approval"
+                            formatNumber={formatNumber}
+                            intent="warning"
+                        />
+                        <Stat
+                            value={analytics?.tenants.suspended}
+                            label="Suspended"
+                            formatNumber={formatNumber}
+                            intent="danger"
+                        />
                     </dl>
                 </StatCard>
-                <StatCard title="Usage throughput" description="Month-to-date velocity" icon={Activity} isLoading={isLoading}>
+                <StatCard
+                    title="Usage throughput"
+                    description="Month-to-date velocity"
+                    icon={Activity}
+                    isLoading={isLoading}
+                >
                     <dl className="grid gap-4">
                         <PrimaryMetric
                             label="RFQs this month"
@@ -179,28 +264,68 @@ export function AdminHomePage() {
                             previous={analytics?.usage.rfqs_last_month}
                             formatNumber={formatNumber}
                         />
-                        <Stat value={analytics?.usage.quotes_month_to_date} label="Quotes submitted" formatNumber={formatNumber} />
-                        <Stat value={analytics?.usage.purchase_orders_month_to_date} label="POs created" formatNumber={formatNumber} />
                         <Stat
-                            value={convertMbToGb(analytics?.usage.storage_used_mb)}
+                            value={analytics?.usage.quotes_month_to_date}
+                            label="Quotes submitted"
+                            formatNumber={formatNumber}
+                        />
+                        <Stat
+                            value={
+                                analytics?.usage.purchase_orders_month_to_date
+                            }
+                            label="POs created"
+                            formatNumber={formatNumber}
+                        />
+                        <Stat
+                            value={convertMbToGb(
+                                analytics?.usage.storage_used_mb,
+                            )}
                             label="Storage consumed (GB)"
                             formatNumber={formatNumber}
                         />
                         <Stat
-                            value={convertMbToGb(analytics?.usage.avg_storage_used_mb)}
+                            value={convertMbToGb(
+                                analytics?.usage.avg_storage_used_mb,
+                            )}
                             label="Avg storage per tenant (GB)"
                             formatNumber={formatNumber}
                         />
                     </dl>
                 </StatCard>
-                <StatCard title="People & approvals" description="Engagement + backlog" icon={Users} isLoading={isLoading}>
+                <StatCard
+                    title="People & approvals"
+                    description="Engagement + backlog"
+                    icon={Users}
+                    isLoading={isLoading}
+                >
                     <dl className="grid gap-4">
-                        <Stat value={analytics?.people.users_total} label="Total users" formatNumber={formatNumber} />
-                        <Stat value={analytics?.people.active_last_7_days} label="Active last 7 days" formatNumber={formatNumber} intent="success" />
-                        <Stat value={analytics?.people.listed_suppliers} label="Listed suppliers" formatNumber={formatNumber} />
-                        <Stat value={analytics?.approvals.pending_companies} label="Pending companies" formatNumber={formatNumber} intent="warning" />
                         <Stat
-                            value={analytics?.approvals.pending_supplier_applications}
+                            value={analytics?.people.users_total}
+                            label="Total users"
+                            formatNumber={formatNumber}
+                        />
+                        <Stat
+                            value={analytics?.people.active_last_7_days}
+                            label="Active last 7 days"
+                            formatNumber={formatNumber}
+                            intent="success"
+                        />
+                        <Stat
+                            value={analytics?.people.listed_suppliers}
+                            label="Listed suppliers"
+                            formatNumber={formatNumber}
+                        />
+                        <Stat
+                            value={analytics?.approvals.pending_companies}
+                            label="Pending companies"
+                            formatNumber={formatNumber}
+                            intent="warning"
+                        />
+                        <Stat
+                            value={
+                                analytics?.approvals
+                                    .pending_supplier_applications
+                            }
                             label="Supplier applications"
                             formatNumber={formatNumber}
                             intent="warning"
@@ -243,7 +368,11 @@ export function AdminHomePage() {
                 />
             </div>
 
-            <CopilotMonitoringCard metrics={analytics?.copilot} isLoading={isLoading} formatNumber={formatNumber} />
+            <CopilotMonitoringCard
+                metrics={analytics?.copilot}
+                isLoading={isLoading}
+                formatNumber={formatNumber}
+            />
 
             <div className="grid gap-4 lg:grid-cols-2">
                 <RecentCompaniesTable
@@ -252,35 +381,59 @@ export function AdminHomePage() {
                     formatNumber={formatNumber}
                     formatDate={formatDate}
                 />
-                <RecentAuditList entries={analytics?.recent.audit_logs ?? []} isLoading={isLoading} formatDate={formatDate} />
+                <RecentAuditList
+                    entries={analytics?.recent.audit_logs ?? []}
+                    isLoading={isLoading}
+                    formatDate={formatDate}
+                />
             </div>
 
             <section className="space-y-4">
                 <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-5 w-5 text-muted-foreground" aria-hidden />
+                    <ShieldCheck
+                        className="h-5 w-5 text-muted-foreground"
+                        aria-hidden
+                    />
                     <div>
                         <h3 className="text-base font-semibold">Admin areas</h3>
-                        <p className="text-sm text-muted-foreground">Navigate to each administration module.</p>
+                        <p className="text-sm text-muted-foreground">
+                            Navigate to each administration module.
+                        </p>
                     </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {quickLinks
-                        .filter((link) => (!link.requiresCanTrainAi || canTrainAi) && (!link.requiresSuperAdmin || isSuperAdmin))
+                        .filter(
+                            (link) =>
+                                (!link.requiresCanTrainAi || canTrainAi) &&
+                                (!link.requiresSuperAdmin || isSuperAdmin),
+                        )
                         .map(({ title, description, href, icon: Icon }) => (
-                        <Link key={href} to={href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                            <Card className="h-full transition hover:border-primary/50">
-                                <CardHeader className="flex flex-row items-start justify-between gap-4">
-                                    <div>
-                                        <CardTitle>{title}</CardTitle>
-                                        <CardDescription>{description}</CardDescription>
-                                    </div>
-                                    <div className="rounded-full bg-primary/10 p-2 text-primary">
-                                        <Icon className="h-5 w-5" aria-hidden />
-                                    </div>
-                                </CardHeader>
-                                <CardFooter className="text-sm text-primary">Open module →</CardFooter>
-                            </Card>
-                        </Link>
+                            <Link
+                                key={href}
+                                to={href}
+                                className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                            >
+                                <Card className="h-full transition hover:border-primary/50">
+                                    <CardHeader className="flex flex-row items-start justify-between gap-4">
+                                        <div>
+                                            <CardTitle>{title}</CardTitle>
+                                            <CardDescription>
+                                                {description}
+                                            </CardDescription>
+                                        </div>
+                                        <div className="rounded-full bg-primary/10 p-2 text-primary">
+                                            <Icon
+                                                className="h-5 w-5"
+                                                aria-hidden
+                                            />
+                                        </div>
+                                    </CardHeader>
+                                    <CardFooter className="text-sm text-primary">
+                                        Open module →
+                                    </CardFooter>
+                                </Card>
+                            </Link>
                         ))}
                 </div>
             </section>
@@ -296,7 +449,13 @@ interface StatCardProps {
     children: ReactNode;
 }
 
-function StatCard({ title, description, icon: Icon, isLoading, children }: StatCardProps) {
+function StatCard({
+    title,
+    description,
+    icon: Icon,
+    isLoading,
+    children,
+}: StatCardProps) {
     return (
         <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -308,7 +467,9 @@ function StatCard({ title, description, icon: Icon, isLoading, children }: StatC
                     <Icon className="h-5 w-5" aria-hidden />
                 </div>
             </CardHeader>
-            <CardContent>{isLoading ? <Skeleton className="h-32 w-full" /> : children}</CardContent>
+            <CardContent>
+                {isLoading ? <Skeleton className="h-32 w-full" /> : children}
+            </CardContent>
         </Card>
     );
 }
@@ -336,7 +497,9 @@ function Stat({
 
     return (
         <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                {label}
+            </p>
             <p className={cn('text-2xl font-semibold', accent)}>{display}</p>
         </div>
     );
@@ -353,14 +516,27 @@ function PrimaryMetric({
     previous: number | null | undefined;
     formatNumber: ReturnType<typeof useFormatting>['formatNumber'];
 }) {
-    const currentLabel = formatNumber(current ?? null, { maximumFractionDigits: 0 });
+    const currentLabel = formatNumber(current ?? null, {
+        maximumFractionDigits: 0,
+    });
     const deltaLabel = buildDeltaLabel(current, previous, formatNumber);
 
     return (
         <div className="rounded-lg border bg-background/80 p-4 shadow-sm">
             <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <p className="mt-1 text-3xl font-semibold text-foreground">{currentLabel}</p>
-            <p className={cn('text-sm', deltaLabel?.direction === 'up' ? 'text-emerald-600' : deltaLabel?.direction === 'down' ? 'text-rose-600' : 'text-muted-foreground')}>
+            <p className="mt-1 text-3xl font-semibold text-foreground">
+                {currentLabel}
+            </p>
+            <p
+                className={cn(
+                    'text-sm',
+                    deltaLabel?.direction === 'up'
+                        ? 'text-emerald-600'
+                        : deltaLabel?.direction === 'down'
+                          ? 'text-rose-600'
+                          : 'text-muted-foreground',
+                )}
+            >
                 {deltaLabel?.text ?? 'Awaiting prior data'}
             </p>
         </div>
@@ -372,7 +548,12 @@ function buildDeltaLabel(
     previous: number | null | undefined,
     formatNumber: ReturnType<typeof useFormatting>['formatNumber'],
 ) {
-    if (current === undefined || current === null || previous === undefined || previous === null) {
+    if (
+        current === undefined ||
+        current === null ||
+        previous === undefined ||
+        previous === null
+    ) {
         return null;
     }
 
@@ -382,7 +563,9 @@ function buildDeltaLabel(
     }
 
     const direction = diff > 0 ? ('up' as const) : ('down' as const);
-    const formatted = formatNumber(Math.abs(diff), { maximumFractionDigits: 0 });
+    const formatted = formatNumber(Math.abs(diff), {
+        maximumFractionDigits: 0,
+    });
     return {
         text: `${diff > 0 ? '+' : '-'}${formatted} vs last month`,
         direction,
@@ -426,18 +609,28 @@ function TrendCard({
                 ) : recentPoints.length ? (
                     <div className="space-y-3">
                         {recentPoints.map((point) => (
-                            <div key={point.period} className="flex items-center gap-3">
+                            <div
+                                key={point.period}
+                                className="flex items-center gap-3"
+                            >
                                 <span className="w-20 text-xs font-medium text-muted-foreground">
-                                    {formatPeriodLabel(point.period, formatDate)}
+                                    {formatPeriodLabel(
+                                        point.period,
+                                        formatDate,
+                                    )}
                                 </span>
                                 <div className="h-2 flex-1 rounded-full bg-muted/40">
                                     <div
                                         className="h-2 rounded-full bg-primary"
-                                        style={{ width: `${(point.count / max) * 100}%` }}
+                                        style={{
+                                            width: `${(point.count / max) * 100}%`,
+                                        }}
                                     />
                                 </div>
                                 <span className="w-12 text-right text-sm font-semibold text-foreground">
-                                    {formatNumber(point.count, { maximumFractionDigits: 0 })}
+                                    {formatNumber(point.count, {
+                                        maximumFractionDigits: 0,
+                                    })}
                                 </span>
                             </div>
                         ))}
@@ -454,7 +647,10 @@ function TrendCard({
     );
 }
 
-function formatPeriodLabel(period: string, formatDate: ReturnType<typeof useFormatting>['formatDate']) {
+function formatPeriodLabel(
+    period: string,
+    formatDate: ReturnType<typeof useFormatting>['formatDate'],
+) {
     const safe = `${period}-01T00:00:00Z`;
     return formatDate(safe, { month: 'short', year: 'numeric' });
 }
@@ -468,10 +664,18 @@ function WorkflowHealthCard({
     isLoading: boolean;
     formatNumber: ReturnType<typeof useFormatting>['formatNumber'];
 }) {
-    const totalLabel = metrics ? formatNumber(metrics.total_started ?? null, { maximumFractionDigits: 0 }) : null;
-    const completionLabel = metrics ? `${formatNumber(metrics.completion_rate ?? null, { maximumFractionDigits: 1 })}%` : null;
+    const totalLabel = metrics
+        ? formatNumber(metrics.total_started ?? null, {
+              maximumFractionDigits: 0,
+          })
+        : null;
+    const completionLabel = metrics
+        ? `${formatNumber(metrics.completion_rate ?? null, { maximumFractionDigits: 1 })}%`
+        : null;
     const avgApprovalLabel =
-        metrics && metrics.avg_step_approval_minutes !== null && metrics.avg_step_approval_minutes !== undefined
+        metrics &&
+        metrics.avg_step_approval_minutes !== null &&
+        metrics.avg_step_approval_minutes !== undefined
             ? `${formatNumber(metrics.avg_step_approval_minutes, { maximumFractionDigits: 1 })} min`
             : 'Awaiting approvals';
 
@@ -480,7 +684,9 @@ function WorkflowHealthCard({
             <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
                     <CardTitle>AI workflow health</CardTitle>
-                    <CardDescription>Completion signals across the past week.</CardDescription>
+                    <CardDescription>
+                        Completion signals across the past week.
+                    </CardDescription>
                 </div>
                 <div className="rounded-full bg-primary/10 p-2 text-primary">
                     <GaugeCircle className="h-5 w-5" aria-hidden />
@@ -500,15 +706,39 @@ function WorkflowHealthCard({
                             <WorkflowMetricCallout
                                 label="Completion rate"
                                 value={completionLabel ?? 'N/A'}
-                                helper={metrics.total_started ? `${metrics.completed} of ${metrics.total_started}` : 'No recent runs'}
+                                helper={
+                                    metrics.total_started
+                                        ? `${metrics.completed} of ${metrics.total_started}`
+                                        : 'No recent runs'
+                                }
                                 intent="success"
                             />
-                            <WorkflowMetricCallout label="Avg approval time" value={avgApprovalLabel} helper="Step approvals" intent="warning" />
+                            <WorkflowMetricCallout
+                                label="Avg approval time"
+                                value={avgApprovalLabel}
+                                helper="Step approvals"
+                                intent="warning"
+                            />
                         </div>
                         <dl className="grid gap-4 sm:grid-cols-3">
-                            <Stat value={metrics.completed} label="Completed" formatNumber={formatNumber} intent="success" />
-                            <Stat value={metrics.in_progress} label="In progress" formatNumber={formatNumber} intent="warning" />
-                            <Stat value={metrics.failed} label="Failed" formatNumber={formatNumber} intent="danger" />
+                            <Stat
+                                value={metrics.completed}
+                                label="Completed"
+                                formatNumber={formatNumber}
+                                intent="success"
+                            />
+                            <Stat
+                                value={metrics.in_progress}
+                                label="In progress"
+                                formatNumber={formatNumber}
+                                intent="warning"
+                            />
+                            <Stat
+                                value={metrics.failed}
+                                label="Failed"
+                                formatNumber={formatNumber}
+                                intent="danger"
+                            />
                         </dl>
                     </div>
                 ) : (
@@ -537,7 +767,9 @@ function WorkflowAlertsCard({
             <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
                     <CardTitle>Workflow alerts</CardTitle>
-                    <CardDescription>Latest failures requiring operator attention.</CardDescription>
+                    <CardDescription>
+                        Latest failures requiring operator attention.
+                    </CardDescription>
                 </div>
                 <div className="rounded-full bg-rose-100 p-2 text-rose-700">
                     <AlertTriangle className="h-5 w-5" aria-hidden />
@@ -549,22 +781,52 @@ function WorkflowAlertsCard({
                 ) : alerts.length ? (
                     <div className="space-y-3">
                         {alerts.map((alert) => (
-                            <div key={alert.workflow_id} className="rounded-lg border bg-muted/20 p-3">
+                            <div
+                                key={alert.workflow_id}
+                                className="rounded-lg border bg-muted/20 p-3"
+                            >
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
-                                        <p className="text-sm font-semibold text-foreground">{alert.company?.name ?? 'Unknown company'}</p>
+                                        <p className="text-sm font-semibold text-foreground">
+                                            {alert.company?.name ??
+                                                'Unknown company'}
+                                        </p>
                                         <p className="text-xs text-muted-foreground">
-                                            {alert.workflow_type ?? 'workflow'} · {alert.workflow_id}
+                                            {alert.workflow_type ?? 'workflow'}{' '}
+                                            · {alert.workflow_id}
                                         </p>
                                     </div>
-                                    <Badge variant="outline" className={cn('text-xs font-semibold uppercase', workflowStatusBadgeClass(alert.status))}>
-                                        {alert.status?.replaceAll('_', ' ') ?? 'unknown'}
+                                    <Badge
+                                        variant="outline"
+                                        className={cn(
+                                            'text-xs font-semibold uppercase',
+                                            workflowStatusBadgeClass(
+                                                alert.status,
+                                            ),
+                                        )}
+                                    >
+                                        {alert.status?.replaceAll('_', ' ') ??
+                                            'unknown'}
                                     </Badge>
                                 </div>
                                 <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-                                    {alert.owner ? <p>Owner: {alert.owner.name ?? 'Unknown'} ({alert.owner.email ?? 'N/A'})</p> : null}
-                                    {alert.current_step_label ? <p>Step: {alert.current_step_label}</p> : null}
-                                    <p>Last event: {formatWorkflowTimestamp(alert, formatDate)}</p>
+                                    {alert.owner ? (
+                                        <p>
+                                            Owner:{' '}
+                                            {alert.owner.name ?? 'Unknown'} (
+                                            {alert.owner.email ?? 'N/A'})
+                                        </p>
+                                    ) : null}
+                                    {alert.current_step_label ? (
+                                        <p>Step: {alert.current_step_label}</p>
+                                    ) : null}
+                                    <p>
+                                        Last event:{' '}
+                                        {formatWorkflowTimestamp(
+                                            alert,
+                                            formatDate,
+                                        )}
+                                    </p>
                                 </div>
                             </div>
                         ))}
@@ -590,14 +852,18 @@ function CopilotMonitoringCard({
     isLoading: boolean;
     formatNumber: ReturnType<typeof useFormatting>['formatNumber'];
 }) {
-    const windowLabel = metrics ? `Past ${metrics.window_days}-day window` : 'Awaiting usage data';
+    const windowLabel = metrics
+        ? `Past ${metrics.window_days}-day window`
+        : 'Awaiting usage data';
 
     return (
-        <Card className="h-full">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
                     <CardTitle>Copilot monitoring</CardTitle>
-                    <CardDescription>Track forecast & guided help volume.</CardDescription>
+                    <CardDescription>
+                        Track forecast & guided help volume.
+                    </CardDescription>
                 </div>
                 <div className="rounded-full bg-primary/10 p-2 text-primary">
                     <Sparkles className="h-5 w-5" aria-hidden />
@@ -609,10 +875,22 @@ function CopilotMonitoringCard({
                 ) : metrics ? (
                     <div className="space-y-4">
                         <dl className="grid gap-4 sm:grid-cols-2">
-                            <Stat value={metrics.forecast_requests} label="Forecast requests" formatNumber={formatNumber} intent="success" />
-                            <Stat value={metrics.help_requests} label="Help guides" formatNumber={formatNumber} intent="warning" />
+                            <Stat
+                                value={metrics.forecast_requests}
+                                label="Forecast requests"
+                                formatNumber={formatNumber}
+                                intent="success"
+                            />
+                            <Stat
+                                value={metrics.help_requests}
+                                label="Help guides"
+                                formatNumber={formatNumber}
+                                intent="warning"
+                            />
                         </dl>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">{windowLabel}</p>
+                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                            {windowLabel}
+                        </p>
                     </div>
                 ) : (
                     <EmptyState
@@ -646,9 +924,13 @@ function WorkflowMetricCallout({
 
     return (
         <div className="rounded-lg border bg-background/80 p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                {label}
+            </p>
             <p className={cn('mt-1 text-2xl font-semibold', accent)}>{value}</p>
-            {helper ? <p className="text-xs text-muted-foreground">{helper}</p> : null}
+            {helper ? (
+                <p className="text-xs text-muted-foreground">{helper}</p>
+            ) : null}
         </div>
     );
 }
@@ -671,10 +953,15 @@ function workflowStatusBadgeClass(status?: string | null) {
     return 'border-border text-muted-foreground';
 }
 
-function formatWorkflowTimestamp(alert: AdminWorkflowAlert, formatDate: ReturnType<typeof useFormatting>['formatDate']) {
+function formatWorkflowTimestamp(
+    alert: AdminWorkflowAlert,
+    formatDate: ReturnType<typeof useFormatting>['formatDate'],
+) {
     const timestamp = alert.last_event_time ?? alert.updated_at ?? null;
 
-    return timestamp ? formatDate(timestamp, { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown';
+    return timestamp
+        ? formatDate(timestamp, { dateStyle: 'medium', timeStyle: 'short' })
+        : 'Unknown';
 }
 
 function RecentCompaniesTable({
@@ -693,7 +980,9 @@ function RecentCompaniesTable({
             <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
                     <CardTitle>Newest tenants</CardTitle>
-                    <CardDescription>Last five companies created across the network.</CardDescription>
+                    <CardDescription>
+                        Last five companies created across the network.
+                    </CardDescription>
                 </div>
                 <div className="rounded-full bg-primary/10 p-2 text-primary">
                     <Database className="h-5 w-5" aria-hidden />
@@ -705,28 +994,58 @@ function RecentCompaniesTable({
                 ) : companies.length ? (
                     <div className="space-y-3">
                         {companies.map((company) => (
-                            <div key={company.id} className="rounded-lg border bg-muted/20 p-3">
+                            <div
+                                key={company.id}
+                                className="rounded-lg border bg-muted/20 p-3"
+                            >
                                 <div className="flex items-center justify-between gap-3">
                                     <div>
-                                        <p className="font-semibold text-foreground">{company.name}</p>
+                                        <p className="font-semibold text-foreground">
+                                            {company.name}
+                                        </p>
                                         <p className="text-xs text-muted-foreground">
-                                            Joined {formatDate(company.created_at ?? null, { dateStyle: 'medium' })}
+                                            Joined{' '}
+                                            {formatDate(
+                                                company.created_at ?? null,
+                                                { dateStyle: 'medium' },
+                                            )}
                                         </p>
                                     </div>
-                                    <StatusBadge status={company.status ?? 'unknown'} />
+                                    <StatusBadge
+                                        status={company.status ?? 'unknown'}
+                                    />
                                 </div>
                                 <dl className="mt-3 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
                                     <div>
-                                        <dt className="text-xs uppercase tracking-wide">Plan</dt>
-                                        <dd>{company.plan?.name ?? 'Unassigned'}</dd>
+                                        <dt className="text-xs tracking-wide uppercase">
+                                            Plan
+                                        </dt>
+                                        <dd>
+                                            {company.plan?.name ?? 'Unassigned'}
+                                        </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-xs uppercase tracking-wide">RFQs used</dt>
-                                        <dd>{formatNumber(company.rfqs_monthly_used ?? null, { maximumFractionDigits: 0 })}</dd>
+                                        <dt className="text-xs tracking-wide uppercase">
+                                            RFQs used
+                                        </dt>
+                                        <dd>
+                                            {formatNumber(
+                                                company.rfqs_monthly_used ??
+                                                    null,
+                                                { maximumFractionDigits: 0 },
+                                            )}
+                                        </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-xs uppercase tracking-wide">Storage (MB)</dt>
-                                        <dd>{formatNumber(company.storage_used_mb ?? null, { maximumFractionDigits: 0 })}</dd>
+                                        <dt className="text-xs tracking-wide uppercase">
+                                            Storage (MB)
+                                        </dt>
+                                        <dd>
+                                            {formatNumber(
+                                                company.storage_used_mb ?? null,
+                                                { maximumFractionDigits: 0 },
+                                            )}
+                                        </dd>
                                     </div>
                                 </dl>
                             </div>
@@ -772,7 +1091,9 @@ function RecentAuditList({
             <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
                     <CardTitle>Latest audit events</CardTitle>
-                    <CardDescription>Privileged actions captured in the last 24 hours.</CardDescription>
+                    <CardDescription>
+                        Privileged actions captured in the last 24 hours.
+                    </CardDescription>
                 </div>
                 <div className="rounded-full bg-primary/10 p-2 text-primary">
                     <ScrollText className="h-5 w-5" aria-hidden />
@@ -784,17 +1105,32 @@ function RecentAuditList({
                 ) : entries.length ? (
                     <div className="space-y-3">
                         {entries.map((entry) => (
-                            <div key={entry.id} className="rounded-lg border bg-muted/20 p-3">
+                            <div
+                                key={entry.id}
+                                className="rounded-lg border bg-muted/20 p-3"
+                            >
                                 <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <Badge variant="outline" className="font-mono text-[11px] uppercase">
+                                    <Badge
+                                        variant="outline"
+                                        className="font-mono text-[11px] uppercase"
+                                    >
                                         {entry.event}
                                     </Badge>
                                     <span className="text-xs text-muted-foreground">
-                                        {formatDate(entry.timestamp ?? null, { dateStyle: 'medium', timeStyle: 'short' })}
+                                        {formatDate(entry.timestamp ?? null, {
+                                            dateStyle: 'medium',
+                                            timeStyle: 'short',
+                                        })}
                                     </span>
                                 </div>
-                                <p className="mt-2 text-sm font-medium text-foreground">{entry.actor?.name ?? 'System'}</p>
-                                <p className="text-xs text-muted-foreground">{entry.resource?.label ?? entry.resource?.type ?? 'Resource'}</p>
+                                <p className="mt-2 text-sm font-medium text-foreground">
+                                    {entry.actor?.name ?? 'System'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {entry.resource?.label ??
+                                        entry.resource?.type ??
+                                        'Resource'}
+                                </p>
                             </div>
                         ))}
                     </div>

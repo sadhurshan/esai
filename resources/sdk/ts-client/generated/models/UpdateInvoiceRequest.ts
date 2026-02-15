@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,35 +12,31 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { UpdateInvoiceRequestLinesInner } from './UpdateInvoiceRequestLinesInner';
 import {
     UpdateInvoiceRequestLinesInnerFromJSON,
-    UpdateInvoiceRequestLinesInnerFromJSONTyped,
     UpdateInvoiceRequestLinesInnerToJSON,
-    UpdateInvoiceRequestLinesInnerToJSONTyped,
 } from './UpdateInvoiceRequestLinesInner';
 
 /**
- * 
+ *
  * @export
  * @interface UpdateInvoiceRequest
  */
 export interface UpdateInvoiceRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateInvoiceRequest
      */
     status?: UpdateInvoiceRequestStatusEnum;
     /**
-     * 
+     *
      * @type {Array<UpdateInvoiceRequestLinesInner>}
      * @memberof UpdateInvoiceRequest
      */
     lines?: Array<UpdateInvoiceRequestLinesInner>;
 }
-
 
 /**
  * @export
@@ -49,15 +45,17 @@ export const UpdateInvoiceRequestStatusEnum = {
     Pending: 'pending',
     Paid: 'paid',
     Overdue: 'overdue',
-    Disputed: 'disputed'
+    Disputed: 'disputed',
 } as const;
-export type UpdateInvoiceRequestStatusEnum = typeof UpdateInvoiceRequestStatusEnum[keyof typeof UpdateInvoiceRequestStatusEnum];
-
+export type UpdateInvoiceRequestStatusEnum =
+    (typeof UpdateInvoiceRequestStatusEnum)[keyof typeof UpdateInvoiceRequestStatusEnum];
 
 /**
  * Check if a given object implements the UpdateInvoiceRequest interface.
  */
-export function instanceOfUpdateInvoiceRequest(value: object): value is UpdateInvoiceRequest {
+export function instanceOfUpdateInvoiceRequest(
+    value: object,
+): value is UpdateInvoiceRequest {
     return true;
 }
 
@@ -65,14 +63,21 @@ export function UpdateInvoiceRequestFromJSON(json: any): UpdateInvoiceRequest {
     return UpdateInvoiceRequestFromJSONTyped(json, false);
 }
 
-export function UpdateInvoiceRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateInvoiceRequest {
+export function UpdateInvoiceRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateInvoiceRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'] == null ? undefined : json['status'],
-        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(UpdateInvoiceRequestLinesInnerFromJSON)),
+        status: json['status'] == null ? undefined : json['status'],
+        lines:
+            json['lines'] == null
+                ? undefined
+                : (json['lines'] as Array<any>).map(
+                      UpdateInvoiceRequestLinesInnerFromJSON,
+                  ),
     };
 }
 
@@ -80,15 +85,21 @@ export function UpdateInvoiceRequestToJSON(json: any): UpdateInvoiceRequest {
     return UpdateInvoiceRequestToJSONTyped(json, false);
 }
 
-export function UpdateInvoiceRequestToJSONTyped(value?: UpdateInvoiceRequest | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateInvoiceRequestToJSONTyped(
+    value?: UpdateInvoiceRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(UpdateInvoiceRequestLinesInnerToJSON)),
+        status: value['status'],
+        lines:
+            value['lines'] == null
+                ? undefined
+                : (value['lines'] as Array<any>).map(
+                      UpdateInvoiceRequestLinesInnerToJSON,
+                  ),
     };
 }
-

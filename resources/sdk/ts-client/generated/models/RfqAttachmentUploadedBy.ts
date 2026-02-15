@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * Condensed user summary for audit surfaces.
  * @export
@@ -20,13 +19,13 @@ import { mapValues } from '../runtime';
  */
 export interface RfqAttachmentUploadedBy {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAttachmentUploadedBy
      */
     id?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAttachmentUploadedBy
      */
@@ -36,38 +35,47 @@ export interface RfqAttachmentUploadedBy {
 /**
  * Check if a given object implements the RfqAttachmentUploadedBy interface.
  */
-export function instanceOfRfqAttachmentUploadedBy(value: object): value is RfqAttachmentUploadedBy {
+export function instanceOfRfqAttachmentUploadedBy(
+    value: object,
+): value is RfqAttachmentUploadedBy {
     return true;
 }
 
-export function RfqAttachmentUploadedByFromJSON(json: any): RfqAttachmentUploadedBy {
+export function RfqAttachmentUploadedByFromJSON(
+    json: any,
+): RfqAttachmentUploadedBy {
     return RfqAttachmentUploadedByFromJSONTyped(json, false);
 }
 
-export function RfqAttachmentUploadedByFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqAttachmentUploadedBy {
+export function RfqAttachmentUploadedByFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqAttachmentUploadedBy {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
+        id: json['id'] == null ? undefined : json['id'],
+        name: json['name'] == null ? undefined : json['name'],
     };
 }
 
-export function RfqAttachmentUploadedByToJSON(json: any): RfqAttachmentUploadedBy {
+export function RfqAttachmentUploadedByToJSON(
+    json: any,
+): RfqAttachmentUploadedBy {
     return RfqAttachmentUploadedByToJSONTyped(json, false);
 }
 
-export function RfqAttachmentUploadedByToJSONTyped(value?: RfqAttachmentUploadedBy | null, ignoreDiscriminator: boolean = false): any {
+export function RfqAttachmentUploadedByToJSONTyped(
+    value?: RfqAttachmentUploadedBy | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
+        id: value['id'],
+        name: value['name'],
     };
 }
-

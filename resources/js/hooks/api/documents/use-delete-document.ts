@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
@@ -9,7 +13,11 @@ interface DeleteDocumentInput {
     invalidateKey?: readonly unknown[];
 }
 
-export function useDeleteDocument(): UseMutationResult<void, ApiError | Error, DeleteDocumentInput> {
+export function useDeleteDocument(): UseMutationResult<
+    void,
+    ApiError | Error,
+    DeleteDocumentInput
+> {
     const queryClient = useQueryClient();
     const { notifyPlanLimit } = useAuth();
 
@@ -29,21 +37,29 @@ export function useDeleteDocument(): UseMutationResult<void, ApiError | Error, D
             });
 
             if (variables.invalidateKey) {
-                void queryClient.invalidateQueries({ queryKey: variables.invalidateKey });
+                void queryClient.invalidateQueries({
+                    queryKey: variables.invalidateKey,
+                });
             }
         },
         onError: (error) => {
-            if (error instanceof ApiError && (error.status === 402 || error.status === 403)) {
+            if (
+                error instanceof ApiError &&
+                (error.status === 402 || error.status === 403)
+            ) {
                 notifyPlanLimit({
                     code: 'documents',
-                    message: error.message ?? 'Upgrade required to manage documents.',
+                    message:
+                        error.message ??
+                        'Upgrade required to manage documents.',
                 });
             }
 
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to delete attachment',
-                description: error.message ?? 'We could not remove that document.',
+                description:
+                    error.message ?? 'We could not remove that document.',
             });
         },
     });

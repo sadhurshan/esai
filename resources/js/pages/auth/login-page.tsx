@@ -1,19 +1,25 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Helmet } from 'react-helmet-async';
-import { useAuth } from '@/contexts/auth-context';
-import { Branding } from '@/config/branding';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { HttpError } from '@/sdk';
+import { Branding } from '@/config/branding';
 import { isPlatformRole } from '@/constants/platform-roles';
+import { useAuth } from '@/contexts/auth-context';
+import { HttpError } from '@/sdk';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
 const loginSchema = z.object({
     email: z
@@ -31,9 +37,18 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const APP_HOME_ROUTE = '/app';
 const ADMIN_HOME_ROUTE = '/app/admin';
 
-function resolvePostLoginRoute(role: string | null | undefined, requestedPath: string): string {
-    const target = requestedPath && requestedPath.length > 0 ? requestedPath : APP_HOME_ROUTE;
-    if (isPlatformRole(role) && (target === APP_HOME_ROUTE || target === `${APP_HOME_ROUTE}/`)) {
+function resolvePostLoginRoute(
+    role: string | null | undefined,
+    requestedPath: string,
+): string {
+    const target =
+        requestedPath && requestedPath.length > 0
+            ? requestedPath
+            : APP_HOME_ROUTE;
+    if (
+        isPlatformRole(role) &&
+        (target === APP_HOME_ROUTE || target === `${APP_HOME_ROUTE}/`)
+    ) {
         return ADMIN_HOME_ROUTE;
     }
     return target;
@@ -44,7 +59,8 @@ export function LoginPage() {
     const location = useLocation();
     const { login, state } = useAuth();
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const redirectTo = (location.state as { from?: string } | null)?.from ?? APP_HOME_ROUTE;
+    const redirectTo =
+        (location.state as { from?: string } | null)?.from ?? APP_HOME_ROUTE;
 
     const {
         register,
@@ -86,20 +102,31 @@ export function LoginPage() {
                 return;
             }
 
-            const destination = resolvePostLoginRoute(postLoginRole, redirectTo);
+            const destination = resolvePostLoginRoute(
+                postLoginRole,
+                redirectTo,
+            );
             navigate(destination, { replace: true });
         } catch (error) {
             if (error instanceof HttpError) {
                 const body = error.body as { message?: string } | undefined;
-                const serverMessage = typeof body?.message === 'string' && body.message.trim().length > 0 ? body.message : null;
-                const friendlyMessage = serverMessage ?? 'Invalid credentials provided.';
+                const serverMessage =
+                    typeof body?.message === 'string' &&
+                    body.message.trim().length > 0
+                        ? body.message
+                        : null;
+                const friendlyMessage =
+                    serverMessage ?? 'Invalid credentials provided.';
                 setSubmitError(friendlyMessage);
                 return;
             }
 
             if (error instanceof Error) {
                 setSubmitError(error.message);
-                setError('password', { type: 'server', message: error.message });
+                setError('password', {
+                    type: 'server',
+                    message: error.message,
+                });
                 return;
             }
 
@@ -114,17 +141,24 @@ export function LoginPage() {
             return <Navigate to="/verify-email" replace />;
         }
 
-        if (state.needsSupplierApproval || state.company?.supplier_status === 'pending') {
+        if (
+            state.needsSupplierApproval ||
+            state.company?.supplier_status === 'pending'
+        ) {
             return <Navigate to="/app/setup/supplier-waiting" replace />;
         }
 
         const role = state.user?.role ?? null;
         const isPlatformOperator = isPlatformRole(role);
         const isSupplierStart =
-            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
+            state.company?.start_mode === 'supplier' ||
+            (state.company?.supplier_status &&
+                state.company.supplier_status !== 'none');
         const needsPlan =
             !isSupplierStart &&
-            (state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan);
+            (state.requiresPlanSelection ||
+                state.company?.requires_plan_selection === true ||
+                !state.company?.plan);
 
         if (needsPlan && !isPlatformOperator) {
             return <Navigate to="/app/setup/plan" replace />;
@@ -138,15 +172,22 @@ export function LoginPage() {
         <div
             className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-slate-100"
             style={{
-                backgroundImage: "url('/img/efa9c371-4ad2-49db-977f-098c4619ffc5-xxl.webp')",
+                backgroundImage:
+                    "url('/img/efa9c371-4ad2-49db-977f-098c4619ffc5-xxl.webp')",
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}
         >
             <Card className="w-full max-w-md border border-white/10 bg-slate-950/80 text-slate-100 shadow-lg backdrop-blur">
                 <CardHeader className="items-center text-center">
-                    <img src={Branding.logo.symbol} alt={Branding.name} className="h-16" />
-                    <CardTitle className="mt-2 text-2xl font-semibold text-white">Welcome back</CardTitle>
+                    <img
+                        src={Branding.logo.symbol}
+                        alt={Branding.name}
+                        className="h-16"
+                    />
+                    <CardTitle className="mt-2 text-2xl font-semibold text-white">
+                        Welcome back
+                    </CardTitle>
                     <CardDescription className="text-slate-400">
                         Sign in to continue to your Elements Supply workspace.
                     </CardDescription>
@@ -155,22 +196,41 @@ export function LoginPage() {
                     <form className="space-y-5" onSubmit={onSubmit}>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input className='border-slate-500 rounded-sm py-6' id="email" type="email" autoComplete="email" {...register('email')} />
+                            <Input
+                                className="rounded-sm border-slate-500 py-6"
+                                id="email"
+                                type="email"
+                                autoComplete="email"
+                                {...register('email')}
+                            />
                             {errors.email ? (
-                                <p className="text-xs text-destructive">{errors.email.message}</p>
+                                <p className="text-xs text-destructive">
+                                    {errors.email.message}
+                                </p>
                             ) : null}
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="password">Password</Label>
-                                <Link to="/forgot-password" className="text-xs font-medium text-brand-primary hover:underline">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-brand-primary text-xs font-medium hover:underline"
+                                >
                                     Forgot password?
                                 </Link>
                             </div>
-                            <Input className='border-slate-500 rounded-sm py-6' id="password" type="password" autoComplete="current-password" {...register('password')} />
+                            <Input
+                                className="rounded-sm border-slate-500 py-6"
+                                id="password"
+                                type="password"
+                                autoComplete="current-password"
+                                {...register('password')}
+                            />
                             {errors.password ? (
-                                <p className="text-xs text-destructive">{errors.password.message}</p>
+                                <p className="text-xs text-destructive">
+                                    {errors.password.message}
+                                </p>
                             ) : null}
                         </div>
 
@@ -182,9 +242,14 @@ export function LoginPage() {
                                     <Checkbox
                                         id="remember"
                                         checked={Boolean(field.value)}
-                                        onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                                        onCheckedChange={(checked) =>
+                                            field.onChange(Boolean(checked))
+                                        }
                                     />
-                                    <Label htmlFor="remember" className="text-sm text-slate-400">
+                                    <Label
+                                        htmlFor="remember"
+                                        className="text-sm text-slate-400"
+                                    >
                                         Remember me on this device
                                     </Label>
                                 </div>
@@ -193,24 +258,31 @@ export function LoginPage() {
 
                         {submitError ? (
                             <Alert variant="destructive">
-                                <AlertDescription>{submitError}</AlertDescription>
+                                <AlertDescription>
+                                    {submitError}
+                                </AlertDescription>
                             </Alert>
                         ) : null}
 
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={isSubmitting}
+                        >
                             {isSubmitting ? 'Signing in…' : 'Sign in'}
                         </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2 text-center text-xs text-slate-400">
                     <p>
-                        Need help accessing your account? Contact your workspace administrator.
+                        Need help accessing your account? Contact your workspace
+                        administrator.
                     </p>
                     <p>
                         New to Elements Supply?{' '}
                         <Link
                             to="/register"
-                            className="text-sm font-semibold text-white hover:text-brand-primary"
+                            className="hover:text-brand-primary text-sm font-semibold text-white"
                         >
                             Create a workspace
                         </Link>

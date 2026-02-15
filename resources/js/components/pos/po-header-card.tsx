@@ -1,13 +1,22 @@
-import { RefreshCcw, Send, Ban, FilePlus } from 'lucide-react';
 import { ExportButtons } from '@/components/downloads/export-buttons';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MoneyCell } from '@/components/quotes/money-cell';
-import { PoStatusBadge } from '@/components/pos/po-status-badge';
 import { AckStatusChip } from '@/components/pos/ack-status-chip';
-import type { PurchaseOrderDetail, PurchaseOrderSummary } from '@/types/sourcing';
+import { PoStatusBadge } from '@/components/pos/po-status-badge';
+import { MoneyCell } from '@/components/quotes/money-cell';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import type {
+    PurchaseOrderDetail,
+    PurchaseOrderSummary,
+} from '@/types/sourcing';
+import { Ban, FilePlus, RefreshCcw, Send } from 'lucide-react';
 
 interface PoHeaderCardProps {
     po: PurchaseOrderSummary | PurchaseOrderDetail;
@@ -40,8 +49,12 @@ export function PoHeaderCard({
         <Card className={cn('border-border/70', className)}>
             <CardHeader>
                 <div className="flex flex-wrap items-center gap-3">
-                    <CardTitle className="text-2xl font-semibold text-foreground">PO #{po.poNumber}</CardTitle>
-                    {po.status?.toLowerCase() !== 'acknowledged' ? <PoStatusBadge status={po.status} /> : null}
+                    <CardTitle className="text-2xl font-semibold text-foreground">
+                        PO #{po.poNumber}
+                    </CardTitle>
+                    {po.status?.toLowerCase() !== 'acknowledged' ? (
+                        <PoStatusBadge status={po.status} />
+                    ) : null}
                     <AckStatusChip
                         status={po.ackStatus}
                         sentAt={po.sentAt}
@@ -50,24 +63,55 @@ export function PoHeaderCard({
                         latestDelivery={po.latestDelivery}
                     />
                     {po.revisionNo ? (
-                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Rev {po.revisionNo}</span>
+                        <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                            Rev {po.revisionNo}
+                        </span>
                     ) : null}
                 </div>
                 <CardDescription>
-                    <span className="font-medium text-foreground">{po.supplierName ?? 'Unassigned supplier'}</span>
-                    {po.createdAt ? <span className="text-muted-foreground"> • Issued {formatDate(po.createdAt)}</span> : null}
-                    {po.incoterm ? <span className="text-muted-foreground"> • Incoterm {po.incoterm}</span> : null}
+                    <span className="font-medium text-foreground">
+                        {po.supplierName ?? 'Unassigned supplier'}
+                    </span>
+                    {po.createdAt ? (
+                        <span className="text-muted-foreground">
+                            {' '}
+                            • Issued {formatDate(po.createdAt)}
+                        </span>
+                    ) : null}
+                    {po.incoterm ? (
+                        <span className="text-muted-foreground">
+                            {' '}
+                            • Incoterm {po.incoterm}
+                        </span>
+                    ) : null}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-3">
-                    <MoneyCell amountMinor={po.subtotalMinor ?? po.totalMinor} currency={po.currency} label="Subtotal" />
-                    <MoneyCell amountMinor={po.taxAmountMinor} currency={po.currency} label="Tax" />
-                    <MoneyCell amountMinor={po.totalMinor} currency={po.currency} label="Total" />
+                    <MoneyCell
+                        amountMinor={po.subtotalMinor ?? po.totalMinor}
+                        currency={po.currency}
+                        label="Subtotal"
+                    />
+                    <MoneyCell
+                        amountMinor={po.taxAmountMinor}
+                        currency={po.currency}
+                        label="Tax"
+                    />
+                    <MoneyCell
+                        amountMinor={po.totalMinor}
+                        currency={po.currency}
+                        label="Total"
+                    />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     {onRecalculate ? (
-                        <Button type="button" size="sm" onClick={onRecalculate} disabled={isRecalculating}>
+                        <Button
+                            type="button"
+                            size="sm"
+                            onClick={onRecalculate}
+                            disabled={isRecalculating}
+                        >
                             <RefreshCcw className="mr-2 h-4 w-4" />
                             Recalculate totals
                         </Button>
@@ -84,7 +128,13 @@ export function PoHeaderCard({
                         </Button>
                     ) : null}
                     {onSend ? (
-                        <Button type="button" size="sm" variant="secondary" onClick={onSend} disabled={isSending}>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={onSend}
+                            disabled={isSending}
+                        >
                             <Send className="mr-2 h-4 w-4" />
                             Send to supplier
                         </Button>
@@ -92,7 +142,9 @@ export function PoHeaderCard({
                     <ExportButtons
                         documentType="purchase_order"
                         documentId={po.id}
-                        reference={po.poNumber ? `PO ${po.poNumber}` : undefined}
+                        reference={
+                            po.poNumber ? `PO ${po.poNumber}` : undefined
+                        }
                         size="sm"
                     />
                     {onCancel ? (
@@ -108,7 +160,10 @@ export function PoHeaderCard({
                             Cancel PO
                         </Button>
                     ) : null}
-                    {!onRecalculate && !onSend && !onCancel && !onCreateInvoice ? (
+                    {!onRecalculate &&
+                    !onSend &&
+                    !onCancel &&
+                    !onCreateInvoice ? (
                         <span className="text-sm text-muted-foreground">
                             Additional actions unavailable for your role.
                         </span>

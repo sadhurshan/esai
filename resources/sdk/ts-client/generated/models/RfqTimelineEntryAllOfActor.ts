@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqTimelineEntryAllOfActor
  */
 export interface RfqTimelineEntryAllOfActor {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqTimelineEntryAllOfActor
      */
     id?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqTimelineEntryAllOfActor
      */
@@ -36,38 +35,47 @@ export interface RfqTimelineEntryAllOfActor {
 /**
  * Check if a given object implements the RfqTimelineEntryAllOfActor interface.
  */
-export function instanceOfRfqTimelineEntryAllOfActor(value: object): value is RfqTimelineEntryAllOfActor {
+export function instanceOfRfqTimelineEntryAllOfActor(
+    value: object,
+): value is RfqTimelineEntryAllOfActor {
     return true;
 }
 
-export function RfqTimelineEntryAllOfActorFromJSON(json: any): RfqTimelineEntryAllOfActor {
+export function RfqTimelineEntryAllOfActorFromJSON(
+    json: any,
+): RfqTimelineEntryAllOfActor {
     return RfqTimelineEntryAllOfActorFromJSONTyped(json, false);
 }
 
-export function RfqTimelineEntryAllOfActorFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqTimelineEntryAllOfActor {
+export function RfqTimelineEntryAllOfActorFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqTimelineEntryAllOfActor {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
+        id: json['id'] == null ? undefined : json['id'],
+        name: json['name'] == null ? undefined : json['name'],
     };
 }
 
-export function RfqTimelineEntryAllOfActorToJSON(json: any): RfqTimelineEntryAllOfActor {
+export function RfqTimelineEntryAllOfActorToJSON(
+    json: any,
+): RfqTimelineEntryAllOfActor {
     return RfqTimelineEntryAllOfActorToJSONTyped(json, false);
 }
 
-export function RfqTimelineEntryAllOfActorToJSONTyped(value?: RfqTimelineEntryAllOfActor | null, ignoreDiscriminator: boolean = false): any {
+export function RfqTimelineEntryAllOfActorToJSONTyped(
+    value?: RfqTimelineEntryAllOfActor | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
+        id: value['id'],
+        name: value['name'],
     };
 }
-

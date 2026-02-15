@@ -2,7 +2,12 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useApiClientContext } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { HttpError, QuoteFromJSON, type Quote, type QuoteStatusEnum } from '@/sdk';
+import {
+    HttpError,
+    QuoteFromJSON,
+    type Quote,
+    type QuoteStatusEnum,
+} from '@/sdk';
 import type { QuoteComparisonRow } from '@/types/quotes';
 
 interface QuoteComparisonEnvelope {
@@ -80,7 +85,10 @@ export function useQuoteComparison(
 function mapComparisonRow(raw: QuoteComparisonRowResponse): QuoteComparisonRow {
     const quote = (QuoteFromJSON(raw.quote) ?? {}) as Quote;
     const quoteId = quote.id ?? String(raw.quote_id);
-    const rfqId = typeof raw.rfq_id === 'string' ? Number.parseInt(raw.rfq_id, 10) : Number(raw.rfq_id ?? quote.rfqId ?? 0);
+    const rfqId =
+        typeof raw.rfq_id === 'string'
+            ? Number.parseInt(raw.rfq_id, 10)
+            : Number(raw.rfq_id ?? quote.rfqId ?? 0);
 
     return {
         quoteId: quoteId ?? String(raw.quote_id),
@@ -90,8 +98,11 @@ function mapComparisonRow(raw: QuoteComparisonRowResponse): QuoteComparisonRow {
         totalPriceMinor: raw.total_price_minor ?? quote.totalMinor,
         leadTimeDays: raw.lead_time_days ?? quote.leadTimeDays,
         status: raw.status ?? quote.status,
-        attachmentsCount: raw.attachments_count ?? quote.attachments?.length ?? 0,
-        submittedAt: raw.submitted_at ? new Date(raw.submitted_at) : quote.submittedAt,
+        attachmentsCount:
+            raw.attachments_count ?? quote.attachments?.length ?? 0,
+        submittedAt: raw.submitted_at
+            ? new Date(raw.submitted_at)
+            : quote.submittedAt,
         scores: normalizeScores(raw.scores),
         quote,
     };

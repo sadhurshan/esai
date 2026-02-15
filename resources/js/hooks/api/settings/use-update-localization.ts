@@ -1,15 +1,24 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import { SettingsApi, type LocalizationSettings as ApiLocalizationSettings } from '@/sdk';
 import type { ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+    SettingsApi,
+    type LocalizationSettings as ApiLocalizationSettings,
+} from '@/sdk';
 import type { LocalizationSettings } from '@/types/settings';
 import { mapLocalizationSettings } from './use-localization';
 
 export type UpdateLocalizationSettingsInput = LocalizationSettings;
 
-export function buildLocalizationSettingsPayload(input: UpdateLocalizationSettingsInput): ApiLocalizationSettings {
+export function buildLocalizationSettingsPayload(
+    input: UpdateLocalizationSettingsInput,
+): ApiLocalizationSettings {
     const payload = {
         timezone: input.timezone,
         locale: input.locale,
@@ -28,11 +37,19 @@ export function buildLocalizationSettingsPayload(input: UpdateLocalizationSettin
     return payload;
 }
 
-export function useUpdateLocalizationSettings(): UseMutationResult<LocalizationSettings, ApiError, UpdateLocalizationSettingsInput> {
+export function useUpdateLocalizationSettings(): UseMutationResult<
+    LocalizationSettings,
+    ApiError,
+    UpdateLocalizationSettingsInput
+> {
     const queryClient = useQueryClient();
     const settingsApi = useSdkClient(SettingsApi);
 
-    return useMutation<LocalizationSettings, ApiError, UpdateLocalizationSettingsInput>({
+    return useMutation<
+        LocalizationSettings,
+        ApiError,
+        UpdateLocalizationSettingsInput
+    >({
         mutationFn: async (input) => {
             const response = await settingsApi.updateLocalizationSettings({
                 localizationSettings: buildLocalizationSettingsPayload(input),
@@ -41,7 +58,10 @@ export function useUpdateLocalizationSettings(): UseMutationResult<LocalizationS
             return mapLocalizationSettings(response.data);
         },
         onSuccess: (settings) => {
-            queryClient.setQueryData(queryKeys.settings.localization(), settings);
+            queryClient.setQueryData(
+                queryKeys.settings.localization(),
+                settings,
+            );
         },
     });
 }

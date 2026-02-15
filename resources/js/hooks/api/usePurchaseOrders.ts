@@ -1,9 +1,16 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { PurchaseOrderSummary } from '@/types/sourcing';
-import { mapPurchaseOrder, type PurchaseOrderResponse } from './usePurchaseOrder';
+import {
+    mapPurchaseOrder,
+    type PurchaseOrderResponse,
+} from './usePurchaseOrder';
 
 interface PurchaseOrderListResponse {
     items: PurchaseOrderResponse[];
@@ -29,7 +36,11 @@ interface UsePurchaseOrdersResult {
 export function usePurchaseOrders(
     params: UsePurchaseOrdersParams = {},
 ): UseQueryResult<UsePurchaseOrdersResult, ApiError> {
-    return useQuery<PurchaseOrderListResponse, ApiError, UsePurchaseOrdersResult>({
+    return useQuery<
+        PurchaseOrderListResponse,
+        ApiError,
+        UsePurchaseOrdersResult
+    >({
         queryKey: queryKeys.purchaseOrders.list(params),
         queryFn: async () => {
             const query = buildQuery(params);

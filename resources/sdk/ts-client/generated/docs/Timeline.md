@@ -1,38 +1,34 @@
-
 # Timeline
-
 
 ## Properties
 
-Name | Type
------------- | -------------
-`createdAt` | Date
-`updatedAt` | Date
-`deletedAt` | Date
+| Name        | Type |
+| ----------- | ---- |
+| `createdAt` | Date |
+| `updatedAt` | Date |
+| `deletedAt` | Date |
 
 ## Example
 
 ```typescript
-import type { Timeline } from ''
+import type { Timeline } from '';
 
 // TODO: Update the object below with actual values
 const example = {
-  "createdAt": null,
-  "updatedAt": null,
-  "deletedAt": null,
-} satisfies Timeline
+    createdAt: null,
+    updatedAt: null,
+    deletedAt: null,
+} satisfies Timeline;
 
-console.log(example)
+console.log(example);
 
 // Convert the instance to a JSON string
-const exampleJSON: string = JSON.stringify(example)
-console.log(exampleJSON)
+const exampleJSON: string = JSON.stringify(example);
+console.log(exampleJSON);
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as Timeline
-console.log(exampleParsed)
+const exampleParsed = JSON.parse(exampleJSON) as Timeline;
+console.log(exampleParsed);
 ```
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-

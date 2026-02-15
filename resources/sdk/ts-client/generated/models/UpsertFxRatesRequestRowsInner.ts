@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UpsertFxRatesRequestRowsInner
  */
 export interface UpsertFxRatesRequestRowsInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpsertFxRatesRequestRowsInner
      */
     baseCode: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpsertFxRatesRequestRowsInner
      */
     quoteCode: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpsertFxRatesRequestRowsInner
      */
     rate: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof UpsertFxRatesRequestRowsInner
      */
@@ -48,46 +47,56 @@ export interface UpsertFxRatesRequestRowsInner {
 /**
  * Check if a given object implements the UpsertFxRatesRequestRowsInner interface.
  */
-export function instanceOfUpsertFxRatesRequestRowsInner(value: object): value is UpsertFxRatesRequestRowsInner {
+export function instanceOfUpsertFxRatesRequestRowsInner(
+    value: object,
+): value is UpsertFxRatesRequestRowsInner {
     if (!('baseCode' in value) || value['baseCode'] === undefined) return false;
-    if (!('quoteCode' in value) || value['quoteCode'] === undefined) return false;
+    if (!('quoteCode' in value) || value['quoteCode'] === undefined)
+        return false;
     if (!('rate' in value) || value['rate'] === undefined) return false;
     if (!('asOf' in value) || value['asOf'] === undefined) return false;
     return true;
 }
 
-export function UpsertFxRatesRequestRowsInnerFromJSON(json: any): UpsertFxRatesRequestRowsInner {
+export function UpsertFxRatesRequestRowsInnerFromJSON(
+    json: any,
+): UpsertFxRatesRequestRowsInner {
     return UpsertFxRatesRequestRowsInnerFromJSONTyped(json, false);
 }
 
-export function UpsertFxRatesRequestRowsInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpsertFxRatesRequestRowsInner {
+export function UpsertFxRatesRequestRowsInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpsertFxRatesRequestRowsInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'baseCode': json['base_code'],
-        'quoteCode': json['quote_code'],
-        'rate': json['rate'],
-        'asOf': (new Date(json['as_of'])),
+        baseCode: json['base_code'],
+        quoteCode: json['quote_code'],
+        rate: json['rate'],
+        asOf: new Date(json['as_of']),
     };
 }
 
-export function UpsertFxRatesRequestRowsInnerToJSON(json: any): UpsertFxRatesRequestRowsInner {
+export function UpsertFxRatesRequestRowsInnerToJSON(
+    json: any,
+): UpsertFxRatesRequestRowsInner {
     return UpsertFxRatesRequestRowsInnerToJSONTyped(json, false);
 }
 
-export function UpsertFxRatesRequestRowsInnerToJSONTyped(value?: UpsertFxRatesRequestRowsInner | null, ignoreDiscriminator: boolean = false): any {
+export function UpsertFxRatesRequestRowsInnerToJSONTyped(
+    value?: UpsertFxRatesRequestRowsInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'base_code': value['baseCode'],
-        'quote_code': value['quoteCode'],
-        'rate': value['rate'],
-        'as_of': value['asOf'].toISOString().substring(0,10),
+        base_code: value['baseCode'],
+        quote_code: value['quoteCode'],
+        rate: value['rate'],
+        as_of: value['asOf'].toISOString().substring(0, 10),
     };
 }
-

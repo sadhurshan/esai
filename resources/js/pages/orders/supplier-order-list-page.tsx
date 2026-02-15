@@ -1,22 +1,30 @@
+import { PackageSearch, RotateCcw } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { PackageSearch, RotateCcw } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { EmptyState } from '@/components/empty-state';
+import { OrderStatusBadge } from '@/components/orders/order-status-badge';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useFormatting } from '@/contexts/formatting-context';
-import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { useSupplierOrders } from '@/hooks/api/orders/use-supplier-orders';
 import type { SalesOrderStatus, SalesOrderSummary } from '@/types/orders';
 
-const STATUS_FILTERS: Array<{ value: 'all' | SalesOrderStatus; label: string }> = [
+const STATUS_FILTERS: Array<{
+    value: 'all' | SalesOrderStatus;
+    label: string;
+}> = [
     { value: 'all', label: 'All' },
     { value: 'pending_ack', label: 'Pending ack' },
     { value: 'accepted', label: 'Accepted' },
@@ -42,7 +50,8 @@ export function SupplierOrderListPage({
 }: SupplierOrderListPageProps = {}) {
     const { formatMoney, formatDate } = useFormatting();
 
-    const [statusFilter, setStatusFilter] = useState<(typeof STATUS_FILTERS)[number]['value']>('all');
+    const [statusFilter, setStatusFilter] =
+        useState<(typeof STATUS_FILTERS)[number]['value']>('all');
     const [buyerFilter, setBuyerFilter] = useState('');
     const [issuedFrom, setIssuedFrom] = useState('');
     const [issuedTo, setIssuedTo] = useState('');
@@ -76,12 +85,15 @@ export function SupplierOrderListPage({
     const nextCursor = cursorMeta?.nextCursor ?? null;
     const prevCursor = cursorMeta?.prevCursor ?? null;
 
-    const formatMoneyMinor = useCallback((amountMinor?: number | null, currency?: string) => {
-        if (amountMinor === undefined || amountMinor === null) {
-            return '—';
-        }
-        return formatMoney(amountMinor / 100, { currency });
-    }, [formatMoney]);
+    const formatMoneyMinor = useCallback(
+        (amountMinor?: number | null, currency?: string) => {
+            if (amountMinor === undefined || amountMinor === null) {
+                return '—';
+            }
+            return formatMoney(amountMinor / 100, { currency });
+        },
+        [formatMoney],
+    );
 
     const columns: DataTableColumn<SalesOrderSummary>[] = useMemo(
         () => [
@@ -89,7 +101,10 @@ export function SupplierOrderListPage({
                 key: 'soNumber',
                 title: 'SO #',
                 render: (order) => (
-                    <Link className="font-semibold text-primary" to={`/app/supplier/orders/${order.id}`}>
+                    <Link
+                        className="font-semibold text-primary"
+                        to={`/app/supplier/orders/${order.id}`}
+                    >
                         {order.soNumber}
                     </Link>
                 ),
@@ -97,7 +112,8 @@ export function SupplierOrderListPage({
             {
                 key: 'buyer',
                 title: 'Buyer',
-                render: (order) => order.buyerCompanyName ?? `Buyer #${order.buyerCompanyId}`,
+                render: (order) =>
+                    order.buyerCompanyName ?? `Buyer #${order.buyerCompanyId}`,
             },
             {
                 key: 'issueDate',
@@ -112,7 +128,11 @@ export function SupplierOrderListPage({
             {
                 key: 'total',
                 title: 'Total',
-                render: (order) => formatMoneyMinor(order.totals?.totalMinor ?? null, order.currency),
+                render: (order) =>
+                    formatMoneyMinor(
+                        order.totals?.totalMinor ?? null,
+                        order.currency,
+                    ),
             },
             {
                 key: 'fulfillment',
@@ -120,7 +140,13 @@ export function SupplierOrderListPage({
                 render: (order) => {
                     const shipped = order.fulfillment?.shippedQty ?? 0;
                     const ordered = order.fulfillment?.orderedQty ?? 0;
-                    const percent = Math.min(100, Math.round(order.fulfillment?.percent ?? (ordered ? (shipped / ordered) * 100 : 0)));
+                    const percent = Math.min(
+                        100,
+                        Math.round(
+                            order.fulfillment?.percent ??
+                                (ordered ? (shipped / ordered) * 100 : 0),
+                        ),
+                    );
 
                     return (
                         <TooltipProvider delayDuration={150}>
@@ -134,7 +160,9 @@ export function SupplierOrderListPage({
                                                 aria-label={`Fulfillment ${percent}%`}
                                             />
                                         </div>
-                                        <span className="text-xs font-medium text-muted-foreground">{percent}%</span>
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            {percent}%
+                                        </span>
                                     </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -156,7 +184,9 @@ export function SupplierOrderListPage({
                 align: 'right',
                 render: (order) => (
                     <Button asChild size="sm" variant="ghost">
-                        <Link to={`/app/supplier/orders/${order.id}`}>Open</Link>
+                        <Link to={`/app/supplier/orders/${order.id}`}>
+                            Open
+                        </Link>
                     </Button>
                 ),
             },
@@ -181,8 +211,12 @@ export function SupplierOrderListPage({
             <PlanUpgradeBanner />
 
             <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">{contextLabel}</p>
-                <h1 className="text-2xl font-semibold text-foreground">{heading}</h1>
+                <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                    {contextLabel}
+                </p>
+                <h1 className="text-2xl font-semibold text-foreground">
+                    {heading}
+                </h1>
                 <p className="text-sm text-muted-foreground">{description}</p>
             </div>
 
@@ -194,7 +228,11 @@ export function SupplierOrderListPage({
                                 key={filter.value}
                                 type="button"
                                 size="sm"
-                                variant={statusFilter === filter.value ? 'default' : 'outline'}
+                                variant={
+                                    statusFilter === filter.value
+                                        ? 'default'
+                                        : 'outline'
+                                }
                                 onClick={() => {
                                     setStatusFilter(filter.value);
                                     setCursor(null);
@@ -206,7 +244,9 @@ export function SupplierOrderListPage({
                     </div>
                     <div className="grid gap-4 md:grid-cols-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Buyer company ID</label>
+                            <label className="text-xs font-medium text-muted-foreground uppercase">
+                                Buyer company ID
+                            </label>
                             <Input
                                 type="number"
                                 value={buyerFilter}
@@ -220,7 +260,9 @@ export function SupplierOrderListPage({
                             {/* TODO: replace numeric buyer filter with directory picker once buyer lookup endpoint is available. */}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Issued from</label>
+                            <label className="text-xs font-medium text-muted-foreground uppercase">
+                                Issued from
+                            </label>
                             <Input
                                 type="date"
                                 value={issuedFrom}
@@ -231,7 +273,9 @@ export function SupplierOrderListPage({
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Issued to</label>
+                            <label className="text-xs font-medium text-muted-foreground uppercase">
+                                Issued to
+                            </label>
                             <Input
                                 type="date"
                                 value={issuedTo}
@@ -242,8 +286,14 @@ export function SupplierOrderListPage({
                             />
                         </div>
                         <div className="flex items-end">
-                            <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
-                                <RotateCcw className="mr-2 h-4 w-4" /> Reset filters
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleResetFilters}
+                            >
+                                <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                                filters
                             </Button>
                         </div>
                     </div>
@@ -258,13 +308,17 @@ export function SupplierOrderListPage({
                     <EmptyState
                         title="No sales orders"
                         description="You will see incoming buyer purchase orders here once procurement teams engage you."
-                        icon={<PackageSearch className="h-12 w-12 text-muted-foreground" />}
+                        icon={
+                            <PackageSearch className="h-12 w-12 text-muted-foreground" />
+                        }
                     />
                 }
             />
 
             <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm">
-                <span className="text-muted-foreground">Cursor-based pagination</span>
+                <span className="text-muted-foreground">
+                    Cursor-based pagination
+                </span>
                 <div className="flex items-center gap-2">
                     <Button
                         type="button"

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,112 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { AdminListWebhookSubscriptions200ResponseAllOfData } from './AdminListWebhookSubscriptions200ResponseAllOfData';
 import {
     AdminListWebhookSubscriptions200ResponseAllOfDataFromJSON,
-    AdminListWebhookSubscriptions200ResponseAllOfDataFromJSONTyped,
     AdminListWebhookSubscriptions200ResponseAllOfDataToJSON,
-    AdminListWebhookSubscriptions200ResponseAllOfDataToJSONTyped,
 } from './AdminListWebhookSubscriptions200ResponseAllOfData';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListWebhookSubscriptions200Response
  */
 export interface AdminListWebhookSubscriptions200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminListWebhookSubscriptions200Response
      */
     status: AdminListWebhookSubscriptions200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminListWebhookSubscriptions200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {AdminListWebhookSubscriptions200ResponseAllOfData}
      * @memberof AdminListWebhookSubscriptions200Response
      */
     data: AdminListWebhookSubscriptions200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof AdminListWebhookSubscriptions200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const AdminListWebhookSubscriptions200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type AdminListWebhookSubscriptions200ResponseStatusEnum = typeof AdminListWebhookSubscriptions200ResponseStatusEnum[keyof typeof AdminListWebhookSubscriptions200ResponseStatusEnum];
-
+export type AdminListWebhookSubscriptions200ResponseStatusEnum =
+    (typeof AdminListWebhookSubscriptions200ResponseStatusEnum)[keyof typeof AdminListWebhookSubscriptions200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the AdminListWebhookSubscriptions200Response interface.
  */
-export function instanceOfAdminListWebhookSubscriptions200Response(value: object): value is AdminListWebhookSubscriptions200Response {
+export function instanceOfAdminListWebhookSubscriptions200Response(
+    value: object,
+): value is AdminListWebhookSubscriptions200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function AdminListWebhookSubscriptions200ResponseFromJSON(json: any): AdminListWebhookSubscriptions200Response {
+export function AdminListWebhookSubscriptions200ResponseFromJSON(
+    json: any,
+): AdminListWebhookSubscriptions200Response {
     return AdminListWebhookSubscriptions200ResponseFromJSONTyped(json, false);
 }
 
-export function AdminListWebhookSubscriptions200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListWebhookSubscriptions200Response {
+export function AdminListWebhookSubscriptions200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListWebhookSubscriptions200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': AdminListWebhookSubscriptions200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: AdminListWebhookSubscriptions200ResponseAllOfDataFromJSON(
+            json['data'],
+        ),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminListWebhookSubscriptions200ResponseToJSON(json: any): AdminListWebhookSubscriptions200Response {
+export function AdminListWebhookSubscriptions200ResponseToJSON(
+    json: any,
+): AdminListWebhookSubscriptions200Response {
     return AdminListWebhookSubscriptions200ResponseToJSONTyped(json, false);
 }
 
-export function AdminListWebhookSubscriptions200ResponseToJSONTyped(value?: AdminListWebhookSubscriptions200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListWebhookSubscriptions200ResponseToJSONTyped(
+    value?: AdminListWebhookSubscriptions200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': AdminListWebhookSubscriptions200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: AdminListWebhookSubscriptions200ResponseAllOfDataToJSON(
+            value['data'],
+        ),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

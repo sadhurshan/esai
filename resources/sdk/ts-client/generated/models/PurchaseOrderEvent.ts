@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,77 +12,73 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PurchaseOrderEventActor } from './PurchaseOrderEventActor';
 import {
     PurchaseOrderEventActorFromJSON,
-    PurchaseOrderEventActorFromJSONTyped,
     PurchaseOrderEventActorToJSON,
-    PurchaseOrderEventActorToJSONTyped,
 } from './PurchaseOrderEventActor';
 
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrderEvent
  */
 export interface PurchaseOrderEvent {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderEvent
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderEvent
      */
     purchaseOrderId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderEvent
      */
     type: PurchaseOrderEventTypeEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderEvent
      */
     summary: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderEvent
      */
     description?: string;
     /**
-     * 
+     *
      * @type {object}
      * @memberof PurchaseOrderEvent
      */
     metadata?: object;
     /**
-     * 
+     *
      * @type {PurchaseOrderEventActor}
      * @memberof PurchaseOrderEvent
      */
     actor?: PurchaseOrderEventActor;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderEvent
      */
     occurredAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderEvent
      */
     createdAt?: Date;
 }
-
 
 /**
  * @export
@@ -92,17 +88,20 @@ export const PurchaseOrderEventTypeEnum = {
     SupplierAck: 'supplier_ack',
     SupplierDecline: 'supplier_decline',
     InvoiceCreated: 'invoice_created',
-    InvoiceAttachment: 'invoice_attachment'
+    InvoiceAttachment: 'invoice_attachment',
 } as const;
-export type PurchaseOrderEventTypeEnum = typeof PurchaseOrderEventTypeEnum[keyof typeof PurchaseOrderEventTypeEnum];
-
+export type PurchaseOrderEventTypeEnum =
+    (typeof PurchaseOrderEventTypeEnum)[keyof typeof PurchaseOrderEventTypeEnum];
 
 /**
  * Check if a given object implements the PurchaseOrderEvent interface.
  */
-export function instanceOfPurchaseOrderEvent(value: object): value is PurchaseOrderEvent {
+export function instanceOfPurchaseOrderEvent(
+    value: object,
+): value is PurchaseOrderEvent {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined) return false;
+    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined)
+        return false;
     if (!('type' in value) || value['type'] === undefined) return false;
     if (!('summary' in value) || value['summary'] === undefined) return false;
     return true;
@@ -112,21 +111,33 @@ export function PurchaseOrderEventFromJSON(json: any): PurchaseOrderEvent {
     return PurchaseOrderEventFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderEventFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrderEvent {
+export function PurchaseOrderEventFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrderEvent {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'purchaseOrderId': json['purchase_order_id'],
-        'type': json['type'],
-        'summary': json['summary'],
-        'description': json['description'] == null ? undefined : json['description'],
-        'metadata': json['metadata'] == null ? undefined : json['metadata'],
-        'actor': json['actor'] == null ? undefined : PurchaseOrderEventActorFromJSON(json['actor']),
-        'occurredAt': json['occurred_at'] == null ? undefined : (new Date(json['occurred_at'])),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
+        id: json['id'],
+        purchaseOrderId: json['purchase_order_id'],
+        type: json['type'],
+        summary: json['summary'],
+        description:
+            json['description'] == null ? undefined : json['description'],
+        metadata: json['metadata'] == null ? undefined : json['metadata'],
+        actor:
+            json['actor'] == null
+                ? undefined
+                : PurchaseOrderEventActorFromJSON(json['actor']),
+        occurredAt:
+            json['occurred_at'] == null
+                ? undefined
+                : new Date(json['occurred_at']),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
     };
 }
 
@@ -134,22 +145,29 @@ export function PurchaseOrderEventToJSON(json: any): PurchaseOrderEvent {
     return PurchaseOrderEventToJSONTyped(json, false);
 }
 
-export function PurchaseOrderEventToJSONTyped(value?: PurchaseOrderEvent | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderEventToJSONTyped(
+    value?: PurchaseOrderEvent | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'type': value['type'],
-        'summary': value['summary'],
-        'description': value['description'],
-        'metadata': value['metadata'],
-        'actor': PurchaseOrderEventActorToJSON(value['actor']),
-        'occurred_at': value['occurredAt'] == null ? value['occurredAt'] : value['occurredAt'].toISOString(),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
+        id: value['id'],
+        purchase_order_id: value['purchaseOrderId'],
+        type: value['type'],
+        summary: value['summary'],
+        description: value['description'],
+        metadata: value['metadata'],
+        actor: PurchaseOrderEventActorToJSON(value['actor']),
+        occurred_at:
+            value['occurredAt'] == null
+                ? value['occurredAt']
+                : value['occurredAt'].toISOString(),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
     };
 }
-

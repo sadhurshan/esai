@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -64,7 +64,9 @@ function parseDate(value?: string | null): Date | undefined {
     return Number.isNaN(parsed.valueOf()) ? undefined : parsed;
 }
 
-function normalizeSupplierProfile(payload?: ApiInvitationSupplier | null): InvitationSupplierProfile | null {
+function normalizeSupplierProfile(
+    payload?: ApiInvitationSupplier | null,
+): InvitationSupplierProfile | null {
     if (!payload) {
         return null;
     }
@@ -79,7 +81,9 @@ function normalizeSupplierProfile(payload?: ApiInvitationSupplier | null): Invit
     } satisfies InvitationSupplierProfile;
 }
 
-function normalizeInvitation(record: ApiRfqInvitation): RfqInvitationWithProfile {
+function normalizeInvitation(
+    record: ApiRfqInvitation,
+): RfqInvitationWithProfile {
     const invitation: RfqInvitationWithProfile = {
         id: String(record.id ?? ''),
         supplierId: String(record.supplier_id ?? ''),
@@ -100,10 +104,13 @@ function normalizeInvitation(record: ApiRfqInvitation): RfqInvitationWithProfile
     return invitation;
 }
 
-async function fetchRfqSuppliers(rfqId: string | number): Promise<RfqSuppliersPayload> {
-    const response = (await api.get<RfqSuppliersApiResponse>(`/rfqs/${rfqId}/invitations`)) as unknown as RfqSuppliersApiResponse;
+async function fetchRfqSuppliers(
+    rfqId: string | number,
+): Promise<RfqSuppliersPayload> {
+    const response = (await api.get<RfqSuppliersApiResponse>(
+        `/rfqs/${rfqId}/invitations`,
+    )) as unknown as RfqSuppliersApiResponse;
     const items = Array.isArray(response.items) ? response.items : [];
-    
 
     return {
         items: items.map(normalizeInvitation),
@@ -111,12 +118,18 @@ async function fetchRfqSuppliers(rfqId: string | number): Promise<RfqSuppliersPa
     } satisfies RfqSuppliersPayload;
 }
 
-export type UseRfqSuppliersResult = UseQueryResult<RfqSuppliersPayload, ApiError> & {
+export type UseRfqSuppliersResult = UseQueryResult<
+    RfqSuppliersPayload,
+    ApiError
+> & {
     items: RfqInvitationWithProfile[];
     meta?: PageMeta;
 };
 
-export function useRfqSuppliers(rfqId: RfqIdentifier, options: UseRfqSuppliersOptions = {}): UseRfqSuppliersResult {
+export function useRfqSuppliers(
+    rfqId: RfqIdentifier,
+    options: UseRfqSuppliersOptions = {},
+): UseRfqSuppliersResult {
     const enabled = options.enabled ?? Boolean(rfqId);
 
     const query = useQuery<RfqSuppliersPayload, ApiError>({
@@ -132,7 +145,6 @@ export function useRfqSuppliers(rfqId: RfqIdentifier, options: UseRfqSuppliersOp
 
         return query.data ?? { items: [], meta: undefined };
     }, [enabled, query.data]);
-    
 
     return {
         ...query,

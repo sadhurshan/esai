@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,21 @@
  * Do not edit the class manually.
  */
 
-
+import type { ApiSuccessResponse } from '../models/index';
+import { ApiSuccessResponseFromJSON } from '../models/index';
 import * as runtime from '../runtime';
-import type {
-  ApiSuccessResponse,
-} from '../models/index';
-import {
-    ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-} from '../models/index';
 
 export interface ActOnApprovalRequestRequest {
     approvalId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface CreateApprovalDelegationRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface CreateApprovalRuleRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface DeleteApprovalDelegationRequest {
@@ -53,223 +47,293 @@ export interface ShowApprovalRuleRequest {
 
 export interface UpdateApprovalDelegationRequest {
     delegationId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateApprovalRuleRequest {
     ruleId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 /**
  * ApprovalsApi - interface
- * 
+ *
  * @export
  * @interface ApprovalsApiInterface
  */
 export interface ApprovalsApiInterface {
     /**
-     * 
+     *
      * @summary Take action on approval request
-     * @param {number} approvalId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} approvalId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    actOnApprovalRequestRaw(requestParameters: ActOnApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    actOnApprovalRequestRaw(
+        requestParameters: ActOnApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Take action on approval request
      */
-    actOnApprovalRequest(requestParameters: ActOnApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    actOnApprovalRequest(
+        requestParameters: ActOnApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create approval delegation
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    createApprovalDelegationRaw(requestParameters: CreateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createApprovalDelegationRaw(
+        requestParameters: CreateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create approval delegation
      */
-    createApprovalDelegation(requestParameters: CreateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createApprovalDelegation(
+        requestParameters: CreateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create approval rule
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    createApprovalRuleRaw(requestParameters: CreateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createApprovalRuleRaw(
+        requestParameters: CreateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create approval rule
      */
-    createApprovalRule(requestParameters: CreateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createApprovalRule(
+        requestParameters: CreateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete approval delegation
-     * @param {number} delegationId 
+     * @param {number} delegationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    deleteApprovalDelegationRaw(requestParameters: DeleteApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteApprovalDelegationRaw(
+        requestParameters: DeleteApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete approval delegation
      */
-    deleteApprovalDelegation(requestParameters: DeleteApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteApprovalDelegation(
+        requestParameters: DeleteApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete approval rule
-     * @param {number} ruleId 
+     * @param {number} ruleId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    deleteApprovalRuleRaw(requestParameters: DeleteApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteApprovalRuleRaw(
+        requestParameters: DeleteApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete approval rule
      */
-    deleteApprovalRule(requestParameters: DeleteApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteApprovalRule(
+        requestParameters: DeleteApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List approval delegations
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    listApprovalDelegationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listApprovalDelegationsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List approval delegations
      */
-    listApprovalDelegations(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listApprovalDelegations(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List approval requests
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    listApprovalRequestsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listApprovalRequestsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List approval requests
      */
-    listApprovalRequests(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listApprovalRequests(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List approval rules
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    listApprovalRulesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listApprovalRulesRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List approval rules
      */
-    listApprovalRules(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listApprovalRules(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show approval request
-     * @param {number} approvalId 
+     * @param {number} approvalId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    showApprovalRequestRaw(requestParameters: ShowApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showApprovalRequestRaw(
+        requestParameters: ShowApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show approval request
      */
-    showApprovalRequest(requestParameters: ShowApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showApprovalRequest(
+        requestParameters: ShowApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show approval rule
-     * @param {number} ruleId 
+     * @param {number} ruleId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    showApprovalRuleRaw(requestParameters: ShowApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showApprovalRuleRaw(
+        requestParameters: ShowApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show approval rule
      */
-    showApprovalRule(requestParameters: ShowApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showApprovalRule(
+        requestParameters: ShowApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Update approval delegation
-     * @param {number} delegationId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} delegationId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    updateApprovalDelegationRaw(requestParameters: UpdateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateApprovalDelegationRaw(
+        requestParameters: UpdateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update approval delegation
      */
-    updateApprovalDelegation(requestParameters: UpdateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateApprovalDelegation(
+        requestParameters: UpdateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Update approval rule
-     * @param {number} ruleId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} ruleId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApprovalsApiInterface
      */
-    updateApprovalRuleRaw(requestParameters: UpdateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateApprovalRuleRaw(
+        requestParameters: UpdateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update approval rule
      */
-    updateApprovalRule(requestParameters: UpdateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    updateApprovalRule(
+        requestParameters: UpdateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterface {
-
+export class ApprovalsApi
+    extends runtime.BaseAPI
+    implements ApprovalsApiInterface
+{
     /**
      * Take action on approval request
      */
-    async actOnApprovalRequestRaw(requestParameters: ActOnApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async actOnApprovalRequestRaw(
+        requestParameters: ActOnApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['approvalId'] == null) {
             throw new runtime.RequiredError(
                 'approvalId',
-                'Required parameter "approvalId" was null or undefined when calling actOnApprovalRequest().'
+                'Required parameter "approvalId" was null or undefined when calling actOnApprovalRequest().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling actOnApprovalRequest().'
+                'Required parameter "requestBody" was null or undefined when calling actOnApprovalRequest().',
             );
         }
 
@@ -280,48 +344,66 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/requests/{approvalId}/action`;
-        urlPath = urlPath.replace(`{${"approvalId"}}`, encodeURIComponent(String(requestParameters['approvalId'])));
+        urlPath = urlPath.replace(
+            `{${'approvalId'}}`,
+            encodeURIComponent(String(requestParameters['approvalId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Take action on approval request
      */
-    async actOnApprovalRequest(requestParameters: ActOnApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.actOnApprovalRequestRaw(requestParameters, initOverrides);
+    async actOnApprovalRequest(
+        requestParameters: ActOnApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.actOnApprovalRequestRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create approval delegation
      */
-    async createApprovalDelegationRaw(requestParameters: CreateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createApprovalDelegationRaw(
+        requestParameters: CreateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createApprovalDelegation().'
+                'Required parameter "requestBody" was null or undefined when calling createApprovalDelegation().',
             );
         }
 
@@ -332,47 +414,62 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/delegations`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create approval delegation
      */
-    async createApprovalDelegation(requestParameters: CreateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createApprovalDelegationRaw(requestParameters, initOverrides);
+    async createApprovalDelegation(
+        requestParameters: CreateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createApprovalDelegationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create approval rule
      */
-    async createApprovalRuleRaw(requestParameters: CreateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createApprovalRuleRaw(
+        requestParameters: CreateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createApprovalRule().'
+                'Required parameter "requestBody" was null or undefined when calling createApprovalRule().',
             );
         }
 
@@ -383,47 +480,62 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/rules`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create approval rule
      */
-    async createApprovalRule(requestParameters: CreateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createApprovalRuleRaw(requestParameters, initOverrides);
+    async createApprovalRule(
+        requestParameters: CreateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createApprovalRuleRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete approval delegation
      */
-    async deleteApprovalDelegationRaw(requestParameters: DeleteApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteApprovalDelegationRaw(
+        requestParameters: DeleteApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['delegationId'] == null) {
             throw new runtime.RequiredError(
                 'delegationId',
-                'Required parameter "delegationId" was null or undefined when calling deleteApprovalDelegation().'
+                'Required parameter "delegationId" was null or undefined when calling deleteApprovalDelegation().',
             );
         }
 
@@ -432,47 +544,65 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/delegations/{delegationId}`;
-        urlPath = urlPath.replace(`{${"delegationId"}}`, encodeURIComponent(String(requestParameters['delegationId'])));
+        urlPath = urlPath.replace(
+            `{${'delegationId'}}`,
+            encodeURIComponent(String(requestParameters['delegationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete approval delegation
      */
-    async deleteApprovalDelegation(requestParameters: DeleteApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteApprovalDelegationRaw(requestParameters, initOverrides);
+    async deleteApprovalDelegation(
+        requestParameters: DeleteApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteApprovalDelegationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete approval rule
      */
-    async deleteApprovalRuleRaw(requestParameters: DeleteApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteApprovalRuleRaw(
+        requestParameters: DeleteApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['ruleId'] == null) {
             throw new runtime.RequiredError(
                 'ruleId',
-                'Required parameter "ruleId" was null or undefined when calling deleteApprovalRule().'
+                'Required parameter "ruleId" was null or undefined when calling deleteApprovalRule().',
             );
         }
 
@@ -481,76 +611,101 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/rules/{ruleId}`;
-        urlPath = urlPath.replace(`{${"ruleId"}}`, encodeURIComponent(String(requestParameters['ruleId'])));
+        urlPath = urlPath.replace(
+            `{${'ruleId'}}`,
+            encodeURIComponent(String(requestParameters['ruleId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete approval rule
      */
-    async deleteApprovalRule(requestParameters: DeleteApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteApprovalRuleRaw(requestParameters, initOverrides);
+    async deleteApprovalRule(
+        requestParameters: DeleteApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteApprovalRuleRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List approval delegations
      */
-    async listApprovalDelegationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listApprovalDelegationsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/delegations`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List approval delegations
      */
-    async listApprovalDelegations(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listApprovalDelegations(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listApprovalDelegationsRaw(initOverrides);
         return await response.value();
     }
@@ -558,40 +713,50 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
     /**
      * List approval requests
      */
-    async listApprovalRequestsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listApprovalRequestsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/requests`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List approval requests
      */
-    async listApprovalRequests(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listApprovalRequests(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listApprovalRequestsRaw(initOverrides);
         return await response.value();
     }
@@ -599,40 +764,50 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
     /**
      * List approval rules
      */
-    async listApprovalRulesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listApprovalRulesRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/rules`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List approval rules
      */
-    async listApprovalRules(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listApprovalRules(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listApprovalRulesRaw(initOverrides);
         return await response.value();
     }
@@ -640,11 +815,14 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
     /**
      * Show approval request
      */
-    async showApprovalRequestRaw(requestParameters: ShowApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showApprovalRequestRaw(
+        requestParameters: ShowApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['approvalId'] == null) {
             throw new runtime.RequiredError(
                 'approvalId',
-                'Required parameter "approvalId" was null or undefined when calling showApprovalRequest().'
+                'Required parameter "approvalId" was null or undefined when calling showApprovalRequest().',
             );
         }
 
@@ -653,47 +831,65 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/requests/{approvalId}`;
-        urlPath = urlPath.replace(`{${"approvalId"}}`, encodeURIComponent(String(requestParameters['approvalId'])));
+        urlPath = urlPath.replace(
+            `{${'approvalId'}}`,
+            encodeURIComponent(String(requestParameters['approvalId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show approval request
      */
-    async showApprovalRequest(requestParameters: ShowApprovalRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showApprovalRequestRaw(requestParameters, initOverrides);
+    async showApprovalRequest(
+        requestParameters: ShowApprovalRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showApprovalRequestRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show approval rule
      */
-    async showApprovalRuleRaw(requestParameters: ShowApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showApprovalRuleRaw(
+        requestParameters: ShowApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['ruleId'] == null) {
             throw new runtime.RequiredError(
                 'ruleId',
-                'Required parameter "ruleId" was null or undefined when calling showApprovalRule().'
+                'Required parameter "ruleId" was null or undefined when calling showApprovalRule().',
             );
         }
 
@@ -702,54 +898,72 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/rules/{ruleId}`;
-        urlPath = urlPath.replace(`{${"ruleId"}}`, encodeURIComponent(String(requestParameters['ruleId'])));
+        urlPath = urlPath.replace(
+            `{${'ruleId'}}`,
+            encodeURIComponent(String(requestParameters['ruleId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show approval rule
      */
-    async showApprovalRule(requestParameters: ShowApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showApprovalRuleRaw(requestParameters, initOverrides);
+    async showApprovalRule(
+        requestParameters: ShowApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showApprovalRuleRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update approval delegation
      */
-    async updateApprovalDelegationRaw(requestParameters: UpdateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateApprovalDelegationRaw(
+        requestParameters: UpdateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['delegationId'] == null) {
             throw new runtime.RequiredError(
                 'delegationId',
-                'Required parameter "delegationId" was null or undefined when calling updateApprovalDelegation().'
+                'Required parameter "delegationId" was null or undefined when calling updateApprovalDelegation().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateApprovalDelegation().'
+                'Required parameter "requestBody" was null or undefined when calling updateApprovalDelegation().',
             );
         }
 
@@ -760,55 +974,73 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/delegations/{delegationId}`;
-        urlPath = urlPath.replace(`{${"delegationId"}}`, encodeURIComponent(String(requestParameters['delegationId'])));
+        urlPath = urlPath.replace(
+            `{${'delegationId'}}`,
+            encodeURIComponent(String(requestParameters['delegationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update approval delegation
      */
-    async updateApprovalDelegation(requestParameters: UpdateApprovalDelegationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateApprovalDelegationRaw(requestParameters, initOverrides);
+    async updateApprovalDelegation(
+        requestParameters: UpdateApprovalDelegationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateApprovalDelegationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update approval rule
      */
-    async updateApprovalRuleRaw(requestParameters: UpdateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateApprovalRuleRaw(
+        requestParameters: UpdateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['ruleId'] == null) {
             throw new runtime.RequiredError(
                 'ruleId',
-                'Required parameter "ruleId" was null or undefined when calling updateApprovalRule().'
+                'Required parameter "ruleId" was null or undefined when calling updateApprovalRule().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateApprovalRule().'
+                'Required parameter "requestBody" was null or undefined when calling updateApprovalRule().',
             );
         }
 
@@ -819,38 +1051,52 @@ export class ApprovalsApi extends runtime.BaseAPI implements ApprovalsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/approvals/rules/{ruleId}`;
-        urlPath = urlPath.replace(`{${"ruleId"}}`, encodeURIComponent(String(requestParameters['ruleId'])));
+        urlPath = urlPath.replace(
+            `{${'ruleId'}}`,
+            encodeURIComponent(String(requestParameters['ruleId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update approval rule
      */
-    async updateApprovalRule(requestParameters: UpdateApprovalRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateApprovalRuleRaw(requestParameters, initOverrides);
+    async updateApprovalRule(
+        requestParameters: UpdateApprovalRuleRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateApprovalRuleRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

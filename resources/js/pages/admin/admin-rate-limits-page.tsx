@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 
-import Heading from '@/components/heading';
 import { RateLimitRuleEditor } from '@/components/admin/rate-limit-rule-editor';
+import Heading from '@/components/heading';
+import { useAuth } from '@/contexts/auth-context';
 import { useRateLimits } from '@/hooks/api/admin/use-rate-limits';
 import { useUpdateRateLimits } from '@/hooks/api/admin/use-update-rate-limits';
-import { useAuth } from '@/contexts/auth-context';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { SyncRateLimitPayload } from '@/types/admin';
 import type { RateLimitRule } from '@/sdk';
+import type { SyncRateLimitPayload } from '@/types/admin';
 
 const EMPTY_RULES: RateLimitRule[] = [];
 

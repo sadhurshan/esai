@@ -33,6 +33,14 @@ export default defineConfig({
             'react-helmet-async': path.resolve(rootDir, 'resources/js/lib/helmet-shim.tsx'),
         },
     },
+    server: {
+        host: '127.0.0.1',
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: '127.0.0.1',
+        },
+    },
     test: {
         environment: 'jsdom',
         globals: true,

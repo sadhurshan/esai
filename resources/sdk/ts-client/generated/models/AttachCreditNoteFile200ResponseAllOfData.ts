@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { CreditNote } from './CreditNote';
-import {
-    CreditNoteFromJSON,
-    CreditNoteFromJSONTyped,
-    CreditNoteToJSON,
-    CreditNoteToJSONTyped,
-} from './CreditNote';
+import { CreditNoteFromJSON, CreditNoteToJSON } from './CreditNote';
 import type { DocumentAttachment } from './DocumentAttachment';
 import {
     DocumentAttachmentFromJSON,
-    DocumentAttachmentFromJSONTyped,
     DocumentAttachmentToJSON,
-    DocumentAttachmentToJSONTyped,
 } from './DocumentAttachment';
 
 /**
- * 
+ *
  * @export
  * @interface AttachCreditNoteFile200ResponseAllOfData
  */
 export interface AttachCreditNoteFile200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {CreditNote}
      * @memberof AttachCreditNoteFile200ResponseAllOfData
      */
     creditNote?: CreditNote;
     /**
-     * 
+     *
      * @type {DocumentAttachment}
      * @memberof AttachCreditNoteFile200ResponseAllOfData
      */
@@ -51,38 +43,53 @@ export interface AttachCreditNoteFile200ResponseAllOfData {
 /**
  * Check if a given object implements the AttachCreditNoteFile200ResponseAllOfData interface.
  */
-export function instanceOfAttachCreditNoteFile200ResponseAllOfData(value: object): value is AttachCreditNoteFile200ResponseAllOfData {
+export function instanceOfAttachCreditNoteFile200ResponseAllOfData(
+    value: object,
+): value is AttachCreditNoteFile200ResponseAllOfData {
     return true;
 }
 
-export function AttachCreditNoteFile200ResponseAllOfDataFromJSON(json: any): AttachCreditNoteFile200ResponseAllOfData {
+export function AttachCreditNoteFile200ResponseAllOfDataFromJSON(
+    json: any,
+): AttachCreditNoteFile200ResponseAllOfData {
     return AttachCreditNoteFile200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AttachCreditNoteFile200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AttachCreditNoteFile200ResponseAllOfData {
+export function AttachCreditNoteFile200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AttachCreditNoteFile200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'creditNote': json['credit_note'] == null ? undefined : CreditNoteFromJSON(json['credit_note']),
-        'attachment': json['attachment'] == null ? undefined : DocumentAttachmentFromJSON(json['attachment']),
+        creditNote:
+            json['credit_note'] == null
+                ? undefined
+                : CreditNoteFromJSON(json['credit_note']),
+        attachment:
+            json['attachment'] == null
+                ? undefined
+                : DocumentAttachmentFromJSON(json['attachment']),
     };
 }
 
-export function AttachCreditNoteFile200ResponseAllOfDataToJSON(json: any): AttachCreditNoteFile200ResponseAllOfData {
+export function AttachCreditNoteFile200ResponseAllOfDataToJSON(
+    json: any,
+): AttachCreditNoteFile200ResponseAllOfData {
     return AttachCreditNoteFile200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AttachCreditNoteFile200ResponseAllOfDataToJSONTyped(value?: AttachCreditNoteFile200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AttachCreditNoteFile200ResponseAllOfDataToJSONTyped(
+    value?: AttachCreditNoteFile200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'credit_note': CreditNoteToJSON(value['creditNote']),
-        'attachment': DocumentAttachmentToJSON(value['attachment']),
+        credit_note: CreditNoteToJSON(value['creditNote']),
+        attachment: DocumentAttachmentToJSON(value['attachment']),
     };
 }
-

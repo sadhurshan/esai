@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { AdminPlansIndex200ResponseAllOfData } from './AdminPlansIndex200ResponseAllOfData';
 import {
     AdminPlansIndex200ResponseAllOfDataFromJSON,
-    AdminPlansIndex200ResponseAllOfDataFromJSONTyped,
     AdminPlansIndex200ResponseAllOfDataToJSON,
-    AdminPlansIndex200ResponseAllOfDataToJSONTyped,
 } from './AdminPlansIndex200ResponseAllOfData';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface AdminPlansIndex200Response
  */
 export interface AdminPlansIndex200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminPlansIndex200Response
      */
     status: AdminPlansIndex200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminPlansIndex200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {AdminPlansIndex200ResponseAllOfData}
      * @memberof AdminPlansIndex200Response
      */
     data: AdminPlansIndex200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof AdminPlansIndex200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const AdminPlansIndex200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type AdminPlansIndex200ResponseStatusEnum = typeof AdminPlansIndex200ResponseStatusEnum[keyof typeof AdminPlansIndex200ResponseStatusEnum];
-
+export type AdminPlansIndex200ResponseStatusEnum =
+    (typeof AdminPlansIndex200ResponseStatusEnum)[keyof typeof AdminPlansIndex200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the AdminPlansIndex200Response interface.
  */
-export function instanceOfAdminPlansIndex200Response(value: object): value is AdminPlansIndex200Response {
+export function instanceOfAdminPlansIndex200Response(
+    value: object,
+): value is AdminPlansIndex200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function AdminPlansIndex200ResponseFromJSON(json: any): AdminPlansIndex200Response {
+export function AdminPlansIndex200ResponseFromJSON(
+    json: any,
+): AdminPlansIndex200Response {
     return AdminPlansIndex200ResponseFromJSONTyped(json, false);
 }
 
-export function AdminPlansIndex200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminPlansIndex200Response {
+export function AdminPlansIndex200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminPlansIndex200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': AdminPlansIndex200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: AdminPlansIndex200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminPlansIndex200ResponseToJSON(json: any): AdminPlansIndex200Response {
+export function AdminPlansIndex200ResponseToJSON(
+    json: any,
+): AdminPlansIndex200Response {
     return AdminPlansIndex200ResponseToJSONTyped(json, false);
 }
 
-export function AdminPlansIndex200ResponseToJSONTyped(value?: AdminPlansIndex200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminPlansIndex200ResponseToJSONTyped(
+    value?: AdminPlansIndex200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': AdminPlansIndex200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: AdminPlansIndex200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

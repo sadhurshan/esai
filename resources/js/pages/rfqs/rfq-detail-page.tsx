@@ -1,21 +1,24 @@
-import { useEffect, useMemo, useState, useReducer } from 'react';
 import { addDays, format, formatDistanceToNow } from 'date-fns';
+import { PenLine, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Plus, PenLine, Trash2 } from 'lucide-react';
 
-import { AttachmentUploader } from '@/components/rfqs/attachment-uploader';
 import { ExportButtons } from '@/components/downloads/export-buttons';
+import { AttachmentUploader } from '@/components/rfqs/attachment-uploader';
 import { ClarificationThread } from '@/components/rfqs/clarification-thread';
-import { RfqLineEditorModal, type RfqLineFormValues } from '@/components/rfqs/rfq-line-editor-modal';
 import { InviteSuppliersDialog } from '@/components/rfqs/invite-suppliers-dialog';
 import { RfqActionBar } from '@/components/rfqs/rfq-action-bar';
+import {
+    RfqLineEditorModal,
+    type RfqLineFormValues,
+} from '@/components/rfqs/rfq-line-editor-modal';
 import { RfqStatusBadge } from '@/components/rfqs/rfq-status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
     Dialog,
     DialogContent,
@@ -26,35 +29,48 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
+import {
+    RFQ_METHOD_OPTIONS,
+    isRfqMethod,
+    type RfqMethod,
+} from '@/constants/rfq';
 import { useAuth } from '@/contexts/auth-context';
-import { useMoneyFormatter } from '@/hooks/use-money-formatter';
-import { useUomConversionHelper } from '@/hooks/use-uom-conversion-helper';
 import {
     useAddLine,
     useAmendRfq,
     useCloseRfq,
-    useDeleteRfq,
     useDeleteLine,
+    useDeleteRfq,
     useExtendRfqDeadline,
     usePublishRfq,
     useRfq,
     useRfqAttachments,
     useRfqClarifications,
     useRfqLines,
-    useUpdateLine,
     useRfqSuppliers,
     useRfqTimeline,
+    useUpdateLine,
     useUpdateRfq,
 } from '@/hooks/api/rfqs';
-import type { InvitationSupplierProfile, RfqInvitationWithProfile } from '@/hooks/api/rfqs/use-rfq-suppliers';
+import type {
+    InvitationSupplierProfile,
+    RfqInvitationWithProfile,
+} from '@/hooks/api/rfqs/use-rfq-suppliers';
+import { useMoneyFormatter } from '@/hooks/use-money-formatter';
+import { useUomConversionHelper } from '@/hooks/use-uom-conversion-helper';
 import type { Rfq, RfqItem, RfqLinePayload, RfqTimelineEntry } from '@/sdk';
-import { RFQ_METHOD_OPTIONS, isRfqMethod, type RfqMethod } from '@/constants/rfq';
 
 interface PublishFormState {
     dueAt: string;
@@ -92,6 +108,13 @@ interface ExtendDeadlineFormState {
     newDueAt: string;
     reason: string;
     notifySuppliers: boolean;
+}
+
+interface DigitalTwinPrompt {
+    type: string;
+    title: string;
+    description: string;
+    cta?: string | null;
 }
 
 const DEFAULT_EXTEND_FORM: ExtendDeadlineFormState = {
@@ -191,16 +214,20 @@ function normalizeEventLabel(event: string): string {
         .join(' ');
 }
 
-function normalizeTimelineContext(context?: object): Array<{ key: string; label: string; value: string }> {
+function normalizeTimelineContext(
+    context?: object,
+): Array<{ key: string; label: string; value: string }> {
     if (!context || typeof context !== 'object' || Array.isArray(context)) {
         return [];
     }
 
-    return Object.entries(context as Record<string, unknown>).map(([key, value]) => ({
-        key,
-        label: formatTimelineContextLabel(key),
-        value: formatTimelineContextValue(key, value),
-    }));
+    return Object.entries(context as Record<string, unknown>).map(
+        ([key, value]) => ({
+            key,
+            label: formatTimelineContextLabel(key),
+            value: formatTimelineContextValue(key, value),
+        }),
+    );
 }
 
 function formatTimelineContextLabel(key: string): string {
@@ -210,7 +237,11 @@ function formatTimelineContextLabel(key: string): string {
 
     return key
         .split('_')
-        .map((segment) => (segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : segment))
+        .map((segment) =>
+            segment
+                ? segment.charAt(0).toUpperCase() + segment.slice(1)
+                : segment,
+        )
         .join(' ')
         .trim();
 }
@@ -256,10 +287,46 @@ function isDateLikeContextKey(key: string): boolean {
     return /(_at|_on|_due|_deadline|deadline|due)/i.test(key);
 }
 
+function resolveDigitalTwinId(rfq: Rfq | null): number | null {
+    if (!rfq) {
+        return null;
+    }
+
+    const direct =
+        (rfq as { digitalTwinId?: number | null }).digitalTwinId ??
+        (rfq as { digital_twin_id?: number | null }).digital_twin_id;
+    const metaValue =
+        (rfq.meta as { digital_twin_id?: number | null } | undefined)
+            ?.digital_twin_id ?? null;
+
+    return direct ?? metaValue ?? null;
+}
+
+function resolveDigitalTwinPrompts(rfq: Rfq | null): DigitalTwinPrompt[] {
+    if (!rfq) {
+        return [];
+    }
+
+    const direct =
+        (rfq as { digitalTwinPrompts?: DigitalTwinPrompt[] })
+            .digitalTwinPrompts ??
+        (rfq as { digital_twin_prompts?: DigitalTwinPrompt[] })
+            .digital_twin_prompts;
+    const metaPrompts = (
+        rfq.meta as { digital_twin_prompts?: DigitalTwinPrompt[] } | undefined
+    )?.digital_twin_prompts;
+
+    return direct ?? metaPrompts ?? [];
+}
+
 function computeSupplierStats(invitations: RfqInvitationWithProfile[]) {
     const totalInvited = invitations.length;
-    const accepted = invitations.filter((invitation) => invitation.status === 'accepted').length;
-    const declined = invitations.filter((invitation) => invitation.status === 'declined').length;
+    const accepted = invitations.filter(
+        (invitation) => invitation.status === 'accepted',
+    ).length;
+    const declined = invitations.filter(
+        (invitation) => invitation.status === 'declined',
+    ).length;
 
     return {
         totalInvited,
@@ -276,11 +343,25 @@ interface LinesTableProps {
     onDelete?: (item: RfqItem) => void;
 }
 
-function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: LinesTableProps) {
+function LinesTable({
+    items,
+    canManage,
+    isBusy = false,
+    onEdit,
+    onDelete,
+}: LinesTableProps) {
     const formatMoney = useMoneyFormatter();
-    const { baseUomCode, isEnabled: canConvert, convertMany, formatQuantity } = useUomConversionHelper();
+    const {
+        baseUomCode,
+        isEnabled: canConvert,
+        convertMany,
+        formatQuantity,
+    } = useUomConversionHelper();
     const baseLabel = baseUomCode.toUpperCase();
-    type ConversionState = { map: Record<string, string | null>; loading: boolean };
+    type ConversionState = {
+        map: Record<string, string | null>;
+        loading: boolean;
+    };
     type ConversionAction =
         | { type: 'reset' }
         | { type: 'start' }
@@ -291,9 +372,13 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
         (state: ConversionState, action: ConversionAction): ConversionState => {
             switch (action.type) {
                 case 'reset':
-                    return state.loading || Object.keys(state.map).length > 0 ? { map: {}, loading: false } : state;
+                    return state.loading || Object.keys(state.map).length > 0
+                        ? { map: {}, loading: false }
+                        : state;
                 case 'start':
-                    return state.loading ? state : { map: state.map, loading: true };
+                    return state.loading
+                        ? state
+                        : { map: state.map, loading: true };
                 case 'success':
                     return { map: action.map, loading: false };
                 case 'failure':
@@ -355,26 +440,38 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
     }, [baseUomCode, canConvert, convertMany, items]);
 
     if (items.length === 0) {
-        return <p className="text-sm text-muted-foreground">No line items captured yet.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                No line items captured yet.
+            </p>
+        );
     }
 
     return (
         <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-sm">
                 <thead>
-                    <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr className="border-b bg-muted/40 text-left text-xs tracking-wide text-muted-foreground uppercase">
                         <th className="px-3 py-2 font-medium">Line</th>
-                        <th className="px-3 py-2 font-medium">Part / Description</th>
+                        <th className="px-3 py-2 font-medium">
+                            Part / Description
+                        </th>
                         <th className="px-3 py-2 font-medium">Quantity</th>
                         <th className="px-3 py-2 font-medium">Target price</th>
                         <th className="px-3 py-2 font-medium">Required date</th>
                         <th className="px-3 py-2 font-medium">Notes</th>
-                        {canManage ? <th className="px-3 py-2 text-right font-medium">Actions</th> : null}
+                        {canManage ? (
+                            <th className="px-3 py-2 text-right font-medium">
+                                Actions
+                            </th>
+                        ) : null}
                     </tr>
                 </thead>
                 <tbody>
                     {items.map((item) => {
-                        const lineNotes = (item as RfqItem & { notes?: string | null }).notes;
+                        const lineNotes = (
+                            item as RfqItem & { notes?: string | null }
+                        ).notes;
                         const requiredDateRaw = item.requiredDate;
                         let requiredDateLabel = '—';
 
@@ -389,30 +486,54 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
                             { label: 'Material', value: item.material },
                             { label: 'Tolerance', value: item.tolerance },
                             { label: 'Finish', value: item.finish },
-                        ].reduce<Array<{ label: string; value: string }>>((acc, entry) => {
-                            if (typeof entry.value !== 'string') {
+                        ].reduce<Array<{ label: string; value: string }>>(
+                            (acc, entry) => {
+                                if (typeof entry.value !== 'string') {
+                                    return acc;
+                                }
+                                const trimmed = entry.value.trim();
+                                if (trimmed.length === 0) {
+                                    return acc;
+                                }
+                                acc.push({
+                                    label: entry.label,
+                                    value: trimmed,
+                                });
                                 return acc;
-                            }
-                            const trimmed = entry.value.trim();
-                            if (trimmed.length === 0) {
-                                return acc;
-                            }
-                            acc.push({ label: entry.label, value: trimmed });
-                            return acc;
-                        }, []);
+                            },
+                            [],
+                        );
 
                         return (
-                            <tr key={item.id} className="border-b last:border-none">
-                                <td className="px-3 py-2 text-muted-foreground">{item.lineNo}</td>
+                            <tr
+                                key={item.id}
+                                className="border-b last:border-none"
+                            >
+                                <td className="px-3 py-2 text-muted-foreground">
+                                    {item.lineNo}
+                                </td>
                                 <td className="px-3 py-2">
-                                    <div className="font-medium text-foreground">{item.partName}</div>
-                                    {item.spec ? <div className="text-xs text-muted-foreground">{item.spec}</div> : null}
+                                    <div className="font-medium text-foreground">
+                                        {item.partName}
+                                    </div>
+                                    {item.spec ? (
+                                        <div className="text-xs text-muted-foreground">
+                                            {item.spec}
+                                        </div>
+                                    ) : null}
                                     {detailEntries.length > 0 ? (
                                         <dl className="mt-2 grid gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
                                             {detailEntries.map((entry) => (
-                                                <div key={`${item.id}-${entry.label}`} className="flex gap-1">
-                                                    <dt className="font-medium text-foreground">{entry.label}:</dt>
-                                                    <dd className="text-muted-foreground">{entry.value}</dd>
+                                                <div
+                                                    key={`${item.id}-${entry.label}`}
+                                                    className="flex gap-1"
+                                                >
+                                                    <dt className="font-medium text-foreground">
+                                                        {entry.label}:
+                                                    </dt>
+                                                    <dd className="text-muted-foreground">
+                                                        {entry.value}
+                                                    </dd>
                                                 </div>
                                             ))}
                                         </dl>
@@ -424,23 +545,32 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
                                     </div>
                                     {canConvert ? (
                                         <div className="text-xs text-muted-foreground">
-                                            {isConverting && baseQuantities[item.id] === undefined
+                                            {isConverting &&
+                                            baseQuantities[item.id] ===
+                                                undefined
                                                 ? 'Converting…'
                                                 : baseQuantities[item.id]
-                                                      ? `${baseQuantities[item.id]} ${baseLabel} base`
-                                                      : item.uom && item.uom.toLowerCase() === baseUomCode
-                                                        ? `${formatQuantity(Number(item.quantity)) ?? item.quantity} ${baseLabel} base`
-                                                        : 'Conversion unavailable'}
+                                                  ? `${baseQuantities[item.id]} ${baseLabel} base`
+                                                  : item.uom &&
+                                                      item.uom.toLowerCase() ===
+                                                          baseUomCode
+                                                    ? `${formatQuantity(Number(item.quantity)) ?? item.quantity} ${baseLabel} base`
+                                                    : 'Conversion unavailable'}
                                         </div>
                                     ) : null}
                                 </td>
                                 <td className="px-3 py-2 text-muted-foreground">
-                                    {item.targetPrice !== undefined && item.targetPrice !== null
+                                    {item.targetPrice !== undefined &&
+                                    item.targetPrice !== null
                                         ? formatMoney(item.targetPrice)
                                         : '—'}
                                 </td>
-                                <td className="px-3 py-2 text-muted-foreground">{requiredDateLabel}</td>
-                                <td className="px-3 py-2 text-muted-foreground">{lineNotes ?? '—'}</td>
+                                <td className="px-3 py-2 text-muted-foreground">
+                                    {requiredDateLabel}
+                                </td>
+                                <td className="px-3 py-2 text-muted-foreground">
+                                    {lineNotes ?? '—'}
+                                </td>
                                 {canManage ? (
                                     <td className="px-3 py-2 text-right">
                                         <div className="flex justify-end gap-2">
@@ -476,11 +606,15 @@ function LinesTable({ items, canManage, isBusy = false, onEdit, onDelete }: Line
     );
 }
 
-function getInvitationSupplier(invitation: RfqInvitationWithProfile): InvitationSupplierProfile | null {
+function getInvitationSupplier(
+    invitation: RfqInvitationWithProfile,
+): InvitationSupplierProfile | null {
     return invitation.supplier ?? null;
 }
 
-function formatInvitationLocation(invitation: RfqInvitationWithProfile): string | null {
+function formatInvitationLocation(
+    invitation: RfqInvitationWithProfile,
+): string | null {
     const supplier = getInvitationSupplier(invitation);
     const city = supplier?.city?.trim();
     const country = supplier?.country?.trim();
@@ -492,49 +626,78 @@ function formatInvitationLocation(invitation: RfqInvitationWithProfile): string 
     return city || country || null;
 }
 
-function extractInvitationMethods(invitation: RfqInvitationWithProfile): string[] {
+function extractInvitationMethods(
+    invitation: RfqInvitationWithProfile,
+): string[] {
     const methods = getInvitationSupplier(invitation)?.capabilities?.methods;
     if (!Array.isArray(methods)) {
         return [];
     }
 
     return methods
-        .filter((method): method is string => typeof method === 'string' && method.trim().length > 0)
+        .filter(
+            (method): method is string =>
+                typeof method === 'string' && method.trim().length > 0,
+        )
         .map((method) => method.trim())
         .slice(0, 3);
 }
 
-function SuppliersList({ invitations }: { invitations: RfqInvitationWithProfile[] }) {
-    
+function SuppliersList({
+    invitations,
+}: {
+    invitations: RfqInvitationWithProfile[];
+}) {
     if (invitations.length === 0) {
-        return <p className="text-sm text-muted-foreground">No suppliers invited yet.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                No suppliers invited yet.
+            </p>
+        );
     }
 
     return (
         <ul className="space-y-3">
             {invitations.map((invitation) => {
-                
                 const supplier = getInvitationSupplier(invitation);
-                const supplierName = supplier?.name ?? `Supplier #${invitation.supplierId}`;
-                const location = formatInvitationLocation(invitation) ?? 'Location unavailable';
+                const supplierName =
+                    supplier?.name ?? `Supplier #${invitation.supplierId}`;
+                const location =
+                    formatInvitationLocation(invitation) ??
+                    'Location unavailable';
                 const methods = extractInvitationMethods(invitation);
 
                 return (
                     <li key={invitation.id} className="rounded-md border p-3">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="space-y-1">
-                                <p className="text-sm font-medium text-foreground">{supplierName}</p>
-                                <p className="text-xs text-muted-foreground">{location}</p>
+                                <p className="text-sm font-medium text-foreground">
+                                    {supplierName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {location}
+                                </p>
                                 {methods.length > 0 ? (
-                                    <p className="text-xs text-muted-foreground">Methods: {methods.join(', ')}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Methods: {methods.join(', ')}
+                                    </p>
                                 ) : null}
                                 <p className="text-xs text-muted-foreground">
-                                    Invited {toRelativeDate(invitation.invitedAt)}
-                                    {invitation.respondedAt ? ` • Responded ${toRelativeDate(invitation.respondedAt)}` : ''}
+                                    Invited{' '}
+                                    {toRelativeDate(invitation.invitedAt)}
+                                    {invitation.respondedAt
+                                        ? ` • Responded ${toRelativeDate(invitation.respondedAt)}`
+                                        : ''}
                                 </p>
                             </div>
                             <Badge
-                                variant={invitation.status === 'accepted' ? 'default' : invitation.status === 'declined' ? 'destructive' : 'secondary'}
+                                variant={
+                                    invitation.status === 'accepted'
+                                        ? 'default'
+                                        : invitation.status === 'declined'
+                                          ? 'destructive'
+                                          : 'secondary'
+                                }
                                 className="self-start capitalize"
                             >
                                 {invitation.status.replace(/_/g, ' ')}
@@ -549,13 +712,21 @@ function SuppliersList({ invitations }: { invitations: RfqInvitationWithProfile[
 
 function TimelineView({ items }: { items: RfqTimelineEntry[] }) {
     if (items.length === 0) {
-        return <p className="text-sm text-muted-foreground">No timeline entries recorded yet.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                No timeline entries recorded yet.
+            </p>
+        );
     }
 
     return (
         <ol className="relative space-y-6 border-l border-border pl-6">
             {items.map((entry, index) => {
-                const createdAt = entry.createdAt ?? entry.updatedAt ?? entry.deletedAt ?? null;
+                const createdAt =
+                    entry.createdAt ??
+                    entry.updatedAt ??
+                    entry.deletedAt ??
+                    null;
                 const contextEntries = normalizeTimelineContext(entry.context);
 
                 return (
@@ -563,20 +734,35 @@ function TimelineView({ items }: { items: RfqTimelineEntry[] }) {
                         <span className="absolute -left-[11px] block h-3 w-3 rounded-full border-2 border-background bg-primary shadow ring-2 ring-primary/60" />
                         <div className="rounded-md border bg-card p-4 shadow-sm">
                             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                                <span className="font-semibold text-foreground">{normalizeEventLabel(entry.event)}</span>
-                                <span>{createdAt ? format(createdAt, 'PPpp') : 'Timestamp unavailable'}</span>
+                                <span className="font-semibold text-foreground">
+                                    {normalizeEventLabel(entry.event)}
+                                </span>
+                                <span>
+                                    {createdAt
+                                        ? format(createdAt, 'PPpp')
+                                        : 'Timestamp unavailable'}
+                                </span>
                             </div>
 
                             {entry.actor?.name ? (
-                                <p className="mt-2 text-xs text-muted-foreground">Initiated by {entry.actor.name}</p>
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                    Initiated by {entry.actor.name}
+                                </p>
                             ) : null}
 
                             {contextEntries.length > 0 ? (
                                 <dl className="mt-3 grid gap-1 text-xs text-muted-foreground">
                                     {contextEntries.map((item) => (
-                                        <div key={item.key} className="flex gap-2">
-                                            <dt className="font-medium text-foreground">{item.label}</dt>
-                                            <dd className="flex-1 whitespace-pre-line break-words">{item.value}</dd>
+                                        <div
+                                            key={item.key}
+                                            className="flex gap-2"
+                                        >
+                                            <dt className="font-medium text-foreground">
+                                                {item.label}
+                                            </dt>
+                                            <dd className="flex-1 break-words whitespace-pre-line">
+                                                {item.value}
+                                            </dd>
                                         </div>
                                     ))}
                                 </dl>
@@ -606,24 +792,42 @@ function SupplierRfqHeader({
     paymentTerms,
     currency,
 }: SupplierRfqHeaderProps) {
-    const dueLabel = rfq.deadlineAt ? `${toShortDate(rfq.deadlineAt)} (${toRelativeDate(rfq.deadlineAt)})` : null;
-    const publishLabel = rfq.sentAt ? `${toShortDate(rfq.sentAt)} (${toRelativeDate(rfq.sentAt)})` : 'Not yet sent';
+    const dueLabel = rfq.deadlineAt
+        ? `${toShortDate(rfq.deadlineAt)} (${toRelativeDate(rfq.deadlineAt)})`
+        : null;
+    const publishLabel = rfq.sentAt
+        ? `${toShortDate(rfq.sentAt)} (${toRelativeDate(rfq.sentAt)})`
+        : 'Not yet sent';
     const quotePath = `/app/supplier/rfqs/${rfq.id}/quotes/new`;
     const canSubmitQuote = rfq.status === 'open';
-    const deliveryLabel = deliveryLocation && deliveryLocation.trim().length > 0 ? deliveryLocation : '—';
-    const incotermLabel = incoterm && incoterm.trim().length > 0 ? incoterm : '—';
-    const paymentTermsLabel = paymentTerms && paymentTerms.trim().length > 0 ? paymentTerms : '—';
-    const currencyLabel = currency && currency.trim().length > 0 ? currency : '—';
+    const deliveryLabel =
+        deliveryLocation && deliveryLocation.trim().length > 0
+            ? deliveryLocation
+            : '—';
+    const incotermLabel =
+        incoterm && incoterm.trim().length > 0 ? incoterm : '—';
+    const paymentTermsLabel =
+        paymentTerms && paymentTerms.trim().length > 0 ? paymentTerms : '—';
+    const currencyLabel =
+        currency && currency.trim().length > 0 ? currency : '—';
 
     return (
         <div className="rounded-lg border bg-card px-4 py-3 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">RFQ #{rfq.number ?? rfq.id}</p>
-                    <h2 className="text-xl font-semibold text-foreground">{rfq.itemName}</h2>
+                    <p className="text-sm text-muted-foreground">
+                        RFQ #{rfq.number ?? rfq.id}
+                    </p>
+                    <h2 className="text-xl font-semibold text-foreground">
+                        {rfq.itemName}
+                    </h2>
                     <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <RfqStatusBadge status={rfq.status} />
-                        {dueLabel ? <span>Due {dueLabel}</span> : <span>No due date provided</span>}
+                        {dueLabel ? (
+                            <span>Due {dueLabel}</span>
+                        ) : (
+                            <span>No due date provided</span>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
@@ -634,42 +838,63 @@ function SupplierRfqHeader({
                     ) : (
                         <Button disabled>Quotes closed</Button>
                     )}
-                    <Button type="button" variant="outline" onClick={onShowAttachments} disabled={!onShowAttachments}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onShowAttachments}
+                        disabled={!onShowAttachments}
+                    >
                         View documents
                     </Button>
                 </div>
             </div>
             <div className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Published</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Published
+                    </span>
                     <p className="text-foreground">{publishLabel}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Manufacturing method</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Manufacturing method
+                    </span>
                     <p className="text-foreground">{rfq.method}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Material</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Material
+                    </span>
                     <p className="text-foreground">{rfq.material}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Quantity</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Quantity
+                    </span>
                     <p className="text-foreground">{rfq.quantity}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Delivery location</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Delivery location
+                    </span>
                     <p className="text-foreground">{deliveryLabel}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Incoterm</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Incoterm
+                    </span>
                     <p className="text-foreground">{incotermLabel}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Payment terms</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Payment terms
+                    </span>
                     <p className="text-foreground">{paymentTermsLabel}</p>
                 </div>
                 <div>
-                    <span className="text-xs uppercase tracking-wide">Currency</span>
+                    <span className="text-xs tracking-wide uppercase">
+                        Currency
+                    </span>
                     <p className="text-foreground">{currencyLabel}</p>
                 </div>
             </div>
@@ -684,7 +909,8 @@ export function RfqDetailPage() {
 
     const [activeTab, setActiveTab] = useState('overview');
     const [isPublishDialogOpen, setPublishDialogOpen] = useState(false);
-    const [publishForm, setPublishForm] = useState<PublishFormState>(DEFAULT_PUBLISH_FORM);
+    const [publishForm, setPublishForm] =
+        useState<PublishFormState>(DEFAULT_PUBLISH_FORM);
     const [isAmendDialogOpen, setAmendDialogOpen] = useState(false);
     const [amendBody, setAmendBody] = useState('');
     const [isCloseDialogOpen, setCloseDialogOpen] = useState(false);
@@ -692,18 +918,23 @@ export function RfqDetailPage() {
     const [isInviteDialogOpen, setInviteDialogOpen] = useState(false);
     const [isLineEditorOpen, setLineEditorOpen] = useState(false);
     const [editingLine, setEditingLine] = useState<RfqItem | null>(null);
-    const [pendingDeleteLine, setPendingDeleteLine] = useState<RfqItem | null>(null);
+    const [pendingDeleteLine, setPendingDeleteLine] = useState<RfqItem | null>(
+        null,
+    );
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
-    const [editForm, setEditForm] = useState<EditDetailsFormState>(DEFAULT_EDIT_FORM);
+    const [editForm, setEditForm] =
+        useState<EditDetailsFormState>(DEFAULT_EDIT_FORM);
     const [isExtendDialogOpen, setExtendDialogOpen] = useState(false);
-    const [extendForm, setExtendForm] = useState<ExtendDeadlineFormState>(DEFAULT_EXTEND_FORM);
+    const [extendForm, setExtendForm] =
+        useState<ExtendDeadlineFormState>(DEFAULT_EXTEND_FORM);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const { hasFeature, state: authState, activePersona } = useAuth();
     const isSupplierPersona = activePersona?.type === 'supplier';
     const isOwnerPersona = activePersona?.role === 'owner';
     const hasRfqId = Boolean(rfqId);
-    const featureFlagsLoaded = Object.keys(authState.featureFlags ?? {}).length > 0;
+    const featureFlagsLoaded =
+        Object.keys(authState.featureFlags ?? {}).length > 0;
     const allowFeature = (key: string) => {
         if (isSupplierPersona) {
             return false;
@@ -725,8 +956,12 @@ export function RfqDetailPage() {
 
     const rfqQuery = useRfq(rfqId, { enabled: hasRfqId });
     const linesQuery = useRfqLines({ rfqId });
-    const suppliersQuery = useRfqSuppliers(rfqId, { enabled: !isSupplierPersona && hasRfqId });
-    const clarificationsQuery = useRfqClarifications(rfqId, { enabled: hasRfqId });
+    const suppliersQuery = useRfqSuppliers(rfqId, {
+        enabled: !isSupplierPersona && hasRfqId,
+    });
+    const clarificationsQuery = useRfqClarifications(rfqId, {
+        enabled: hasRfqId,
+    });
     const timelineQuery = useRfqTimeline(rfqId);
     const attachmentsQuery = useRfqAttachments(rfqId);
 
@@ -753,17 +988,34 @@ export function RfqDetailPage() {
 
     const isLoading = rfqQuery.isLoading || !rfqId;
     const rfq = rfqQuery.data ?? null;
+    const digitalTwinId = resolveDigitalTwinId(rfq);
+    const digitalTwinPrompts = resolveDigitalTwinPrompts(rfq);
+    const showDigitalTwinCard =
+        !isSupplierPersona &&
+        (digitalTwinId !== null || digitalTwinPrompts.length > 0);
 
     const sortedTimeline = useMemo(() => {
         return [...(timelineQuery.items ?? [])].sort((left, right) => {
-            const leftTime = (left.createdAt ?? left.updatedAt ?? left.deletedAt ?? new Date(0)).valueOf();
-            const rightTime = (right.createdAt ?? right.updatedAt ?? right.deletedAt ?? new Date(0)).valueOf();
+            const leftTime = (
+                left.createdAt ??
+                left.updatedAt ??
+                left.deletedAt ??
+                new Date(0)
+            ).valueOf();
+            const rightTime = (
+                right.createdAt ??
+                right.updatedAt ??
+                right.deletedAt ??
+                new Date(0)
+            ).valueOf();
             return rightTime - leftTime;
         });
     }, [timelineQuery.items]);
 
-    const supplierStats = useMemo(() => computeSupplierStats(suppliersQuery.items ?? []), [suppliersQuery.items]);
-    
+    const supplierStats = useMemo(
+        () => computeSupplierStats(suppliersQuery.items ?? []),
+        [suppliersQuery.items],
+    );
 
     const canManageLines = allowFeature('rfqs.lines.manage');
     const canManageAttachments = allowFeature('rfqs.attachments.manage');
@@ -772,13 +1024,19 @@ export function RfqDetailPage() {
     const canAmendRfq = allowFeature('rfqs.amend');
     const canCloseRfq = allowFeature('rfqs.close');
     const canEditMetadata = isOwnerPersona || allowFeature('rfqs.edit');
-    const canManageClarifications = isOwnerPersona || allowFeature('rfqs.clarifications.manage');
-    const canAskClarifications = isSupplierPersona ? true : canManageClarifications;
-    const canAnswerClarifications = isSupplierPersona ? true : canManageClarifications;
+    const canManageClarifications =
+        isOwnerPersona || allowFeature('rfqs.clarifications.manage');
+    const canAskClarifications = isSupplierPersona
+        ? true
+        : canManageClarifications;
+    const canAnswerClarifications = isSupplierPersona
+        ? true
+        : canManageClarifications;
     const canExtendDeadline = allowFeature('rfqs.deadline.extend');
     const canDeleteRfq = isOwnerPersona || allowFeature('rfqs.edit');
 
-    const isSavingLine = addLineMutation.isPending || updateLineMutation.isPending;
+    const isSavingLine =
+        addLineMutation.isPending || updateLineMutation.isPending;
     const isDeletingLine = deleteLineMutation.isPending;
     const isLineMutationPending = isSavingLine || isDeletingLine;
     const isExtendingDeadline = extendDeadlineMutation.isPending;
@@ -814,7 +1072,10 @@ export function RfqDetailPage() {
             finish: values.finish?.trim() || undefined,
             quantity: values.quantity,
             uom: values.uom?.trim() || undefined,
-            targetPrice: typeof values.targetPrice === 'number' ? values.targetPrice : undefined,
+            targetPrice:
+                typeof values.targetPrice === 'number'
+                    ? values.targetPrice
+                    : undefined,
             notes: values.notes?.trim() || undefined,
             requiredDate: values.requiredDate ?? undefined,
         };
@@ -845,7 +1106,9 @@ export function RfqDetailPage() {
 
             setEditingLine(null);
         } catch (error) {
-            throw error instanceof Error ? error : new Error('Unable to save RFQ line.');
+            throw error instanceof Error
+                ? error
+                : new Error('Unable to save RFQ line.');
         }
     };
 
@@ -871,7 +1134,10 @@ export function RfqDetailPage() {
                 description: `Line #${pendingDeleteLine.lineNo} deleted.`,
             });
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to delete RFQ line.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to delete RFQ line.';
             publishToast({
                 variant: 'destructive',
                 title: 'Delete failed',
@@ -958,17 +1224,21 @@ export function RfqDetailPage() {
                 publishToast({
                     variant: 'destructive',
                     title: 'Invalid due date',
-                    description: 'Choose a valid due date and time before publishing.',
+                    description:
+                        'Choose a valid due date and time before publishing.',
                 });
                 return;
             }
 
-            const publishAtDate = publishForm.publishAt ? new Date(publishForm.publishAt) : undefined;
+            const publishAtDate = publishForm.publishAt
+                ? new Date(publishForm.publishAt)
+                : undefined;
             if (publishAtDate && Number.isNaN(publishAtDate.getTime())) {
                 publishToast({
                     variant: 'destructive',
                     title: 'Invalid publish time',
-                    description: 'Double-check the publish date and time before continuing.',
+                    description:
+                        'Double-check the publish date and time before continuing.',
                 });
                 return;
             }
@@ -984,13 +1254,17 @@ export function RfqDetailPage() {
             publishToast({
                 variant: 'success',
                 title: 'Publish queued',
-                description: 'Suppliers will be notified according to the selected settings.',
+                description:
+                    'Suppliers will be notified according to the selected settings.',
             });
             setPublishDialogOpen(false);
             void rfqQuery.refetch();
             void timelineQuery.refetch();
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to publish the RFQ just yet.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to publish the RFQ just yet.';
             publishToast({
                 variant: 'destructive',
                 title: 'Publish failed',
@@ -1035,7 +1309,10 @@ export function RfqDetailPage() {
             setDeleteDialogOpen(false);
             navigate('/app/rfqs');
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to delete the RFQ right now.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to delete the RFQ right now.';
             publishToast({
                 variant: 'destructive',
                 title: 'Delete failed',
@@ -1060,7 +1337,8 @@ export function RfqDetailPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Amendment details required',
-                description: 'Describe the scope or instructions for the amendment.',
+                description:
+                    'Describe the scope or instructions for the amendment.',
             });
             return;
         }
@@ -1076,14 +1354,18 @@ export function RfqDetailPage() {
             publishToast({
                 variant: 'success',
                 title: 'Amendment logged',
-                description: 'Suppliers will see the update in their workspace.',
+                description:
+                    'Suppliers will see the update in their workspace.',
             });
             setAmendDialogOpen(false);
             setAmendBody('');
             void rfqQuery.refetch();
             void timelineQuery.refetch();
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to submit the amendment right now.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to submit the amendment right now.';
             publishToast({
                 variant: 'destructive',
                 title: 'Amendment failed',
@@ -1113,14 +1395,18 @@ export function RfqDetailPage() {
             publishToast({
                 variant: 'success',
                 title: 'RFQ closed',
-                description: 'Suppliers will no longer be able to submit responses.',
+                description:
+                    'Suppliers will no longer be able to submit responses.',
             });
             setCloseDialogOpen(false);
             setCloseReason('');
             void rfqQuery.refetch();
             void timelineQuery.refetch();
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to close the RFQ right now.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to close the RFQ right now.';
             publishToast({
                 variant: 'destructive',
                 title: 'Close failed',
@@ -1129,7 +1415,9 @@ export function RfqDetailPage() {
         }
     };
 
-    const handleExtendDeadline = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleExtendDeadline = async (
+        event: React.FormEvent<HTMLFormElement>,
+    ) => {
         event.preventDefault();
 
         if (!rfqId || !rfq) {
@@ -1161,11 +1449,15 @@ export function RfqDetailPage() {
         }
 
         const currentDeadline = parseDateInput(rfq.deadlineAt ?? null);
-        if (currentDeadline && parsedNewDeadline.valueOf() <= currentDeadline.valueOf()) {
+        if (
+            currentDeadline &&
+            parsedNewDeadline.valueOf() <= currentDeadline.valueOf()
+        ) {
             publishToast({
                 variant: 'destructive',
                 title: 'Deadline must move forward',
-                description: 'Pick a date that is later than the current deadline.',
+                description:
+                    'Pick a date that is later than the current deadline.',
             });
             return;
         }
@@ -1197,7 +1489,10 @@ export function RfqDetailPage() {
             void rfqQuery.refetch();
             void timelineQuery.refetch();
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to extend the deadline right now.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to extend the deadline right now.';
             publishToast({
                 variant: 'destructive',
                 title: 'Extension failed',
@@ -1212,9 +1507,15 @@ export function RfqDetailPage() {
         }
 
         const deadlineDate = rfq.deadlineAt ? new Date(rfq.deadlineAt) : null;
-        const normalizedMethod = isRfqMethod(rfq.method) ? rfq.method : DEFAULT_METHOD;
+        const normalizedMethod = isRfqMethod(rfq.method)
+            ? rfq.method
+            : DEFAULT_METHOD;
         const extended = rfq as Rfq & { title?: string | null };
-        const candidateTitle = typeof extended.title === 'string' && extended.title.trim().length > 0 ? extended.title : rfq.itemName;
+        const candidateTitle =
+            typeof extended.title === 'string' &&
+            extended.title.trim().length > 0
+                ? extended.title
+                : rfq.itemName;
 
         setEditForm({
             title: candidateTitle ?? '',
@@ -1262,7 +1563,8 @@ export function RfqDetailPage() {
                 publishToast({
                     variant: 'destructive',
                     title: 'Invalid due date',
-                    description: 'Double-check the due date value and try again.',
+                    description:
+                        'Double-check the due date value and try again.',
                 });
                 return;
             }
@@ -1279,7 +1581,10 @@ export function RfqDetailPage() {
                 dueAt: parsedDeadline,
             });
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to save changes right now.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to save changes right now.';
             publishToast({
                 variant: 'destructive',
                 title: 'Update failed',
@@ -1308,7 +1613,10 @@ export function RfqDetailPage() {
                     <CardHeader>
                         <CardTitle>RFQ unavailable</CardTitle>
                     </CardHeader>
-                    <CardContent>We could not load this RFQ. Try refreshing the page or selecting a different RFQ.</CardContent>
+                    <CardContent>
+                        We could not load this RFQ. Try refreshing the page or
+                        selecting a different RFQ.
+                    </CardContent>
                 </Card>
             </div>
         );
@@ -1328,31 +1636,58 @@ export function RfqDetailPage() {
         currency?: string | null;
     };
     const incoterm =
-        typeof extendedRfq.incoterm === 'string' && extendedRfq.incoterm.trim().length > 0
+        typeof extendedRfq.incoterm === 'string' &&
+        extendedRfq.incoterm.trim().length > 0
             ? extendedRfq.incoterm.trim()
             : '—';
     const paymentTerms =
-        typeof extendedRfq.paymentTerms === 'string' && extendedRfq.paymentTerms.trim().length > 0
+        typeof extendedRfq.paymentTerms === 'string' &&
+        extendedRfq.paymentTerms.trim().length > 0
             ? extendedRfq.paymentTerms.trim()
             : '—';
     const deliveryLocationValue =
-        extendedRfq.deliveryLocation ?? extendedRfq.delivery_location ?? extendedRfq.clientCompany ?? null;
+        extendedRfq.deliveryLocation ??
+        extendedRfq.delivery_location ??
+        extendedRfq.clientCompany ??
+        null;
     const deliveryLocation =
-        typeof deliveryLocationValue === 'string' && deliveryLocationValue.trim().length > 0
+        typeof deliveryLocationValue === 'string' &&
+        deliveryLocationValue.trim().length > 0
             ? deliveryLocationValue.trim()
             : '—';
     const taxPercent =
-        typeof extendedRfq.taxPercent === 'number' && Number.isFinite(extendedRfq.taxPercent)
+        typeof extendedRfq.taxPercent === 'number' &&
+        Number.isFinite(extendedRfq.taxPercent)
             ? `${extendedRfq.taxPercent}%`
             : '—';
     const currencyCode =
-        typeof extendedRfq.currency === 'string' && extendedRfq.currency.trim().length > 0
+        typeof extendedRfq.currency === 'string' &&
+        extendedRfq.currency.trim().length > 0
             ? extendedRfq.currency.trim().toUpperCase()
             : '—';
-    const visibilityLabel = extendedRfq.isOpenBidding ? 'Public (open bidding)' : 'Invite only';
+    const visibilityLabel = extendedRfq.isOpenBidding
+        ? 'Public (open bidding)'
+        : 'Invite only';
+    const lineItems = linesQuery.items ?? [];
+    const lineItemsCount = lineItems.length;
+    const lineItemsWithSpecCount = lineItems.filter(
+        (item) => typeof item.spec === 'string' && item.spec.trim().length > 0,
+    ).length;
+    const lineItemsWithRequiredDateCount = lineItems.filter((item) => {
+        if (!item.requiredDate) {
+            return false;
+        }
+
+        const requiredDate = new Date(item.requiredDate);
+        return !Number.isNaN(requiredDate.getTime());
+    }).length;
     const currentDeadlineDate = parseDateInput(rfq.deadlineAt ?? null);
-    const currentDeadlineLabel = currentDeadlineDate ? format(currentDeadlineDate, 'PPpp') : 'Not set';
-    const extendDeadlineMinValue = currentDeadlineDate ? toDateTimeLocalInput(currentDeadlineDate) : undefined;
+    const currentDeadlineLabel = currentDeadlineDate
+        ? format(currentDeadlineDate, 'PPpp')
+        : 'Not set';
+    const extendDeadlineMinValue = currentDeadlineDate
+        ? toDateTimeLocalInput(currentDeadlineDate)
+        : undefined;
     const showExtendDeadlineAction = canExtendDeadline && rfq.status === 'open';
 
     return (
@@ -1374,8 +1709,14 @@ export function RfqDetailPage() {
                 <RfqActionBar
                     rfq={rfq as Rfq}
                     onEdit={canEditMetadata ? handleEditDetails : undefined}
-                    onInviteSuppliers={canInviteSuppliers ? () => setInviteDialogOpen(true) : undefined}
-                    onPublish={canPublishRfq ? handleOpenPublishDialog : undefined}
+                    onInviteSuppliers={
+                        canInviteSuppliers
+                            ? () => setInviteDialogOpen(true)
+                            : undefined
+                    }
+                    onPublish={
+                        canPublishRfq ? handleOpenPublishDialog : undefined
+                    }
                     onAmend={
                         canAmendRfq
                             ? () => {
@@ -1384,7 +1725,11 @@ export function RfqDetailPage() {
                               }
                             : undefined
                     }
-                    onExtendDeadline={showExtendDeadlineAction ? handleOpenExtendDeadlineDialog : undefined}
+                    onExtendDeadline={
+                        showExtendDeadlineAction
+                            ? handleOpenExtendDeadlineDialog
+                            : undefined
+                    }
                     onClose={
                         canCloseRfq
                             ? () => {
@@ -1393,17 +1738,23 @@ export function RfqDetailPage() {
                               }
                             : undefined
                     }
-                    onDelete={allowDeleteAction ? handleOpenDeleteDialog : undefined}
+                    onDelete={
+                        allowDeleteAction ? handleOpenDeleteDialog : undefined
+                    }
                 />
             )}
 
             {!isSupplierPersona ? (
                 <div className="flex flex-wrap items-center gap-2">
                     <Button asChild variant="outline">
-                        <Link to={`/app/rfqs/${rfq.id}/quotes`}>Review quotes</Link>
+                        <Link to={`/app/rfqs/${rfq.id}/quotes`}>
+                            Review quotes
+                        </Link>
                     </Button>
                     <Button asChild variant="secondary">
-                        <Link to={`/app/rfqs/${rfq.id}/awards`}>Review awards &amp; convert to POs</Link>
+                        <Link to={`/app/rfqs/${rfq.id}/awards`}>
+                            Review awards &amp; convert to POs
+                        </Link>
                     </Button>
                     <ExportButtons
                         documentType="rfq"
@@ -1413,14 +1764,22 @@ export function RfqDetailPage() {
                 </div>
             ) : null}
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="overview">
+            <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                defaultValue="overview"
+            >
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="lines">Lines</TabsTrigger>
                     {!isSupplierPersona ? (
-                        <TabsTrigger value="suppliers">Suppliers &amp; clarifications</TabsTrigger>
+                        <TabsTrigger value="suppliers">
+                            Suppliers &amp; clarifications
+                        </TabsTrigger>
                     ) : (
-                        <TabsTrigger value="clarifications">Clarifications</TabsTrigger>
+                        <TabsTrigger value="clarifications">
+                            Clarifications
+                        </TabsTrigger>
                     )}
                     <TabsTrigger value="timeline">Timeline / audit</TabsTrigger>
                     <TabsTrigger value="attachments">Attachments</TabsTrigger>
@@ -1433,78 +1792,121 @@ export function RfqDetailPage() {
                                 <CardTitle>RFQ summary</CardTitle>
                             </CardHeader>
                             <CardContent className="grid gap-4">
-                                <div className="grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Status</span>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <RfqStatusBadge status={rfq.status} />
-                                            {rfq.deadlineAt ? (
-                                                <span>
-                                                    Due {toShortDate(rfq.deadlineAt)} ({toRelativeDate(rfq.deadlineAt)})
+                                <div className="grid gap-4 text-sm text-muted-foreground">
+                                    <section className="rounded-md border p-4">
+                                        <h3 className="text-xs font-semibold tracking-wide text-foreground uppercase">
+                                            Status & timeline
+                                        </h3>
+                                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Status
                                                 </span>
-                                            ) : null}
+                                                <div className="mt-1 flex items-center gap-2">
+                                                    <RfqStatusBadge
+                                                        status={rfq.status}
+                                                    />
+                                                    {rfq.deadlineAt ? (
+                                                        <span>
+                                                            Due{' '}
+                                                            {toShortDate(
+                                                                rfq.deadlineAt,
+                                                            )}{' '}
+                                                            (
+                                                            {toRelativeDate(
+                                                                rfq.deadlineAt,
+                                                            )}
+                                                            )
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Published
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {rfq.sentAt
+                                                        ? `${toShortDate(rfq.sentAt)} (${toRelativeDate(rfq.sentAt)})`
+                                                        : 'Not published'}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Published</span>
-                                        <span className="mt-1 block text-foreground">
-                                            {rfq.sentAt ? `${toShortDate(rfq.sentAt)} (${toRelativeDate(rfq.sentAt)})` : 'Not published'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Visibility</span>
-                                        <span className="mt-1 block text-foreground">{visibilityLabel}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Method</span>
-                                        <span className="mt-1 block text-foreground">{rfq.method}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Material</span>
-                                        <span className="mt-1 block text-foreground">{rfq.material}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Quantity</span>
-                                        <span className="mt-1 block text-foreground">{rfq.quantity}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Delivery location</span>
-                                        <span className="mt-1 block text-foreground">{deliveryLocation}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Incoterm</span>
-                                        <span className="mt-1 block text-foreground">{incoterm}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Payment terms</span>
-                                        <span className="mt-1 block text-foreground">{paymentTerms}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Currency</span>
-                                        <span className="mt-1 block text-foreground">{currencyCode}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block text-xs uppercase tracking-wide text-muted-foreground">Tax rate</span>
-                                        <span className="mt-1 block text-foreground">{taxPercent}</span>
-                                    </div>
-                                    {rfq.tolerance ? (
-                                        <div>
-                                            <span className="block text-xs uppercase tracking-wide text-muted-foreground">Tolerance</span>
-                                            <span className="mt-1 block text-foreground">{rfq.tolerance}</span>
+                                    </section>
+
+                                    <section className="rounded-md border p-4">
+                                        <h3 className="text-xs font-semibold tracking-wide text-foreground uppercase">
+                                            Commercial terms
+                                        </h3>
+                                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Payment terms
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {paymentTerms}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Currency
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {currencyCode}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Tax rate
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {taxPercent}
+                                                </span>
+                                            </div>
                                         </div>
-                                    ) : null}
-                                    {rfq.finish ? (
-                                        <div>
-                                            <span className="block text-xs uppercase tracking-wide text-muted-foreground">Finish</span>
-                                            <span className="mt-1 block text-foreground">{rfq.finish}</span>
+                                    </section>
+
+                                    <section className="rounded-md border p-4">
+                                        <h3 className="text-xs font-semibold tracking-wide text-foreground uppercase">
+                                            Visibility & delivery
+                                        </h3>
+                                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Visibility
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {visibilityLabel}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Delivery location
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {deliveryLocation}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="block text-xs tracking-wide text-muted-foreground uppercase">
+                                                    Incoterm
+                                                </span>
+                                                <span className="mt-1 block text-foreground">
+                                                    {incoterm}
+                                                </span>
+                                            </div>
                                         </div>
-                                    ) : null}
+                                    </section>
                                 </div>
 
                                 {rfq.notes ? (
                                     <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
-                                        <h3 className="text-sm font-semibold text-foreground">Buyer notes</h3>
-                                        <p className="mt-2 whitespace-pre-line">{rfq.notes}</p>
+                                        <h3 className="text-sm font-semibold text-foreground">
+                                            Buyer notes
+                                        </h3>
+                                        <p className="mt-2 whitespace-pre-line">
+                                            {rfq.notes}
+                                        </p>
                                     </div>
                                 ) : null}
                             </CardContent>
@@ -1517,28 +1919,104 @@ export function RfqDetailPage() {
                                 </CardHeader>
                                 <CardContent className="grid gap-4 text-sm">
                                     <div>
-                                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Invited suppliers</span>
-                                        <div className="mt-1 text-2xl font-semibold text-foreground">{supplierStats.totalInvited}</div>
+                                        <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Invited suppliers
+                                        </span>
+                                        <div className="mt-1 text-2xl font-semibold text-foreground">
+                                            {supplierStats.totalInvited}
+                                        </div>
                                     </div>
                                     <Separator />
                                     <div>
-                                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Accepted invitations</span>
-                                        <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.accepted}</div>
+                                        <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Accepted invitations
+                                        </span>
+                                        <div className="mt-1 text-lg font-semibold text-foreground">
+                                            {supplierStats.accepted}
+                                        </div>
                                     </div>
                                     <Separator />
                                     <div>
-                                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Declined invitations</span>
-                                        <div className="mt-1 text-lg font-semibold text-foreground">{supplierStats.declined}</div>
+                                        <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Declined invitations
+                                        </span>
+                                        <div className="mt-1 text-lg font-semibold text-foreground">
+                                            {supplierStats.declined}
+                                        </div>
                                     </div>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="sm"
                                         className="justify-self-start"
-                                        onClick={() => setActiveTab('suppliers')}
+                                        onClick={() =>
+                                            setActiveTab('suppliers')
+                                        }
                                     >
                                         View clarifications
                                     </Button>
+                                </CardContent>
+                            </Card>
+                        ) : null}
+
+                        {showDigitalTwinCard ? (
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <CardTitle>
+                                        Digital twin intelligence
+                                    </CardTitle>
+                                    {digitalTwinId ? (
+                                        <Button
+                                            asChild
+                                            variant="ghost"
+                                            size="sm"
+                                        >
+                                            <Link
+                                                to={`/app/library/digital-twins/${digitalTwinId}`}
+                                            >
+                                                View twin
+                                            </Link>
+                                        </Button>
+                                    ) : null}
+                                </CardHeader>
+                                <CardContent className="grid gap-3 text-sm">
+                                    {digitalTwinPrompts.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            No follow-ups triggered for this
+                                            digital twin yet.
+                                        </p>
+                                    ) : (
+                                        <div className="grid gap-3">
+                                            {digitalTwinPrompts.map(
+                                                (prompt, index) => (
+                                                    <div
+                                                        key={`${prompt.type}-${index}`}
+                                                        className="rounded-md border border-dashed p-3"
+                                                    >
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <Badge variant="secondary">
+                                                                {prompt.type.replace(
+                                                                    /_/g,
+                                                                    ' ',
+                                                                )}
+                                                            </Badge>
+                                                            <span className="text-sm font-semibold text-foreground">
+                                                                {prompt.title}
+                                                            </span>
+                                                        </div>
+                                                        <p className="mt-2 text-xs text-muted-foreground">
+                                                            {prompt.description}
+                                                        </p>
+                                                        {prompt.cta ? (
+                                                            <p className="mt-2 text-xs font-medium text-primary">
+                                                                {prompt.cta}
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         ) : null}
@@ -1550,7 +2028,10 @@ export function RfqDetailPage() {
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
                                 <CardTitle>Line items</CardTitle>
-                                <p className="text-sm text-muted-foreground">Track the parts suppliers will respond to.</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Track line-by-line quantity, method,
+                                    material, tolerance, and finish details.
+                                </p>
                             </div>
                             {canManageLines ? (
                                 <Button
@@ -1558,8 +2039,14 @@ export function RfqDetailPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={handleCreateLine}
-                                    disabled={!canManageLines || isLineMutationPending}
-                                    title={!canManageLines ? 'Upgrade plan to manage RFQ lines.' : undefined}
+                                    disabled={
+                                        !canManageLines || isLineMutationPending
+                                    }
+                                    title={
+                                        !canManageLines
+                                            ? 'Upgrade plan to manage RFQ lines.'
+                                            : undefined
+                                    }
                                 >
                                     <Plus className="mr-2 h-4 w-4" /> Add line
                                 </Button>
@@ -1572,19 +2059,63 @@ export function RfqDetailPage() {
                                 </div>
                             ) : linesQuery.isError ? (
                                 <div className="flex items-center justify-between gap-3 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                                    <span>Unable to load RFQ lines right now.</span>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => linesQuery.refetch()}>
+                                    <span>
+                                        Unable to load RFQ lines right now.
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => linesQuery.refetch()}
+                                    >
                                         Retry
                                     </Button>
                                 </div>
                             ) : (
-                                <LinesTable
-                                    items={linesQuery.items ?? []}
-                                    canManage={canManageLines}
-                                    isBusy={isLineMutationPending}
-                                    onEdit={canManageLines ? handleEditLine : undefined}
-                                    onDelete={canManageLines ? handleRequestDeleteLine : undefined}
-                                />
+                                <div className="space-y-4">
+                                    <div className="grid gap-3 sm:grid-cols-3">
+                                        <div className="rounded-md border p-3">
+                                            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                                Total lines
+                                            </p>
+                                            <p className="mt-1 text-xl font-semibold text-foreground">
+                                                {lineItemsCount}
+                                            </p>
+                                        </div>
+                                        <div className="rounded-md border p-3">
+                                            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                                Lines with specs
+                                            </p>
+                                            <p className="mt-1 text-xl font-semibold text-foreground">
+                                                {lineItemsWithSpecCount}
+                                            </p>
+                                        </div>
+                                        <div className="rounded-md border p-3">
+                                            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                                Lines with required date
+                                            </p>
+                                            <p className="mt-1 text-xl font-semibold text-foreground">
+                                                {lineItemsWithRequiredDateCount}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <LinesTable
+                                        items={lineItems}
+                                        canManage={canManageLines}
+                                        isBusy={isLineMutationPending}
+                                        onEdit={
+                                            canManageLines
+                                                ? handleEditLine
+                                                : undefined
+                                        }
+                                        onDelete={
+                                            canManageLines
+                                                ? handleRequestDeleteLine
+                                                : undefined
+                                        }
+                                    />
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -1603,17 +2134,33 @@ export function RfqDetailPage() {
                                             <Spinner /> Loading supplier list…
                                         </div>
                                     ) : (
-                                        <SuppliersList invitations={suppliersQuery.items ?? []} />
+                                        <SuppliersList
+                                            invitations={
+                                                suppliersQuery.items ?? []
+                                            }
+                                        />
                                     )}
                                 </CardContent>
                             </Card>
                             <div className="flex flex-col gap-4">
                                 <ClarificationThread
-                                    clarifications={clarificationsQuery.items ?? []}
-                                    onAskQuestion={(payload) => clarificationsQuery.askQuestion(payload)}
-                                    onAnswerQuestion={(payload) => clarificationsQuery.answerQuestion(payload)}
-                                    isSubmittingQuestion={clarificationsQuery.isSubmittingQuestion}
-                                    isSubmittingAnswer={clarificationsQuery.isSubmittingAnswer}
+                                    clarifications={
+                                        clarificationsQuery.items ?? []
+                                    }
+                                    onAskQuestion={(payload) =>
+                                        clarificationsQuery.askQuestion(payload)
+                                    }
+                                    onAnswerQuestion={(payload) =>
+                                        clarificationsQuery.answerQuestion(
+                                            payload,
+                                        )
+                                    }
+                                    isSubmittingQuestion={
+                                        clarificationsQuery.isSubmittingQuestion
+                                    }
+                                    isSubmittingAnswer={
+                                        clarificationsQuery.isSubmittingAnswer
+                                    }
                                     canAskQuestion={canAskClarifications}
                                     canAnswerQuestion={canAnswerClarifications}
                                     askTitle="Ask suppliers a question"
@@ -1630,10 +2177,18 @@ export function RfqDetailPage() {
                     <TabsContent value="clarifications">
                         <ClarificationThread
                             clarifications={clarificationsQuery.items ?? []}
-                            onAskQuestion={(payload) => clarificationsQuery.askQuestion(payload)}
-                            onAnswerQuestion={(payload) => clarificationsQuery.answerQuestion(payload)}
-                            isSubmittingQuestion={clarificationsQuery.isSubmittingQuestion}
-                            isSubmittingAnswer={clarificationsQuery.isSubmittingAnswer}
+                            onAskQuestion={(payload) =>
+                                clarificationsQuery.askQuestion(payload)
+                            }
+                            onAnswerQuestion={(payload) =>
+                                clarificationsQuery.answerQuestion(payload)
+                            }
+                            isSubmittingQuestion={
+                                clarificationsQuery.isSubmittingQuestion
+                            }
+                            isSubmittingAnswer={
+                                clarificationsQuery.isSubmittingAnswer
+                            }
                             canAskQuestion={canAskClarifications}
                             canAnswerQuestion={canAnswerClarifications}
                             askTitle="Ask the buying team"
@@ -1687,9 +2242,18 @@ export function RfqDetailPage() {
                               quantity: editingLine.quantity,
                               uom: editingLine.uom ?? 'ea',
                               targetPrice: editingLine.targetPrice ?? undefined,
-                              notes: (editingLine as RfqItem & { notes?: string | null }).notes ?? '',
+                              notes:
+                                  (
+                                      editingLine as RfqItem & {
+                                          notes?: string | null;
+                                      }
+                                  ).notes ?? '',
                               requiredDate:
-                                  (editingLine as RfqItem & { requiredDate?: string | null }).requiredDate ?? '',
+                                  (
+                                      editingLine as RfqItem & {
+                                          requiredDate?: string | null;
+                                      }
+                                  ).requiredDate ?? '',
                           }
                         : undefined
                 }
@@ -1730,11 +2294,17 @@ export function RfqDetailPage() {
                 rfqId={rfq.id}
             />
 
-            <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange}>
+            <Dialog
+                open={isEditDialogOpen}
+                onOpenChange={handleEditDialogOpenChange}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Edit RFQ details</DialogTitle>
-                        <DialogDescription>Update the RFQ title, due date, visibility, or buyer notes.</DialogDescription>
+                        <DialogDescription>
+                            Update the RFQ title, due date, visibility, or buyer
+                            notes.
+                        </DialogDescription>
                     </DialogHeader>
 
                     <form className="grid gap-4" onSubmit={handleUpdateRfq}>
@@ -1755,7 +2325,9 @@ export function RfqDetailPage() {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="edit-method">Manufacturing method</Label>
+                            <Label htmlFor="edit-method">
+                                Manufacturing method
+                            </Label>
                             <Select
                                 value={editForm.method}
                                 onValueChange={(value: RfqMethod) =>
@@ -1770,10 +2342,17 @@ export function RfqDetailPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {RFQ_METHOD_OPTIONS.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="text-sm font-medium text-foreground">{option.label}</span>
-                                                <span className="text-xs text-muted-foreground">{option.description}</span>
+                                                <span className="text-sm font-medium text-foreground">
+                                                    {option.label}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {option.description}
+                                                </span>
                                             </div>
                                         </SelectItem>
                                     ))}
@@ -1794,7 +2373,10 @@ export function RfqDetailPage() {
                                     }))
                                 }
                             />
-                            <p className="text-xs text-muted-foreground">Leave blank if the RFQ doesn’t have a due date yet.</p>
+                            <p className="text-xs text-muted-foreground">
+                                Leave blank if the RFQ doesn’t have a due date
+                                yet.
+                            </p>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -1808,7 +2390,9 @@ export function RfqDetailPage() {
                                     }))
                                 }
                             />
-                            <Label htmlFor="edit-open-bidding">Public (open bidding) RFQ</Label>
+                            <Label htmlFor="edit-open-bidding">
+                                Public (open bidding) RFQ
+                            </Label>
                         </div>
 
                         <div className="grid gap-2">
@@ -1828,23 +2412,39 @@ export function RfqDetailPage() {
                         </div>
 
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => handleEditDialogOpenChange(false)} disabled={updateRfqMutation.isPending}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    handleEditDialogOpenChange(false)
+                                }
+                                disabled={updateRfqMutation.isPending}
+                            >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={updateRfqMutation.isPending}>
-                                {updateRfqMutation.isPending ? 'Saving…' : 'Save changes'}
+                            <Button
+                                type="submit"
+                                disabled={updateRfqMutation.isPending}
+                            >
+                                {updateRfqMutation.isPending
+                                    ? 'Saving…'
+                                    : 'Save changes'}
                             </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isPublishDialogOpen} onOpenChange={setPublishDialogOpen}>
+            <Dialog
+                open={isPublishDialogOpen}
+                onOpenChange={setPublishDialogOpen}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Publish RFQ</DialogTitle>
                         <DialogDescription>
-                            Confirm the publish schedule and notify suppliers when you are ready to go live.
+                            Confirm the publish schedule and notify suppliers
+                            when you are ready to go live.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1878,11 +2478,14 @@ export function RfqDetailPage() {
                                 }
                             />
                             <p className="text-xs text-muted-foreground">
-                                Leave blank to publish immediately after confirmation.
+                                Leave blank to publish immediately after
+                                confirmation.
                             </p>
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="publish-message">Notification message</Label>
+                            <Label htmlFor="publish-message">
+                                Notification message
+                            </Label>
                             <Textarea
                                 id="publish-message"
                                 rows={3}
@@ -1907,12 +2510,19 @@ export function RfqDetailPage() {
                                     }))
                                 }
                             />
-                            <Label htmlFor="publish-notify">Email suppliers when the RFQ is published</Label>
+                            <Label htmlFor="publish-notify">
+                                Email suppliers when the RFQ is published
+                            </Label>
                         </div>
 
                         <DialogFooter>
-                            <Button type="submit" disabled={publishMutation.isPending}>
-                                {publishMutation.isPending ? 'Publishing…' : 'Publish RFQ'}
+                            <Button
+                                type="submit"
+                                disabled={publishMutation.isPending}
+                            >
+                                {publishMutation.isPending
+                                    ? 'Publishing…'
+                                    : 'Publish RFQ'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -1923,49 +2533,78 @@ export function RfqDetailPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Log an amendment</DialogTitle>
-                        <DialogDescription>Capture the scope of the change so suppliers can respond.</DialogDescription>
+                        <DialogDescription>
+                            Capture the scope of the change so suppliers can
+                            respond.
+                        </DialogDescription>
                     </DialogHeader>
 
                     <form className="grid gap-4" onSubmit={handleAmend}>
                         <div className="grid gap-2">
-                            <Label htmlFor="amend-body">Amendment details</Label>
+                            <Label htmlFor="amend-body">
+                                Amendment details
+                            </Label>
                             <Textarea
                                 id="amend-body"
                                 rows={5}
                                 value={amendBody}
-                                onChange={(event) => setAmendBody(event.target.value)}
+                                onChange={(event) =>
+                                    setAmendBody(event.target.value)
+                                }
                                 placeholder="Summarize the change, highlight impacted line items, and call out required supplier actions."
                             />
                         </div>
 
                         <DialogFooter>
-                            <Button type="submit" disabled={amendMutation.isPending}>
-                                {amendMutation.isPending ? 'Submitting…' : 'Submit amendment'}
+                            <Button
+                                type="submit"
+                                disabled={amendMutation.isPending}
+                            >
+                                {amendMutation.isPending
+                                    ? 'Submitting…'
+                                    : 'Submit amendment'}
                             </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isExtendDialogOpen} onOpenChange={handleExtendDialogOpenChange}>
+            <Dialog
+                open={isExtendDialogOpen}
+                onOpenChange={handleExtendDialogOpenChange}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Extend RFQ deadline</DialogTitle>
-                        <DialogDescription>Set the new due date and explain the reason to suppliers.</DialogDescription>
+                        <DialogDescription>
+                            Set the new due date and explain the reason to
+                            suppliers.
+                        </DialogDescription>
                     </DialogHeader>
 
-                    <form className="grid gap-4" onSubmit={handleExtendDeadline}>
+                    <form
+                        className="grid gap-4"
+                        onSubmit={handleExtendDeadline}
+                    >
                         <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
                             <p>
-                                Current deadline <span className="font-semibold text-foreground">{currentDeadlineLabel}</span>
+                                Current deadline{' '}
+                                <span className="font-semibold text-foreground">
+                                    {currentDeadlineLabel}
+                                </span>
                             </p>
                             {!currentDeadlineDate ? (
-                                <p className="mt-1">No deadline has been set yet. Suppliers will only see the new value.</p>
+                                <p className="mt-1">
+                                    No deadline has been set yet. Suppliers will
+                                    only see the new value.
+                                </p>
                             ) : null}
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="extend-new-due-at">New deadline</Label>
+                            <Label htmlFor="extend-new-due-at">
+                                New deadline
+                            </Label>
                             <Input
                                 id="extend-new-due-at"
                                 type="datetime-local"
@@ -1981,12 +2620,15 @@ export function RfqDetailPage() {
                                 disabled={isExtendingDeadline}
                             />
                             <p className="text-xs text-muted-foreground">
-                                Must be later than the current deadline. Suppliers will immediately see the new date.
+                                Must be later than the current deadline.
+                                Suppliers will immediately see the new date.
                             </p>
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="extend-reason">Reason shared with suppliers</Label>
+                            <Label htmlFor="extend-reason">
+                                Reason shared with suppliers
+                            </Label>
                             <Textarea
                                 id="extend-reason"
                                 rows={4}
@@ -2003,7 +2645,8 @@ export function RfqDetailPage() {
                                 disabled={isExtendingDeadline}
                             />
                             <p className="text-xs text-muted-foreground">
-                                Provide at least {MIN_EXTEND_REASON_LENGTH} characters so suppliers have the right context.
+                                Provide at least {MIN_EXTEND_REASON_LENGTH}{' '}
+                                characters so suppliers have the right context.
                             </p>
                         </div>
 
@@ -2020,9 +2663,12 @@ export function RfqDetailPage() {
                                 disabled={isExtendingDeadline}
                             />
                             <div className="space-y-1">
-                                <Label htmlFor="extend-notify">Notify invited suppliers</Label>
+                                <Label htmlFor="extend-notify">
+                                    Notify invited suppliers
+                                </Label>
                                 <p className="text-xs text-muted-foreground">
-                                    We will email the RFQ timeline update and new deadline to invited suppliers.
+                                    We will email the RFQ timeline update and
+                                    new deadline to invited suppliers.
                                 </p>
                             </div>
                         </div>
@@ -2031,13 +2677,20 @@ export function RfqDetailPage() {
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => handleExtendDialogOpenChange(false)}
+                                onClick={() =>
+                                    handleExtendDialogOpenChange(false)
+                                }
                                 disabled={isExtendingDeadline}
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={isExtendingDeadline}>
-                                {isExtendingDeadline ? 'Extending…' : 'Extend deadline'}
+                            <Button
+                                type="submit"
+                                disabled={isExtendingDeadline}
+                            >
+                                {isExtendingDeadline
+                                    ? 'Extending…'
+                                    : 'Extend deadline'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -2049,25 +2702,36 @@ export function RfqDetailPage() {
                     <DialogHeader>
                         <DialogTitle>Close RFQ</DialogTitle>
                         <DialogDescription>
-                            Closing prevents new submissions and notifies suppliers that this RFQ is complete.
+                            Closing prevents new submissions and notifies
+                            suppliers that this RFQ is complete.
                         </DialogDescription>
                     </DialogHeader>
 
                     <form className="grid gap-4" onSubmit={handleClose}>
                         <div className="grid gap-2">
-                            <Label htmlFor="close-reason">Closure rationale</Label>
+                            <Label htmlFor="close-reason">
+                                Closure rationale
+                            </Label>
                             <Textarea
                                 id="close-reason"
                                 rows={3}
                                 value={closeReason}
-                                onChange={(event) => setCloseReason(event.target.value)}
+                                onChange={(event) =>
+                                    setCloseReason(event.target.value)
+                                }
                                 placeholder="Share the reason for closing to retain in the audit log."
                             />
                         </div>
 
                         <DialogFooter>
-                            <Button type="submit" variant="destructive" disabled={closeMutation.isPending}>
-                                {closeMutation.isPending ? 'Closing…' : 'Close RFQ'}
+                            <Button
+                                type="submit"
+                                variant="destructive"
+                                disabled={closeMutation.isPending}
+                            >
+                                {closeMutation.isPending
+                                    ? 'Closing…'
+                                    : 'Close RFQ'}
                             </Button>
                         </DialogFooter>
                     </form>

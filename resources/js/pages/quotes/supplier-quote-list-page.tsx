@@ -1,22 +1,25 @@
+import { FileText } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { FileText } from 'lucide-react';
 
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
-import { FilterBar, type FilterConfig } from '@/components/filter-bar';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
-import { SortSelect } from '@/components/sort-select';
 import { EmptyState } from '@/components/empty-state';
+import { FilterBar, type FilterConfig } from '@/components/filter-bar';
+import { Pagination } from '@/components/pagination';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { DeliveryLeadTimeChip } from '@/components/quotes/delivery-leadtime-chip';
+import { MoneyCell } from '@/components/quotes/money-cell';
+import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
+import { SortSelect } from '@/components/sort-select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
-import { MoneyCell } from '@/components/quotes/money-cell';
-import { DeliveryLeadTimeChip } from '@/components/quotes/delivery-leadtime-chip';
-import { Pagination } from '@/components/pagination';
 import { useFormatting } from '@/contexts/formatting-context';
+import {
+    useSupplierQuotes,
+    type SupplierQuoteSort,
+} from '@/hooks/api/quotes/use-supplier-quotes';
 import type { Quote, QuoteStatusEnum } from '@/sdk';
-import { useSupplierQuotes, type SupplierQuoteSort } from '@/hooks/api/quotes/use-supplier-quotes';
 
 const STATUS_FILTER_OPTIONS: FilterConfig['options'] = [
     { label: 'All statuses', value: '' },
@@ -45,7 +48,10 @@ export function SupplierQuoteListPage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        const handle = window.setTimeout(() => setSearchTerm(searchInput.trim()), 250);
+        const handle = window.setTimeout(
+            () => setSearchTerm(searchInput.trim()),
+            250,
+        );
         return () => window.clearTimeout(handle);
     }, [searchInput]);
 
@@ -72,12 +78,25 @@ export function SupplierQuoteListPage() {
               current_page: paginationMeta.currentPage ?? page,
               last_page:
                   paginationMeta.lastPage ??
-                  Math.max(1, Math.ceil((paginationMeta.total ?? totalCount) / (paginationMeta.perPage ?? DEFAULT_PER_PAGE))),
+                  Math.max(
+                      1,
+                      Math.ceil(
+                          (paginationMeta.total ?? totalCount) /
+                              (paginationMeta.perPage ?? DEFAULT_PER_PAGE),
+                      ),
+                  ),
           }
         : null;
 
     const filterConfigs = useMemo<FilterConfig[]>(
-        () => [{ id: 'status', label: 'Status', options: STATUS_FILTER_OPTIONS, value: statusFilter }],
+        () => [
+            {
+                id: 'status',
+                label: 'Status',
+                options: STATUS_FILTER_OPTIONS,
+                value: statusFilter,
+            },
+        ],
         [statusFilter],
     );
 
@@ -116,12 +135,20 @@ export function SupplierQuoteListPage() {
             {
                 key: 'total',
                 title: 'Total',
-                render: (quote) => <MoneyCell amountMinor={quote.totalMinor} currency={quote.currency} label="Quote total" />,
+                render: (quote) => (
+                    <MoneyCell
+                        amountMinor={quote.totalMinor}
+                        currency={quote.currency}
+                        label="Quote total"
+                    />
+                ),
             },
             {
                 key: 'lead_time',
                 title: 'Lead time',
-                render: (quote) => <DeliveryLeadTimeChip leadTimeDays={quote.leadTimeDays} />,
+                render: (quote) => (
+                    <DeliveryLeadTimeChip leadTimeDays={quote.leadTimeDays} />
+                ),
             },
             {
                 key: 'submitted_at',
@@ -139,7 +166,9 @@ export function SupplierQuoteListPage() {
                 align: 'right',
                 render: (quote) => (
                     <Button asChild variant="ghost" size="sm">
-                        <Link to={`/app/supplier/quotes/${quote.id}`}>View</Link>
+                        <Link to={`/app/supplier/quotes/${quote.id}`}>
+                            View
+                        </Link>
                     </Button>
                 ),
             },
@@ -156,11 +185,15 @@ export function SupplierQuoteListPage() {
             <PlanUpgradeBanner />
 
             <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Supplier workspace</p>
-                <h1 className="text-2xl font-semibold text-foreground">My Quotes</h1>
+                <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                    Supplier workspace
+                </p>
+                <h1 className="text-2xl font-semibold text-foreground">
+                    My Quotes
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                    Track every draft or submitted quote across RFQs and jump back into any record when the buyer requests
-                    updates.
+                    Track every draft or submitted quote across RFQs and jump
+                    back into any record when the buyer requests updates.
                 </p>
             </div>
 
@@ -196,7 +229,10 @@ export function SupplierQuoteListPage() {
             {quotesQuery.isError ? (
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load quotes</AlertTitle>
-                    <AlertDescription>We hit an issue retrieving your submissions. Please try again shortly.</AlertDescription>
+                    <AlertDescription>
+                        We hit an issue retrieving your submissions. Please try
+                        again shortly.
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -209,7 +245,9 @@ export function SupplierQuoteListPage() {
                     <EmptyState
                         title="No quotes yet"
                         description="Start from an RFQ invitation to create your first quote. Drafts will appear here automatically."
-                        icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                        icon={
+                            <FileText className="h-10 w-10 text-muted-foreground" />
+                        }
                     />
                 }
             />

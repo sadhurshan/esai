@@ -1,9 +1,13 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { CreditNoteSummary } from '@/types/sourcing';
 import { CreditApi, HttpError, type ListCreditNotesQuery } from '@/sdk';
+import type { CreditNoteSummary } from '@/types/sourcing';
 
 import { mapCreditNoteSummary } from './utils';
 
@@ -27,9 +31,22 @@ export function useCreditNotes(
 ): UseQueryResult<CreditNoteListResult, HttpError> {
     const creditApi = useSdkClient(CreditApi);
 
-    const { page = 1, perPage = DEFAULT_PER_PAGE, status, supplierId, invoiceId, createdFrom, createdTo, search } = params;
+    const {
+        page = 1,
+        perPage = DEFAULT_PER_PAGE,
+        status,
+        supplierId,
+        invoiceId,
+        createdFrom,
+        createdTo,
+        search,
+    } = params;
 
-    return useQuery<CreditNoteCollectionResponse, HttpError, CreditNoteListResult>({
+    return useQuery<
+        CreditNoteCollectionResponse,
+        HttpError,
+        CreditNoteListResult
+    >({
         queryKey: queryKeys.credits.list({
             page,
             perPage,
@@ -53,9 +70,14 @@ export function useCreditNotes(
                 search,
             })) as CreditNoteCollectionResponse,
         select: (response) => {
-            const rawItems = (response?.items ?? response?.data ?? []) as unknown[];
+            const rawItems = (response?.items ??
+                response?.data ??
+                []) as unknown[];
             const items = rawItems
-                .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+                .filter(
+                    (item): item is Record<string, unknown> =>
+                        typeof item === 'object' && item !== null,
+                )
                 .map((item) => mapCreditNoteSummary(item));
 
             return {

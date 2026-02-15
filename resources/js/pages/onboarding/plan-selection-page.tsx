@@ -1,13 +1,19 @@
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
-import { Branding } from '@/config/branding';
-import { publishToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { publishToast } from '@/components/ui/use-toast';
+import { Branding } from '@/config/branding';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import type { CatalogPlan } from '@/types/plans';
@@ -34,9 +40,15 @@ type SelectionEnvelope = {
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const plansUrl = apiBase ? `${apiBase}/api/plans` : '/api/plans';
-const planSelectionUrl = apiBase ? `${apiBase}/api/company/plan-selection` : '/api/company/plan-selection';
-const billingCheckoutUrl = apiBase ? `${apiBase}/api/billing/checkout` : '/api/billing/checkout';
-const enterpriseContactUrl = (import.meta.env.VITE_ENTERPRISE_CONTACT_URL ?? '').trim();
+const planSelectionUrl = apiBase
+    ? `${apiBase}/api/company/plan-selection`
+    : '/api/company/plan-selection';
+const billingCheckoutUrl = apiBase
+    ? `${apiBase}/api/billing/checkout`
+    : '/api/billing/checkout';
+const enterpriseContactUrl = (
+    import.meta.env.VITE_ENTERPRISE_CONTACT_URL ?? ''
+).trim();
 
 type CheckoutEnvelope = {
     status?: string;
@@ -67,7 +79,9 @@ export function PlanSelectionPage() {
     const isChangePlanFlow = useMemo(() => {
         const mode = searchParams.get('mode');
         const changeParam = searchParams.get('change');
-        return mode === 'change' || changeParam === '1' || changeParam === 'true';
+        return (
+            mode === 'change' || changeParam === '1' || changeParam === 'true'
+        );
     }, [searchParams]);
 
     useEffect(() => {
@@ -85,7 +99,8 @@ export function PlanSelectionPage() {
                 publishToast({
                     variant: 'success',
                     title: 'Payment confirmed',
-                    description: 'Your plan is active. Redirecting you to the workspace…',
+                    description:
+                        'Your plan is active. Redirecting you to the workspace…',
                 });
                 navigate('/app', { replace: true });
             })();
@@ -96,7 +111,8 @@ export function PlanSelectionPage() {
             publishToast({
                 variant: 'default',
                 title: 'Checkout canceled',
-                description: 'You can pick a plan again whenever you are ready.',
+                description:
+                    'You can pick a plan again whenever you are ready.',
             });
         }
     }, [checkoutStatus, navigate, refresh, searchParams, setSearchParams]);
@@ -106,15 +122,25 @@ export function PlanSelectionPage() {
             return false;
         }
         const isSupplierStart =
-            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
+            state.company?.start_mode === 'supplier' ||
+            (state.company?.supplier_status &&
+                state.company.supplier_status !== 'none');
         if (isSupplierStart) {
             return false;
         }
-        return state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan;
+        return (
+            state.requiresPlanSelection ||
+            state.company?.requires_plan_selection === true ||
+            !state.company?.plan
+        );
     }, [state]);
 
     useEffect(() => {
-        if (state.status === 'authenticated' && !requiresPlanSelection && !isChangePlanFlow) {
+        if (
+            state.status === 'authenticated' &&
+            !requiresPlanSelection &&
+            !isChangePlanFlow
+        ) {
             navigate('/app', { replace: true });
         }
     }, [state.status, requiresPlanSelection, isChangePlanFlow, navigate]);
@@ -140,7 +166,10 @@ export function PlanSelectionPage() {
         fetchPlans().catch((error) => console.error(error));
     }, [fetchPlans]);
 
-    const requiresCheckout = useCallback((plan: CatalogPlan) => !plan.is_free && Number(plan.price_usd ?? 0) > 0, []);
+    const requiresCheckout = useCallback(
+        (plan: CatalogPlan) => !plan.is_free && Number(plan.price_usd ?? 0) > 0,
+        [],
+    );
 
     const isEnterprisePlan = useCallback((plan: CatalogPlan) => {
         const code = (plan.code ?? '').toLowerCase();
@@ -154,7 +183,9 @@ export function PlanSelectionPage() {
             try {
                 if (isEnterprisePlan(plan)) {
                     if (!enterpriseContactUrl) {
-                        throw new Error('Enterprise contact URL is not configured.');
+                        throw new Error(
+                            'Enterprise contact URL is not configured.',
+                        );
                     }
                     window.location.assign(enterpriseContactUrl);
                     return;
@@ -171,16 +202,22 @@ export function PlanSelectionPage() {
                         body: JSON.stringify({ plan_code: plan.code }),
                     });
 
-                    const checkoutPayload = (await checkoutResponse.json()) as CheckoutEnvelope;
+                    const checkoutPayload =
+                        (await checkoutResponse.json()) as CheckoutEnvelope;
 
                     if (!checkoutResponse.ok) {
-                        const message = checkoutPayload?.message ?? 'Unable to start checkout.';
+                        const message =
+                            checkoutPayload?.message ??
+                            'Unable to start checkout.';
                         throw new Error(message);
                     }
 
-                    const checkoutUrl = checkoutPayload?.data?.checkout?.checkout_url;
+                    const checkoutUrl =
+                        checkoutPayload?.data?.checkout?.checkout_url;
                     if (!checkoutUrl) {
-                        throw new Error('Checkout URL was not returned by Stripe.');
+                        throw new Error(
+                            'Checkout URL was not returned by Stripe.',
+                        );
                     }
 
                     window.location.assign(checkoutUrl);
@@ -200,7 +237,8 @@ export function PlanSelectionPage() {
                 const payload = (await response.json()) as SelectionEnvelope;
 
                 if (!response.ok) {
-                    const message = payload?.message ?? 'Unable to save plan selection.';
+                    const message =
+                        payload?.message ?? 'Unable to save plan selection.';
                     throw new Error(message);
                 }
 
@@ -208,11 +246,17 @@ export function PlanSelectionPage() {
                 publishToast({
                     variant: 'success',
                     title: 'Plan locked in',
-                    description: payload?.message ?? 'Your workspace is ready to go.',
+                    description:
+                        payload?.message ?? 'Your workspace is ready to go.',
                 });
-                navigate(isChangePlanFlow ? '/app/settings/billing' : '/app', { replace: true });
+                navigate(isChangePlanFlow ? '/app/settings/billing' : '/app', {
+                    replace: true,
+                });
             } catch (error) {
-                const description = error instanceof Error ? error.message : 'Unable to save plan selection.';
+                const description =
+                    error instanceof Error
+                        ? error.message
+                        : 'Unable to save plan selection.';
                 publishToast({
                     variant: 'destructive',
                     title: 'Plan selection failed',
@@ -222,31 +266,47 @@ export function PlanSelectionPage() {
                 setIsSubmitting(null);
             }
         },
-        [navigate, refresh, requiresCheckout, isEnterprisePlan, isChangePlanFlow],
+        [
+            navigate,
+            refresh,
+            requiresCheckout,
+            isEnterprisePlan,
+            isChangePlanFlow,
+        ],
     );
 
-    const renderPrice = useCallback((plan: CatalogPlan) => {
-        if (plan.price_usd === 0) {
-            return 'Free';
-        }
+    const renderPrice = useCallback(
+        (plan: CatalogPlan) => {
+            if (plan.price_usd === 0) {
+                return 'Free';
+            }
 
-        if (plan.price_usd === null || plan.price_usd === undefined || plan.price_usd === '') {
-            return 'Contact sales';
-        }
+            if (
+                plan.price_usd === null ||
+                plan.price_usd === undefined ||
+                plan.price_usd === ''
+            ) {
+                return 'Contact sales';
+            }
 
-        const amount = typeof plan.price_usd === 'number' ? plan.price_usd : Number(plan.price_usd);
-        if (Number.isNaN(amount)) {
-            return 'Contact sales';
-        }
+            const amount =
+                typeof plan.price_usd === 'number'
+                    ? plan.price_usd
+                    : Number(plan.price_usd);
+            if (Number.isNaN(amount)) {
+                return 'Contact sales';
+            }
 
-        const formatted = formatMoney(amount, {
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        });
+            const formatted = formatMoney(amount, {
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            });
 
-        return `${formatted}/yr`;
-    }, [formatMoney]);
+            return `${formatted}/yr`;
+        },
+        [formatMoney],
+    );
 
     const planHighlights = (plan: CatalogPlan): string[] => {
         const rfqsPerMonth = plan.rfqs_per_month ?? 0;
@@ -277,11 +337,19 @@ export function PlanSelectionPage() {
                 <title>Choose a plan • {Branding.name}</title>
             </Helmet>
             <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-                <div className="mb-10 text-center space-y-3">
-                    <img src={Branding.logo.symbol} alt={Branding.name} className="mx-auto h-10" />
-                    <h1 className="text-3xl font-semibold text-foreground">Select your Elements Supply plan</h1>
+                <div className="mb-10 space-y-3 text-center">
+                    <img
+                        src={Branding.logo.symbol}
+                        alt={Branding.name}
+                        className="mx-auto h-10"
+                    />
+                    <h1 className="text-3xl font-semibold text-foreground">
+                        Select your Elements Supply plan
+                    </h1>
                     <p className="text-muted-foreground">
-                        Pick the workspace tier that matches your current volume. {isChangePlanFlow
+                        Pick the workspace tier that matches your current
+                        volume.{' '}
+                        {isChangePlanFlow
                             ? 'You are updating your existing plan; new entitlements apply immediately after checkout.'
                             : 'You can update plans later from Settings → Billing.'}
                     </p>
@@ -304,7 +372,10 @@ export function PlanSelectionPage() {
                                 <CardContent>
                                     <div className="space-y-3">
                                         {[...Array(4)].map((__, i) => (
-                                            <div key={i} className="h-4 w-full rounded bg-muted" />
+                                            <div
+                                                key={i}
+                                                className="h-4 w-full rounded bg-muted"
+                                            />
                                         ))}
                                     </div>
                                 </CardContent>
@@ -318,28 +389,43 @@ export function PlanSelectionPage() {
                                 <CardHeader>
                                     <CardTitle>No plans available</CardTitle>
                                     <CardDescription>
-                                        We could not load any plans. Please contact support or try again later.
+                                        We could not load any plans. Please
+                                        contact support or try again later.
                                     </CardDescription>
                                 </CardHeader>
                             </Card>
                         ) : null}
                         {plans.map((plan) => (
-                            <Card key={plan.code} className="flex flex-col border border-border/70">
+                            <Card
+                                key={plan.code}
+                                className="flex flex-col border border-border/70"
+                            >
                                 <CardHeader>
                                     <CardTitle className="flex items-center justify-between">
                                         <span>{plan.name}</span>
-                                        {plan.price_usd === 0 ? <Badge variant="outline">Free</Badge> : null}
+                                        {plan.price_usd === 0 ? (
+                                            <Badge variant="outline">
+                                                Free
+                                            </Badge>
+                                        ) : null}
                                     </CardTitle>
-                                    <CardDescription>{renderPrice(plan)}</CardDescription>
+                                    <CardDescription>
+                                        {renderPrice(plan)}
+                                    </CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex flex-1 flex-col justify-between space-y-6">
                                     <ul className="space-y-2 text-sm">
-                                        {planHighlights(plan).map((highlight) => (
-                                            <li key={highlight} className="flex items-start gap-2 text-foreground">
-                                                <CheckCircle2 className="h-4 w-4 text-brand-primary" />
-                                                <span>{highlight}</span>
-                                            </li>
-                                        ))}
+                                        {planHighlights(plan).map(
+                                            (highlight) => (
+                                                <li
+                                                    key={highlight}
+                                                    className="flex items-start gap-2 text-foreground"
+                                                >
+                                                    <CheckCircle2 className="text-brand-primary h-4 w-4" />
+                                                    <span>{highlight}</span>
+                                                </li>
+                                            ),
+                                        )}
                                     </ul>
                                     <Button
                                         type="button"

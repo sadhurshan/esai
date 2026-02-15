@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,29 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PurchaseOrderPdfDocument } from './PurchaseOrderPdfDocument';
 import {
     PurchaseOrderPdfDocumentFromJSON,
-    PurchaseOrderPdfDocumentFromJSONTyped,
     PurchaseOrderPdfDocumentToJSON,
-    PurchaseOrderPdfDocumentToJSONTyped,
 } from './PurchaseOrderPdfDocument';
 
 /**
- * 
+ *
  * @export
  * @interface ExportPurchaseOrderResponse
  */
 export interface ExportPurchaseOrderResponse {
     /**
-     * 
+     *
      * @type {PurchaseOrderPdfDocument}
      * @memberof ExportPurchaseOrderResponse
      */
     document: PurchaseOrderPdfDocument;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ExportPurchaseOrderResponse
      */
@@ -44,40 +41,50 @@ export interface ExportPurchaseOrderResponse {
 /**
  * Check if a given object implements the ExportPurchaseOrderResponse interface.
  */
-export function instanceOfExportPurchaseOrderResponse(value: object): value is ExportPurchaseOrderResponse {
+export function instanceOfExportPurchaseOrderResponse(
+    value: object,
+): value is ExportPurchaseOrderResponse {
     if (!('document' in value) || value['document'] === undefined) return false;
-    if (!('downloadUrl' in value) || value['downloadUrl'] === undefined) return false;
+    if (!('downloadUrl' in value) || value['downloadUrl'] === undefined)
+        return false;
     return true;
 }
 
-export function ExportPurchaseOrderResponseFromJSON(json: any): ExportPurchaseOrderResponse {
+export function ExportPurchaseOrderResponseFromJSON(
+    json: any,
+): ExportPurchaseOrderResponse {
     return ExportPurchaseOrderResponseFromJSONTyped(json, false);
 }
 
-export function ExportPurchaseOrderResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ExportPurchaseOrderResponse {
+export function ExportPurchaseOrderResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ExportPurchaseOrderResponse {
     if (json == null) {
         return json;
     }
     return {
-        
-        'document': PurchaseOrderPdfDocumentFromJSON(json['document']),
-        'downloadUrl': json['download_url'],
+        document: PurchaseOrderPdfDocumentFromJSON(json['document']),
+        downloadUrl: json['download_url'],
     };
 }
 
-export function ExportPurchaseOrderResponseToJSON(json: any): ExportPurchaseOrderResponse {
+export function ExportPurchaseOrderResponseToJSON(
+    json: any,
+): ExportPurchaseOrderResponse {
     return ExportPurchaseOrderResponseToJSONTyped(json, false);
 }
 
-export function ExportPurchaseOrderResponseToJSONTyped(value?: ExportPurchaseOrderResponse | null, ignoreDiscriminator: boolean = false): any {
+export function ExportPurchaseOrderResponseToJSONTyped(
+    value?: ExportPurchaseOrderResponse | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'document': PurchaseOrderPdfDocumentToJSON(value['document']),
-        'download_url': value['downloadUrl'],
+        document: PurchaseOrderPdfDocumentToJSON(value['document']),
+        download_url: value['downloadUrl'],
     };
 }
-

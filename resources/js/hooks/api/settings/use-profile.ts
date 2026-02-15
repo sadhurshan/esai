@@ -8,7 +8,9 @@ export function useProfile(): UseQueryResult<User, ApiError> {
     return useQuery<User, ApiError>({
         queryKey: queryKeys.me.profile(),
         queryFn: async () => {
-            const data = (await api.get<User>('/me/profile')) as unknown as User;
+            const data = (await api.get<User>(
+                '/me/profile',
+            )) as unknown as User;
             return data;
         },
         staleTime: 60 * 1000,

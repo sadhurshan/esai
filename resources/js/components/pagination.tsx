@@ -13,7 +13,11 @@ interface PaginationProps {
     isLoading?: boolean;
 }
 
-export function Pagination({ meta, onPageChange, isLoading = false }: PaginationProps) {
+export function Pagination({
+    meta,
+    onPageChange,
+    isLoading = false,
+}: PaginationProps) {
     if (!meta || meta.last_page <= 1) {
         return null;
     }

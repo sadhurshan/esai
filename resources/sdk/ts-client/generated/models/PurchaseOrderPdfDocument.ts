@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrderPdfDocument
  */
 export interface PurchaseOrderPdfDocument {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderPdfDocument
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderPdfDocument
      */
     filename: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderPdfDocument
      */
     version: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderPdfDocument
      */
     downloadUrl: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderPdfDocument
      */
@@ -54,48 +53,64 @@ export interface PurchaseOrderPdfDocument {
 /**
  * Check if a given object implements the PurchaseOrderPdfDocument interface.
  */
-export function instanceOfPurchaseOrderPdfDocument(value: object): value is PurchaseOrderPdfDocument {
+export function instanceOfPurchaseOrderPdfDocument(
+    value: object,
+): value is PurchaseOrderPdfDocument {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('filename' in value) || value['filename'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
-    if (!('downloadUrl' in value) || value['downloadUrl'] === undefined) return false;
+    if (!('downloadUrl' in value) || value['downloadUrl'] === undefined)
+        return false;
     return true;
 }
 
-export function PurchaseOrderPdfDocumentFromJSON(json: any): PurchaseOrderPdfDocument {
+export function PurchaseOrderPdfDocumentFromJSON(
+    json: any,
+): PurchaseOrderPdfDocument {
     return PurchaseOrderPdfDocumentFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderPdfDocumentFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrderPdfDocument {
+export function PurchaseOrderPdfDocumentFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrderPdfDocument {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'filename': json['filename'],
-        'version': json['version'],
-        'downloadUrl': json['download_url'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
+        id: json['id'],
+        filename: json['filename'],
+        version: json['version'],
+        downloadUrl: json['download_url'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
     };
 }
 
-export function PurchaseOrderPdfDocumentToJSON(json: any): PurchaseOrderPdfDocument {
+export function PurchaseOrderPdfDocumentToJSON(
+    json: any,
+): PurchaseOrderPdfDocument {
     return PurchaseOrderPdfDocumentToJSONTyped(json, false);
 }
 
-export function PurchaseOrderPdfDocumentToJSONTyped(value?: PurchaseOrderPdfDocument | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderPdfDocumentToJSONTyped(
+    value?: PurchaseOrderPdfDocument | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'filename': value['filename'],
-        'version': value['version'],
-        'download_url': value['downloadUrl'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
+        id: value['id'],
+        filename: value['filename'],
+        version: value['version'],
+        download_url: value['downloadUrl'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
     };
 }
-

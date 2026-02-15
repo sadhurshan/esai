@@ -6,40 +6,40 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import {
-    LayoutDashboard,
+    Activity,
+    Boxes,
+    Building2,
+    ClipboardList,
+    DownloadCloud,
+    Factory,
     FileSpreadsheet,
     FileText,
-    ClipboardList,
-    Wallet,
-    Boxes,
-    Factory,
+    FolderTree,
+    KeyRound,
     Layers,
+    Layers2,
+    LayoutDashboard,
+    LineChart,
+    ListChecks,
     PackageCheck,
     PackageSearch,
-    ReceiptText,
-    ShieldCheck,
-    LineChart,
-    Settings,
-    ShieldAlert,
-    Scale,
-    Building2,
-    Layers2,
-    ListChecks,
-    KeyRound,
     RadioTower,
-    Activity,
+    ReceiptText,
+    Scale,
     ScrollText,
-    Users,
-    FolderTree,
-    DownloadCloud,
+    Settings,
+    ShieldCheck,
     Sparkles,
     TrendingUp,
+    Users,
+    Wallet,
+    ShieldAlert
 } from 'lucide-react';
 import { useMemo, type ComponentType } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth-context';
 
 interface NavItem {
     label: string;
@@ -59,12 +59,36 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'Dashboard', to: '/app', icon: LayoutDashboard, matchExact: true },
     { label: 'RFQs', to: '/app/rfqs', icon: FileSpreadsheet },
     { label: 'Quotes', to: '/app/quotes', icon: FileText },
-    { label: 'Purchase Orders', to: '/app/purchase-orders', icon: ClipboardList },
-    { label: 'Receiving & Quality', to: '/app/receiving', icon: PackageCheck, featureKey: 'inventory_enabled' },
+    {
+        label: 'Purchase Orders',
+        to: '/app/purchase-orders',
+        icon: ClipboardList,
+    },
+    {
+        label: 'Receiving & Quality',
+        to: '/app/receiving',
+        icon: PackageCheck,
+        featureKey: 'inventory_enabled',
+    },
     { label: 'Invoices', to: '/app/invoices', icon: Wallet },
-    { label: 'Matching', to: '/app/matching', icon: Scale, featureKey: 'finance_enabled' },
-    { label: 'Credit Notes', to: '/app/credit-notes', icon: ReceiptText, featureKey: 'finance_enabled' },
-    { label: 'Inventory', to: '/app/inventory', icon: Boxes, featureKey: 'inventory_enabled' },
+    {
+        label: 'Matching',
+        to: '/app/matching',
+        icon: Scale,
+        featureKey: 'finance_enabled',
+    },
+    {
+        label: 'Credit Notes',
+        to: '/app/credit-notes',
+        icon: ReceiptText,
+        featureKey: 'finance_enabled',
+    },
+    {
+        label: 'Inventory',
+        to: '/app/inventory',
+        icon: Boxes,
+        featureKey: 'inventory_enabled',
+    },
     { label: 'Assets', to: '/app/assets', icon: Layers },
     {
         label: 'Digital Twin Library',
@@ -74,18 +98,44 @@ const WORKSPACE_NAV_ITEMS: NavItem[] = [
     { label: 'Orders', to: '/app/orders', icon: PackageSearch },
     { label: 'Suppliers', to: '/app/suppliers', icon: Users },
     { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
-    // { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
-    { label: 'Analytics', to: '/app/analytics', icon: LineChart, featureKey: 'analytics.access' },
-    // { label: 'Inventory Forecast', to: '/app/analytics/forecast', icon: TrendingUp, featureKey: 'analytics.access' },
-    // { label: 'Supplier Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
+    { label: 'Risk & ESG', to: '/app/risk', icon: ShieldAlert, featureKey: 'risk.access' },
+    {
+        label: 'Analytics',
+        to: '/app/analytics',
+        icon: LineChart,
+        featureKey: 'analytics.access',
+    },
+    { label: 'Inventory Forecast', to: '/app/analytics/forecast', icon: TrendingUp, featureKey: 'analytics.access' },
+    { label: 'Supplier Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
     { label: 'Settings', to: '/app/settings', icon: Settings },
-    { label: 'Admin Console', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true },
+    {
+        label: 'Admin Console',
+        to: '/app/admin',
+        icon: ShieldCheck,
+        requiresAdminConsole: true,
+    },
 ];
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
-    { label: 'Admin Dashboard', to: '/app/admin', icon: ShieldCheck, requiresAdminConsole: true, matchExact: true },
-    { label: 'Company Approvals', to: '/app/admin/company-approvals', icon: Building2, requiresAdminConsole: true },
-    { label: 'Supplier Applications', to: '/app/admin/supplier-applications', icon: Users, requiresAdminConsole: true },
+    {
+        label: 'Admin Dashboard',
+        to: '/app/admin',
+        icon: ShieldCheck,
+        requiresAdminConsole: true,
+        matchExact: true,
+    },
+    {
+        label: 'Company Approvals',
+        to: '/app/admin/company-approvals',
+        icon: Building2,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Supplier Applications',
+        to: '/app/admin/supplier-applications',
+        icon: Users,
+        requiresAdminConsole: true,
+    },
     {
         label: 'Supplier Scrapes',
         to: '/app/admin/supplier-scrapes',
@@ -93,32 +143,108 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
         requiresAdminConsole: true,
         roles: ['platform_super'],
     },
-    { label: 'Plans & Features', to: '/app/admin/plans', icon: Layers2, requiresAdminConsole: true },
-    { label: 'Digital Twins', to: '/app/admin/digital-twins', icon: Factory, requiresAdminConsole: true },
-    { label: 'Twin Categories', to: '/app/admin/digital-twins/categories', icon: FolderTree, requiresAdminConsole: true },
-    { label: 'Roles & Permissions', to: '/app/admin/roles', icon: ListChecks, requiresAdminConsole: true },
-    { label: 'API Keys', to: '/app/admin/api-keys', icon: KeyRound, requiresAdminConsole: true },
-    { label: 'Webhooks', to: '/app/admin/webhooks', icon: RadioTower, requiresAdminConsole: true },
-    { label: 'Rate Limits', to: '/app/admin/rate-limits', icon: Activity, requiresAdminConsole: true },
-    { label: 'Audit Log', to: '/app/admin/audit', icon: ScrollText, requiresAdminConsole: true },
-    { label: 'AI Activity', to: '/app/admin/ai-events', icon: Sparkles, requiresAdminConsole: true },
-    { label: 'AI Usage', to: '/app/admin/ai-usage', icon: TrendingUp, requiresAdminConsole: true },
-    { label: 'AI Training', to: '/app/admin/ai-training', icon: Sparkles, requiresAdminConsole: true },
+    {
+        label: 'Plans & Features',
+        to: '/app/admin/plans',
+        icon: Layers2,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Digital Twins',
+        to: '/app/admin/digital-twins',
+        icon: Factory,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Twin Categories',
+        to: '/app/admin/digital-twins/categories',
+        icon: FolderTree,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Roles & Permissions',
+        to: '/app/admin/roles',
+        icon: ListChecks,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'API Keys',
+        to: '/app/admin/api-keys',
+        icon: KeyRound,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Webhooks',
+        to: '/app/admin/webhooks',
+        icon: RadioTower,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Rate Limits',
+        to: '/app/admin/rate-limits',
+        icon: Activity,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'Audit Log',
+        to: '/app/admin/audit',
+        icon: ScrollText,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'AI Activity',
+        to: '/app/admin/ai-events',
+        icon: Sparkles,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'AI Usage',
+        to: '/app/admin/ai-usage',
+        icon: TrendingUp,
+        requiresAdminConsole: true,
+    },
+    {
+        label: 'AI Training',
+        to: '/app/admin/ai-training',
+        icon: Sparkles,
+        requiresAdminConsole: true,
+    },
 ];
 
 const SUPPLIER_NAV_ITEMS: NavItem[] = [
-    { label: 'Dashboard', to: '/app/supplier', icon: LayoutDashboard, matchExact: true },
+    {
+        label: 'Dashboard',
+        to: '/app/supplier',
+        icon: LayoutDashboard,
+        matchExact: true,
+    },
     { label: 'RFQs', to: '/app/supplier/rfqs', icon: FileSpreadsheet },
     { label: 'Quotes', to: '/app/supplier/quotes', icon: FileText },
     { label: 'Orders', to: '/app/supplier/orders', icon: PackageSearch },
-    { label: 'Invoices', to: '/app/supplier/invoices', icon: Wallet, featureKey: 'supplier_invoicing_enabled' },
+    {
+        label: 'Invoices',
+        to: '/app/supplier/invoices',
+        icon: Wallet,
+        featureKey: 'supplier_invoicing_enabled',
+    },
     { label: 'Download Center', to: '/app/downloads', icon: DownloadCloud },
-    { label: 'Performance', to: '/app/analytics/supplier-performance', icon: Activity, featureKey: 'analytics.access' },
-    { label: 'Profile & Settings', to: '/app/settings', icon: Settings, matchExact: true },
+    {
+        label: 'Performance',
+        to: '/app/analytics/supplier-performance',
+        icon: Activity,
+        featureKey: 'analytics.access',
+    },
+    {
+        label: 'Profile & Settings',
+        to: '/app/settings',
+        icon: Settings,
+        matchExact: true,
+    },
 ];
 
 export function SidebarNav() {
-    const { hasFeature, state, canAccessAdminConsole, activePersona } = useAuth();
+    const { hasFeature, state, canAccessAdminConsole, activePersona } =
+        useAuth();
     const location = useLocation();
     const role = state.user?.role ?? null;
     const isPlatformOperator = role ? PLATFORM_ROLES.has(role) : false;
@@ -147,9 +273,19 @@ export function SidebarNav() {
 
             return true;
         });
-    }, [canAccessAdminConsole, hasFeature, isPlatformOperator, isSupplierMode, role]);
+    }, [
+        canAccessAdminConsole,
+        hasFeature,
+        isPlatformOperator,
+        isSupplierMode,
+        role,
+    ]);
 
-    const sidebarLabel = isPlatformOperator ? 'Admin Console' : isSupplierMode ? 'Supplier Workspace' : 'Workspace';
+    const sidebarLabel = isPlatformOperator
+        ? 'Admin Console'
+        : isSupplierMode
+          ? 'Supplier Workspace'
+          : 'Workspace';
 
     return (
         <SidebarContent>
@@ -157,23 +293,34 @@ export function SidebarNav() {
                 <SidebarGroupLabel>{sidebarLabel}</SidebarGroupLabel>
                 <SidebarMenu>
                     {items.map((item) => {
-                        const match = matchPath({ path: item.to, end: item.matchExact ?? false }, location.pathname);
+                        const match = matchPath(
+                            { path: item.to, end: item.matchExact ?? false },
+                            location.pathname,
+                        );
                         const Icon = item.icon;
 
                         return (
                             <SidebarMenuItem key={item.to}>
-                                <SidebarMenuButton asChild isActive={Boolean(match)} tooltip={item.disabledMessage}>
+                                <SidebarMenuButton
+                                    asChild
+                                    isActive={Boolean(match)}
+                                    tooltip={item.disabledMessage}
+                                >
                                     <NavLink
                                         to={item.to}
                                         className={({ isActive }) =>
                                             cn(
                                                 'flex items-center gap-2',
-                                                isActive ? 'text-sidebar-accent-foreground' : undefined,
+                                                isActive
+                                                    ? 'text-sidebar-accent-foreground'
+                                                    : undefined,
                                             )
                                         }
                                     >
                                         <Icon className="h-4 w-4" />
-                                        <span className="truncate text-sm">{item.label}</span>
+                                        <span className="truncate text-sm">
+                                            {item.label}
+                                        </span>
                                     </NavLink>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

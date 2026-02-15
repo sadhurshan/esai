@@ -1,9 +1,9 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
+import { isPlatformRole } from '@/constants/platform-roles';
+import { useAuth } from '@/contexts/auth-context';
 import { useLocalizationSettings } from '@/hooks/api/settings';
 import type { LocalizationSettings } from '@/types/settings';
-import { useAuth } from '@/contexts/auth-context';
-import { isPlatformRole } from '@/constants/platform-roles';
 
 const DEFAULT_SETTINGS: LocalizationSettings = {
     timezone: 'UTC',
@@ -29,9 +29,17 @@ const NUMBER_FORMAT_LOCALES: Record<string, string> = {
 export type NumericValue = number | bigint | string | null | undefined;
 export type DateValue = string | number | Date | null | undefined;
 
-export type FormatNumberOptions = Intl.NumberFormatOptions & { fallback?: string };
-export type FormatMoneyOptions = Intl.NumberFormatOptions & { currency?: string; fallback?: string };
-export type FormatDateOptions = Omit<Intl.DateTimeFormatOptions, 'timeZone'> & { pattern?: string; fallback?: string };
+export type FormatNumberOptions = Intl.NumberFormatOptions & {
+    fallback?: string;
+};
+export type FormatMoneyOptions = Intl.NumberFormatOptions & {
+    currency?: string;
+    fallback?: string;
+};
+export type FormatDateOptions = Omit<Intl.DateTimeFormatOptions, 'timeZone'> & {
+    pattern?: string;
+    fallback?: string;
+};
 
 export interface FormattingContextValue {
     locale: string;
@@ -39,48 +47,69 @@ export interface FormattingContextValue {
     currency: string;
     displayFx: boolean;
     rawSettings: LocalizationSettings;
-    formatNumber: (value: NumericValue, options?: FormatNumberOptions) => string;
+    formatNumber: (
+        value: NumericValue,
+        options?: FormatNumberOptions,
+    ) => string;
     formatMoney: (value: NumericValue, options?: FormatMoneyOptions) => string;
     formatDate: (value: DateValue, options?: FormatDateOptions) => string;
 }
 
-const FormattingContext = createContext<FormattingContextValue | undefined>(undefined);
+const FormattingContext = createContext<FormattingContextValue | undefined>(
+    undefined,
+);
 
 interface FormattingProviderProps {
     children: ReactNode;
     disableRemoteFetch?: boolean;
 }
 
-export function FormattingProvider({ children, disableRemoteFetch = false }: FormattingProviderProps) {
+export function FormattingProvider({
+    children,
+    disableRemoteFetch = false,
+}: FormattingProviderProps) {
     const { state, activePersona } = useAuth();
     const role = state.user?.role ?? null;
     const isSupplierPersona = activePersona?.type === 'supplier';
-    const allowRemoteFetch = !disableRemoteFetch && !isPlatformRole(role) && !isSupplierPersona;
+    const allowRemoteFetch =
+        !disableRemoteFetch && !isPlatformRole(role) && !isSupplierPersona;
     const localization = useLocalizationSettings({ enabled: allowRemoteFetch });
 
-    const value = useMemo(() => buildFormattingContext(localization.data), [localization.data]);
+    const value = useMemo(
+        () => buildFormattingContext(localization.data),
+        [localization.data],
+    );
 
-    return <FormattingContext.Provider value={value}>{children}</FormattingContext.Provider>;
+    return (
+        <FormattingContext.Provider value={value}>
+            {children}
+        </FormattingContext.Provider>
+    );
 }
 
 export function useFormatting(): FormattingContextValue {
     const context = useContext(FormattingContext);
 
     if (!context) {
-        throw new Error('useFormatting must be used within a FormattingProvider');
+        throw new Error(
+            'useFormatting must be used within a FormattingProvider',
+        );
     }
 
     return context;
 }
 
-function buildFormattingContext(settings?: LocalizationSettings): FormattingContextValue {
+function buildFormattingContext(
+    settings?: LocalizationSettings,
+): FormattingContextValue {
     const safe = settings ?? DEFAULT_SETTINGS;
     const locale = safe.locale || DEFAULT_SETTINGS.locale;
     const timezone = safe.timezone || DEFAULT_SETTINGS.timezone;
     const numberPattern = safe.numberFormat || DEFAULT_SETTINGS.numberFormat;
     const datePattern = safe.dateFormat || DEFAULT_SETTINGS.dateFormat;
     const numberLocale = deriveNumberLocale(numberPattern, locale);
-    const currency = safe.currency?.primary || DEFAULT_SETTINGS.currency.primary;
+    const currency =
+        safe.currency?.primary || DEFAULT_SETTINGS.currency.primary;
     const displayFx = Boolean(safe.currency?.displayFx);
 
     return {
@@ -89,9 +118,12 @@ function buildFormattingContext(settings?: LocalizationSettings): FormattingCont
         currency,
         displayFx,
         rawSettings: safe,
-        formatNumber: (value, options) => formatNumberValue(value, numberLocale, options),
-        formatMoney: (value, options) => formatMoneyValue(value, locale, currency, options),
-        formatDate: (value, options) => formatDateValue(value, timezone, locale, datePattern, options),
+        formatNumber: (value, options) =>
+            formatNumberValue(value, numberLocale, options),
+        formatMoney: (value, options) =>
+            formatMoneyValue(value, locale, currency, options),
+        formatDate: (value, options) =>
+            formatDateValue(value, timezone, locale, datePattern, options),
     } satisfies FormattingContextValue;
 }
 
@@ -104,7 +136,11 @@ function deriveNumberLocale(pattern?: string, fallback?: string) {
     return NUMBER_FORMAT_LOCALES[normalized] ?? fallback ?? 'en-US';
 }
 
-function formatNumberValue(value: NumericValue, locale: string, options?: FormatNumberOptions) {
+function formatNumberValue(
+    value: NumericValue,
+    locale: string,
+    options?: FormatNumberOptions,
+) {
     const { fallback, ...intlOptions } = options ?? {};
     const numeric = normalizeNumeric(value);
 
@@ -124,15 +160,25 @@ function formatMoneyValue(
     defaultCurrency: string,
     options?: FormatMoneyOptions,
 ) {
-    const { currency, fallback, minimumFractionDigits, maximumFractionDigits, ...intlOptions } = options ?? {};
+    const {
+        currency,
+        fallback,
+        minimumFractionDigits,
+        maximumFractionDigits,
+        ...intlOptions
+    } = options ?? {};
     const numeric = normalizeNumeric(value);
 
     if (numeric === null) {
         return fallback ?? '—';
     }
 
-    const resolvedMin = typeof minimumFractionDigits === 'number' ? minimumFractionDigits : 2;
-    const resolvedMax = typeof maximumFractionDigits === 'number' ? maximumFractionDigits : Math.max(resolvedMin, 2);
+    const resolvedMin =
+        typeof minimumFractionDigits === 'number' ? minimumFractionDigits : 2;
+    const resolvedMax =
+        typeof maximumFractionDigits === 'number'
+            ? maximumFractionDigits
+            : Math.max(resolvedMin, 2);
     const safeMax = clampFractionDigits(resolvedMax);
     const safeMin = clampFractionDigits(Math.min(resolvedMin, safeMax));
 
@@ -161,10 +207,18 @@ function formatDateValue(
     const shouldUsePattern = !intlOptions.dateStyle && !intlOptions.timeStyle;
 
     if (pattern || shouldUsePattern) {
-        return formatDateWithPattern(date, pattern ?? defaultPattern, timezone, locale);
+        return formatDateWithPattern(
+            date,
+            pattern ?? defaultPattern,
+            timezone,
+            locale,
+        );
     }
 
-    return new Intl.DateTimeFormat(locale, { timeZone: timezone, ...intlOptions }).format(date);
+    return new Intl.DateTimeFormat(locale, {
+        timeZone: timezone,
+        ...intlOptions,
+    }).format(date);
 }
 
 function normalizeNumeric(value: NumericValue): number | bigint | null {
@@ -202,7 +256,12 @@ function normalizeDate(value: DateValue): Date | null {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function formatDateWithPattern(date: Date, pattern: string, timezone: string, locale: string) {
+function formatDateWithPattern(
+    date: Date,
+    pattern: string,
+    timezone: string,
+    locale: string,
+) {
     const zoned = convertToTimezone(date, timezone);
     const year = zoned.getFullYear();
     const month = String(zoned.getMonth() + 1).padStart(2, '0');
@@ -216,7 +275,10 @@ function formatDateWithPattern(date: Date, pattern: string, timezone: string, lo
         case 'YYYY-MM-DD':
             return `${year}-${month}-${day}`;
         default:
-            return new Intl.DateTimeFormat(locale, { timeZone: timezone, dateStyle: 'medium' }).format(zoned);
+            return new Intl.DateTimeFormat(locale, {
+                timeZone: timezone,
+                dateStyle: 'medium',
+            }).format(zoned);
     }
 }
 

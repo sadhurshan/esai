@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { api, ApiError } from '@/lib/api';
@@ -25,11 +29,27 @@ export interface SupplierCreateInvoiceInput {
     lines: SupplierInvoiceLineInput[];
 }
 
-export function useSupplierCreateInvoice(): UseMutationResult<InvoiceDetail, ApiError | Error, SupplierCreateInvoiceInput> {
+export function useSupplierCreateInvoice(): UseMutationResult<
+    InvoiceDetail,
+    ApiError | Error,
+    SupplierCreateInvoiceInput
+> {
     const queryClient = useQueryClient();
 
-    return useMutation<InvoiceDetail, ApiError | Error, SupplierCreateInvoiceInput>({
-        mutationFn: async ({ purchaseOrderId, invoiceNumber, invoiceDate, dueDate, currency, document, lines }) => {
+    return useMutation<
+        InvoiceDetail,
+        ApiError | Error,
+        SupplierCreateInvoiceInput
+    >({
+        mutationFn: async ({
+            purchaseOrderId,
+            invoiceNumber,
+            invoiceDate,
+            dueDate,
+            currency,
+            document,
+            lines,
+        }) => {
             if (!Number.isFinite(purchaseOrderId) || purchaseOrderId <= 0) {
                 throw new Error('Purchase order required.');
             }
@@ -61,7 +81,9 @@ export function useSupplierCreateInvoice(): UseMutationResult<InvoiceDetail, Api
                 payload,
             );
 
-            return mapInvoiceDetail(response as unknown as Record<string, unknown>);
+            return mapInvoiceDetail(
+                response as unknown as Record<string, unknown>,
+            );
         },
         onSuccess: (invoice) => {
             publishToast({
@@ -70,13 +92,27 @@ export function useSupplierCreateInvoice(): UseMutationResult<InvoiceDetail, Api
                 description: `Invoice ${invoice.invoiceNumber} is linked to PO ${invoice.purchaseOrder?.poNumber ?? invoice.purchaseOrderId}.`,
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.supplierList() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.list() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(invoice.purchaseOrderId) });
-            void queryClient.setQueryData(queryKeys.invoices.supplierDetail(invoice.id), invoice);
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.supplierList(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.list(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.detail(
+                    invoice.purchaseOrderId,
+                ),
+            });
+            void queryClient.setQueryData(
+                queryKeys.invoices.supplierDetail(invoice.id),
+                invoice,
+            );
         },
         onError: (error) => {
-            const message = error instanceof ApiError ? error.message : error.message ?? 'Unable to save invoice draft.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : (error.message ?? 'Unable to save invoice draft.');
             publishToast({
                 variant: 'destructive',
                 title: 'Invoice draft failed',
@@ -95,7 +131,14 @@ interface BuildFormDataInput {
     lines: SupplierInvoiceLineInput[];
 }
 
-function buildFormData({ invoiceNumber, invoiceDate, dueDate, currency, document, lines }: BuildFormDataInput): FormData {
+function buildFormData({
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    currency,
+    document,
+    lines,
+}: BuildFormDataInput): FormData {
     const formData = new FormData();
     formData.append('invoice_number', invoiceNumber);
     formData.append('invoice_date', invoiceDate);
@@ -111,7 +154,10 @@ function buildFormData({ invoiceNumber, invoiceDate, dueDate, currency, document
     lines.forEach((line, index) => {
         const prefix = `lines[${index}]`;
         formData.append(`${prefix}[po_line_id]`, String(line.poLineId));
-        formData.append(`${prefix}[quantity]`, String(Math.max(1, Math.floor(line.quantity))));
+        formData.append(
+            `${prefix}[quantity]`,
+            String(Math.max(1, Math.floor(line.quantity))),
+        );
         formData.append(`${prefix}[unit_price]`, line.unitPrice.toString());
 
         if (line.description) {
@@ -125,7 +171,10 @@ function buildFormData({ invoiceNumber, invoiceDate, dueDate, currency, document
         if (Array.isArray(line.taxCodeIds)) {
             line.taxCodeIds.forEach((taxCodeId, taxIndex) => {
                 if (Number.isFinite(taxCodeId)) {
-                    formData.append(`${prefix}[tax_code_ids][${taxIndex}]`, String(taxCodeId));
+                    formData.append(
+                        `${prefix}[tax_code_ids][${taxIndex}]`,
+                        String(taxCodeId),
+                    );
                 }
             });
         }

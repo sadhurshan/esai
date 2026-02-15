@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UpdateGrnRequestLinesInner
  */
 export interface UpdateGrnRequestLinesInner {
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateGrnRequestLinesInner
      */
     id?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateGrnRequestLinesInner
      */
     quantityAccepted?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateGrnRequestLinesInner
      */
     quantityRejected?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateGrnRequestLinesInner
      */
@@ -48,42 +47,60 @@ export interface UpdateGrnRequestLinesInner {
 /**
  * Check if a given object implements the UpdateGrnRequestLinesInner interface.
  */
-export function instanceOfUpdateGrnRequestLinesInner(value: object): value is UpdateGrnRequestLinesInner {
+export function instanceOfUpdateGrnRequestLinesInner(
+    value: object,
+): value is UpdateGrnRequestLinesInner {
     return true;
 }
 
-export function UpdateGrnRequestLinesInnerFromJSON(json: any): UpdateGrnRequestLinesInner {
+export function UpdateGrnRequestLinesInnerFromJSON(
+    json: any,
+): UpdateGrnRequestLinesInner {
     return UpdateGrnRequestLinesInnerFromJSONTyped(json, false);
 }
 
-export function UpdateGrnRequestLinesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateGrnRequestLinesInner {
+export function UpdateGrnRequestLinesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateGrnRequestLinesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'quantityAccepted': json['quantity_accepted'] == null ? undefined : json['quantity_accepted'],
-        'quantityRejected': json['quantity_rejected'] == null ? undefined : json['quantity_rejected'],
-        'rejectionReason': json['rejection_reason'] == null ? undefined : json['rejection_reason'],
+        id: json['id'] == null ? undefined : json['id'],
+        quantityAccepted:
+            json['quantity_accepted'] == null
+                ? undefined
+                : json['quantity_accepted'],
+        quantityRejected:
+            json['quantity_rejected'] == null
+                ? undefined
+                : json['quantity_rejected'],
+        rejectionReason:
+            json['rejection_reason'] == null
+                ? undefined
+                : json['rejection_reason'],
     };
 }
 
-export function UpdateGrnRequestLinesInnerToJSON(json: any): UpdateGrnRequestLinesInner {
+export function UpdateGrnRequestLinesInnerToJSON(
+    json: any,
+): UpdateGrnRequestLinesInner {
     return UpdateGrnRequestLinesInnerToJSONTyped(json, false);
 }
 
-export function UpdateGrnRequestLinesInnerToJSONTyped(value?: UpdateGrnRequestLinesInner | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateGrnRequestLinesInnerToJSONTyped(
+    value?: UpdateGrnRequestLinesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'quantity_accepted': value['quantityAccepted'],
-        'quantity_rejected': value['quantityRejected'],
-        'rejection_reason': value['rejectionReason'],
+        id: value['id'],
+        quantity_accepted: value['quantityAccepted'],
+        quantity_rejected: value['quantityRejected'],
+        rejection_reason: value['rejectionReason'],
     };
 }
-

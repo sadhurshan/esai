@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,23 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  ListSupplierApplications200Response,
-  ListSuppliers200Response,
-  SelfApplySupplierApplication200Response,
-  ShowSupplier200Response,
-  SupplierApplicationPayload,
+    ApiSuccessResponse,
+    ListSupplierApplications200Response,
+    ListSuppliers200Response,
+    SelfApplySupplierApplication200Response,
+    ShowSupplier200Response,
+    SupplierApplicationPayload,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
     ListSupplierApplications200ResponseFromJSON,
-    ListSupplierApplications200ResponseToJSON,
     ListSuppliers200ResponseFromJSON,
-    ListSuppliers200ResponseToJSON,
     SelfApplySupplierApplication200ResponseFromJSON,
-    SelfApplySupplierApplication200ResponseToJSON,
     ShowSupplier200ResponseFromJSON,
-    ShowSupplier200ResponseToJSON,
-    SupplierApplicationPayloadFromJSON,
     SupplierApplicationPayloadToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface CreateSupplierApplicationRequest {
     supplierApplicationPayload: SupplierApplicationPayload;
@@ -46,7 +36,7 @@ export interface CreateSupplierApplicationRequest {
 
 export interface CreateSupplierEsgRequest {
     supplierId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface DeleteSupplierApplicationRequest {
@@ -81,247 +71,329 @@ export interface ShowSupplierApplicationRequest {
 export interface UpdateSupplierEsgRequest {
     supplierId: number;
     recordId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateSupplierVisibilityRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 /**
  * SuppliersApi - interface
- * 
+ *
  * @export
  * @interface SuppliersApiInterface
  */
 export interface SuppliersApiInterface {
     /**
-     * 
+     *
      * @summary Submit supplier application
-     * @param {SupplierApplicationPayload} supplierApplicationPayload 
+     * @param {SupplierApplicationPayload} supplierApplicationPayload
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    createSupplierApplicationRaw(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
+    createSupplierApplicationRaw(
+        requestParameters: CreateSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
 
     /**
      * Submit supplier application
      */
-    createSupplierApplication(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response>;
+    createSupplierApplication(
+        requestParameters: CreateSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SelfApplySupplierApplication200Response>;
 
     /**
-     * 
+     *
      * @summary Store ESG record for supplier
-     * @param {number} supplierId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} supplierId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    createSupplierEsgRaw(requestParameters: CreateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createSupplierEsgRaw(
+        requestParameters: CreateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Store ESG record for supplier
      */
-    createSupplierEsg(requestParameters: CreateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createSupplierEsg(
+        requestParameters: CreateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete supplier application
-     * @param {number} applicationId 
+     * @param {number} applicationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    deleteSupplierApplicationRaw(requestParameters: DeleteSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteSupplierApplicationRaw(
+        requestParameters: DeleteSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete supplier application
      */
-    deleteSupplierApplication(requestParameters: DeleteSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteSupplierApplication(
+        requestParameters: DeleteSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete ESG record
-     * @param {number} supplierId 
-     * @param {number} recordId 
+     * @param {number} supplierId
+     * @param {number} recordId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    deleteSupplierEsgRaw(requestParameters: DeleteSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteSupplierEsgRaw(
+        requestParameters: DeleteSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete ESG record
      */
-    deleteSupplierEsg(requestParameters: DeleteSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteSupplierEsg(
+        requestParameters: DeleteSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Queue ESG export for supplier
-     * @param {number} supplierId 
+     * @param {number} supplierId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    exportSupplierEsgRaw(requestParameters: ExportSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    exportSupplierEsgRaw(
+        requestParameters: ExportSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Queue ESG export for supplier
      */
-    exportSupplierEsg(requestParameters: ExportSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    exportSupplierEsg(
+        requestParameters: ExportSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List supplier applications
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    listSupplierApplicationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSupplierApplications200Response>>;
+    listSupplierApplicationsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListSupplierApplications200Response>>;
 
     /**
      * List supplier applications
      */
-    listSupplierApplications(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSupplierApplications200Response>;
+    listSupplierApplications(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListSupplierApplications200Response>;
 
     /**
-     * 
+     *
      * @summary List ESG records for supplier
-     * @param {number} supplierId 
+     * @param {number} supplierId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    listSupplierEsgRaw(requestParameters: ListSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listSupplierEsgRaw(
+        requestParameters: ListSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List ESG records for supplier
      */
-    listSupplierEsg(requestParameters: ListSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listSupplierEsg(
+        requestParameters: ListSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List suppliers for current company
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    listSuppliersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSuppliers200Response>>;
+    listSuppliersRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListSuppliers200Response>>;
 
     /**
      * List suppliers for current company
      */
-    listSuppliers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSuppliers200Response>;
+    listSuppliers(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListSuppliers200Response>;
 
     /**
      * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
      * @summary Submit a supplier application for the authenticated company
-     * @param {SupplierApplicationPayload} supplierApplicationPayload 
+     * @param {SupplierApplicationPayload} supplierApplicationPayload
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    selfApplySupplierApplicationRaw(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
+    selfApplySupplierApplicationRaw(
+        requestParameters: SelfApplySupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
 
     /**
      * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
      * Submit a supplier application for the authenticated company
      */
-    selfApplySupplierApplication(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response>;
+    selfApplySupplierApplication(
+        requestParameters: SelfApplySupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SelfApplySupplierApplication200Response>;
 
     /**
-     * 
+     *
      * @summary Get supplier self-service application status
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    showSelfServiceSupplierApplicationStatusRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showSelfServiceSupplierApplicationStatusRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Get supplier self-service application status
      */
-    showSelfServiceSupplierApplicationStatus(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showSelfServiceSupplierApplicationStatus(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show supplier
-     * @param {number} supplierId 
+     * @param {number} supplierId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    showSupplierRaw(requestParameters: ShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowSupplier200Response>>;
+    showSupplierRaw(
+        requestParameters: ShowSupplierRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowSupplier200Response>>;
 
     /**
      * Show supplier
      */
-    showSupplier(requestParameters: ShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowSupplier200Response>;
+    showSupplier(
+        requestParameters: ShowSupplierRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowSupplier200Response>;
 
     /**
-     * 
+     *
      * @summary Show supplier application
-     * @param {number} applicationId 
+     * @param {number} applicationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    showSupplierApplicationRaw(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
+    showSupplierApplicationRaw(
+        requestParameters: ShowSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>>;
 
     /**
      * Show supplier application
      */
-    showSupplierApplication(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response>;
+    showSupplierApplication(
+        requestParameters: ShowSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SelfApplySupplierApplication200Response>;
 
     /**
-     * 
+     *
      * @summary Update ESG record
-     * @param {number} supplierId 
-     * @param {number} recordId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} supplierId
+     * @param {number} recordId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    updateSupplierEsgRaw(requestParameters: UpdateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateSupplierEsgRaw(
+        requestParameters: UpdateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update ESG record
      */
-    updateSupplierEsg(requestParameters: UpdateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateSupplierEsg(
+        requestParameters: UpdateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Update supplier directory visibility
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SuppliersApiInterface
      */
-    updateSupplierVisibilityRaw(requestParameters: UpdateSupplierVisibilityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateSupplierVisibilityRaw(
+        requestParameters: UpdateSupplierVisibilityRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update supplier directory visibility
      */
-    updateSupplierVisibility(requestParameters: UpdateSupplierVisibilityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    updateSupplierVisibility(
+        requestParameters: UpdateSupplierVisibilityRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterface {
-
+export class SuppliersApi
+    extends runtime.BaseAPI
+    implements SuppliersApiInterface
+{
     /**
      * Submit supplier application
      */
-    async createSupplierApplicationRaw(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
+    async createSupplierApplicationRaw(
+        requestParameters: CreateSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
         if (requestParameters['supplierApplicationPayload'] == null) {
             throw new runtime.RequiredError(
                 'supplierApplicationPayload',
-                'Required parameter "supplierApplicationPayload" was null or undefined when calling createSupplierApplication().'
+                'Required parameter "supplierApplicationPayload" was null or undefined when calling createSupplierApplication().',
             );
         }
 
@@ -332,54 +404,71 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/supplier-applications`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: SupplierApplicationPayloadToJSON(requestParameters['supplierApplicationPayload']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: SupplierApplicationPayloadToJSON(
+                    requestParameters['supplierApplicationPayload'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SelfApplySupplierApplication200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            SelfApplySupplierApplication200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Submit supplier application
      */
-    async createSupplierApplication(requestParameters: CreateSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response> {
-        const response = await this.createSupplierApplicationRaw(requestParameters, initOverrides);
+    async createSupplierApplication(
+        requestParameters: CreateSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SelfApplySupplierApplication200Response> {
+        const response = await this.createSupplierApplicationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Store ESG record for supplier
      */
-    async createSupplierEsgRaw(requestParameters: CreateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createSupplierEsgRaw(
+        requestParameters: CreateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling createSupplierEsg().'
+                'Required parameter "supplierId" was null or undefined when calling createSupplierEsg().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createSupplierEsg().'
+                'Required parameter "requestBody" was null or undefined when calling createSupplierEsg().',
             );
         }
 
@@ -390,48 +479,66 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers/{supplierId}/esg`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Store ESG record for supplier
      */
-    async createSupplierEsg(requestParameters: CreateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createSupplierEsgRaw(requestParameters, initOverrides);
+    async createSupplierEsg(
+        requestParameters: CreateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createSupplierEsgRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete supplier application
      */
-    async deleteSupplierApplicationRaw(requestParameters: DeleteSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteSupplierApplicationRaw(
+        requestParameters: DeleteSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['applicationId'] == null) {
             throw new runtime.RequiredError(
                 'applicationId',
-                'Required parameter "applicationId" was null or undefined when calling deleteSupplierApplication().'
+                'Required parameter "applicationId" was null or undefined when calling deleteSupplierApplication().',
             );
         }
 
@@ -440,54 +547,72 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/supplier-applications/{applicationId}`;
-        urlPath = urlPath.replace(`{${"applicationId"}}`, encodeURIComponent(String(requestParameters['applicationId'])));
+        urlPath = urlPath.replace(
+            `{${'applicationId'}}`,
+            encodeURIComponent(String(requestParameters['applicationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete supplier application
      */
-    async deleteSupplierApplication(requestParameters: DeleteSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteSupplierApplicationRaw(requestParameters, initOverrides);
+    async deleteSupplierApplication(
+        requestParameters: DeleteSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteSupplierApplicationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete ESG record
      */
-    async deleteSupplierEsgRaw(requestParameters: DeleteSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteSupplierEsgRaw(
+        requestParameters: DeleteSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling deleteSupplierEsg().'
+                'Required parameter "supplierId" was null or undefined when calling deleteSupplierEsg().',
             );
         }
 
         if (requestParameters['recordId'] == null) {
             throw new runtime.RequiredError(
                 'recordId',
-                'Required parameter "recordId" was null or undefined when calling deleteSupplierEsg().'
+                'Required parameter "recordId" was null or undefined when calling deleteSupplierEsg().',
             );
         }
 
@@ -496,48 +621,69 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers/{supplierId}/esg/{recordId}`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
-        urlPath = urlPath.replace(`{${"recordId"}}`, encodeURIComponent(String(requestParameters['recordId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'recordId'}}`,
+            encodeURIComponent(String(requestParameters['recordId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete ESG record
      */
-    async deleteSupplierEsg(requestParameters: DeleteSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteSupplierEsgRaw(requestParameters, initOverrides);
+    async deleteSupplierEsg(
+        requestParameters: DeleteSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteSupplierEsgRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Queue ESG export for supplier
      */
-    async exportSupplierEsgRaw(requestParameters: ExportSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async exportSupplierEsgRaw(
+        requestParameters: ExportSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling exportSupplierEsg().'
+                'Required parameter "supplierId" was null or undefined when calling exportSupplierEsg().',
             );
         }
 
@@ -546,76 +692,101 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers/{supplierId}/esg/export`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Queue ESG export for supplier
      */
-    async exportSupplierEsg(requestParameters: ExportSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.exportSupplierEsgRaw(requestParameters, initOverrides);
+    async exportSupplierEsg(
+        requestParameters: ExportSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.exportSupplierEsgRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List supplier applications
      */
-    async listSupplierApplicationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSupplierApplications200Response>> {
+    async listSupplierApplicationsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListSupplierApplications200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/supplier-applications`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListSupplierApplications200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListSupplierApplications200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List supplier applications
      */
-    async listSupplierApplications(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSupplierApplications200Response> {
+    async listSupplierApplications(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListSupplierApplications200Response> {
         const response = await this.listSupplierApplicationsRaw(initOverrides);
         return await response.value();
     }
@@ -623,11 +794,14 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
     /**
      * List ESG records for supplier
      */
-    async listSupplierEsgRaw(requestParameters: ListSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listSupplierEsgRaw(
+        requestParameters: ListSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling listSupplierEsg().'
+                'Required parameter "supplierId" was null or undefined when calling listSupplierEsg().',
             );
         }
 
@@ -636,76 +810,101 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers/{supplierId}/esg`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List ESG records for supplier
      */
-    async listSupplierEsg(requestParameters: ListSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.listSupplierEsgRaw(requestParameters, initOverrides);
+    async listSupplierEsg(
+        requestParameters: ListSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.listSupplierEsgRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List suppliers for current company
      */
-    async listSuppliersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSuppliers200Response>> {
+    async listSuppliersRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListSuppliers200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListSuppliers200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListSuppliers200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List suppliers for current company
      */
-    async listSuppliers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSuppliers200Response> {
+    async listSuppliers(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListSuppliers200Response> {
         const response = await this.listSuppliersRaw(initOverrides);
         return await response.value();
     }
@@ -714,11 +913,14 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
      * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
      * Submit a supplier application for the authenticated company
      */
-    async selfApplySupplierApplicationRaw(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
+    async selfApplySupplierApplicationRaw(
+        requestParameters: SelfApplySupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
         if (requestParameters['supplierApplicationPayload'] == null) {
             throw new runtime.RequiredError(
                 'supplierApplicationPayload',
-                'Required parameter "supplierApplicationPayload" was null or undefined when calling selfApplySupplierApplication().'
+                'Required parameter "supplierApplicationPayload" was null or undefined when calling selfApplySupplierApplication().',
             );
         }
 
@@ -729,89 +931,119 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/me/apply-supplier`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: SupplierApplicationPayloadToJSON(requestParameters['supplierApplicationPayload']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: SupplierApplicationPayloadToJSON(
+                    requestParameters['supplierApplicationPayload'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SelfApplySupplierApplication200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            SelfApplySupplierApplication200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
      * Submit a supplier application for the authenticated company
      */
-    async selfApplySupplierApplication(requestParameters: SelfApplySupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response> {
-        const response = await this.selfApplySupplierApplicationRaw(requestParameters, initOverrides);
+    async selfApplySupplierApplication(
+        requestParameters: SelfApplySupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SelfApplySupplierApplication200Response> {
+        const response = await this.selfApplySupplierApplicationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Get supplier self-service application status
      */
-    async showSelfServiceSupplierApplicationStatusRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showSelfServiceSupplierApplicationStatusRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/me/supplier-application/status`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Get supplier self-service application status
      */
-    async showSelfServiceSupplierApplicationStatus(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showSelfServiceSupplierApplicationStatusRaw(initOverrides);
+    async showSelfServiceSupplierApplicationStatus(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response =
+            await this.showSelfServiceSupplierApplicationStatusRaw(
+                initOverrides,
+            );
         return await response.value();
     }
 
     /**
      * Show supplier
      */
-    async showSupplierRaw(requestParameters: ShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowSupplier200Response>> {
+    async showSupplierRaw(
+        requestParameters: ShowSupplierRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowSupplier200Response>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling showSupplier().'
+                'Required parameter "supplierId" was null or undefined when calling showSupplier().',
             );
         }
 
@@ -820,47 +1052,65 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers/{supplierId}`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowSupplier200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowSupplier200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show supplier
      */
-    async showSupplier(requestParameters: ShowSupplierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowSupplier200Response> {
-        const response = await this.showSupplierRaw(requestParameters, initOverrides);
+    async showSupplier(
+        requestParameters: ShowSupplierRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowSupplier200Response> {
+        const response = await this.showSupplierRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show supplier application
      */
-    async showSupplierApplicationRaw(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
+    async showSupplierApplicationRaw(
+        requestParameters: ShowSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SelfApplySupplierApplication200Response>> {
         if (requestParameters['applicationId'] == null) {
             throw new runtime.RequiredError(
                 'applicationId',
-                'Required parameter "applicationId" was null or undefined when calling showSupplierApplication().'
+                'Required parameter "applicationId" was null or undefined when calling showSupplierApplication().',
             );
         }
 
@@ -869,61 +1119,79 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/supplier-applications/{applicationId}`;
-        urlPath = urlPath.replace(`{${"applicationId"}}`, encodeURIComponent(String(requestParameters['applicationId'])));
+        urlPath = urlPath.replace(
+            `{${'applicationId'}}`,
+            encodeURIComponent(String(requestParameters['applicationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SelfApplySupplierApplication200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            SelfApplySupplierApplication200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show supplier application
      */
-    async showSupplierApplication(requestParameters: ShowSupplierApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SelfApplySupplierApplication200Response> {
-        const response = await this.showSupplierApplicationRaw(requestParameters, initOverrides);
+    async showSupplierApplication(
+        requestParameters: ShowSupplierApplicationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SelfApplySupplierApplication200Response> {
+        const response = await this.showSupplierApplicationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update ESG record
      */
-    async updateSupplierEsgRaw(requestParameters: UpdateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateSupplierEsgRaw(
+        requestParameters: UpdateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling updateSupplierEsg().'
+                'Required parameter "supplierId" was null or undefined when calling updateSupplierEsg().',
             );
         }
 
         if (requestParameters['recordId'] == null) {
             throw new runtime.RequiredError(
                 'recordId',
-                'Required parameter "recordId" was null or undefined when calling updateSupplierEsg().'
+                'Required parameter "recordId" was null or undefined when calling updateSupplierEsg().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateSupplierEsg().'
+                'Required parameter "requestBody" was null or undefined when calling updateSupplierEsg().',
             );
         }
 
@@ -934,49 +1202,70 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/suppliers/{supplierId}/esg/{recordId}`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
-        urlPath = urlPath.replace(`{${"recordId"}}`, encodeURIComponent(String(requestParameters['recordId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'recordId'}}`,
+            encodeURIComponent(String(requestParameters['recordId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update ESG record
      */
-    async updateSupplierEsg(requestParameters: UpdateSupplierEsgRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateSupplierEsgRaw(requestParameters, initOverrides);
+    async updateSupplierEsg(
+        requestParameters: UpdateSupplierEsgRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateSupplierEsgRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update supplier directory visibility
      */
-    async updateSupplierVisibilityRaw(requestParameters: UpdateSupplierVisibilityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateSupplierVisibilityRaw(
+        requestParameters: UpdateSupplierVisibilityRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateSupplierVisibility().'
+                'Required parameter "requestBody" was null or undefined when calling updateSupplierVisibility().',
             );
         }
 
@@ -987,37 +1276,48 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/me/supplier/visibility`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update supplier directory visibility
      */
-    async updateSupplierVisibility(requestParameters: UpdateSupplierVisibilityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateSupplierVisibilityRaw(requestParameters, initOverrides);
+    async updateSupplierVisibility(
+        requestParameters: UpdateSupplierVisibilityRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateSupplierVisibilityRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

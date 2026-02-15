@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { CompanyProfile } from './CompanyProfile';
-import {
-    CompanyProfileFromJSON,
-    CompanyProfileFromJSONTyped,
-    CompanyProfileToJSON,
-    CompanyProfileToJSONTyped,
-} from './CompanyProfile';
+import { CompanyProfileFromJSON, CompanyProfileToJSON } from './CompanyProfile';
 
 /**
- * 
+ *
  * @export
  * @interface RegisterCompany201ResponseAllOfData
  */
 export interface RegisterCompany201ResponseAllOfData {
     /**
-     * 
+     *
      * @type {CompanyProfile}
      * @memberof RegisterCompany201ResponseAllOfData
      */
@@ -38,36 +32,48 @@ export interface RegisterCompany201ResponseAllOfData {
 /**
  * Check if a given object implements the RegisterCompany201ResponseAllOfData interface.
  */
-export function instanceOfRegisterCompany201ResponseAllOfData(value: object): value is RegisterCompany201ResponseAllOfData {
+export function instanceOfRegisterCompany201ResponseAllOfData(
+    value: object,
+): value is RegisterCompany201ResponseAllOfData {
     return true;
 }
 
-export function RegisterCompany201ResponseAllOfDataFromJSON(json: any): RegisterCompany201ResponseAllOfData {
+export function RegisterCompany201ResponseAllOfDataFromJSON(
+    json: any,
+): RegisterCompany201ResponseAllOfData {
     return RegisterCompany201ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function RegisterCompany201ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): RegisterCompany201ResponseAllOfData {
+export function RegisterCompany201ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RegisterCompany201ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'company': json['company'] == null ? undefined : CompanyProfileFromJSON(json['company']),
+        company:
+            json['company'] == null
+                ? undefined
+                : CompanyProfileFromJSON(json['company']),
     };
 }
 
-export function RegisterCompany201ResponseAllOfDataToJSON(json: any): RegisterCompany201ResponseAllOfData {
+export function RegisterCompany201ResponseAllOfDataToJSON(
+    json: any,
+): RegisterCompany201ResponseAllOfData {
     return RegisterCompany201ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function RegisterCompany201ResponseAllOfDataToJSONTyped(value?: RegisterCompany201ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function RegisterCompany201ResponseAllOfDataToJSONTyped(
+    value?: RegisterCompany201ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'company': CompanyProfileToJSON(value['company']),
+        company: CompanyProfileToJSON(value['company']),
     };
 }
-

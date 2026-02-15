@@ -1,12 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, PlusCircle, RefreshCcw, Save, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, PlusCircle, RefreshCcw, Save, Trash2 } from 'lucide-react';
 
 import Heading from '@/components/heading';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,28 +14,48 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import {
     useAdminDigitalTwinCategories,
     useCreateAdminDigitalTwinCategory,
-    useUpdateAdminDigitalTwinCategory,
     useDeleteAdminDigitalTwinCategory,
+    useUpdateAdminDigitalTwinCategory,
 } from '@/hooks/api/digital-twins';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import type { AdminDigitalTwinCategoryNode } from '@/sdk';
-import { flattenDigitalTwinCategories, resolveDigitalTwinErrorMessage } from './digital-twin-form-utils';
+import {
+    flattenDigitalTwinCategories,
+    resolveDigitalTwinErrorMessage,
+} from './digital-twin-form-utils';
 
 const categoryFormSchema = z.object({
-    name: z.string().min(2, 'Name is required').max(120, 'Keep the name under 120 characters'),
+    name: z
+        .string()
+        .min(2, 'Name is required')
+        .max(120, 'Keep the name under 120 characters'),
     slug: z
         .string()
         .min(2, 'Slug is required')
         .max(120, 'Slug must be 120 characters or fewer')
-        .regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers, and hyphens are allowed'),
-    description: z.string().max(500, 'Description is too long').optional().nullable(),
+        .regex(
+            /^[a-z0-9-]+$/,
+            'Only lowercase letters, numbers, and hyphens are allowed',
+        ),
+    description: z
+        .string()
+        .max(500, 'Description is too long')
+        .optional()
+        .nullable(),
     parentId: z.string().optional().nullable(),
     isActive: z.boolean().default(true),
 });
@@ -55,13 +74,17 @@ const NO_PARENT_OPTION_VALUE = '__no_parent__';
 
 export function AdminDigitalTwinCategoriesPage() {
     const { isAdmin } = useAuth();
-    const { categories, isLoading, isFetching, error, refetch } = useAdminDigitalTwinCategories();
+    const { categories, isLoading, isFetching, error, refetch } =
+        useAdminDigitalTwinCategories();
     const createCategory = useCreateAdminDigitalTwinCategory();
     const updateCategory = useUpdateAdminDigitalTwinCategory();
     const deleteCategory = useDeleteAdminDigitalTwinCategory();
 
-    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-    const [pendingDeleteCategory, setPendingDeleteCategory] = useState<AdminDigitalTwinCategoryNode | null>(null);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+        null,
+    );
+    const [pendingDeleteCategory, setPendingDeleteCategory] =
+        useState<AdminDigitalTwinCategoryNode | null>(null);
     const [slugIsManual, setSlugIsManual] = useState(false);
 
     const form = useForm<CategoryFormValues>({
@@ -73,14 +96,20 @@ export function AdminDigitalTwinCategoriesPage() {
     const nameValue = useWatch({ control: form.control, name: 'name' });
     const slugValue = useWatch({ control: form.control, name: 'slug' });
 
-    const selectedCategory = useMemo(() => findCategoryById(categories, selectedCategoryId), [categories, selectedCategoryId]);
+    const selectedCategory = useMemo(
+        () => findCategoryById(categories, selectedCategoryId),
+        [categories, selectedCategoryId],
+    );
 
     const descendantIds = useMemo(() => {
         if (!selectedCategory) {
             return new Set<number>();
         }
 
-        return new Set<number>([selectedCategory.id, ...collectDescendantIds(selectedCategory)]);
+        return new Set<number>([
+            selectedCategory.id,
+            ...collectDescendantIds(selectedCategory),
+        ]);
     }, [selectedCategory]);
 
     const parentOptions = useMemo(() => {
@@ -96,7 +125,10 @@ export function AdminDigitalTwinCategoriesPage() {
     const resetToCreateMode = () => {
         setSelectedCategoryId(null);
         setSlugIsManual(false);
-        form.reset(CATEGORY_FORM_DEFAULTS, { keepErrors: false, keepDirty: false });
+        form.reset(CATEGORY_FORM_DEFAULTS, {
+            keepErrors: false,
+            keepDirty: false,
+        });
     };
 
     const handleSelectCategory = (category: AdminDigitalTwinCategoryNode) => {
@@ -107,7 +139,10 @@ export function AdminDigitalTwinCategoriesPage() {
                 name: category.name ?? '',
                 slug: category.slug ?? '',
                 description: category.description ?? '',
-                parentId: category.parent_id != null ? String(category.parent_id) : null,
+                parentId:
+                    category.parent_id != null
+                        ? String(category.parent_id)
+                        : null,
                 isActive: Boolean(category.is_active),
             },
             { keepErrors: false, keepDirty: false },
@@ -127,7 +162,10 @@ export function AdminDigitalTwinCategoriesPage() {
 
     const handleSlugInput = (event: ChangeEvent<HTMLInputElement>) => {
         setSlugIsManual(true);
-        form.setValue('slug', event.currentTarget.value, { shouldValidate: true, shouldDirty: true });
+        form.setValue('slug', event.currentTarget.value, {
+            shouldValidate: true,
+            shouldDirty: true,
+        });
     };
 
     const handleSubmit = form.handleSubmit(async (values) => {
@@ -141,11 +179,22 @@ export function AdminDigitalTwinCategoriesPage() {
 
         try {
             if (selectedCategory) {
-                await updateCategory.mutateAsync({ categoryId: selectedCategory.id, ...payload });
-                publishToast({ title: 'Category updated', description: `${values.name} saved successfully.`, variant: 'success' });
+                await updateCategory.mutateAsync({
+                    categoryId: selectedCategory.id,
+                    ...payload,
+                });
+                publishToast({
+                    title: 'Category updated',
+                    description: `${values.name} saved successfully.`,
+                    variant: 'success',
+                });
             } else {
                 await createCategory.mutateAsync(payload);
-                publishToast({ title: 'Category created', description: `${values.name} is ready to use.`, variant: 'success' });
+                publishToast({
+                    title: 'Category created',
+                    description: `${values.name} is ready to use.`,
+                    variant: 'success',
+                });
                 resetToCreateMode();
             }
         } catch (err) {
@@ -167,7 +216,9 @@ export function AdminDigitalTwinCategoriesPage() {
         }
 
         try {
-            await deleteCategory.mutateAsync({ categoryId: pendingDeleteCategory.id });
+            await deleteCategory.mutateAsync({
+                categoryId: pendingDeleteCategory.id,
+            });
             publishToast({
                 title: 'Category deleted',
                 description: `${pendingDeleteCategory.name} has been removed.`,
@@ -203,7 +254,12 @@ export function AdminDigitalTwinCategoriesPage() {
                 description="Organise digital twins in a tree so buyers can filter and discovery stays clean."
                 action={
                     <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefreshing}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => refetch()}
+                            disabled={isRefreshing}
+                        >
                             <RefreshCcw className="mr-2 h-4 w-4" /> Refresh
                         </Button>
                         <Button size="sm" onClick={resetToCreateMode}>
@@ -216,7 +272,9 @@ export function AdminDigitalTwinCategoriesPage() {
             {error ? (
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load categories</AlertTitle>
-                    <AlertDescription>{resolveDigitalTwinErrorMessage(error)}</AlertDescription>
+                    <AlertDescription>
+                        {resolveDigitalTwinErrorMessage(error)}
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -231,7 +289,10 @@ export function AdminDigitalTwinCategoriesPage() {
                         ) : categories.length === 0 ? (
                             <Alert>
                                 <AlertTitle>No categories</AlertTitle>
-                                <AlertDescription>Create your first category to group reusable assets.</AlertDescription>
+                                <AlertDescription>
+                                    Create your first category to group reusable
+                                    assets.
+                                </AlertDescription>
                             </Alert>
                         ) : (
                             <CategoryTree
@@ -246,15 +307,25 @@ export function AdminDigitalTwinCategoriesPage() {
 
                 <Card className="border-border/70">
                     <CardHeader>
-                        <CardTitle>{selectedCategory ? 'Edit category' : 'New category'}</CardTitle>
+                        <CardTitle>
+                            {selectedCategory
+                                ? 'Edit category'
+                                : 'New category'}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <form className="space-y-4" onSubmit={handleSubmit}>
                             <div className="space-y-2">
                                 <Label htmlFor="category-name">Name</Label>
-                                <Input id="category-name" placeholder="e.g. Batteries" {...form.register('name')} />
+                                <Input
+                                    id="category-name"
+                                    placeholder="e.g. Batteries"
+                                    {...form.register('name')}
+                                />
                                 {form.formState.errors.name ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.name.message}
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
@@ -265,28 +336,56 @@ export function AdminDigitalTwinCategoriesPage() {
                                     onChange={handleSlugInput}
                                     placeholder="batteries"
                                 />
-                                <p className="text-xs text-muted-foreground">Used in URLs and APIs. Lowercase letters, numbers, and hyphens only.</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Used in URLs and APIs. Lowercase letters,
+                                    numbers, and hyphens only.
+                                </p>
                                 {form.formState.errors.slug ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.slug.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.slug.message}
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="category-parent">Parent category</Label>
+                                <Label htmlFor="category-parent">
+                                    Parent category
+                                </Label>
                                 <Controller
                                     name="parentId"
                                     control={form.control}
                                     render={({ field }) => (
                                         <Select
-                                            value={field.value ?? NO_PARENT_OPTION_VALUE}
-                                            onValueChange={(value) => field.onChange(value === NO_PARENT_OPTION_VALUE ? null : value)}
+                                            value={
+                                                field.value ??
+                                                NO_PARENT_OPTION_VALUE
+                                            }
+                                            onValueChange={(value) =>
+                                                field.onChange(
+                                                    value ===
+                                                        NO_PARENT_OPTION_VALUE
+                                                        ? null
+                                                        : value,
+                                                )
+                                            }
                                         >
                                             <SelectTrigger id="category-parent">
                                                 <SelectValue placeholder="No parent" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value={NO_PARENT_OPTION_VALUE}>No parent</SelectItem>
+                                                <SelectItem
+                                                    value={
+                                                        NO_PARENT_OPTION_VALUE
+                                                    }
+                                                >
+                                                    No parent
+                                                </SelectItem>
                                                 {parentOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={String(option.value)}>
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={String(
+                                                            option.value,
+                                                        )}
+                                                    >
                                                         {option.label}
                                                     </SelectItem>
                                                 ))}
@@ -295,11 +394,15 @@ export function AdminDigitalTwinCategoriesPage() {
                                     )}
                                 />
                                 {form.formState.errors.parentId ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.parentId.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.parentId.message}
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="category-description">Description</Label>
+                                <Label htmlFor="category-description">
+                                    Description
+                                </Label>
                                 <Textarea
                                     id="category-description"
                                     rows={4}
@@ -307,7 +410,12 @@ export function AdminDigitalTwinCategoriesPage() {
                                     {...form.register('description')}
                                 />
                                 {form.formState.errors.description ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.description.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {
+                                            form.formState.errors.description
+                                                .message
+                                        }
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="flex items-center gap-2">
@@ -315,20 +423,37 @@ export function AdminDigitalTwinCategoriesPage() {
                                     name="isActive"
                                     control={form.control}
                                     render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(Boolean(checked))} />
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={(checked) =>
+                                                field.onChange(Boolean(checked))
+                                            }
+                                        />
                                     )}
                                 />
-                                <span className="text-sm text-muted-foreground">Category is active</span>
+                                <span className="text-sm text-muted-foreground">
+                                    Category is active
+                                </span>
                             </div>
                             <div className="flex flex-wrap items-center justify-end gap-2">
                                 {selectedCategory ? (
-                                    <Button type="button" variant="ghost" onClick={resetToCreateMode}>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={resetToCreateMode}
+                                    >
                                         Cancel
                                     </Button>
                                 ) : null}
                                 <Button type="submit" disabled={!canSubmit}>
-                                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                    {selectedCategory ? 'Save changes' : 'Create category'}
+                                    {isSaving ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Save className="mr-2 h-4 w-4" />
+                                    )}
+                                    {selectedCategory
+                                        ? 'Save changes'
+                                        : 'Create category'}
                                 </Button>
                             </div>
                         </form>
@@ -338,8 +463,16 @@ export function AdminDigitalTwinCategoriesPage() {
 
             <ConfirmDialog
                 open={Boolean(pendingDeleteCategory)}
-                onOpenChange={(open) => setPendingDeleteCategory(open ? pendingDeleteCategory : null)}
-                title={deletionBlocked ? 'Cannot delete category' : 'Delete category?'}
+                onOpenChange={(open) =>
+                    setPendingDeleteCategory(
+                        open ? pendingDeleteCategory : null,
+                    )
+                }
+                title={
+                    deletionBlocked
+                        ? 'Cannot delete category'
+                        : 'Delete category?'
+                }
                 description={
                     deletionBlocked
                         ? 'Delete or reassign any child categories before removing this parent.'
@@ -405,21 +538,37 @@ function CategoryTreeNode({
 
     return (
         <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2" style={{ paddingLeft: level * 16 }}>
+            <div
+                className="flex items-center justify-between gap-2"
+                style={{ paddingLeft: level * 16 }}
+            >
                 <button
                     type="button"
                     onClick={() => onSelect(node)}
                     className={`flex flex-1 flex-col items-start rounded-md border px-3 py-2 text-left transition hover:border-foreground/40 ${
-                        isSelected ? 'border-primary bg-primary/5' : 'border-border'
+                        isSelected
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border'
                     }`}
                 >
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium text-foreground">{node.name}</span>
-                        {!node.is_active ? <Badge variant="outline">Inactive</Badge> : null}
+                        <span className="font-medium text-foreground">
+                            {node.name}
+                        </span>
+                        {!node.is_active ? (
+                            <Badge variant="outline">Inactive</Badge>
+                        ) : null}
                     </div>
-                    <p className="text-xs text-muted-foreground">/{node.slug}</p>
+                    <p className="text-xs text-muted-foreground">
+                        /{node.slug}
+                    </p>
                 </button>
-                <Button variant="ghost" size="icon" onClick={() => onDelete(node)} aria-label={`Delete ${node.name}`}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(node)}
+                    aria-label={`Delete ${node.name}`}
+                >
                     <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
             </div>
@@ -441,7 +590,10 @@ function CategoryTreeNode({
     );
 }
 
-function findCategoryById(nodes: AdminDigitalTwinCategoryNode[], id: number | null): AdminDigitalTwinCategoryNode | null {
+function findCategoryById(
+    nodes: AdminDigitalTwinCategoryNode[],
+    id: number | null,
+): AdminDigitalTwinCategoryNode | null {
     if (!id) {
         return null;
     }
@@ -467,7 +619,10 @@ function collectDescendantIds(node: AdminDigitalTwinCategoryNode): number[] {
         return [];
     }
 
-    return node.children.flatMap((child) => [child.id, ...collectDescendantIds(child)]);
+    return node.children.flatMap((child) => [
+        child.id,
+        ...collectDescendantIds(child),
+    ]);
 }
 
 function toSlug(value: string): string {

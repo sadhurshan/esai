@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Quote, RfqItem } from '@/sdk';
 import { SupplierQuoteCreatePage } from '../supplier-quote-create-page';
 import { SupplierQuoteEditPage } from '../supplier-quote-edit-page';
-import type { Quote, RfqItem } from '@/sdk';
 
 const mockNavigate = vi.fn();
 const mockParams: Record<string, string | undefined> = {};
@@ -25,8 +25,10 @@ vi.mock('@/contexts/formatting-context', () => ({
             currency: { primary: 'USD', displayFx: false },
             uom: { baseUom: 'EA', maps: {} },
         },
-        formatNumber: (value: number | string | null | undefined) => (value ?? '—').toString(),
-        formatMoney: (value: number | string | null | undefined) => `$${value ?? '—'}`,
+        formatNumber: (value: number | string | null | undefined) =>
+            (value ?? '—').toString(),
+        formatMoney: (value: number | string | null | undefined) =>
+            `$${value ?? '—'}`,
         formatDate: () => '2024-01-01',
     }),
 }));
@@ -42,7 +44,10 @@ vi.mock('@/hooks/api/settings', () => ({
 }));
 
 vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+    const actual =
+        await vi.importActual<typeof import('react-router-dom')>(
+            'react-router-dom',
+        );
     return {
         ...actual,
         useNavigate: () => mockNavigate,
@@ -55,7 +60,15 @@ vi.mock('@/components/plan-upgrade-banner', () => ({
 }));
 
 vi.mock('@/components/quotes/money-cell', () => ({
-    MoneyCell: ({ amountMinor, currency, label }: { amountMinor?: number | null; currency?: string | null; label?: string }) => (
+    MoneyCell: ({
+        amountMinor,
+        currency,
+        label,
+    }: {
+        amountMinor?: number | null;
+        currency?: string | null;
+        label?: string;
+    }) => (
         <div data-testid={`money-cell-${label ?? 'total'}`}>
             {label ?? 'Total'}: {amountMinor ?? 0} {currency ?? 'USD'}
         </div>
@@ -63,7 +76,9 @@ vi.mock('@/components/quotes/money-cell', () => ({
 }));
 
 vi.mock('@/components/quotes/quote-status-badge', () => ({
-    QuoteStatusBadge: ({ status }: { status: string }) => <span data-testid="status">{status}</span>,
+    QuoteStatusBadge: ({ status }: { status: string }) => (
+        <span data-testid="status">{status}</span>
+    ),
 }));
 
 type PublishToastArgs = [payload: unknown];
@@ -79,10 +94,18 @@ vi.mock('@/components/ui/dialog', () => ({
             {open ? children : null}
         </div>
     ),
-    DialogContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-    DialogDescription: ({ children }: { children: ReactNode }) => <p>{children}</p>,
-    DialogFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-    DialogHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    DialogContent: ({ children }: { children: ReactNode }) => (
+        <div>{children}</div>
+    ),
+    DialogDescription: ({ children }: { children: ReactNode }) => (
+        <p>{children}</p>
+    ),
+    DialogFooter: ({ children }: { children: ReactNode }) => (
+        <div>{children}</div>
+    ),
+    DialogHeader: ({ children }: { children: ReactNode }) => (
+        <div>{children}</div>
+    ),
     DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
 }));
 
@@ -92,7 +115,11 @@ vi.mock('@/contexts/auth-context', () => ({
         notifyPlanLimit: vi.fn(),
         state: {
             status: 'authenticated',
-            user: { role: 'supplier', name: 'Supplier User', email: 'supplier@example.com' },
+            user: {
+                role: 'supplier',
+                name: 'Supplier User',
+                email: 'supplier@example.com',
+            },
             company: { name: 'Supplier Co' },
         },
     }),
@@ -114,36 +141,57 @@ vi.mock('@/hooks/api/rfqs/use-rfq', () => ({
 }));
 
 const baseRfqLines: RfqItem[] = [
-    { id: 'line-1', lineNo: 1, partName: 'Bracket', spec: '6061-T6', quantity: 5, uom: 'ea' },
+    {
+        id: 'line-1',
+        lineNo: 1,
+        partName: 'Bracket',
+        spec: '6061-T6',
+        quantity: 5,
+        uom: 'ea',
+    },
 ];
 const rfqLinesResult = { items: baseRfqLines, isLoading: false };
 vi.mock('@/hooks/api/rfqs/use-rfq-lines', () => ({
     useRfqLines: () => rfqLinesResult,
 }));
 
-const moneySettingsResult = { data: { pricingCurrency: { code: 'USD', name: 'US Dollar', minorUnit: 2 } } };
+const moneySettingsResult = {
+    data: { pricingCurrency: { code: 'USD', name: 'US Dollar', minorUnit: 2 } },
+};
 vi.mock('@/hooks/api/use-money-settings', () => ({
     useMoneySettings: () => moneySettingsResult,
 }));
 
 const createQuoteMutate = vi.fn();
 vi.mock('@/hooks/api/quotes/use-create-quote', () => ({
-    useCreateQuote: () => ({ mutateAsync: createQuoteMutate, isPending: false }),
+    useCreateQuote: () => ({
+        mutateAsync: createQuoteMutate,
+        isPending: false,
+    }),
 }));
 
 const submitQuoteMutate = vi.fn();
 vi.mock('@/hooks/api/quotes/use-submit-quote', () => ({
-    useSubmitQuote: () => ({ mutateAsync: submitQuoteMutate, isPending: false }),
+    useSubmitQuote: () => ({
+        mutateAsync: submitQuoteMutate,
+        isPending: false,
+    }),
 }));
 
 const reviseQuoteMutate = vi.fn();
 vi.mock('@/hooks/api/quotes/use-revise-quote', () => ({
-    useReviseQuote: () => ({ mutateAsync: reviseQuoteMutate, isPending: false }),
+    useReviseQuote: () => ({
+        mutateAsync: reviseQuoteMutate,
+        isPending: false,
+    }),
 }));
 
 const withdrawQuoteMutate = vi.fn();
 vi.mock('@/hooks/api/quotes/use-withdraw-quote', () => ({
-    useWithdrawQuote: () => ({ mutateAsync: withdrawQuoteMutate, isPending: false }),
+    useWithdrawQuote: () => ({
+        mutateAsync: withdrawQuoteMutate,
+        isPending: false,
+    }),
 }));
 
 const updateLineMutate = vi.fn();
@@ -234,9 +282,13 @@ describe('Supplier quote pages', () => {
         const user = userEvent.setup();
         renderWithHelmet(<SupplierQuoteCreatePage />);
 
-        const incotermInput = await screen.findByLabelText('Incoterm (optional)');
+        const incotermInput = await screen.findByLabelText(
+            'Incoterm (optional)',
+        );
         await user.type(incotermInput, 'fob ');
-        const paymentTermsInput = screen.getByLabelText('Payment terms (optional)');
+        const paymentTermsInput = screen.getByLabelText(
+            'Payment terms (optional)',
+        );
         await user.type(paymentTermsInput, ' Net 30');
 
         const unitPriceInput = await screen.findByLabelText('Unit price (USD)');
@@ -252,11 +304,25 @@ describe('Supplier quote pages', () => {
         });
 
         const payload = createQuoteMutate.mock.calls[0]?.[0];
-        expect(payload).toMatchObject({ rfqId: 'rfq-123', currency: 'USD', incoterm: 'FOB', paymentTerms: 'Net 30' });
-        expect(payload.items[0]).toMatchObject({ rfqItemId: 'line-1', unitPriceMinor: 1250, leadTimeDays: 10 });
+        expect(payload).toMatchObject({
+            rfqId: 'rfq-123',
+            currency: 'USD',
+            incoterm: 'FOB',
+            paymentTerms: 'Net 30',
+        });
+        expect(payload.items[0]).toMatchObject({
+            rfqItemId: 'line-1',
+            unitPriceMinor: 1250,
+            leadTimeDays: 10,
+        });
 
-        expect(submitQuoteMutate).toHaveBeenCalledWith({ quoteId: 'quote-result', rfqId: 321 });
-        expect(mockNavigate).toHaveBeenCalledWith('/app/supplier/quotes/quote-result');
+        expect(submitQuoteMutate).toHaveBeenCalledWith({
+            quoteId: 'quote-result',
+            rfqId: 321,
+        });
+        expect(mockNavigate).toHaveBeenCalledWith(
+            '/app/supplier/quotes/quote-result',
+        );
     });
 
     it('collects a withdraw reason on the edit page before calling the mutation', async () => {
@@ -267,22 +333,33 @@ describe('Supplier quote pages', () => {
         const user = userEvent.setup();
         renderWithHelmet(<SupplierQuoteEditPage />);
 
-        const withdrawAction = await screen.findByRole('button', { name: 'Withdraw quote' });
+        const withdrawAction = await screen.findByRole('button', {
+            name: 'Withdraw quote',
+        });
         await user.click(withdrawAction);
 
         const dialog = screen.getByTestId('dialog');
         const reasonInput = await within(dialog).findByLabelText('Reason');
         await user.type(reasonInput, 'Pricing expired after alloy surcharge.');
 
-        const confirmButton = within(dialog).getByRole('button', { name: 'Withdraw quote' });
+        const confirmButton = within(dialog).getByRole('button', {
+            name: 'Withdraw quote',
+        });
         await user.click(confirmButton);
 
         await waitFor(() => {
-            expect(withdrawQuoteMutate).toHaveBeenCalledWith({ quoteId: 'quote-123', rfqId: 321, reason: expect.stringContaining('Pricing expired') });
+            expect(withdrawQuoteMutate).toHaveBeenCalledWith({
+                quoteId: 'quote-123',
+                rfqId: 321,
+                reason: expect.stringContaining('Pricing expired'),
+            });
         });
 
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Quote withdrawn', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Quote withdrawn',
+                variant: 'success',
+            }),
         );
         expect(mockNavigate).not.toHaveBeenCalled();
     });

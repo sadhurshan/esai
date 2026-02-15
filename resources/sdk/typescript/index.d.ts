@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/admin/api-keys": {
+    '/api/admin/api-keys': {
         parameters: {
             query?: never;
             header?: never;
@@ -12,17 +12,17 @@ export interface paths {
             cookie?: never;
         };
         /** List API keys */
-        get: operations["adminListApiKeys"];
+        get: operations['adminListApiKeys'];
         put?: never;
         /** Issue API key for company */
-        post: operations["adminCreateApiKey"];
+        post: operations['adminCreateApiKey'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/api-keys/{keyId}": {
+    '/api/admin/api-keys/{keyId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -33,13 +33,13 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete API key */
-        delete: operations["adminDeleteApiKey"];
+        delete: operations['adminDeleteApiKey'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/api-keys/{keyId}/rotate": {
+    '/api/admin/api-keys/{keyId}/rotate': {
         parameters: {
             query?: never;
             header?: never;
@@ -49,14 +49,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Rotate API key secret */
-        post: operations["adminRotateApiKey"];
+        post: operations['adminRotateApiKey'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/api-keys/{keyId}/toggle": {
+    '/api/admin/api-keys/{keyId}/toggle': {
         parameters: {
             query?: never;
             header?: never;
@@ -66,14 +66,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Toggle API key activation */
-        post: operations["adminToggleApiKey"];
+        post: operations['adminToggleApiKey'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/companies/{companyId}/assign-plan": {
+    '/api/admin/companies/{companyId}/assign-plan': {
         parameters: {
             query?: never;
             header?: never;
@@ -83,14 +83,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Assign plan to company */
-        post: operations["adminAssignPlan"];
+        post: operations['adminAssignPlan'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/companies/{companyId}/feature-flags": {
+    '/api/admin/companies/{companyId}/feature-flags': {
         parameters: {
             query?: never;
             header?: never;
@@ -98,17 +98,17 @@ export interface paths {
             cookie?: never;
         };
         /** List company feature flags */
-        get: operations["adminListFeatureFlags"];
+        get: operations['adminListFeatureFlags'];
         put?: never;
         /** Create feature flag override */
-        post: operations["adminCreateFeatureFlag"];
+        post: operations['adminCreateFeatureFlag'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/companies/{companyId}/feature-flags/{flagId}": {
+    '/api/admin/companies/{companyId}/feature-flags/{flagId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -120,16 +120,16 @@ export interface paths {
         };
         get?: never;
         /** Update feature flag override */
-        put: operations["adminUpdateFeatureFlag"];
+        put: operations['adminUpdateFeatureFlag'];
         post?: never;
         /** Remove feature flag override */
-        delete: operations["adminDeleteFeatureFlag"];
+        delete: operations['adminDeleteFeatureFlag'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/companies/{companyId}/status": {
+    '/api/admin/companies/{companyId}/status': {
         parameters: {
             query?: never;
             header?: never;
@@ -138,7 +138,7 @@ export interface paths {
         };
         get?: never;
         /** Update company lifecycle status */
-        put: operations["adminUpdateCompanyStatus"];
+        put: operations['adminUpdateCompanyStatus'];
         post?: never;
         delete?: never;
         options?: never;
@@ -146,7 +146,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/health": {
+    '/api/admin/health': {
         parameters: {
             query?: never;
             header?: never;
@@ -154,7 +154,7 @@ export interface paths {
             cookie?: never;
         };
         /** Platform health summary */
-        get: operations["adminHealthSummary"];
+        get: operations['adminHealthSummary'];
         put?: never;
         post?: never;
         delete?: never;
@@ -163,7 +163,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/plans": {
+    '/api/admin/plans': {
         parameters: {
             query?: never;
             header?: never;
@@ -171,17 +171,17 @@ export interface paths {
             cookie?: never;
         };
         /** List subscription plans */
-        get: operations["adminPlansIndex"];
+        get: operations['adminPlansIndex'];
         put?: never;
         /** Create subscription plan */
-        post: operations["adminPlansStore"];
+        post: operations['adminPlansStore'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/plans/{planId}": {
+    '/api/admin/plans/{planId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -191,18 +191,18 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve subscription plan */
-        get: operations["adminPlansShow"];
+        get: operations['adminPlansShow'];
         /** Update subscription plan */
-        put: operations["adminPlansUpdate"];
+        put: operations['adminPlansUpdate'];
         post?: never;
         /** Archive subscription plan */
-        delete: operations["adminPlansDestroy"];
+        delete: operations['adminPlansDestroy'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/rate-limits": {
+    '/api/admin/rate-limits': {
         parameters: {
             query?: never;
             header?: never;
@@ -210,17 +210,17 @@ export interface paths {
             cookie?: never;
         };
         /** List rate limit rules */
-        get: operations["adminListRateLimits"];
+        get: operations['adminListRateLimits'];
         put?: never;
         /** Create rate limit rule */
-        post: operations["adminCreateRateLimit"];
+        post: operations['adminCreateRateLimit'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/rate-limits/{rateLimitId}": {
+    '/api/admin/rate-limits/{rateLimitId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -230,18 +230,18 @@ export interface paths {
             cookie?: never;
         };
         /** Show rate limit rule */
-        get: operations["adminShowRateLimit"];
+        get: operations['adminShowRateLimit'];
         /** Update rate limit rule */
-        put: operations["adminUpdateRateLimit"];
+        put: operations['adminUpdateRateLimit'];
         post?: never;
         /** Delete rate limit rule */
-        delete: operations["adminDeleteRateLimit"];
+        delete: operations['adminDeleteRateLimit'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/suppliers": {
+    '/api/admin/suppliers': {
         parameters: {
             query?: never;
             header?: never;
@@ -249,17 +249,17 @@ export interface paths {
             cookie?: never;
         };
         /** List suppliers in admin console */
-        get: operations["adminListSuppliers"];
+        get: operations['adminListSuppliers'];
         put?: never;
         /** Create supplier on behalf of tenant */
-        post: operations["adminCreateSupplier"];
+        post: operations['adminCreateSupplier'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/suppliers/{supplierId}": {
+    '/api/admin/suppliers/{supplierId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -269,18 +269,18 @@ export interface paths {
             cookie?: never;
         };
         /** Show supplier details in admin console */
-        get: operations["adminShowSupplier"];
+        get: operations['adminShowSupplier'];
         put?: never;
         post?: never;
         /** Archive supplier */
-        delete: operations["adminDeleteSupplier"];
+        delete: operations['adminDeleteSupplier'];
         options?: never;
         head?: never;
         /** Update supplier attributes in admin console */
-        patch: operations["adminUpdateSupplier"];
+        patch: operations['adminUpdateSupplier'];
         trace?: never;
     };
-    "/api/admin/webhook-deliveries": {
+    '/api/admin/webhook-deliveries': {
         parameters: {
             query?: never;
             header?: never;
@@ -288,7 +288,7 @@ export interface paths {
             cookie?: never;
         };
         /** List webhook deliveries */
-        get: operations["adminListWebhookDeliveries"];
+        get: operations['adminListWebhookDeliveries'];
         put?: never;
         post?: never;
         delete?: never;
@@ -297,7 +297,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/webhook-deliveries/{deliveryId}/retry": {
+    '/api/admin/webhook-deliveries/{deliveryId}/retry': {
         parameters: {
             query?: never;
             header?: never;
@@ -307,14 +307,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Retry failed webhook delivery */
-        post: operations["adminRetryWebhookDelivery"];
+        post: operations['adminRetryWebhookDelivery'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/webhook-subscriptions": {
+    '/api/admin/webhook-subscriptions': {
         parameters: {
             query?: never;
             header?: never;
@@ -322,17 +322,17 @@ export interface paths {
             cookie?: never;
         };
         /** List webhook subscriptions */
-        get: operations["adminListWebhookSubscriptions"];
+        get: operations['adminListWebhookSubscriptions'];
         put?: never;
         /** Create webhook subscription */
-        post: operations["adminCreateWebhookSubscription"];
+        post: operations['adminCreateWebhookSubscription'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/webhook-subscriptions/{subscriptionId}": {
+    '/api/admin/webhook-subscriptions/{subscriptionId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -342,18 +342,18 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve webhook subscription */
-        get: operations["adminShowWebhookSubscription"];
+        get: operations['adminShowWebhookSubscription'];
         /** Update webhook subscription */
-        put: operations["adminUpdateWebhookSubscription"];
+        put: operations['adminUpdateWebhookSubscription'];
         post?: never;
         /** Remove webhook subscription */
-        delete: operations["adminDeleteWebhookSubscription"];
+        delete: operations['adminDeleteWebhookSubscription'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/analytics/generate": {
+    '/api/analytics/generate': {
         parameters: {
             query?: never;
             header?: never;
@@ -363,14 +363,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Generate ad-hoc analytics export */
-        post: operations["analyticsGenerate"];
+        post: operations['analyticsGenerate'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/analytics/overview": {
+    '/api/analytics/overview': {
         parameters: {
             query?: never;
             header?: never;
@@ -378,7 +378,7 @@ export interface paths {
             cookie?: never;
         };
         /** Fetch analytics overview dashboard */
-        get: operations["analyticsOverview"];
+        get: operations['analyticsOverview'];
         put?: never;
         post?: never;
         delete?: never;
@@ -387,7 +387,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/analytics/reports": {
+    '/api/analytics/reports': {
         parameters: {
             query?: never;
             header?: never;
@@ -395,7 +395,7 @@ export interface paths {
             cookie?: never;
         };
         /** List analytics reports */
-        get: operations["listAnalyticsReports"];
+        get: operations['listAnalyticsReports'];
         put?: never;
         post?: never;
         delete?: never;
@@ -404,7 +404,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/analytics/reports/{reportKey}": {
+    '/api/analytics/reports/{reportKey}': {
         parameters: {
             query?: never;
             header?: never;
@@ -414,7 +414,7 @@ export interface paths {
             cookie?: never;
         };
         /** Show report configuration */
-        get: operations["showAnalyticsReport"];
+        get: operations['showAnalyticsReport'];
         put?: never;
         post?: never;
         delete?: never;
@@ -423,7 +423,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/analytics/reports/{reportKey}/run": {
+    '/api/analytics/reports/{reportKey}/run': {
         parameters: {
             query?: never;
             header?: never;
@@ -435,14 +435,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Run analytics report */
-        post: operations["runAnalyticsReport"];
+        post: operations['runAnalyticsReport'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/delegations": {
+    '/api/approvals/delegations': {
         parameters: {
             query?: never;
             header?: never;
@@ -450,17 +450,17 @@ export interface paths {
             cookie?: never;
         };
         /** List approval delegations */
-        get: operations["listApprovalDelegations"];
+        get: operations['listApprovalDelegations'];
         put?: never;
         /** Create approval delegation */
-        post: operations["createApprovalDelegation"];
+        post: operations['createApprovalDelegation'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/delegations/{delegationId}": {
+    '/api/approvals/delegations/{delegationId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -471,16 +471,16 @@ export interface paths {
         };
         get?: never;
         /** Update approval delegation */
-        put: operations["updateApprovalDelegation"];
+        put: operations['updateApprovalDelegation'];
         post?: never;
         /** Delete approval delegation */
-        delete: operations["deleteApprovalDelegation"];
+        delete: operations['deleteApprovalDelegation'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/requests": {
+    '/api/approvals/requests': {
         parameters: {
             query?: never;
             header?: never;
@@ -488,7 +488,7 @@ export interface paths {
             cookie?: never;
         };
         /** List approval requests */
-        get: operations["listApprovalRequests"];
+        get: operations['listApprovalRequests'];
         put?: never;
         post?: never;
         delete?: never;
@@ -497,7 +497,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/requests/{approvalId}": {
+    '/api/approvals/requests/{approvalId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -507,7 +507,7 @@ export interface paths {
             cookie?: never;
         };
         /** Show approval request */
-        get: operations["showApprovalRequest"];
+        get: operations['showApprovalRequest'];
         put?: never;
         post?: never;
         delete?: never;
@@ -516,7 +516,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/requests/{approvalId}/action": {
+    '/api/approvals/requests/{approvalId}/action': {
         parameters: {
             query?: never;
             header?: never;
@@ -528,14 +528,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Take action on approval request */
-        post: operations["actOnApprovalRequest"];
+        post: operations['actOnApprovalRequest'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/rules": {
+    '/api/approvals/rules': {
         parameters: {
             query?: never;
             header?: never;
@@ -543,17 +543,17 @@ export interface paths {
             cookie?: never;
         };
         /** List approval rules */
-        get: operations["listApprovalRules"];
+        get: operations['listApprovalRules'];
         put?: never;
         /** Create approval rule */
-        post: operations["createApprovalRule"];
+        post: operations['createApprovalRule'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/approvals/rules/{ruleId}": {
+    '/api/approvals/rules/{ruleId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -563,18 +563,18 @@ export interface paths {
             cookie?: never;
         };
         /** Show approval rule */
-        get: operations["showApprovalRule"];
+        get: operations['showApprovalRule'];
         /** Update approval rule */
-        put: operations["updateApprovalRule"];
+        put: operations['updateApprovalRule'];
         post?: never;
         /** Delete approval rule */
-        delete: operations["deleteApprovalRule"];
+        delete: operations['deleteApprovalRule'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/forgot-password": {
+    '/api/auth/forgot-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -587,14 +587,14 @@ export interface paths {
          * Send password reset link
          * @description Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
          */
-        post: operations["authForgotPassword"];
+        post: operations['authForgotPassword'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/login": {
+    '/api/auth/login': {
         parameters: {
             query?: never;
             header?: never;
@@ -607,14 +607,14 @@ export interface paths {
          * Create an authenticated session
          * @description Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
          */
-        post: operations["authLogin"];
+        post: operations['authLogin'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/logout": {
+    '/api/auth/logout': {
         parameters: {
             query?: never;
             header?: never;
@@ -624,14 +624,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Terminate the authenticated session */
-        post: operations["authLogout"];
+        post: operations['authLogout'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/me": {
+    '/api/auth/me': {
         parameters: {
             query?: never;
             header?: never;
@@ -642,7 +642,7 @@ export interface paths {
          * Inspect the current authenticated session
          * @description Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
          */
-        get: operations["authSession"];
+        get: operations['authSession'];
         put?: never;
         post?: never;
         delete?: never;
@@ -651,7 +651,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/register": {
+    '/api/auth/register': {
         parameters: {
             query?: never;
             header?: never;
@@ -664,14 +664,14 @@ export interface paths {
          * Self-register a buyer company and primary owner
          * @description Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
          */
-        post: operations["authRegister"];
+        post: operations['authRegister'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/reset-password": {
+    '/api/auth/reset-password': {
         parameters: {
             query?: never;
             header?: never;
@@ -684,14 +684,14 @@ export interface paths {
          * Reset password with token
          * @description Verifies the password reset token issued via email and sets a new password for the user.
          */
-        post: operations["authResetPassword"];
+        post: operations['authResetPassword'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/awards": {
+    '/api/awards': {
         parameters: {
             query?: never;
             header?: never;
@@ -701,14 +701,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create RFQ line awards without generating purchase orders */
-        post: operations["createAwards"];
+        post: operations['createAwards'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/awards/{awardId}": {
+    '/api/awards/{awardId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -719,13 +719,13 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete an RFQ line award and reopen the associated line */
-        delete: operations["deleteAward"];
+        delete: operations['deleteAward'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/change-orders/{changeOrderId}/approve": {
+    '/api/change-orders/{changeOrderId}/approve': {
         parameters: {
             query?: never;
             header?: never;
@@ -734,7 +734,7 @@ export interface paths {
         };
         get?: never;
         /** Approve change order */
-        put: operations["approvePurchaseOrderChangeOrder"];
+        put: operations['approvePurchaseOrderChangeOrder'];
         post?: never;
         delete?: never;
         options?: never;
@@ -742,7 +742,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/change-orders/{changeOrderId}/reject": {
+    '/api/change-orders/{changeOrderId}/reject': {
         parameters: {
             query?: never;
             header?: never;
@@ -751,7 +751,7 @@ export interface paths {
         };
         get?: never;
         /** Reject change order */
-        put: operations["rejectPurchaseOrderChangeOrder"];
+        put: operations['rejectPurchaseOrderChangeOrder'];
         post?: never;
         delete?: never;
         options?: never;
@@ -759,7 +759,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies": {
+    '/api/companies': {
         parameters: {
             query?: never;
             header?: never;
@@ -769,14 +769,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Register company and request onboarding */
-        post: operations["registerCompany"];
+        post: operations['registerCompany'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/companies/current": {
+    '/api/companies/current': {
         parameters: {
             query?: never;
             header?: never;
@@ -784,17 +784,17 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve profile for authenticated company */
-        get: operations["showCurrentCompany"];
+        get: operations['showCurrentCompany'];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update profile for authenticated company */
-        patch: operations["updateCurrentCompany"];
+        patch: operations['updateCurrentCompany'];
         trace?: never;
     };
-    "/api/companies/{companyId}": {
+    '/api/companies/{companyId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -804,9 +804,9 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve company profile */
-        get: operations["showCompany"];
+        get: operations['showCompany'];
         /** Update company profile */
-        put: operations["updateCompany"];
+        put: operations['updateCompany'];
         post?: never;
         delete?: never;
         options?: never;
@@ -814,7 +814,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{companyId}/documents": {
+    '/api/companies/{companyId}/documents': {
         parameters: {
             query?: never;
             header?: never;
@@ -824,17 +824,17 @@ export interface paths {
             cookie?: never;
         };
         /** List company documents */
-        get: operations["listCompanyDocuments"];
+        get: operations['listCompanyDocuments'];
         put?: never;
         /** Upload company document */
-        post: operations["createCompanyDocument"];
+        post: operations['createCompanyDocument'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{companyId}/documents/{documentId}": {
+    '/api/companies/{companyId}/documents/{documentId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -848,13 +848,13 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete company document */
-        delete: operations["deleteCompanyDocument"];
+        delete: operations['deleteCompanyDocument'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/company/plan-selection": {
+    '/api/company/plan-selection': {
         parameters: {
             query?: never;
             header?: never;
@@ -864,14 +864,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Select a subscription plan for the authenticated company */
-        post: operations["selectCompanyPlan"];
+        post: operations['selectCompanyPlan'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/copilot/analytics": {
+    '/api/copilot/analytics': {
         parameters: {
             query?: never;
             header?: never;
@@ -881,14 +881,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Generate analytics insight via Copilot */
-        post: operations["copilotAnalytics"];
+        post: operations['copilotAnalytics'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/copilot/chat/completions": {
+    '/api/copilot/chat/completions': {
         parameters: {
             query?: never;
             header?: never;
@@ -898,14 +898,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stream structured copilot response */
-        post: operations["copilotChatCompletion"];
+        post: operations['copilotChatCompletion'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/copilot/prompts": {
+    '/api/copilot/prompts': {
         parameters: {
             query?: never;
             header?: never;
@@ -913,7 +913,7 @@ export interface paths {
             cookie?: never;
         };
         /** List available copilot prompts */
-        get: operations["listCopilotPrompts"];
+        get: operations['listCopilotPrompts'];
         put?: never;
         post?: never;
         delete?: never;
@@ -922,7 +922,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes": {
+    '/api/credit-notes': {
         parameters: {
             query?: never;
             header?: never;
@@ -930,7 +930,7 @@ export interface paths {
             cookie?: never;
         };
         /** List credit notes for tenant */
-        get: operations["listCreditNotes"];
+        get: operations['listCreditNotes'];
         put?: never;
         post?: never;
         delete?: never;
@@ -939,7 +939,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/invoices/{invoiceId}": {
+    '/api/credit-notes/invoices/{invoiceId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -949,14 +949,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Draft credit note from invoice */
-        post: operations["createCreditNote"];
+        post: operations['createCreditNote'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/{creditNoteId}": {
+    '/api/credit-notes/{creditNoteId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -966,7 +966,7 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve credit note */
-        get: operations["showCreditNote"];
+        get: operations['showCreditNote'];
         put?: never;
         post?: never;
         delete?: never;
@@ -975,7 +975,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/{creditNoteId}/approve": {
+    '/api/credit-notes/{creditNoteId}/approve': {
         parameters: {
             query?: never;
             header?: never;
@@ -985,14 +985,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Approve or reject credit note */
-        post: operations["approveCreditNote"];
+        post: operations['approveCreditNote'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/{creditNoteId}/attachments": {
+    '/api/credit-notes/{creditNoteId}/attachments': {
         parameters: {
             query?: never;
             header?: never;
@@ -1002,14 +1002,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload attachment for credit note */
-        post: operations["attachCreditNoteFile"];
+        post: operations['attachCreditNoteFile'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/{creditNoteId}/issue": {
+    '/api/credit-notes/{creditNoteId}/issue': {
         parameters: {
             query?: never;
             header?: never;
@@ -1019,14 +1019,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Issue credit note to supplier */
-        post: operations["issueCreditNote"];
+        post: operations['issueCreditNote'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/{creditNoteId}/lines": {
+    '/api/credit-notes/{creditNoteId}/lines': {
         parameters: {
             query?: never;
             header?: never;
@@ -1035,7 +1035,7 @@ export interface paths {
         };
         get?: never;
         /** Update credit note lines */
-        put: operations["updateCreditNoteLines"];
+        put: operations['updateCreditNoteLines'];
         post?: never;
         delete?: never;
         options?: never;
@@ -1043,7 +1043,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/credit-notes/{creditNoteId}/recalculate": {
+    '/api/credit-notes/{creditNoteId}/recalculate': {
         parameters: {
             query?: never;
             header?: never;
@@ -1053,14 +1053,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Recalculate credit note totals */
-        post: operations["recalcCreditNoteTotals"];
+        post: operations['recalcCreditNoteTotals'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/crm/export-preview": {
+    '/api/crm/export-preview': {
         parameters: {
             query?: never;
             header?: never;
@@ -1068,17 +1068,17 @@ export interface paths {
             cookie?: never;
         };
         /** Preview CRM export payload */
-        get: operations["crmExportPreview"];
+        get: operations['crmExportPreview'];
         put?: never;
         /** Generate CRM export preview with filters */
-        post: operations["crmExportPreviewFilter"];
+        post: operations['crmExportPreviewFilter'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/dashboard/metrics": {
+    '/api/dashboard/metrics': {
         parameters: {
             query?: never;
             header?: never;
@@ -1089,7 +1089,7 @@ export interface paths {
          * Retrieve dashboard KPI metrics
          * @description Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
          */
-        get: operations["getDashboardMetrics"];
+        get: operations['getDashboardMetrics'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1098,7 +1098,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/assets": {
+    '/api/digital-twin/assets': {
         parameters: {
             query?: never;
             header?: never;
@@ -1106,17 +1106,17 @@ export interface paths {
             cookie?: never;
         };
         /** List registered digital twin assets */
-        get: operations["listDigitalTwinAssets"];
+        get: operations['listDigitalTwinAssets'];
         put?: never;
         /** Create digital twin asset */
-        post: operations["createDigitalTwinAsset"];
+        post: operations['createDigitalTwinAsset'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}": {
+    '/api/digital-twin/assets/{assetId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1126,19 +1126,19 @@ export interface paths {
             cookie?: never;
         };
         /** Show digital twin asset */
-        get: operations["showDigitalTwinAsset"];
+        get: operations['showDigitalTwinAsset'];
         /** Replace digital twin asset */
-        put: operations["updateDigitalTwinAsset"];
+        put: operations['updateDigitalTwinAsset'];
         post?: never;
         /** Delete digital twin asset */
-        delete: operations["deleteDigitalTwinAsset"];
+        delete: operations['deleteDigitalTwinAsset'];
         options?: never;
         head?: never;
         /** Partially update digital twin asset */
-        patch: operations["patchDigitalTwinAsset"];
+        patch: operations['patchDigitalTwinAsset'];
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}/bom": {
+    '/api/digital-twin/assets/{assetId}/bom': {
         parameters: {
             query?: never;
             header?: never;
@@ -1149,7 +1149,7 @@ export interface paths {
         };
         get?: never;
         /** Sync asset bill of materials */
-        put: operations["syncDigitalTwinAssetBom"];
+        put: operations['syncDigitalTwinAssetBom'];
         post?: never;
         delete?: never;
         options?: never;
@@ -1157,7 +1157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}/procedures/{procedureId}": {
+    '/api/digital-twin/assets/{assetId}/procedures/{procedureId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1169,16 +1169,16 @@ export interface paths {
         };
         get?: never;
         /** Link maintenance procedure to asset */
-        put: operations["linkDigitalTwinProcedure"];
+        put: operations['linkDigitalTwinProcedure'];
         post?: never;
         /** Detach maintenance procedure from asset */
-        delete: operations["detachDigitalTwinProcedure"];
+        delete: operations['detachDigitalTwinProcedure'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}/procedures/{procedureId}/complete": {
+    '/api/digital-twin/assets/{assetId}/procedures/{procedureId}/complete': {
         parameters: {
             query?: never;
             header?: never;
@@ -1191,14 +1191,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Complete maintenance procedure for asset */
-        post: operations["completeDigitalTwinProcedure"];
+        post: operations['completeDigitalTwinProcedure'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}/status": {
+    '/api/digital-twin/assets/{assetId}/status': {
         parameters: {
             query?: never;
             header?: never;
@@ -1214,10 +1214,10 @@ export interface paths {
         options?: never;
         head?: never;
         /** Update asset operational status */
-        patch: operations["updateDigitalTwinAssetStatus"];
+        patch: operations['updateDigitalTwinAssetStatus'];
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}/sync": {
+    '/api/digital-twin/assets/{assetId}/sync': {
         parameters: {
             query?: never;
             header?: never;
@@ -1229,14 +1229,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Trigger asset synchronization */
-        post: operations["syncDigitalTwinAsset"];
+        post: operations['syncDigitalTwinAsset'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/assets/{assetId}/work-orders": {
+    '/api/digital-twin/assets/{assetId}/work-orders': {
         parameters: {
             query?: never;
             header?: never;
@@ -1248,14 +1248,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create work order for asset */
-        post: operations["createDigitalTwinWorkOrder"];
+        post: operations['createDigitalTwinWorkOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/locations": {
+    '/api/digital-twin/locations': {
         parameters: {
             query?: never;
             header?: never;
@@ -1263,17 +1263,17 @@ export interface paths {
             cookie?: never;
         };
         /** List digital twin locations */
-        get: operations["listDigitalTwinLocations"];
+        get: operations['listDigitalTwinLocations'];
         put?: never;
         /** Create digital twin location */
-        post: operations["createDigitalTwinLocation"];
+        post: operations['createDigitalTwinLocation'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/locations/{locationId}": {
+    '/api/digital-twin/locations/{locationId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1283,19 +1283,19 @@ export interface paths {
             cookie?: never;
         };
         /** Show digital twin location */
-        get: operations["showDigitalTwinLocation"];
+        get: operations['showDigitalTwinLocation'];
         /** Replace digital twin location */
-        put: operations["updateDigitalTwinLocation"];
+        put: operations['updateDigitalTwinLocation'];
         post?: never;
         /** Delete digital twin location */
-        delete: operations["deleteDigitalTwinLocation"];
+        delete: operations['deleteDigitalTwinLocation'];
         options?: never;
         head?: never;
         /** Partially update digital twin location */
-        patch: operations["patchDigitalTwinLocation"];
+        patch: operations['patchDigitalTwinLocation'];
         trace?: never;
     };
-    "/api/digital-twin/procedures": {
+    '/api/digital-twin/procedures': {
         parameters: {
             query?: never;
             header?: never;
@@ -1303,17 +1303,17 @@ export interface paths {
             cookie?: never;
         };
         /** List maintenance procedures */
-        get: operations["listDigitalTwinProcedures"];
+        get: operations['listDigitalTwinProcedures'];
         put?: never;
         /** Create maintenance procedure */
-        post: operations["createDigitalTwinProcedure"];
+        post: operations['createDigitalTwinProcedure'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/procedures/{procedureId}": {
+    '/api/digital-twin/procedures/{procedureId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1323,19 +1323,19 @@ export interface paths {
             cookie?: never;
         };
         /** Show maintenance procedure */
-        get: operations["showDigitalTwinProcedure"];
+        get: operations['showDigitalTwinProcedure'];
         /** Replace maintenance procedure */
-        put: operations["updateDigitalTwinProcedure"];
+        put: operations['updateDigitalTwinProcedure'];
         post?: never;
         /** Delete maintenance procedure */
-        delete: operations["deleteDigitalTwinProcedure"];
+        delete: operations['deleteDigitalTwinProcedure'];
         options?: never;
         head?: never;
         /** Partially update maintenance procedure */
-        patch: operations["patchDigitalTwinProcedure"];
+        patch: operations['patchDigitalTwinProcedure'];
         trace?: never;
     };
-    "/api/digital-twin/systems": {
+    '/api/digital-twin/systems': {
         parameters: {
             query?: never;
             header?: never;
@@ -1343,17 +1343,17 @@ export interface paths {
             cookie?: never;
         };
         /** List digital twin systems */
-        get: operations["listDigitalTwinSystems"];
+        get: operations['listDigitalTwinSystems'];
         put?: never;
         /** Create digital twin system */
-        post: operations["createDigitalTwinSystem"];
+        post: operations['createDigitalTwinSystem'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/digital-twin/systems/{systemId}": {
+    '/api/digital-twin/systems/{systemId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1363,19 +1363,19 @@ export interface paths {
             cookie?: never;
         };
         /** Show digital twin system */
-        get: operations["showDigitalTwinSystem"];
+        get: operations['showDigitalTwinSystem'];
         /** Replace digital twin system */
-        put: operations["updateDigitalTwinSystem"];
+        put: operations['updateDigitalTwinSystem'];
         post?: never;
         /** Delete digital twin system */
-        delete: operations["deleteDigitalTwinSystem"];
+        delete: operations['deleteDigitalTwinSystem'];
         options?: never;
         head?: never;
         /** Partially update digital twin system */
-        patch: operations["patchDigitalTwinSystem"];
+        patch: operations['patchDigitalTwinSystem'];
         trace?: never;
     };
-    "/api/docs/openapi.json": {
+    '/api/docs/openapi.json': {
         parameters: {
             query?: never;
             header?: never;
@@ -1386,7 +1386,7 @@ export interface paths {
          * Download compiled OpenAPI document
          * @description Returns the compiled OpenAPI JSON artifact produced by the `api:spec:build` command.
          */
-        get: operations["downloadOpenApi"];
+        get: operations['downloadOpenApi'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1395,7 +1395,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/docs/postman.json": {
+    '/api/docs/postman.json': {
         parameters: {
             query?: never;
             header?: never;
@@ -1406,7 +1406,7 @@ export interface paths {
          * Download Postman collection
          * @description Returns the Postman collection generated from the compiled OpenAPI document.
          */
-        get: operations["downloadPostmanCollection"];
+        get: operations['downloadPostmanCollection'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1415,7 +1415,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/documents": {
+    '/api/documents': {
         parameters: {
             query?: never;
             header?: never;
@@ -1425,14 +1425,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Persist document to entity */
-        post: operations["storeDocument"];
+        post: operations['storeDocument'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/documents/{document}": {
+    '/api/documents/{document}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1442,7 +1442,7 @@ export interface paths {
             cookie?: never;
         };
         /** Show document metadata */
-        get: operations["showDocument"];
+        get: operations['showDocument'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1451,7 +1451,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/exports": {
+    '/api/exports': {
         parameters: {
             query?: never;
             header?: never;
@@ -1459,17 +1459,17 @@ export interface paths {
             cookie?: never;
         };
         /** List export requests */
-        get: operations["listExportRequests"];
+        get: operations['listExportRequests'];
         put?: never;
         /** Queue export request */
-        post: operations["createExportRequest"];
+        post: operations['createExportRequest'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/exports/{exportRequestId}": {
+    '/api/exports/{exportRequestId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1479,7 +1479,7 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve export request */
-        get: operations["showExportRequest"];
+        get: operations['showExportRequest'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1488,7 +1488,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/exports/{exportRequestId}/download": {
+    '/api/exports/{exportRequestId}/download': {
         parameters: {
             query?: never;
             header?: never;
@@ -1498,7 +1498,7 @@ export interface paths {
             cookie?: never;
         };
         /** Download export artifact */
-        get: operations["downloadExport"];
+        get: operations['downloadExport'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1507,7 +1507,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/files/attachments/{quoteId}": {
+    '/api/files/attachments/{quoteId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1517,7 +1517,7 @@ export interface paths {
             cookie?: never;
         };
         /** Download quote attachments archive */
-        get: operations["downloadQuoteAttachments"];
+        get: operations['downloadQuoteAttachments'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1526,7 +1526,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/files/cad/{rfqId}": {
+    '/api/files/cad/{rfqId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1536,7 +1536,7 @@ export interface paths {
             cookie?: never;
         };
         /** Download RFQ CAD package */
-        get: operations["downloadRfqCad"];
+        get: operations['downloadRfqCad'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1545,7 +1545,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/files/upload": {
+    '/api/files/upload': {
         parameters: {
             query?: never;
             header?: never;
@@ -1555,14 +1555,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload file to temporary storage */
-        post: operations["uploadFile"];
+        post: operations['uploadFile'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/health": {
+    '/api/health': {
         parameters: {
             query?: never;
             header?: never;
@@ -1570,7 +1570,7 @@ export interface paths {
             cookie?: never;
         };
         /** API health check */
-        get: operations["getHealth"];
+        get: operations['getHealth'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1579,7 +1579,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invitations": {
+    '/api/invitations': {
         parameters: {
             query?: never;
             header?: never;
@@ -1587,17 +1587,17 @@ export interface paths {
             cookie?: never;
         };
         /** List pending invitations for current company */
-        get: operations["listInvitations"];
+        get: operations['listInvitations'];
         put?: never;
         /** Invite user to company */
-        post: operations["createInvitation"];
+        post: operations['createInvitation'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/invitations/{token}": {
+    '/api/invitations/{token}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1607,17 +1607,17 @@ export interface paths {
             cookie?: never;
         };
         /** Show invitation by token */
-        get: operations["showInvitation"];
+        get: operations['showInvitation'];
         put?: never;
         post?: never;
         /** Revoke invitation by token */
-        delete: operations["deleteInvitation"];
+        delete: operations['deleteInvitation'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/invoices": {
+    '/api/invoices': {
         parameters: {
             query?: never;
             header?: never;
@@ -1625,7 +1625,7 @@ export interface paths {
             cookie?: never;
         };
         /** List invoices for company */
-        get: operations["listInvoices"];
+        get: operations['listInvoices'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1634,7 +1634,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invoices/from-po": {
+    '/api/invoices/from-po': {
         parameters: {
             query?: never;
             header?: never;
@@ -1644,14 +1644,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create invoice from purchase order reference */
-        post: operations["createInvoiceFromPo"];
+        post: operations['createInvoiceFromPo'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/invoices/{invoiceId}": {
+    '/api/invoices/{invoiceId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1661,18 +1661,18 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve invoice */
-        get: operations["showInvoice"];
+        get: operations['showInvoice'];
         /** Update invoice metadata */
-        put: operations["updateInvoice"];
+        put: operations['updateInvoice'];
         post?: never;
         /** Delete invoice */
-        delete: operations["deleteInvoice"];
+        delete: operations['deleteInvoice'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/invoices/{invoiceId}/attachments": {
+    '/api/invoices/{invoiceId}/attachments': {
         parameters: {
             query?: never;
             header?: never;
@@ -1682,14 +1682,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload supporting file for invoice */
-        post: operations["attachInvoiceFile"];
+        post: operations['attachInvoiceFile'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/invoices/{invoiceId}/recalculate": {
+    '/api/invoices/{invoiceId}/recalculate': {
         parameters: {
             query?: never;
             header?: never;
@@ -1699,14 +1699,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Recalculate invoice totals */
-        post: operations["recalculateInvoice"];
+        post: operations['recalculateInvoice'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/localization/parts/{partId}/convert": {
+    '/api/localization/parts/{partId}/convert': {
         parameters: {
             query?: never;
             header?: never;
@@ -1714,7 +1714,7 @@ export interface paths {
             cookie?: never;
         };
         /** Convert quantity using part base unit */
-        get: operations["convertQuantityForPart"];
+        get: operations['convertQuantityForPart'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1723,7 +1723,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/localization/uom/convert": {
+    '/api/localization/uom/convert': {
         parameters: {
             query?: never;
             header?: never;
@@ -1733,14 +1733,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Convert quantity between units */
-        post: operations["convertQuantity"];
+        post: operations['convertQuantity'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/localization/uoms": {
+    '/api/localization/uoms': {
         parameters: {
             query?: never;
             header?: never;
@@ -1748,17 +1748,17 @@ export interface paths {
             cookie?: never;
         };
         /** List units of measure */
-        get: operations["listUoms"];
+        get: operations['listUoms'];
         put?: never;
         /** Create unit of measure */
-        post: operations["createUom"];
+        post: operations['createUom'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/localization/uoms/conversions": {
+    '/api/localization/uoms/conversions': {
         parameters: {
             query?: never;
             header?: never;
@@ -1766,17 +1766,17 @@ export interface paths {
             cookie?: never;
         };
         /** List unit conversions */
-        get: operations["listUomConversions"];
+        get: operations['listUomConversions'];
         put?: never;
         /** Upsert unit conversion */
-        post: operations["upsertUomConversion"];
+        post: operations['upsertUomConversion'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/localization/uoms/{uomCode}": {
+    '/api/localization/uoms/{uomCode}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1787,16 +1787,16 @@ export interface paths {
         };
         get?: never;
         /** Update unit of measure */
-        put: operations["updateUom"];
+        put: operations['updateUom'];
         post?: never;
         /** Delete unit of measure */
-        delete: operations["deleteUom"];
+        delete: operations['deleteUom'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/me/apply-supplier": {
+    '/api/me/apply-supplier': {
         parameters: {
             query?: never;
             header?: never;
@@ -1809,14 +1809,14 @@ export interface paths {
          * Submit a supplier application for the authenticated company
          * @description Allows the current company owner to self-apply to the supplier directory using the same payload as internal submissions.
          */
-        post: operations["selfApplySupplierApplication"];
+        post: operations['selfApplySupplierApplication'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/me/supplier-application/status": {
+    '/api/me/supplier-application/status': {
         parameters: {
             query?: never;
             header?: never;
@@ -1824,7 +1824,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get supplier self-service application status */
-        get: operations["showSelfServiceSupplierApplicationStatus"];
+        get: operations['showSelfServiceSupplierApplicationStatus'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1833,7 +1833,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/me/supplier/visibility": {
+    '/api/me/supplier/visibility': {
         parameters: {
             query?: never;
             header?: never;
@@ -1842,7 +1842,7 @@ export interface paths {
         };
         get?: never;
         /** Update supplier directory visibility */
-        put: operations["updateSupplierVisibility"];
+        put: operations['updateSupplierVisibility'];
         post?: never;
         delete?: never;
         options?: never;
@@ -1850,7 +1850,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/money/fx": {
+    '/api/money/fx': {
         parameters: {
             query?: never;
             header?: never;
@@ -1858,17 +1858,17 @@ export interface paths {
             cookie?: never;
         };
         /** List FX rates */
-        get: operations["listFxRates"];
+        get: operations['listFxRates'];
         put?: never;
         /** Upsert FX rates */
-        post: operations["upsertFxRates"];
+        post: operations['upsertFxRates'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/money/settings": {
+    '/api/money/settings': {
         parameters: {
             query?: never;
             header?: never;
@@ -1876,9 +1876,9 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve money settings */
-        get: operations["showMoneySettings"];
+        get: operations['showMoneySettings'];
         /** Update money settings */
-        put: operations["updateMoneySettings"];
+        put: operations['updateMoneySettings'];
         post?: never;
         delete?: never;
         options?: never;
@@ -1886,7 +1886,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/money/tax-codes": {
+    '/api/money/tax-codes': {
         parameters: {
             query?: never;
             header?: never;
@@ -1894,17 +1894,17 @@ export interface paths {
             cookie?: never;
         };
         /** List tax codes */
-        get: operations["listTaxCodes"];
+        get: operations['listTaxCodes'];
         put?: never;
         /** Create tax code */
-        post: operations["createTaxCode"];
+        post: operations['createTaxCode'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/money/tax-codes/{taxCodeId}": {
+    '/api/money/tax-codes/{taxCodeId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -1914,19 +1914,19 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve tax code */
-        get: operations["showTaxCode"];
+        get: operations['showTaxCode'];
         /** Update tax code */
-        put: operations["updateTaxCode"];
+        put: operations['updateTaxCode'];
         post?: never;
         /** Delete tax code */
-        delete: operations["deleteTaxCode"];
+        delete: operations['deleteTaxCode'];
         options?: never;
         head?: never;
         /** Partially update tax code */
-        patch: operations["patchTaxCode"];
+        patch: operations['patchTaxCode'];
         trace?: never;
     };
-    "/api/notification-preferences": {
+    '/api/notification-preferences': {
         parameters: {
             query?: never;
             header?: never;
@@ -1934,9 +1934,9 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve notification preferences */
-        get: operations["showNotificationPreferences"];
+        get: operations['showNotificationPreferences'];
         /** Update notification preferences */
-        put: operations["updateNotificationPreferences"];
+        put: operations['updateNotificationPreferences'];
         post?: never;
         delete?: never;
         options?: never;
@@ -1944,7 +1944,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/notifications": {
+    '/api/notifications': {
         parameters: {
             query?: never;
             header?: never;
@@ -1952,7 +1952,7 @@ export interface paths {
             cookie?: never;
         };
         /** List user notifications */
-        get: operations["listNotifications"];
+        get: operations['listNotifications'];
         put?: never;
         post?: never;
         delete?: never;
@@ -1961,7 +1961,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/notifications/mark-all-read": {
+    '/api/notifications/mark-all-read': {
         parameters: {
             query?: never;
             header?: never;
@@ -1971,14 +1971,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Mark all notifications as read */
-        post: operations["markAllNotificationsRead"];
+        post: operations['markAllNotificationsRead'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/notifications/{notificationId}/read": {
+    '/api/notifications/{notificationId}/read': {
         parameters: {
             query?: never;
             header?: never;
@@ -1989,7 +1989,7 @@ export interface paths {
         };
         get?: never;
         /** Mark notification as read */
-        put: operations["markNotificationRead"];
+        put: operations['markNotificationRead'];
         post?: never;
         delete?: never;
         options?: never;
@@ -1997,7 +1997,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/orders": {
+    '/api/orders': {
         parameters: {
             query?: never;
             header?: never;
@@ -2005,7 +2005,7 @@ export interface paths {
             cookie?: never;
         };
         /** List public supplier orders */
-        get: operations["listOrders"];
+        get: operations['listOrders'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2014,7 +2014,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/orders/{orderId}": {
+    '/api/orders/{orderId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2024,7 +2024,7 @@ export interface paths {
             cookie?: never;
         };
         /** Show supplier order detail */
-        get: operations["showOrder"];
+        get: operations['showOrder'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2033,7 +2033,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/plans": {
+    '/api/plans': {
         parameters: {
             query?: never;
             header?: never;
@@ -2041,7 +2041,7 @@ export interface paths {
             cookie?: never;
         };
         /** List publicly available subscription plans */
-        get: operations["listPlansCatalog"];
+        get: operations['listPlansCatalog'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2050,7 +2050,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/pos/from-awards": {
+    '/api/pos/from-awards': {
         parameters: {
             query?: never;
             header?: never;
@@ -2060,14 +2060,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Convert awarded RFQ lines into draft purchase orders */
-        post: operations["createPurchaseOrdersFromAwards"];
+        post: operations['createPurchaseOrdersFromAwards'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders": {
+    '/api/purchase-orders': {
         parameters: {
             query?: never;
             header?: never;
@@ -2075,7 +2075,7 @@ export interface paths {
             cookie?: never;
         };
         /** List purchase orders */
-        get: operations["listPurchaseOrders"];
+        get: operations['listPurchaseOrders'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2084,7 +2084,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}": {
+    '/api/purchase-orders/{purchaseOrderId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2094,7 +2094,7 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve purchase order */
-        get: operations["showPurchaseOrder"];
+        get: operations['showPurchaseOrder'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2103,7 +2103,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/acknowledge": {
+    '/api/purchase-orders/{purchaseOrderId}/acknowledge': {
         parameters: {
             query?: never;
             header?: never;
@@ -2113,14 +2113,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Supplier acknowledges purchase order */
-        post: operations["acknowledgePurchaseOrder"];
+        post: operations['acknowledgePurchaseOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/cancel": {
+    '/api/purchase-orders/{purchaseOrderId}/cancel': {
         parameters: {
             query?: never;
             header?: never;
@@ -2130,14 +2130,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Cancel purchase order */
-        post: operations["cancelPurchaseOrder"];
+        post: operations['cancelPurchaseOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/change-orders": {
+    '/api/purchase-orders/{purchaseOrderId}/change-orders': {
         parameters: {
             query?: never;
             header?: never;
@@ -2147,17 +2147,17 @@ export interface paths {
             cookie?: never;
         };
         /** List change orders for purchase order */
-        get: operations["listPurchaseOrderChangeOrders"];
+        get: operations['listPurchaseOrderChangeOrders'];
         put?: never;
         /** Propose change order */
-        post: operations["createPurchaseOrderChangeOrder"];
+        post: operations['createPurchaseOrderChangeOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download": {
+    '/api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download': {
         parameters: {
             query?: never;
             header?: never;
@@ -2165,7 +2165,7 @@ export interface paths {
             cookie?: never;
         };
         /** Download purchase order PDF */
-        get: operations["downloadPurchaseOrderDocument"];
+        get: operations['downloadPurchaseOrderDocument'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2174,7 +2174,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/events": {
+    '/api/purchase-orders/{purchaseOrderId}/events': {
         parameters: {
             query?: never;
             header?: never;
@@ -2184,7 +2184,7 @@ export interface paths {
             cookie?: never;
         };
         /** List purchase order timeline events */
-        get: operations["listPurchaseOrderEvents"];
+        get: operations['listPurchaseOrderEvents'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2193,7 +2193,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/export": {
+    '/api/purchase-orders/{purchaseOrderId}/export': {
         parameters: {
             query?: never;
             header?: never;
@@ -2203,14 +2203,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Generate PDF for purchase order */
-        post: operations["exportPurchaseOrder"];
+        post: operations['exportPurchaseOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/grns": {
+    '/api/purchase-orders/{purchaseOrderId}/grns': {
         parameters: {
             query?: never;
             header?: never;
@@ -2220,17 +2220,17 @@ export interface paths {
             cookie?: never;
         };
         /** List goods receipt notes for purchase order */
-        get: operations["listGrns"];
+        get: operations['listGrns'];
         put?: never;
         /** Create goods receipt note */
-        post: operations["createGrn"];
+        post: operations['createGrn'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/grns/{grnId}": {
+    '/api/purchase-orders/{purchaseOrderId}/grns/{grnId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2241,23 +2241,23 @@ export interface paths {
             cookie?: never;
         };
         /** Show goods receipt note */
-        get: operations["showGrn"];
+        get: operations['showGrn'];
         /** Update goods receipt note */
-        put: operations["updateGrn"];
+        put: operations['updateGrn'];
         post?: never;
         /** Delete goods receipt note */
-        delete: operations["deleteGrn"];
+        delete: operations['deleteGrn'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/invoices": {
+    '/api/purchase-orders/{purchaseOrderId}/invoices': {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
-                page?: components["parameters"]["PageQuery"];
-                status?: "pending" | "paid" | "overdue" | "disputed";
+                per_page?: components['parameters']['PerPageQuery'];
+                page?: components['parameters']['PageQuery'];
+                status?: 'pending' | 'paid' | 'overdue' | 'disputed';
                 supplier_id?: number;
                 from?: string;
                 to?: string;
@@ -2269,17 +2269,17 @@ export interface paths {
             cookie?: never;
         };
         /** List invoices for a purchase order */
-        get: operations["listInvoicesForPurchaseOrder"];
+        get: operations['listInvoicesForPurchaseOrder'];
         put?: never;
         /** Create invoice for purchase order */
-        post: operations["createInvoiceForPurchaseOrder"];
+        post: operations['createInvoiceForPurchaseOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/recalculate": {
+    '/api/purchase-orders/{purchaseOrderId}/recalculate': {
         parameters: {
             query?: never;
             header?: never;
@@ -2289,14 +2289,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Recalculate purchase order totals */
-        post: operations["recalcPurchaseOrderTotals"];
+        post: operations['recalcPurchaseOrderTotals'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/send": {
+    '/api/purchase-orders/{purchaseOrderId}/send': {
         parameters: {
             query?: never;
             header?: never;
@@ -2306,14 +2306,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Issue purchase order to supplier */
-        post: operations["sendPurchaseOrder"];
+        post: operations['sendPurchaseOrder'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/purchase-orders/{purchaseOrderId}/shipments": {
+    '/api/purchase-orders/{purchaseOrderId}/shipments': {
         parameters: {
             query?: never;
             header?: never;
@@ -2323,7 +2323,7 @@ export interface paths {
             cookie?: never;
         };
         /** List shipments linked to purchase order */
-        get: operations["listPurchaseOrderShipments"];
+        get: operations['listPurchaseOrderShipments'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2332,7 +2332,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/quotes": {
+    '/api/quotes': {
         parameters: {
             query?: never;
             header?: never;
@@ -2342,14 +2342,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Submit quote directly */
-        post: operations["submitQuote"];
+        post: operations['submitQuote'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/quotes/{quoteId}": {
+    '/api/quotes/{quoteId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2359,7 +2359,7 @@ export interface paths {
             cookie?: never;
         };
         /** Fetch a single quote */
-        get: operations["showQuote"];
+        get: operations['showQuote'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2368,7 +2368,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/quotes/{quoteId}/lines": {
+    '/api/quotes/{quoteId}/lines': {
         parameters: {
             query?: never;
             header?: never;
@@ -2380,14 +2380,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Add line to draft quote */
-        post: operations["addQuoteLine"];
+        post: operations['addQuoteLine'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/quotes/{quoteId}/lines/{quoteItemId}": {
+    '/api/quotes/{quoteId}/lines/{quoteItemId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2399,16 +2399,16 @@ export interface paths {
         };
         get?: never;
         /** Update an existing quote line */
-        put: operations["updateQuoteLine"];
+        put: operations['updateQuoteLine'];
         post?: never;
         /** Remove a quote line */
-        delete: operations["deleteQuoteLine"];
+        delete: operations['deleteQuoteLine'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/quotes/{quoteId}/recalculate": {
+    '/api/quotes/{quoteId}/recalculate': {
         parameters: {
             query?: never;
             header?: never;
@@ -2418,14 +2418,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Recalculate quote totals */
-        post: operations["recalcQuoteTotals"];
+        post: operations['recalcQuoteTotals'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/quotes/{quoteId}/submit": {
+    '/api/quotes/{quoteId}/submit': {
         parameters: {
             query?: never;
             header?: never;
@@ -2435,14 +2435,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Submit a draft quote */
-        post: operations["submitDraftQuote"];
+        post: operations['submitDraftQuote'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/receiving/grns": {
+    '/api/receiving/grns': {
         parameters: {
             query?: never;
             header?: never;
@@ -2450,17 +2450,17 @@ export interface paths {
             cookie?: never;
         };
         /** List company goods receipt notes */
-        get: operations["listCompanyGrns"];
+        get: operations['listCompanyGrns'];
         put?: never;
         /** Record a goods receipt note for a purchase order */
-        post: operations["storeCompanyGrn"];
+        post: operations['storeCompanyGrn'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/receiving/grns/{grnId}": {
+    '/api/receiving/grns/{grnId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2470,7 +2470,7 @@ export interface paths {
             cookie?: never;
         };
         /** Show a goods receipt note */
-        get: operations["showCompanyGrn"];
+        get: operations['showCompanyGrn'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2479,7 +2479,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/receiving/grns/{grnId}/attachments": {
+    '/api/receiving/grns/{grnId}/attachments': {
         parameters: {
             query?: never;
             header?: never;
@@ -2489,14 +2489,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload attachment to goods receipt note */
-        post: operations["attachCompanyGrnFile"];
+        post: operations['attachCompanyGrnFile'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs": {
+    '/api/rfqs': {
         parameters: {
             query?: never;
             header?: never;
@@ -2504,17 +2504,17 @@ export interface paths {
             cookie?: never;
         };
         /** List RFQs */
-        get: operations["listRfqs"];
+        get: operations['listRfqs'];
         put?: never;
         /** Create RFQ */
-        post: operations["createRfq"];
+        post: operations['createRfq'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}": {
+    '/api/rfqs/{rfqId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2524,18 +2524,18 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve RFQ */
-        get: operations["showRfq"];
+        get: operations['showRfq'];
         /** Update RFQ */
-        put: operations["updateRfq"];
+        put: operations['updateRfq'];
         post?: never;
         /** Delete RFQ */
-        delete: operations["deleteRfq"];
+        delete: operations['deleteRfq'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/attachments": {
+    '/api/rfqs/{rfqId}/attachments': {
         parameters: {
             query?: never;
             header?: never;
@@ -2545,17 +2545,17 @@ export interface paths {
             cookie?: never;
         };
         /** List RFQ attachments */
-        get: operations["listRfqAttachments"];
+        get: operations['listRfqAttachments'];
         put?: never;
         /** Upload RFQ attachment */
-        post: operations["uploadRfqAttachment"];
+        post: operations['uploadRfqAttachment'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/attachments/{attachmentId}": {
+    '/api/rfqs/{rfqId}/attachments/{attachmentId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2569,13 +2569,13 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete RFQ attachment */
-        delete: operations["deleteRfqAttachment"];
+        delete: operations['deleteRfqAttachment'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/award": {
+    '/api/rfqs/{rfqId}/award': {
         parameters: {
             query?: never;
             header?: never;
@@ -2585,14 +2585,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Award RFQ */
-        post: operations["awardRfq"];
+        post: operations['awardRfq'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/award-candidates": {
+    '/api/rfqs/{rfqId}/award-candidates': {
         parameters: {
             query?: never;
             header?: never;
@@ -2600,7 +2600,7 @@ export interface paths {
             cookie?: never;
         };
         /** List award candidates for an RFQ */
-        get: operations["listRfqAwardCandidates"];
+        get: operations['listRfqAwardCandidates'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2609,7 +2609,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/award-lines": {
+    '/api/rfqs/{rfqId}/award-lines': {
         parameters: {
             query?: never;
             header?: never;
@@ -2619,14 +2619,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Award specific RFQ lines */
-        post: operations["awardRfqLines"];
+        post: operations['awardRfqLines'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/clarifications": {
+    '/api/rfqs/{rfqId}/clarifications': {
         parameters: {
             query?: never;
             header?: never;
@@ -2636,7 +2636,7 @@ export interface paths {
             cookie?: never;
         };
         /** List clarifications */
-        get: operations["listRfqClarifications"];
+        get: operations['listRfqClarifications'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2645,7 +2645,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/clarifications/amendment": {
+    '/api/rfqs/{rfqId}/clarifications/amendment': {
         parameters: {
             query?: never;
             header?: never;
@@ -2655,14 +2655,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Publish amendment */
-        post: operations["createRfqAmendment"];
+        post: operations['createRfqAmendment'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/clarifications/answer": {
+    '/api/rfqs/{rfqId}/clarifications/answer': {
         parameters: {
             query?: never;
             header?: never;
@@ -2672,14 +2672,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Submit clarification answer */
-        post: operations["createRfqClarificationAnswer"];
+        post: operations['createRfqClarificationAnswer'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/clarifications/question": {
+    '/api/rfqs/{rfqId}/clarifications/question': {
         parameters: {
             query?: never;
             header?: never;
@@ -2689,14 +2689,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Submit clarification question */
-        post: operations["createRfqClarificationQuestion"];
+        post: operations['createRfqClarificationQuestion'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/close": {
+    '/api/rfqs/{rfqId}/close': {
         parameters: {
             query?: never;
             header?: never;
@@ -2706,14 +2706,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Close RFQ */
-        post: operations["closeRfq"];
+        post: operations['closeRfq'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/invitations": {
+    '/api/rfqs/{rfqId}/invitations': {
         parameters: {
             query?: never;
             header?: never;
@@ -2723,17 +2723,17 @@ export interface paths {
             cookie?: never;
         };
         /** List RFQ invitations */
-        get: operations["listRfqInvitations"];
+        get: operations['listRfqInvitations'];
         put?: never;
         /** Invite supplier to RFQ */
-        post: operations["inviteSupplierToRfq"];
+        post: operations['inviteSupplierToRfq'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/lines": {
+    '/api/rfqs/{rfqId}/lines': {
         parameters: {
             query?: never;
             header?: never;
@@ -2743,17 +2743,17 @@ export interface paths {
             cookie?: never;
         };
         /** List RFQ lines */
-        get: operations["listRfqLines"];
+        get: operations['listRfqLines'];
         put?: never;
         /** Add RFQ line */
-        post: operations["createRfqLine"];
+        post: operations['createRfqLine'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/lines/{lineId}": {
+    '/api/rfqs/{rfqId}/lines/{lineId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2765,16 +2765,16 @@ export interface paths {
         };
         get?: never;
         /** Update RFQ line */
-        put: operations["updateRfqLine"];
+        put: operations['updateRfqLine'];
         post?: never;
         /** Delete RFQ line */
-        delete: operations["deleteRfqLine"];
+        delete: operations['deleteRfqLine'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/publish": {
+    '/api/rfqs/{rfqId}/publish': {
         parameters: {
             query?: never;
             header?: never;
@@ -2784,14 +2784,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Publish RFQ */
-        post: operations["publishRfq"];
+        post: operations['publishRfq'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/quotes": {
+    '/api/rfqs/{rfqId}/quotes': {
         parameters: {
             query?: never;
             header?: never;
@@ -2801,7 +2801,7 @@ export interface paths {
             cookie?: never;
         };
         /** List quotes for RFQ */
-        get: operations["listQuotesForRfq"];
+        get: operations['listQuotesForRfq'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2810,7 +2810,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/quotes/{quoteId}/revisions": {
+    '/api/rfqs/{rfqId}/quotes/{quoteId}/revisions': {
         parameters: {
             query?: never;
             header?: never;
@@ -2821,17 +2821,17 @@ export interface paths {
             cookie?: never;
         };
         /** List quote revisions */
-        get: operations["listQuoteRevisions"];
+        get: operations['listQuoteRevisions'];
         put?: never;
         /** Submit quote revision */
-        post: operations["submitQuoteRevision"];
+        post: operations['submitQuoteRevision'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/quotes/{quoteId}/withdraw": {
+    '/api/rfqs/{rfqId}/quotes/{quoteId}/withdraw': {
         parameters: {
             query?: never;
             header?: never;
@@ -2841,14 +2841,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Withdraw quote */
-        post: operations["withdrawQuote"];
+        post: operations['withdrawQuote'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rfqs/{rfqId}/timeline": {
+    '/api/rfqs/{rfqId}/timeline': {
         parameters: {
             query?: never;
             header?: never;
@@ -2856,7 +2856,7 @@ export interface paths {
             cookie?: never;
         };
         /** RFQ timeline entries */
-        get: operations["listRfqTimeline"];
+        get: operations['listRfqTimeline'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2865,7 +2865,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/risk": {
+    '/api/risk': {
         parameters: {
             query?: never;
             header?: never;
@@ -2873,7 +2873,7 @@ export interface paths {
             cookie?: never;
         };
         /** List supplier risk scores */
-        get: operations["listRiskScores"];
+        get: operations['listRiskScores'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2882,7 +2882,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/risk/generate": {
+    '/api/risk/generate': {
         parameters: {
             query?: never;
             header?: never;
@@ -2892,14 +2892,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Generate new risk scores for suppliers */
-        post: operations["generateRiskScores"];
+        post: operations['generateRiskScores'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/risk/{supplierId}": {
+    '/api/risk/{supplierId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2909,7 +2909,7 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve supplier risk score */
-        get: operations["showRiskScore"];
+        get: operations['showRiskScore'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2918,7 +2918,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/rmas": {
+    '/api/rmas': {
         parameters: {
             query?: never;
             header?: never;
@@ -2926,7 +2926,7 @@ export interface paths {
             cookie?: never;
         };
         /** List RMAs */
-        get: operations["listRmas"];
+        get: operations['listRmas'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2935,7 +2935,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/rmas/purchase-orders/{purchaseOrderId}": {
+    '/api/rmas/purchase-orders/{purchaseOrderId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2945,14 +2945,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create RMA for purchase order */
-        post: operations["createRma"];
+        post: operations['createRma'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/rmas/{rmaId}": {
+    '/api/rmas/{rmaId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2960,7 +2960,7 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve RMA */
-        get: operations["showRma"];
+        get: operations['showRma'];
         put?: never;
         post?: never;
         delete?: never;
@@ -2969,7 +2969,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/rmas/{rmaId}/review": {
+    '/api/rmas/{rmaId}/review': {
         parameters: {
             query?: never;
             header?: never;
@@ -2979,14 +2979,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Review RMA */
-        post: operations["reviewRma"];
+        post: operations['reviewRma'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/saved-searches": {
+    '/api/saved-searches': {
         parameters: {
             query?: never;
             header?: never;
@@ -2994,17 +2994,17 @@ export interface paths {
             cookie?: never;
         };
         /** List saved searches */
-        get: operations["listSavedSearches"];
+        get: operations['listSavedSearches'];
         put?: never;
         /** Create saved search */
-        post: operations["createSavedSearch"];
+        post: operations['createSavedSearch'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/saved-searches/{savedSearchId}": {
+    '/api/saved-searches/{savedSearchId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -3014,18 +3014,18 @@ export interface paths {
             cookie?: never;
         };
         /** Show saved search */
-        get: operations["showSavedSearch"];
+        get: operations['showSavedSearch'];
         /** Update saved search */
-        put: operations["updateSavedSearch"];
+        put: operations['updateSavedSearch'];
         post?: never;
         /** Delete saved search */
-        delete: operations["deleteSavedSearch"];
+        delete: operations['deleteSavedSearch'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/search": {
+    '/api/search': {
         parameters: {
             query?: never;
             header?: never;
@@ -3033,7 +3033,7 @@ export interface paths {
             cookie?: never;
         };
         /** Perform global search across tenant resources */
-        get: operations["searchGlobal"];
+        get: operations['searchGlobal'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3042,7 +3042,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/settings/company": {
+    '/api/settings/company': {
         parameters: {
             query?: never;
             header?: never;
@@ -3050,17 +3050,17 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve company profile settings */
-        get: operations["showCompanySettings"];
+        get: operations['showCompanySettings'];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update company profile settings */
-        patch: operations["updateCompanySettings"];
+        patch: operations['updateCompanySettings'];
         trace?: never;
     };
-    "/api/settings/localization": {
+    '/api/settings/localization': {
         parameters: {
             query?: never;
             header?: never;
@@ -3068,17 +3068,17 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve localization settings */
-        get: operations["showLocalizationSettings"];
+        get: operations['showLocalizationSettings'];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update localization settings */
-        patch: operations["updateLocalizationSettings"];
+        patch: operations['updateLocalizationSettings'];
         trace?: never;
     };
-    "/api/settings/numbering": {
+    '/api/settings/numbering': {
         parameters: {
             query?: never;
             header?: never;
@@ -3086,17 +3086,17 @@ export interface paths {
             cookie?: never;
         };
         /** Retrieve document numbering rules */
-        get: operations["showNumberingSettings"];
+        get: operations['showNumberingSettings'];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update document numbering rules */
-        patch: operations["updateNumberingSettings"];
+        patch: operations['updateNumberingSettings'];
         trace?: never;
     };
-    "/api/supplier-applications": {
+    '/api/supplier-applications': {
         parameters: {
             query?: never;
             header?: never;
@@ -3104,17 +3104,17 @@ export interface paths {
             cookie?: never;
         };
         /** List supplier applications */
-        get: operations["listSupplierApplications"];
+        get: operations['listSupplierApplications'];
         put?: never;
         /** Submit supplier application */
-        post: operations["createSupplierApplication"];
+        post: operations['createSupplierApplication'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/supplier-applications/{applicationId}": {
+    '/api/supplier-applications/{applicationId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -3124,17 +3124,17 @@ export interface paths {
             cookie?: never;
         };
         /** Show supplier application */
-        get: operations["showSupplierApplication"];
+        get: operations['showSupplierApplication'];
         put?: never;
         post?: never;
         /** Delete supplier application */
-        delete: operations["deleteSupplierApplication"];
+        delete: operations['deleteSupplierApplication'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/supplier/quotes": {
+    '/api/supplier/quotes': {
         parameters: {
             query?: never;
             header?: never;
@@ -3142,7 +3142,7 @@ export interface paths {
             cookie?: never;
         };
         /** List quotes for the authenticated supplier company */
-        get: operations["listSupplierQuotes"];
+        get: operations['listSupplierQuotes'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3151,7 +3151,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/suppliers": {
+    '/api/suppliers': {
         parameters: {
             query?: never;
             header?: never;
@@ -3159,7 +3159,7 @@ export interface paths {
             cookie?: never;
         };
         /** List suppliers for current company */
-        get: operations["listSuppliers"];
+        get: operations['listSuppliers'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3168,7 +3168,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/suppliers/{supplierId}": {
+    '/api/suppliers/{supplierId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -3178,7 +3178,7 @@ export interface paths {
             cookie?: never;
         };
         /** Show supplier */
-        get: operations["showSupplier"];
+        get: operations['showSupplier'];
         put?: never;
         post?: never;
         delete?: never;
@@ -3187,7 +3187,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/suppliers/{supplierId}/esg": {
+    '/api/suppliers/{supplierId}/esg': {
         parameters: {
             query?: never;
             header?: never;
@@ -3197,17 +3197,17 @@ export interface paths {
             cookie?: never;
         };
         /** List ESG records for supplier */
-        get: operations["listSupplierEsg"];
+        get: operations['listSupplierEsg'];
         put?: never;
         /** Store ESG record for supplier */
-        post: operations["createSupplierEsg"];
+        post: operations['createSupplierEsg'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/suppliers/{supplierId}/esg/export": {
+    '/api/suppliers/{supplierId}/esg/export': {
         parameters: {
             query?: never;
             header?: never;
@@ -3219,14 +3219,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Queue ESG export for supplier */
-        post: operations["exportSupplierEsg"];
+        post: operations['exportSupplierEsg'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/suppliers/{supplierId}/esg/{recordId}": {
+    '/api/suppliers/{supplierId}/esg/{recordId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -3238,16 +3238,16 @@ export interface paths {
         };
         get?: never;
         /** Update ESG record */
-        put: operations["updateSupplierEsg"];
+        put: operations['updateSupplierEsg'];
         post?: never;
         /** Delete ESG record */
-        delete: operations["deleteSupplierEsg"];
+        delete: operations['deleteSupplierEsg'];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/webhooks/stripe/customer/subscription-updated": {
+    '/api/webhooks/stripe/customer/subscription-updated': {
         parameters: {
             query?: never;
             header?: never;
@@ -3257,14 +3257,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stripe subscription updated webhook */
-        post: operations["stripeSubscriptionUpdated"];
+        post: operations['stripeSubscriptionUpdated'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/webhooks/stripe/invoice/payment-failed": {
+    '/api/webhooks/stripe/invoice/payment-failed': {
         parameters: {
             query?: never;
             header?: never;
@@ -3274,14 +3274,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stripe invoice payment failed event hook */
-        post: operations["stripeInvoicePaymentFailed"];
+        post: operations['stripeInvoicePaymentFailed'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/webhooks/stripe/invoice/payment-succeeded": {
+    '/api/webhooks/stripe/invoice/payment-succeeded': {
         parameters: {
             query?: never;
             header?: never;
@@ -3291,7 +3291,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stripe invoice payment succeeded event hook */
-        post: operations["stripeInvoicePaymentSucceeded"];
+        post: operations['stripeInvoicePaymentSucceeded'];
         delete?: never;
         options?: never;
         head?: never;
@@ -3309,7 +3309,7 @@ export interface components {
             database_connected?: boolean;
             pending_webhook_deliveries?: number;
         };
-        ApiErrorResponse: components["schemas"]["ErrorEnvelope"];
+        ApiErrorResponse: components['schemas']['ErrorEnvelope'];
         ApiKey: {
             id: number;
             company_id: number;
@@ -3338,7 +3338,7 @@ export interface components {
             /** Format: date-time */
             last_used_at: string | null;
         };
-        ApiSuccessResponse: components["schemas"]["SuccessEnvelope"];
+        ApiSuccessResponse: components['schemas']['SuccessEnvelope'];
         AuthForgotPasswordRequest: {
             /** Format: email */
             email: string;
@@ -3367,8 +3367,8 @@ export interface components {
         AuthSession: {
             /** @description Session identifier echoed in the `XSRF-TOKEN` cookie for SPA clients. */
             token: string;
-            user: components["schemas"]["AuthSessionUser"];
-            company?: components["schemas"]["AuthSessionCompany"] | null;
+            user: components['schemas']['AuthSessionUser'];
+            company?: components['schemas']['AuthSessionCompany'] | null;
             /** @description Flattened feature flag map for the authenticated company. */
             feature_flags: {
                 [key: string]: boolean;
@@ -3403,7 +3403,7 @@ export interface components {
              * @description Token type indicator (always `Bearer`).
              * @enum {string}
              */
-            type: "Bearer";
+            type: 'Bearer';
             /** Format: date-time */
             expires_at: string | null;
         };
@@ -3467,8 +3467,8 @@ export interface components {
             registration_number?: string | null;
             emails?: string[];
             phones?: string[];
-            bill_to: components["schemas"]["CompanyAddress"];
-            ship_from: components["schemas"]["CompanyAddress"];
+            bill_to: components['schemas']['CompanyAddress'];
+            ship_from: components['schemas']['CompanyAddress'];
             /** Format: uri */
             logo_url?: string | null;
             /** Format: uri */
@@ -3500,14 +3500,19 @@ export interface components {
             amount_minor: number;
             reason?: string;
             /** @enum {string} */
-            status: "draft" | "pending_review" | "issued" | "approved" | "rejected";
+            status:
+                | 'draft'
+                | 'pending_review'
+                | 'issued'
+                | 'approved'
+                | 'rejected';
             review_comment?: string | null;
             issued_by?: number | null;
             approved_by?: number | null;
             /** Format: date-time */
             approved_at?: string | null;
-            attachments?: components["schemas"]["DocumentAttachment"][];
-            lines?: components["schemas"]["CreditNoteLine"][];
+            attachments?: components['schemas']['DocumentAttachment'][];
+            lines?: components['schemas']['CreditNoteLine'][];
             invoice?: {
                 /** Format: uuid */
                 id?: string;
@@ -3527,8 +3532,8 @@ export interface components {
             updated_at?: string;
         };
         CreditNoteCollection: {
-            items: components["schemas"]["CreditNote"][];
-            meta: components["schemas"]["PageMeta"];
+            items: components['schemas']['CreditNote'][];
+            meta: components['schemas']['PageMeta'];
         };
         CreditNoteLine: {
             id: number;
@@ -3613,12 +3618,32 @@ export interface components {
              * @description Target entity slug to associate with the uploaded document.
              * @enum {string}
              */
-            entity: "rfq" | "quote" | "po" | "invoice" | "supplier" | "part";
+            entity: 'rfq' | 'quote' | 'po' | 'invoice' | 'supplier' | 'part';
             entity_id: number;
             /** @enum {string} */
-            kind: "rfq" | "quote" | "po" | "grn_attachment" | "invoice" | "supplier" | "part" | "cad" | "manual" | "certificate" | "esg_pack" | "other";
+            kind:
+                | 'rfq'
+                | 'quote'
+                | 'po'
+                | 'grn_attachment'
+                | 'invoice'
+                | 'supplier'
+                | 'part'
+                | 'cad'
+                | 'manual'
+                | 'certificate'
+                | 'esg_pack'
+                | 'other';
             /** @enum {string} */
-            category: "technical" | "commercial" | "qa" | "logistics" | "financial" | "communication" | "esg" | "other";
+            category:
+                | 'technical'
+                | 'commercial'
+                | 'qa'
+                | 'logistics'
+                | 'financial'
+                | 'communication'
+                | 'esg'
+                | 'other';
             /** @description Visibility must match the configured `documents.allowed_visibilities` list (private, company, public). */
             visibility?: string | null;
             /** Format: date-time */
@@ -3633,10 +3658,10 @@ export interface components {
             file: string;
         };
         /** @description Legacy alias for response metadata. */
-        EnvelopeMeta: components["schemas"]["RequestMeta"];
+        EnvelopeMeta: components['schemas']['RequestMeta'];
         ErrorEnvelope: {
             /** @enum {string} */
-            status: "error";
+            status: 'error';
             message: string;
             code?: string | null;
             /** @description Field-level validation errors keyed by attribute. */
@@ -3647,7 +3672,7 @@ export interface components {
             data?: unknown;
         };
         ExportPurchaseOrderResponse: {
-            document: components["schemas"]["PurchaseOrderPdfDocument"];
+            document: components['schemas']['PurchaseOrderPdfDocument'];
             /** Format: uri */
             download_url: string;
         };
@@ -3656,7 +3681,12 @@ export interface components {
             /** @description Export payload type identifier. */
             type: string;
             /** @enum {string} */
-            status: "queued" | "processing" | "completed" | "failed" | "expired";
+            status:
+                | 'queued'
+                | 'processing'
+                | 'completed'
+                | 'failed'
+                | 'expired';
             filters: {
                 [key: string]: unknown;
             };
@@ -3721,7 +3751,7 @@ export interface components {
             variance?: {
                 [key: string]: unknown;
             } | null;
-            attachments?: components["schemas"]["DocumentAttachment"][];
+            attachments?: components['schemas']['DocumentAttachment'][];
         };
         GoodsReceiptNote: {
             id: number;
@@ -3732,7 +3762,7 @@ export interface components {
             grn_number: string;
             number?: string;
             /** @enum {string} */
-            status: "draft" | "inspecting" | "posted" | "variance" | "rejected";
+            status: 'draft' | 'inspecting' | 'posted' | 'variance' | 'rejected';
             inspected_by_id?: number | null;
             /** Format: date-time */
             inspected_at?: string | null;
@@ -3754,8 +3784,8 @@ export interface components {
             } | null;
             lines_count?: number | null;
             attachments_count?: number | null;
-            lines?: components["schemas"]["GoodsReceiptLine"][];
-            attachments?: components["schemas"]["DocumentAttachment"][];
+            lines?: components['schemas']['GoodsReceiptLine'][];
+            attachments?: components['schemas']['DocumentAttachment'][];
             timeline?: {
                 [key: string]: unknown;
             }[];
@@ -3775,7 +3805,16 @@ export interface components {
             invoice_date?: string | null;
             currency: string;
             /** @enum {string} */
-            status: "pending" | "draft" | "submitted" | "approved" | "rejected" | "paid" | "overdue" | "disputed" | "posted";
+            status:
+                | 'pending'
+                | 'draft'
+                | 'submitted'
+                | 'approved'
+                | 'rejected'
+                | 'paid'
+                | 'overdue'
+                | 'disputed'
+                | 'posted';
             /** Format: float */
             subtotal: number;
             /** Format: float */
@@ -3796,8 +3835,8 @@ export interface components {
                 id?: number;
                 po_number?: string;
             } | null;
-            lines?: components["schemas"]["InvoiceLine"][];
-            matches?: components["schemas"]["InvoiceMatch"][];
+            lines?: components['schemas']['InvoiceLine'][];
+            matches?: components['schemas']['InvoiceMatch'][];
             document?: {
                 /** Format: uuid */
                 id?: string;
@@ -3807,15 +3846,15 @@ export interface components {
                 /** Format: date-time */
                 created_at?: string | null;
             } | null;
-            attachments?: components["schemas"]["DocumentAttachment"][];
+            attachments?: components['schemas']['DocumentAttachment'][];
             /** Format: date-time */
             created_at?: string;
             /** Format: date-time */
             updated_at?: string;
         };
         InvoiceCollection: {
-            items: components["schemas"]["Invoice"][];
-            meta: components["schemas"]["PageMeta"];
+            items: components['schemas']['Invoice'][];
+            meta: components['schemas']['PageMeta'];
         };
         InvoiceLine: {
             id: string;
@@ -3859,7 +3898,7 @@ export interface components {
             purchase_order_id?: number | null;
             goods_receipt_note_id?: number | null;
             /** @enum {string} */
-            result: "matched" | "qty_mismatch" | "price_mismatch" | "unmatched";
+            result: 'matched' | 'qty_mismatch' | 'price_mismatch' | 'unmatched';
             details?: {
                 [key: string]: unknown;
             } | null;
@@ -3875,8 +3914,8 @@ export interface components {
             date_format: string;
             /** @description Thousand separator style (e.g. 1,234.56). */
             number_format: string;
-            currency: components["schemas"]["CurrencyPreferences"];
-            uom: components["schemas"]["UomMappings"];
+            currency: components['schemas']['CurrencyPreferences'];
+            uom: components['schemas']['UomMappings'];
         };
         /** @description Monetary amount expressed in minor units. `amount` is derived from `amount_minor` and `currency` using the company rounding rules. */
         Money: {
@@ -3904,10 +3943,10 @@ export interface components {
                 symbol?: string | null;
             } | null;
             /** @enum {string} */
-            fx_source: "manual" | "fixer" | "openexchangerates";
+            fx_source: 'manual' | 'fixer' | 'openexchangerates';
             price_round_rule: string;
             /** @enum {string} */
-            tax_regime: "exclusive" | "inclusive";
+            tax_regime: 'exclusive' | 'inclusive';
             defaults: {
                 [key: string]: unknown;
             };
@@ -3921,16 +3960,16 @@ export interface components {
             seq_len: number;
             next: number;
             /** @enum {string} */
-            reset: "never" | "yearly";
+            reset: 'never' | 'yearly';
             sample?: string | null;
         };
         NumberingSettings: {
-            rfq: components["schemas"]["NumberingRule"];
-            quote: components["schemas"]["NumberingRule"];
-            po: components["schemas"]["NumberingRule"];
-            invoice: components["schemas"]["NumberingRule"];
-            grn: components["schemas"]["NumberingRule"];
-            credit: components["schemas"]["NumberingRule"];
+            rfq: components['schemas']['NumberingRule'];
+            quote: components['schemas']['NumberingRule'];
+            po: components['schemas']['NumberingRule'];
+            invoice: components['schemas']['NumberingRule'];
+            grn: components['schemas']['NumberingRule'];
+            credit: components['schemas']['NumberingRule'];
         };
         /** @description Page/offset pagination metadata. */
         PageMeta: {
@@ -4002,13 +4041,13 @@ export interface components {
                 billing_status: string;
                 requires_plan_selection: boolean;
             };
-            plan: components["schemas"]["PlanCatalogEntry"];
+            plan: components['schemas']['PlanCatalogEntry'];
         };
         PoChangeOrder: {
             id: number;
             purchase_order_id: number;
             /** @enum {string} */
-            status: "proposed" | "accepted" | "rejected";
+            status: 'proposed' | 'accepted' | 'rejected';
             reason: string;
             po_revision_no?: number | null;
             proposed_by_user_id?: number;
@@ -4037,9 +4076,15 @@ export interface components {
             company_id: number;
             po_number: string;
             /** @enum {string} */
-            status: "draft" | "sent" | "acknowledged" | "fulfilled" | "closed" | "cancelled";
+            status:
+                | 'draft'
+                | 'sent'
+                | 'acknowledged'
+                | 'fulfilled'
+                | 'closed'
+                | 'cancelled';
             /** @enum {string} */
-            ack_status?: "draft" | "sent" | "acknowledged" | "declined";
+            ack_status?: 'draft' | 'sent' | 'acknowledged' | 'declined';
             currency: string;
             incoterm?: string | null;
             /** Format: float */
@@ -4067,16 +4112,16 @@ export interface components {
                 number?: string;
                 title?: string | null;
             } | null;
-            lines?: components["schemas"]["PurchaseOrderLine"][];
-            change_orders?: components["schemas"]["PoChangeOrder"][];
-            deliveries?: components["schemas"]["PurchaseOrderDelivery"][];
+            lines?: components['schemas']['PurchaseOrderLine'][];
+            change_orders?: components['schemas']['PoChangeOrder'][];
+            deliveries?: components['schemas']['PurchaseOrderDelivery'][];
             latest_delivery?: {
                 id?: number;
                 purchase_order_id?: number;
                 /** @enum {string} */
-                channel?: "email" | "webhook";
+                channel?: 'email' | 'webhook';
                 /** @enum {string} */
-                status?: "queued" | "sent" | "failed";
+                status?: 'queued' | 'sent' | 'failed';
                 recipients_to?: string[] | null;
                 recipients_cc?: string[] | null;
                 message?: string | null;
@@ -4099,7 +4144,9 @@ export interface components {
                 } | null;
             } | null;
             pdf_document_id?: number | null;
-            pdf_document?: components["schemas"]["PurchaseOrderPdfDocument"] | null;
+            pdf_document?:
+                | components['schemas']['PurchaseOrderPdfDocument']
+                | null;
             /** Format: date-time */
             cancelled_at?: string | null;
             /** Format: date-time */
@@ -4111,9 +4158,9 @@ export interface components {
             id: number;
             purchase_order_id: number;
             /** @enum {string} */
-            channel: "email" | "webhook";
+            channel: 'email' | 'webhook';
             /** @enum {string} */
-            status: "queued" | "sent" | "failed";
+            status: 'queued' | 'sent' | 'failed';
             recipients_to?: string[] | null;
             recipients_cc?: string[] | null;
             message?: string | null;
@@ -4139,7 +4186,12 @@ export interface components {
             id: number;
             purchase_order_id: number;
             /** @enum {string} */
-            type: "sent" | "supplier_ack" | "supplier_decline" | "invoice_created" | "invoice_attachment";
+            type:
+                | 'sent'
+                | 'supplier_ack'
+                | 'supplier_decline'
+                | 'invoice_created'
+                | 'invoice_attachment';
             summary: string;
             description?: string | null;
             metadata?: {
@@ -4151,7 +4203,7 @@ export interface components {
                 /** Format: email */
                 email?: string | null;
                 /** @enum {string} */
-                type?: "buyer" | "supplier" | "system";
+                type?: 'buyer' | 'supplier' | 'system';
             } | null;
             /** Format: date-time */
             occurred_at?: string | null;
@@ -4206,7 +4258,13 @@ export interface components {
             rfq_id: number;
             supplier_id: number;
             /** @enum {string} */
-            status: "draft" | "submitted" | "awarded" | "withdrawn" | "expired" | "lost";
+            status:
+                | 'draft'
+                | 'submitted'
+                | 'awarded'
+                | 'withdrawn'
+                | 'expired'
+                | 'lost';
             currency: string;
             /** Format: float */
             unit_price?: number;
@@ -4230,7 +4288,7 @@ export interface components {
                 id?: number;
                 name?: string;
             } | null;
-            items?: components["schemas"]["QuoteItem"][];
+            items?: components['schemas']['QuoteItem'][];
             attachments?: {
                 /** Format: uuid */
                 id?: string;
@@ -4239,7 +4297,7 @@ export interface components {
                 mime?: string;
                 size_bytes?: number;
             }[];
-            revisions?: components["schemas"]["QuoteRevision"][];
+            revisions?: components['schemas']['QuoteRevision'][];
         };
         QuoteItem: {
             /** Format: uuid */
@@ -4339,8 +4397,8 @@ export interface components {
         RequestMeta: {
             /** @description UUID assigned to the request (matches `X-Request-Id`). */
             request_id: string;
-            pagination?: components["schemas"]["PageMeta"];
-            cursor?: components["schemas"]["CursorMeta"];
+            pagination?: components['schemas']['PageMeta'];
+            cursor?: components['schemas']['CursorMeta'];
         };
         Rfq: {
             /** Format: uuid */
@@ -4348,7 +4406,7 @@ export interface components {
             number: string;
             item_name: string;
             /** @enum {string} */
-            type: "ready_made" | "manufacture";
+            type: 'ready_made' | 'manufacture';
             quantity: number;
             material: string;
             method: string;
@@ -4356,7 +4414,7 @@ export interface components {
             finish?: string | null;
             client_company?: string;
             /** @enum {string} */
-            status: "awaiting" | "open" | "closed" | "awarded" | "cancelled";
+            status: 'awaiting' | 'open' | 'closed' | 'awarded' | 'cancelled';
             /** Format: date-time */
             deadline_at?: string | null;
             /** Format: date-time */
@@ -4368,8 +4426,8 @@ export interface components {
             created_at?: string | null;
             /** Format: date-time */
             updated_at?: string | null;
-            items?: components["schemas"]["RfqItem"][];
-            quotes?: components["schemas"]["QuoteSummary"][];
+            items?: components['schemas']['RfqItem'][];
+            quotes?: components['schemas']['QuoteSummary'][];
         };
         /** @description Document attached to an RFQ per the documents deep spec. */
         RfqAttachment: {
@@ -4421,8 +4479,8 @@ export interface components {
             uom?: string | null;
             currency: string;
             target_price_minor?: number | null;
-            candidates: components["schemas"]["RfqAwardCandidateOption"][];
-            best_price?: components["schemas"]["RfqAwardCandidateBestPrice"];
+            candidates: components['schemas']['RfqAwardCandidateOption'][];
+            best_price?: components['schemas']['RfqAwardCandidateBestPrice'];
         };
         RfqAwardCandidateOption: {
             quote_id: number;
@@ -4439,7 +4497,7 @@ export interface components {
             quote_status?: string;
             /** Format: date-time */
             submitted_at?: string | null;
-            award?: components["schemas"]["RfqAwardCandidateExistingAward"];
+            award?: components['schemas']['RfqAwardCandidateExistingAward'];
         };
         RfqClarification: {
             /** Format: uuid */
@@ -4447,7 +4505,7 @@ export interface components {
             /** Format: uuid */
             rfq_id: string;
             /** @enum {string} */
-            type: "question" | "answer" | "amendment";
+            type: 'question' | 'answer' | 'amendment';
             body: string;
             author?: Record<string, never> | null;
             /** Format: date-time */
@@ -4460,8 +4518,8 @@ export interface components {
             }[];
         };
         RfqCollection: {
-            items: components["schemas"]["Rfq"][];
-            meta: components["schemas"]["PageMeta"];
+            items: components['schemas']['Rfq'][];
+            meta: components['schemas']['PageMeta'];
         };
         RfqInvitation: {
             /** Format: uuid */
@@ -4520,7 +4578,7 @@ export interface components {
              */
             cad_document_id?: string | null;
         };
-        RfqTimelineEntry: components["schemas"]["Timeline"] & {
+        RfqTimelineEntry: components['schemas']['Timeline'] & {
             /** @description Machine-readable event identifier (e.g., created, published, invitation_sent). */
             event: string;
             actor?: {
@@ -4537,7 +4595,13 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            status: "draft" | "submitted" | "reviewing" | "approved" | "rejected" | "closed";
+            status:
+                | 'draft'
+                | 'submitted'
+                | 'reviewing'
+                | 'approved'
+                | 'rejected'
+                | 'closed';
             purchase_order_id: number;
             reason?: string;
             resolution?: string | null;
@@ -4592,7 +4656,7 @@ export interface components {
             country?: string | null;
             company_documents: {
                 /** @enum {string} */
-                type: "registration" | "tax" | "esg" | "other";
+                type: 'registration' | 'tax' | 'esg' | 'other';
                 /** Format: binary */
                 file: string;
             }[];
@@ -4600,11 +4664,11 @@ export interface components {
         /** @description Wrapper for all successful responses. `meta.request_id` always echoes the inbound `X-Request-Id` or an internally generated UUID. */
         SuccessEnvelope: {
             /** @enum {string} */
-            status: "success";
+            status: 'success';
             message?: string | null;
             /** @description Module-specific payload. */
             data: unknown;
-            meta?: components["schemas"]["RequestMeta"];
+            meta?: components['schemas']['RequestMeta'];
         };
         Supplier: {
             id: number;
@@ -4664,7 +4728,7 @@ export interface components {
             code: string;
             name: string;
             /** @enum {string} */
-            type: "vat" | "gst" | "sales" | "withholding" | "custom";
+            type: 'vat' | 'gst' | 'sales' | 'withholding' | 'custom';
             rate_percent?: number | null;
             is_compound?: boolean;
             active?: boolean;
@@ -4722,7 +4786,12 @@ export interface components {
             company_id?: number | null;
             event: string;
             /** @enum {string} */
-            status: "pending" | "dispatched" | "delivered" | "failed" | "dead_letter";
+            status:
+                | 'pending'
+                | 'dispatched'
+                | 'delivered'
+                | 'failed'
+                | 'dead_letter';
             attempts: number;
             last_error?: string | null;
             /** Format: date-time */
@@ -4754,7 +4823,7 @@ export interface components {
         /** @description Authenticated but lacking required permissions. */
         Forbidden: {
             headers: {
-                "X-Request-Id": components["headers"]["XRequestId"];
+                'X-Request-Id': components['headers']['XRequestId'];
                 [name: string]: unknown;
             };
             content: {
@@ -4765,13 +4834,13 @@ export interface components {
                  *       "data": null
                  *     }
                  */
-                "application/json": components["schemas"]["ApiErrorResponse"];
+                'application/json': components['schemas']['ApiErrorResponse'];
             };
         };
         /** @description Resource not found. */
         NotFound: {
             headers: {
-                "X-Request-Id": components["headers"]["XRequestId"];
+                'X-Request-Id': components['headers']['XRequestId'];
                 [name: string]: unknown;
             };
             content: {
@@ -4782,13 +4851,13 @@ export interface components {
                  *       "data": null
                  *     }
                  */
-                "application/json": components["schemas"]["ApiErrorResponse"];
+                'application/json': components['schemas']['ApiErrorResponse'];
             };
         };
         /** @description Unexpected server error. Contact support with the supplied request identifier. */
         ServerError: {
             headers: {
-                "X-Request-Id": components["headers"]["XRequestId"];
+                'X-Request-Id': components['headers']['XRequestId'];
                 [name: string]: unknown;
             };
             content: {
@@ -4799,16 +4868,16 @@ export interface components {
                  *       "data": null
                  *     }
                  */
-                "application/json": components["schemas"]["ApiErrorResponse"];
+                'application/json': components['schemas']['ApiErrorResponse'];
             };
         };
         /** @description Rate limit exceeded for the current identity. */
         TooManyRequests: {
             headers: {
-                "X-Request-Id": components["headers"]["XRequestId"];
-                "X-RateLimit-Limit": components["headers"]["XRateLimitLimit"];
-                "X-RateLimit-Remaining": components["headers"]["XRateLimitRemaining"];
-                "X-RateLimit-Reset": components["headers"]["XRateLimitReset"];
+                'X-Request-Id': components['headers']['XRequestId'];
+                'X-RateLimit-Limit': components['headers']['XRateLimitLimit'];
+                'X-RateLimit-Remaining': components['headers']['XRateLimitRemaining'];
+                'X-RateLimit-Reset': components['headers']['XRateLimitReset'];
                 [name: string]: unknown;
             };
             content: {
@@ -4820,13 +4889,13 @@ export interface components {
                  *       "data": null
                  *     }
                  */
-                "application/json": components["schemas"]["ApiErrorResponse"];
+                'application/json': components['schemas']['ApiErrorResponse'];
             };
         };
         /** @description Missing or invalid credentials. */
         Unauthorized: {
             headers: {
-                "X-Request-Id": components["headers"]["XRequestId"];
+                'X-Request-Id': components['headers']['XRequestId'];
                 [name: string]: unknown;
             };
             content: {
@@ -4837,13 +4906,13 @@ export interface components {
                  *       "data": null
                  *     }
                  */
-                "application/json": components["schemas"]["ApiErrorResponse"];
+                'application/json': components['schemas']['ApiErrorResponse'];
             };
         };
         /** @description Payload validation failed. */
         ValidationError: {
             headers: {
-                "X-Request-Id": components["headers"]["XRequestId"];
+                'X-Request-Id': components['headers']['XRequestId'];
                 [name: string]: unknown;
             };
             content: {
@@ -4859,7 +4928,7 @@ export interface components {
                  *       "data": null
                  *     }
                  */
-                "application/json": components["schemas"]["ApiErrorResponse"];
+                'application/json': components['schemas']['ApiErrorResponse'];
             };
         };
     };
@@ -4907,10 +4976,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["ApiKey"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items?: components['schemas']['ApiKey'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -4926,7 +4995,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     company_id: number;
                     name: string;
                     scopes?: string[];
@@ -4942,9 +5011,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            api_key?: components["schemas"]["ApiKey"];
+                            api_key?: components['schemas']['ApiKey'];
                             /** @description Plaintext API key value. Display once. */
                             token?: string;
                         };
@@ -4970,7 +5039,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -4992,9 +5061,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            api_key?: components["schemas"]["ApiKey"];
+                            api_key?: components['schemas']['ApiKey'];
                             token?: string;
                         };
                     };
@@ -5019,7 +5088,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5035,7 +5104,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     plan_id: number;
                     /** Format: date-time */
                     trial_ends_at?: string | null;
@@ -5050,7 +5119,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5072,9 +5141,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["FeatureFlag"][];
+                            items?: components['schemas']['FeatureFlag'][];
                         };
                     };
                 };
@@ -5092,7 +5161,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     key: string;
                     value: boolean;
                 };
@@ -5105,7 +5174,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5122,7 +5191,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     value?: boolean;
                 };
             };
@@ -5134,7 +5203,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5157,7 +5226,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5173,9 +5242,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    status: "pending" | "active" | "suspended" | "archived";
+                    status: 'pending' | 'active' | 'suspended' | 'archived';
                     note?: string | null;
                 };
             };
@@ -5187,7 +5256,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5207,8 +5276,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["AdminHealth"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['AdminHealth'];
                     };
                 };
             };
@@ -5229,10 +5298,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["Plan"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items?: components['schemas']['Plan'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -5248,7 +5317,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     code: string;
                     name: string;
                     /** Format: float */
@@ -5268,7 +5337,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5290,8 +5359,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Plan"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Plan'];
                     };
                 };
             };
@@ -5308,7 +5377,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name?: string;
                     /** Format: float */
                     price_usd?: number;
@@ -5325,7 +5394,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5354,8 +5423,8 @@ export interface operations {
         parameters: {
             query?: {
                 company_id?: number;
-                page?: components["parameters"]["PageQuery"];
-                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components['parameters']['PageQuery'];
+                per_page?: components['parameters']['PerPageQuery'];
             };
             header?: never;
             path?: never;
@@ -5369,10 +5438,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["RateLimitRule"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items?: components['schemas']['RateLimitRule'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -5388,7 +5457,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     company_id?: number | null;
                     scope: string;
                     window_seconds: number;
@@ -5404,7 +5473,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5426,8 +5495,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["RateLimitRule"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['RateLimitRule'];
                     };
                 };
             };
@@ -5444,7 +5513,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     window_seconds?: number;
                     max_requests?: number;
                     active?: boolean;
@@ -5458,7 +5527,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5480,7 +5549,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5500,7 +5569,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5514,7 +5583,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -5526,7 +5595,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5548,7 +5617,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5570,7 +5639,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5586,7 +5655,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -5598,7 +5667,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5607,8 +5676,8 @@ export interface operations {
         parameters: {
             query?: {
                 subscription_id?: string;
-                page?: components["parameters"]["PageQuery"];
-                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components['parameters']['PageQuery'];
+                per_page?: components['parameters']['PerPageQuery'];
             };
             header?: never;
             path?: never;
@@ -5622,10 +5691,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["WebhookDelivery"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items?: components['schemas']['WebhookDelivery'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -5649,7 +5718,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5669,10 +5738,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["WebhookSubscription"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items?: components['schemas']['WebhookSubscription'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -5688,7 +5757,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     company_id: number;
                     /** Format: uri */
                     url: string;
@@ -5708,7 +5777,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5730,8 +5799,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["WebhookSubscription"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['WebhookSubscription'];
                     };
                 };
             };
@@ -5748,7 +5817,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** Format: uri */
                     url?: string;
                     events?: string[];
@@ -5766,7 +5835,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5788,7 +5857,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5802,7 +5871,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -5814,7 +5883,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5834,7 +5903,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5854,7 +5923,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5876,7 +5945,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5892,7 +5961,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -5904,7 +5973,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5924,7 +5993,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5938,7 +6007,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -5950,7 +6019,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -5966,7 +6035,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -5978,7 +6047,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6000,7 +6069,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6020,7 +6089,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6042,7 +6111,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6058,7 +6127,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -6070,7 +6139,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6090,7 +6159,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6104,7 +6173,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -6116,7 +6185,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6138,7 +6207,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6154,7 +6223,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -6166,7 +6235,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6188,7 +6257,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6202,7 +6271,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AuthForgotPasswordRequest"];
+                'application/json': components['schemas']['AuthForgotPasswordRequest'];
             };
         };
         responses: {
@@ -6212,7 +6281,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
             /** @description Invalid email payload. */
@@ -6221,7 +6290,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -6235,7 +6304,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AuthLoginRequest"];
+                'application/json': components['schemas']['AuthLoginRequest'];
             };
         };
         responses: {
@@ -6245,8 +6314,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["AuthSession"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['AuthSession'];
                     };
                 };
             };
@@ -6256,7 +6325,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -6276,7 +6345,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
             /** @description No active session. */
@@ -6285,7 +6354,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -6305,8 +6374,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["AuthSession"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['AuthSession'];
                     };
                 };
             };
@@ -6316,7 +6385,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -6330,7 +6399,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["SelfRegistrationRequest"];
+                'multipart/form-data': components['schemas']['SelfRegistrationRequest'];
             };
         };
         responses: {
@@ -6340,11 +6409,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
                             token?: string;
-                            user?: components["schemas"]["AuthSessionUser"];
-                            company?: components["schemas"]["AuthSessionCompany"];
+                            user?: components['schemas']['AuthSessionUser'];
+                            company?: components['schemas']['AuthSessionCompany'];
                         };
                     };
                 };
@@ -6355,7 +6424,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
             /** @description Invalid registration payload. */
@@ -6364,7 +6433,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -6378,7 +6447,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AuthResetPasswordRequest"];
+                'application/json': components['schemas']['AuthResetPasswordRequest'];
             };
         };
         responses: {
@@ -6388,7 +6457,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
             /** @description Invalid reset token or password payload. */
@@ -6397,7 +6466,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -6411,7 +6480,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateAwardsRequest"];
+                'application/json': components['schemas']['CreateAwardsRequest'];
             };
         };
         responses: {
@@ -6421,25 +6490,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            awards: components["schemas"]["RfqItemAwardSummary"][];
+                            awards: components['schemas']['RfqItemAwardSummary'][];
                         };
                     };
                 };
             };
-            401: components["responses"]["Unauthorized"];
+            401: components['responses']['Unauthorized'];
             /** @description Plan upgrade required to award RFQs. */
             402: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            422: components["responses"]["ValidationError"];
+            403: components['responses']['Forbidden'];
+            422: components['responses']['ValidationError'];
         };
     };
     deleteAward: {
@@ -6459,26 +6528,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            awards: components["schemas"]["RfqItemAwardSummary"][];
+                            awards: components['schemas']['RfqItemAwardSummary'][];
                         };
                     };
                 };
             };
-            401: components["responses"]["Unauthorized"];
+            401: components['responses']['Unauthorized'];
             /** @description Plan upgrade required to manage RFQ awards. */
             402: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            422: components['responses']['ValidationError'];
         };
     };
     approvePurchaseOrderChangeOrder: {
@@ -6498,7 +6567,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6520,7 +6589,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6534,7 +6603,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name: string;
                     country: string;
                     primary_contact_name: string;
@@ -6553,9 +6622,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            company?: components["schemas"]["CompanyProfile"];
+                            company?: components['schemas']['CompanyProfile'];
                         };
                     };
                 };
@@ -6577,9 +6646,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            company?: components["schemas"]["CompanyProfile"];
+                            company?: components['schemas']['CompanyProfile'];
                         };
                     };
                 };
@@ -6595,7 +6664,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -6607,7 +6676,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6629,9 +6698,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            company?: components["schemas"]["CompanyProfile"];
+                            company?: components['schemas']['CompanyProfile'];
                         };
                     };
                 };
@@ -6649,7 +6718,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name?: string;
                     registration_no?: string;
                     tax_id?: string;
@@ -6674,7 +6743,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6696,7 +6765,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6712,7 +6781,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** Format: binary */
                     file: string;
                     label?: string;
@@ -6726,7 +6795,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6749,7 +6818,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6763,7 +6832,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     plan_code: string;
                 };
             };
@@ -6775,12 +6844,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["PlanSelectionResult"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['PlanSelectionResult'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     copilotAnalytics: {
@@ -6792,7 +6861,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -6804,7 +6873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6818,7 +6887,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -6830,7 +6899,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6850,7 +6919,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6858,9 +6927,14 @@ export interface operations {
     listCreditNotes: {
         parameters: {
             query?: {
-                page?: components["parameters"]["PageQuery"];
-                per_page?: components["parameters"]["PerPageQuery"];
-                status?: "draft" | "pending_review" | "issued" | "approved" | "rejected";
+                page?: components['parameters']['PageQuery'];
+                per_page?: components['parameters']['PerPageQuery'];
+                status?:
+                    | 'draft'
+                    | 'pending_review'
+                    | 'issued'
+                    | 'approved'
+                    | 'rejected';
                 invoice_id?: number;
                 created_from?: string;
                 created_to?: string;
@@ -6877,8 +6951,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["CreditNoteCollection"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['CreditNoteCollection'];
                     };
                 };
             };
@@ -6895,7 +6969,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     reason: string;
                     amount_minor: number;
                     attachments?: string[];
@@ -6909,7 +6983,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6931,8 +7005,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["CreditNote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['CreditNote'];
                     };
                 };
             };
@@ -6949,9 +7023,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    decision: "approve" | "reject";
+                    decision: 'approve' | 'reject';
                     comment?: string | null;
                 };
             };
@@ -6963,7 +7037,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -6979,7 +7053,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** Format: binary */
                     file: string;
                 };
@@ -6992,10 +7066,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            credit_note?: components["schemas"]["CreditNote"];
-                            attachment?: components["schemas"]["DocumentAttachment"];
+                            credit_note?: components['schemas']['CreditNote'];
+                            attachment?: components['schemas']['DocumentAttachment'];
                         };
                     };
                 };
@@ -7019,7 +7093,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7035,7 +7109,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     lines: {
                         invoice_line_id: number;
                         qty_to_credit: number;
@@ -7052,8 +7126,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["CreditNote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['CreditNote'];
                     };
                 };
             };
@@ -7076,7 +7150,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7096,7 +7170,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7110,7 +7184,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7122,7 +7196,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7142,8 +7216,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["DashboardMetrics"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['DashboardMetrics'];
                     };
                 };
             };
@@ -7153,7 +7227,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -7173,7 +7247,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7187,7 +7261,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7199,7 +7273,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7221,7 +7295,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7237,7 +7311,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7249,7 +7323,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7271,7 +7345,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7287,7 +7361,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7299,7 +7373,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7315,7 +7389,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7327,7 +7401,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7350,7 +7424,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7373,7 +7447,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7396,7 +7470,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7412,7 +7486,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7424,7 +7498,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7446,7 +7520,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7462,7 +7536,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7474,7 +7548,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7494,7 +7568,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7508,7 +7582,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7520,7 +7594,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7542,7 +7616,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7558,7 +7632,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7570,7 +7644,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7592,7 +7666,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7608,7 +7682,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7620,7 +7694,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7640,7 +7714,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7654,7 +7728,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7666,7 +7740,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7688,7 +7762,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7704,7 +7778,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7716,7 +7790,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7738,7 +7812,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7754,7 +7828,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7766,7 +7840,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7786,7 +7860,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7800,7 +7874,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7812,7 +7886,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7834,7 +7908,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7850,7 +7924,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7862,7 +7936,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7884,7 +7958,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7900,7 +7974,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -7912,7 +7986,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -7932,7 +8006,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description No compiled document found. */
@@ -7941,7 +8015,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -7961,7 +8035,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description No generated Postman collection found. */
@@ -7970,7 +8044,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -7984,7 +8058,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["DocumentUploadRequest"];
+                'multipart/form-data': components['schemas']['DocumentUploadRequest'];
             };
         };
         responses: {
@@ -7994,8 +8068,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Document"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Document'];
                     };
                 };
             };
@@ -8018,8 +8092,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Document"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Document'];
                     };
                 };
             };
@@ -8029,7 +8103,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
             /** @description Document not found within the tenant scope. */
@@ -8038,7 +8112,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -8046,8 +8120,8 @@ export interface operations {
     listExportRequests: {
         parameters: {
             query?: {
-                page?: components["parameters"]["PageQuery"];
-                per_page?: components["parameters"]["PerPageQuery"];
+                page?: components['parameters']['PageQuery'];
+                per_page?: components['parameters']['PerPageQuery'];
             };
             header?: never;
             path?: never;
@@ -8061,10 +8135,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["ExportRequest"][];
-                            meta: components["schemas"]["PageMeta"];
+                            items: components['schemas']['ExportRequest'][];
+                            meta: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -8080,7 +8154,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @description Export type key (e.g. `orders`, `invoices`). */
                     type: string;
                     filters?: {
@@ -8096,8 +8170,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["ExportRequest"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['ExportRequest'];
                     };
                 };
             };
@@ -8120,8 +8194,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["ExportRequest"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['ExportRequest'];
                     };
                 };
             };
@@ -8146,7 +8220,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/zip": string;
+                    'application/zip': string;
                 };
             };
             /** @description Export not ready. */
@@ -8155,7 +8229,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
             /** @description Export has expired. */
@@ -8164,7 +8238,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -8186,7 +8260,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/zip": string;
+                    'application/zip': string;
                 };
             };
         };
@@ -8208,7 +8282,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/zip": string;
+                    'application/zip': string;
                 };
             };
         };
@@ -8222,7 +8296,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** Format: binary */
                     file: string;
                 };
@@ -8235,7 +8309,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8252,11 +8326,11 @@ export interface operations {
             /** @description Current API health information. */
             200: {
                 headers: {
-                    "X-Request-Id": components["headers"]["XRequestId"];
+                    'X-Request-Id': components['headers']['XRequestId'];
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data: {
                             healthy: boolean;
                             app: string;
@@ -8283,7 +8357,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8297,7 +8371,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -8309,7 +8383,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8331,7 +8405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8353,7 +8427,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8361,9 +8435,9 @@ export interface operations {
     listInvoices: {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
-                page?: components["parameters"]["PageQuery"];
-                status?: "pending" | "paid" | "overdue" | "disputed";
+                per_page?: components['parameters']['PerPageQuery'];
+                page?: components['parameters']['PageQuery'];
+                status?: 'pending' | 'paid' | 'overdue' | 'disputed';
                 supplier_id?: number;
                 from?: string;
                 to?: string;
@@ -8380,8 +8454,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["InvoiceCollection"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['InvoiceCollection'];
                     };
                 };
             };
@@ -8396,7 +8470,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     po_id: number;
                     supplier_id?: number | null;
                     invoice_number?: string | null;
@@ -8426,8 +8500,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Invoice"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Invoice'];
                     };
                 };
             };
@@ -8450,12 +8524,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Invoice"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Invoice'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     updateInvoice: {
@@ -8469,9 +8543,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    status?: "pending" | "paid" | "overdue" | "disputed";
+                    status?: 'pending' | 'paid' | 'overdue' | 'disputed';
                     lines?: {
                         id: number;
                         description?: string;
@@ -8490,8 +8564,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Invoice"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Invoice'];
                     };
                 };
             };
@@ -8514,7 +8588,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8530,7 +8604,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** Format: binary */
                     file: string;
                 };
@@ -8543,10 +8617,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            invoice?: components["schemas"]["Invoice"];
-                            attachment?: components["schemas"]["DocumentAttachment"];
+                            invoice?: components['schemas']['Invoice'];
+                            attachment?: components['schemas']['DocumentAttachment'];
                         };
                     };
                 };
@@ -8570,8 +8644,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Invoice"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Invoice'];
                     };
                 };
             };
@@ -8598,7 +8672,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
                             qty_converted: string;
                             base_qty: string;
@@ -8618,7 +8692,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     qty: number;
                     from_code: string;
                     to_code: string;
@@ -8632,7 +8706,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
                             qty_converted: string;
                         };
@@ -8658,9 +8732,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["Uom"][];
+                            items: components['schemas']['Uom'][];
                             meta: {
                                 total?: number;
                             };
@@ -8679,7 +8753,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Uom"];
+                'application/json': components['schemas']['Uom'];
             };
         };
         responses: {
@@ -8689,7 +8763,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8713,9 +8787,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["UomConversion"][];
+                            items?: components['schemas']['UomConversion'][];
                             meta?: {
                                 total?: number;
                             };
@@ -8734,7 +8808,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     from_code: string;
                     to_code: string;
                     factor: number;
@@ -8749,7 +8823,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8765,7 +8839,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Uom"];
+                'application/json': components['schemas']['Uom'];
             };
         };
         responses: {
@@ -8775,7 +8849,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8797,7 +8871,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8811,7 +8885,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SupplierApplicationPayload"];
+                'application/json': components['schemas']['SupplierApplicationPayload'];
             };
         };
         responses: {
@@ -8821,8 +8895,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["SupplierApplication"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['SupplierApplication'];
                     };
                 };
             };
@@ -8832,7 +8906,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
             /** @description Payload failed validation or a pending application already exists. */
@@ -8841,7 +8915,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -8861,7 +8935,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8875,7 +8949,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -8887,7 +8961,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8911,10 +8985,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["FxRate"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items?: components['schemas']['FxRate'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -8930,7 +9004,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     rows: {
                         base_code: string;
                         quote_code: string;
@@ -8948,7 +9022,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -8968,8 +9042,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["MoneySettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['MoneySettings'];
                     };
                 };
             };
@@ -8984,7 +9058,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     base_currency?: string;
                     pricing_currency?: string;
                     fx_source?: string;
@@ -9003,7 +9077,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9012,7 +9086,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Cursor token for pagination. */
-                cursor?: components["parameters"]["CursorQuery"];
+                cursor?: components['parameters']['CursorQuery'];
                 search?: string;
                 active?: boolean;
                 type?: string;
@@ -9029,11 +9103,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["TaxCode"][];
+                            items?: components['schemas']['TaxCode'][];
                         };
-                        meta?: components["schemas"]["CursorMeta"];
+                        meta?: components['schemas']['CursorMeta'];
                     };
                 };
             };
@@ -9048,7 +9122,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     code: string;
                     name: string;
                     type: string;
@@ -9065,7 +9139,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9087,8 +9161,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["TaxCode"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['TaxCode'];
                     };
                 };
             };
@@ -9105,7 +9179,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name?: string;
                     rate_percent?: number | null;
                     is_compound?: boolean;
@@ -9120,7 +9194,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9142,7 +9216,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9158,7 +9232,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -9170,7 +9244,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9190,7 +9264,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9204,7 +9278,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -9216,7 +9290,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9236,7 +9310,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9256,7 +9330,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9278,7 +9352,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9298,7 +9372,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9320,7 +9394,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9340,9 +9414,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["PlanCatalogEntry"][];
+                            items?: components['schemas']['PlanCatalogEntry'][];
                         };
                     };
                 };
@@ -9358,7 +9432,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreatePurchaseOrdersFromAwardsRequest"];
+                'application/json': components['schemas']['CreatePurchaseOrdersFromAwardsRequest'];
             };
         };
         responses: {
@@ -9368,32 +9442,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            purchase_orders: components["schemas"]["PurchaseOrder"][];
+                            purchase_orders: components['schemas']['PurchaseOrder'][];
                         };
                     };
                 };
             };
-            401: components["responses"]["Unauthorized"];
+            401: components['responses']['Unauthorized'];
             /** @description Plan upgrade required to create purchase orders. */
             402: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            422: components["responses"]["ValidationError"];
+            403: components['responses']['Forbidden'];
+            422: components['responses']['ValidationError'];
         };
     };
     listPurchaseOrders: {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
-                page?: components["parameters"]["PageQuery"];
+                per_page?: components['parameters']['PerPageQuery'];
+                page?: components['parameters']['PageQuery'];
                 supplier?: boolean;
                 status?: string | string[];
             };
@@ -9409,10 +9483,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["PurchaseOrder"][];
-                            meta: components["schemas"]["PageMeta"];
+                            items: components['schemas']['PurchaseOrder'][];
+                            meta: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -9436,8 +9510,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["PurchaseOrder"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['PurchaseOrder'];
                     };
                 };
             };
@@ -9454,9 +9528,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    decision: "acknowledged" | "declined";
+                    decision: 'acknowledged' | 'declined';
                     reason?: string | null;
                 };
             };
@@ -9468,8 +9542,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["PurchaseOrder"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['PurchaseOrder'];
                     };
                 };
             };
@@ -9492,10 +9566,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     listPurchaseOrderChangeOrders: {
@@ -9515,9 +9589,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["PoChangeOrder"][];
+                            items: components['schemas']['PoChangeOrder'][];
                         };
                     };
                 };
@@ -9535,7 +9609,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     reason: string;
                     changes_json: {
                         [key: string]: unknown;
@@ -9550,7 +9624,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9573,7 +9647,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/pdf": string;
+                    'application/pdf': string;
                 };
             };
             /** @description Document not found for purchase order. */
@@ -9582,7 +9656,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiErrorResponse"];
+                    'application/json': components['schemas']['ApiErrorResponse'];
                 };
             };
         };
@@ -9604,9 +9678,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["PurchaseOrderEvent"][];
+                            items?: components['schemas']['PurchaseOrderEvent'][];
                         };
                     };
                 };
@@ -9630,8 +9704,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["ExportPurchaseOrderResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['ExportPurchaseOrderResponse'];
                     };
                 };
             };
@@ -9654,10 +9728,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["GoodsReceiptNote"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items: components['schemas']['GoodsReceiptNote'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -9675,7 +9749,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     lines: {
                         purchase_order_line_id: number;
                         quantity_received: number;
@@ -9695,7 +9769,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9718,8 +9792,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["GoodsReceiptNote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['GoodsReceiptNote'];
                     };
                 };
             };
@@ -9737,9 +9811,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    status?: "draft" | "inspecting" | "accepted" | "rejected";
+                    status?: 'draft' | 'inspecting' | 'accepted' | 'rejected';
                     lines?: {
                         id?: number;
                         quantity_accepted?: number;
@@ -9756,7 +9830,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9779,7 +9853,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9787,9 +9861,9 @@ export interface operations {
     listInvoicesForPurchaseOrder: {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
-                page?: components["parameters"]["PageQuery"];
-                status?: "pending" | "paid" | "overdue" | "disputed";
+                per_page?: components['parameters']['PerPageQuery'];
+                page?: components['parameters']['PageQuery'];
+                status?: 'pending' | 'paid' | 'overdue' | 'disputed';
                 supplier_id?: number;
                 from?: string;
                 to?: string;
@@ -9808,8 +9882,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["InvoiceCollection"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['InvoiceCollection'];
                     };
                 };
             };
@@ -9818,9 +9892,9 @@ export interface operations {
     createInvoiceForPurchaseOrder: {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
-                page?: components["parameters"]["PageQuery"];
-                status?: "pending" | "paid" | "overdue" | "disputed";
+                per_page?: components['parameters']['PerPageQuery'];
+                page?: components['parameters']['PageQuery'];
+                status?: 'pending' | 'paid' | 'overdue' | 'disputed';
                 supplier_id?: number;
                 from?: string;
                 to?: string;
@@ -9833,14 +9907,14 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     invoice_number?: string;
                     /** Format: date */
                     invoice_date?: string;
                     currency?: string;
                     /** Format: binary */
                     document?: string;
-                    lines: components["schemas"]["InvoiceLineInput"][];
+                    lines: components['schemas']['InvoiceLineInput'][];
                 };
             };
         };
@@ -9851,8 +9925,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Invoice"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Invoice'];
                     };
                 };
             };
@@ -9875,7 +9949,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9891,9 +9965,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    channel: "email" | "webhook";
+                    channel: 'email' | 'webhook';
                     /** @description Required when channel is email. */
                     to?: string[];
                     cc?: string[];
@@ -9908,15 +9982,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            purchase_order?: components["schemas"]["PurchaseOrder"];
-                            delivery?: components["schemas"]["PurchaseOrderDelivery"];
+                            purchase_order?: components['schemas']['PurchaseOrder'];
+                            delivery?: components['schemas']['PurchaseOrderDelivery'];
                         };
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     listPurchaseOrderShipments: {
@@ -9936,7 +10010,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -9950,7 +10024,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** Format: uuid */
                     rfq_id: string;
                     /** Format: uuid */
@@ -9963,7 +10037,7 @@ export interface operations {
                      * @default submitted
                      * @enum {string}
                      */
-                    status?: "draft" | "submitted";
+                    status?: 'draft' | 'submitted';
                     items: {
                         /** Format: uuid */
                         rfq_item_id: string;
@@ -9987,12 +10061,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Quote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Quote'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     showQuote: {
@@ -10012,12 +10086,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Quote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Quote'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     addQuoteLine: {
@@ -10031,7 +10105,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["QuoteLineRequest"];
+                'application/json': components['schemas']['QuoteLineRequest'];
             };
         };
         responses: {
@@ -10041,12 +10115,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Quote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Quote'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     updateQuoteLine: {
@@ -10061,7 +10135,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["QuoteLineUpdateRequest"];
+                'application/json': components['schemas']['QuoteLineUpdateRequest'];
             };
         };
         responses: {
@@ -10071,12 +10145,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Quote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Quote'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     deleteQuoteLine: {
@@ -10097,8 +10171,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Quote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Quote'];
                     };
                 };
             };
@@ -10121,7 +10195,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -10143,23 +10217,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Quote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Quote'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     listCompanyGrns: {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
+                per_page?: components['parameters']['PerPageQuery'];
                 /** @description Cursor token for pagination. */
-                cursor?: components["parameters"]["CursorQuery"];
+                cursor?: components['parameters']['CursorQuery'];
                 purchase_order_id?: number;
                 supplier_id?: number;
-                status?: "draft" | "posted" | "variance" | "all";
+                status?: 'draft' | 'posted' | 'variance' | 'all';
                 received_from?: string;
                 received_to?: string;
                 search?: string;
@@ -10176,9 +10250,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["GoodsReceiptNote"][];
+                            items: components['schemas']['GoodsReceiptNote'][];
                             meta: {
                                 per_page?: number;
                                 next_cursor?: string | null;
@@ -10199,15 +10273,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     purchase_order_id: number;
                     /** Format: date-time */
                     received_at?: string | null;
                     reference?: string | null;
                     notes?: string | null;
                     /** @enum {string|null} */
-                    status?: "draft" | "posted" | null;
-                    lines: components["schemas"]["CompanyGoodsReceiptLineInput"][];
+                    status?: 'draft' | 'posted' | null;
+                    lines: components['schemas']['CompanyGoodsReceiptLineInput'][];
                 };
             };
         };
@@ -10218,8 +10292,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["GoodsReceiptNote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['GoodsReceiptNote'];
                     };
                 };
             };
@@ -10242,8 +10316,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["GoodsReceiptNote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['GoodsReceiptNote'];
                     };
                 };
             };
@@ -10260,7 +10334,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** Format: binary */
                     file: string;
                 };
@@ -10273,8 +10347,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["GoodsReceiptNote"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['GoodsReceiptNote'];
                     };
                 };
             };
@@ -10283,12 +10357,12 @@ export interface operations {
     listRfqs: {
         parameters: {
             query?: {
-                per_page?: components["parameters"]["PerPageQuery"];
-                page?: components["parameters"]["PageQuery"];
-                tab?: "all" | "open" | "received" | "sent";
+                per_page?: components['parameters']['PerPageQuery'];
+                page?: components['parameters']['PageQuery'];
+                tab?: 'all' | 'open' | 'received' | 'sent';
                 q?: string;
-                sort?: "sent_at" | "deadline_at";
-                sort_direction?: "asc" | "desc";
+                sort?: 'sent_at' | 'deadline_at';
+                sort_direction?: 'asc' | 'desc';
             };
             header?: never;
             path?: never;
@@ -10299,12 +10373,12 @@ export interface operations {
             /** @description Collection of RFQs visible to the current tenant. */
             200: {
                 headers: {
-                    "X-Request-Id": components["headers"]["XRequestId"];
+                    'X-Request-Id': components['headers']['XRequestId'];
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["RfqCollection"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['RfqCollection'];
                     };
                 };
             };
@@ -10319,13 +10393,18 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     item_name: string;
                     /** @enum {string} */
-                    type: "ready_made" | "manufacture";
+                    type: 'ready_made' | 'manufacture';
                     client_company: string;
                     /** @enum {string} */
-                    status: "awaiting" | "open" | "closed" | "awarded" | "cancelled";
+                    status:
+                        | 'awaiting'
+                        | 'open'
+                        | 'closed'
+                        | 'awarded'
+                        | 'cancelled';
                     /** Format: date-time */
                     deadline_at?: string | null;
                     is_open_bidding?: boolean;
@@ -10354,12 +10433,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Rfq"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Rfq'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     showRfq: {
@@ -10379,12 +10458,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Rfq"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Rfq'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     updateRfq: {
@@ -10398,11 +10477,16 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     item_name?: string;
                     type?: string;
                     /** @enum {string} */
-                    status?: "awaiting" | "open" | "closed" | "awarded" | "cancelled";
+                    status?:
+                        | 'awaiting'
+                        | 'open'
+                        | 'closed'
+                        | 'awarded'
+                        | 'cancelled';
                     is_open_bidding?: boolean;
                     notes?: string | null;
                     /** Format: date-time */
@@ -10419,12 +10503,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Rfq"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Rfq'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     deleteRfq: {
@@ -10444,10 +10528,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     listRfqAttachments: {
@@ -10467,14 +10551,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["RfqAttachment"][];
+                            items: components['schemas']['RfqAttachment'][];
                         };
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     uploadRfqAttachment: {
@@ -10488,7 +10572,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
+                'multipart/form-data': {
                     /** Format: binary */
                     file: string;
                     title?: string | null;
@@ -10503,13 +10587,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["RfqAttachment"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['RfqAttachment'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
+            404: components['responses']['NotFound'];
+            422: components['responses']['ValidationError'];
         };
     };
     deleteRfqAttachment: {
@@ -10530,10 +10614,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     awardRfq: {
@@ -10547,7 +10631,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** Format: uuid */
                     quote_id: string;
                 };
@@ -10560,7 +10644,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -10582,7 +10666,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
                             rfq: {
                                 id: number;
@@ -10593,8 +10677,8 @@ export interface operations {
                                 is_partially_awarded: boolean;
                             };
                             company_currency: string;
-                            lines: components["schemas"]["RfqAwardCandidateLine"][];
-                            awards: components["schemas"]["RfqItemAwardSummary"][];
+                            lines: components['schemas']['RfqAwardCandidateLine'][];
+                            awards: components['schemas']['RfqItemAwardSummary'][];
                             meta: {
                                 quotes?: number;
                                 suppliers?: number;
@@ -10603,9 +10687,9 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
         };
     };
     awardRfqLines: {
@@ -10619,7 +10703,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AwardLinesRequest"];
+                'application/json': components['schemas']['AwardLinesRequest'];
             };
         };
         responses: {
@@ -10629,7 +10713,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -10651,9 +10735,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["RfqClarification"][];
+                            items: components['schemas']['RfqClarification'][];
                         };
                     };
                 };
@@ -10671,7 +10755,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     body: string;
                 };
             };
@@ -10683,7 +10767,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -10699,7 +10783,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     body: string;
                 };
             };
@@ -10711,7 +10795,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -10727,7 +10811,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     body: string;
                 };
             };
@@ -10739,7 +10823,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -10755,7 +10839,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["CloseRfqRequest"];
+                'application/json': components['schemas']['CloseRfqRequest'];
             };
         };
         responses: {
@@ -10765,13 +10849,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Rfq"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Rfq'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
+            404: components['responses']['NotFound'];
+            422: components['responses']['ValidationError'];
         };
     };
     listRfqInvitations: {
@@ -10791,10 +10875,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["RfqInvitation"][];
-                            meta: components["schemas"]["PageMeta"];
+                            items: components['schemas']['RfqInvitation'][];
+                            meta: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -10812,7 +10896,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** Format: uuid */
                     supplier_id: string;
                 };
@@ -10825,10 +10909,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     listRfqLines: {
@@ -10848,14 +10932,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["RfqItem"][];
+                            items: components['schemas']['RfqItem'][];
                         };
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     createRfqLine: {
@@ -10869,7 +10953,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RfqLinePayload"];
+                'application/json': components['schemas']['RfqLinePayload'];
             };
         };
         responses: {
@@ -10879,13 +10963,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["RfqItem"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['RfqItem'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
+            404: components['responses']['NotFound'];
+            422: components['responses']['ValidationError'];
         };
     };
     updateRfqLine: {
@@ -10900,7 +10984,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RfqLinePayload"];
+                'application/json': components['schemas']['RfqLinePayload'];
             };
         };
         responses: {
@@ -10910,13 +10994,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["RfqItem"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['RfqItem'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
+            404: components['responses']['NotFound'];
+            422: components['responses']['ValidationError'];
         };
     };
     deleteRfqLine: {
@@ -10937,10 +11021,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     publishRfq: {
@@ -10954,7 +11038,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PublishRfqRequest"];
+                'application/json': components['schemas']['PublishRfqRequest'];
             };
         };
         responses: {
@@ -10964,13 +11048,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Rfq"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Rfq'];
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
+            404: components['responses']['NotFound'];
+            422: components['responses']['ValidationError'];
         };
     };
     listQuotesForRfq: {
@@ -10990,9 +11074,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["Quote"][];
+                            items: components['schemas']['Quote'][];
                         };
                     };
                 };
@@ -11017,9 +11101,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["QuoteRevision"][];
+                            items: components['schemas']['QuoteRevision'][];
                         };
                     };
                 };
@@ -11038,7 +11122,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     note: string;
                     items: {
                         /** Format: uuid */
@@ -11056,7 +11140,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11073,7 +11157,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     reason: string;
                 };
             };
@@ -11085,7 +11169,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11107,14 +11191,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["RfqTimelineEntry"][];
+                            items: components['schemas']['RfqTimelineEntry'][];
                         };
                     };
                 };
             };
-            404: components["responses"]["NotFound"];
+            404: components['responses']['NotFound'];
         };
     };
     listRiskScores: {
@@ -11132,7 +11216,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11146,7 +11230,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -11158,7 +11242,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11180,7 +11264,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11200,10 +11284,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["Rma"][];
-                            meta?: components["schemas"]["PageMeta"];
+                            items: components['schemas']['Rma'][];
+                            meta?: components['schemas']['PageMeta'];
                         };
                     };
                 };
@@ -11221,7 +11305,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     reason: string;
                     attachments?: string[];
                 };
@@ -11234,7 +11318,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11256,8 +11340,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Rma"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Rma'];
                     };
                 };
             };
@@ -11274,9 +11358,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     /** @enum {string} */
-                    decision: "approve" | "reject";
+                    decision: 'approve' | 'reject';
                     comment?: string | null;
                 };
             };
@@ -11288,7 +11372,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11308,9 +11392,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["SavedSearch"][];
+                            items?: components['schemas']['SavedSearch'][];
                         };
                     };
                 };
@@ -11326,7 +11410,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name: string;
                     query: {
                         [key: string]: unknown;
@@ -11343,7 +11427,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11365,8 +11449,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["SavedSearch"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['SavedSearch'];
                     };
                 };
             };
@@ -11383,7 +11467,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     name?: string;
                     query?: {
                         [key: string]: unknown;
@@ -11399,7 +11483,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11421,7 +11505,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11447,10 +11531,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            results?: components["schemas"]["SearchResult"][];
-                            meta?: components["schemas"]["RequestMeta"];
+                            results?: components['schemas']['SearchResult'][];
+                            meta?: components['schemas']['RequestMeta'];
                         };
                     };
                 };
@@ -11472,8 +11556,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["CompanySettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['CompanySettings'];
                     };
                 };
             };
@@ -11488,7 +11572,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CompanySettings"];
+                'application/json': components['schemas']['CompanySettings'];
             };
         };
         responses: {
@@ -11498,12 +11582,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["CompanySettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['CompanySettings'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     showLocalizationSettings: {
@@ -11521,8 +11605,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["LocalizationSettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['LocalizationSettings'];
                     };
                 };
             };
@@ -11537,7 +11621,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LocalizationSettings"];
+                'application/json': components['schemas']['LocalizationSettings'];
             };
         };
         responses: {
@@ -11547,12 +11631,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["LocalizationSettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['LocalizationSettings'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     showNumberingSettings: {
@@ -11570,8 +11654,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["NumberingSettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['NumberingSettings'];
                     };
                 };
             };
@@ -11586,7 +11670,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["NumberingSettings"];
+                'application/json': components['schemas']['NumberingSettings'];
             };
         };
         responses: {
@@ -11596,12 +11680,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["NumberingSettings"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['NumberingSettings'];
                     };
                 };
             };
-            422: components["responses"]["ValidationError"];
+            422: components['responses']['ValidationError'];
         };
     };
     listSupplierApplications: {
@@ -11619,9 +11703,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["SupplierApplication"][];
+                            items?: components['schemas']['SupplierApplication'][];
                         };
                     };
                 };
@@ -11637,7 +11721,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SupplierApplicationPayload"];
+                'application/json': components['schemas']['SupplierApplicationPayload'];
             };
         };
         responses: {
@@ -11647,8 +11731,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["SupplierApplication"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['SupplierApplication'];
                     };
                 };
             };
@@ -11671,8 +11755,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["SupplierApplication"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['SupplierApplication'];
                     };
                 };
             };
@@ -11695,7 +11779,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11706,9 +11790,9 @@ export interface operations {
                 rfq_id?: string;
                 status?: string;
                 rfq_number?: string;
-                page?: components["parameters"]["PageQuery"];
-                per_page?: components["parameters"]["PerPageQuery"];
-                sort?: "created_at" | "submitted_at" | "total_minor";
+                page?: components['parameters']['PageQuery'];
+                per_page?: components['parameters']['PerPageQuery'];
+                sort?: 'created_at' | 'submitted_at' | 'total_minor';
             };
             header?: never;
             path?: never;
@@ -11722,9 +11806,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items: components["schemas"]["Quote"][];
+                            items: components['schemas']['Quote'][];
                             meta: {
                                 total?: number;
                                 per_page?: number;
@@ -11752,9 +11836,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
                         data?: {
-                            items?: components["schemas"]["Supplier"][];
+                            items?: components['schemas']['Supplier'][];
                         };
                     };
                 };
@@ -11778,8 +11862,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"] & {
-                        data?: components["schemas"]["Supplier"];
+                    'application/json': components['schemas']['ApiSuccessResponse'] & {
+                        data?: components['schemas']['Supplier'];
                     };
                 };
             };
@@ -11802,7 +11886,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11818,7 +11902,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -11830,7 +11914,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11852,7 +11936,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11869,7 +11953,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -11881,7 +11965,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11904,7 +11988,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11918,7 +12002,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -11930,7 +12014,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11944,7 +12028,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -11956,7 +12040,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };
@@ -11970,7 +12054,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                'application/json': {
                     [key: string]: unknown;
                 };
             };
@@ -11982,7 +12066,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiSuccessResponse"];
+                    'application/json': components['schemas']['ApiSuccessResponse'];
                 };
             };
         };

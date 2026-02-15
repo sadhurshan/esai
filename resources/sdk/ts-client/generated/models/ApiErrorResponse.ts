@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ApiErrorResponse
  */
 export interface ApiErrorResponse {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ApiErrorResponse
      */
     status: ApiErrorResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ApiErrorResponse
      */
     message: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ApiErrorResponse
      */
@@ -42,29 +41,30 @@ export interface ApiErrorResponse {
      * @type {{ [key: string]: Array<string>; }}
      * @memberof ApiErrorResponse
      */
-    errors?: { [key: string]: Array<string>; };
+    errors?: { [key: string]: Array<string> };
     /**
-     * 
+     *
      * @type {any}
      * @memberof ApiErrorResponse
      */
     data?: any | null;
 }
 
-
 /**
  * @export
  */
 export const ApiErrorResponseStatusEnum = {
-    Error: 'error'
+    Error: 'error',
 } as const;
-export type ApiErrorResponseStatusEnum = typeof ApiErrorResponseStatusEnum[keyof typeof ApiErrorResponseStatusEnum];
-
+export type ApiErrorResponseStatusEnum =
+    (typeof ApiErrorResponseStatusEnum)[keyof typeof ApiErrorResponseStatusEnum];
 
 /**
  * Check if a given object implements the ApiErrorResponse interface.
  */
-export function instanceOfApiErrorResponse(value: object): value is ApiErrorResponse {
+export function instanceOfApiErrorResponse(
+    value: object,
+): value is ApiErrorResponse {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('message' in value) || value['message'] === undefined) return false;
     return true;
@@ -74,17 +74,19 @@ export function ApiErrorResponseFromJSON(json: any): ApiErrorResponse {
     return ApiErrorResponseFromJSONTyped(json, false);
 }
 
-export function ApiErrorResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiErrorResponse {
+export function ApiErrorResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ApiErrorResponse {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'],
-        'code': json['code'] == null ? undefined : json['code'],
-        'errors': json['errors'] == null ? undefined : json['errors'],
-        'data': json['data'] == null ? undefined : json['data'],
+        status: json['status'],
+        message: json['message'],
+        code: json['code'] == null ? undefined : json['code'],
+        errors: json['errors'] == null ? undefined : json['errors'],
+        data: json['data'] == null ? undefined : json['data'],
     };
 }
 
@@ -92,18 +94,19 @@ export function ApiErrorResponseToJSON(json: any): ApiErrorResponse {
     return ApiErrorResponseToJSONTyped(json, false);
 }
 
-export function ApiErrorResponseToJSONTyped(value?: ApiErrorResponse | null, ignoreDiscriminator: boolean = false): any {
+export function ApiErrorResponseToJSONTyped(
+    value?: ApiErrorResponse | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'code': value['code'],
-        'errors': value['errors'],
-        'data': value['data'],
+        status: value['status'],
+        message: value['message'],
+        code: value['code'],
+        errors: value['errors'],
+        data: value['data'],
     };
 }
-

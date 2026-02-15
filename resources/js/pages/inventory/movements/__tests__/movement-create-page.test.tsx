@@ -1,14 +1,14 @@
-import { render, screen } from '@testing-library/react';
 import { waitFor } from '@testing-library/dom';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { createContext, useContext, type PropsWithChildren } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createContext, useContext, type PropsWithChildren } from 'react';
 
-import { MovementCreatePage } from '../movement-create-page';
 import { publishToast } from '@/components/ui/use-toast';
 import { validateMovementStock } from '@/lib/inventory-stock-validations';
+import { MovementCreatePage } from '../movement-create-page';
 
 vi.mock('@/contexts/auth-context', () => ({
     useAuth: () => ({
@@ -67,7 +67,11 @@ type MockMovementEditorProps = {
 vi.mock('@/components/inventory/movement-line-editor', () => ({
     MovementLineEditor: (props: MockMovementEditorProps) => (
         <div>
-            <button type="button" data-testid="clear-lines" onClick={() => props.form.setValue('lines', [])}>
+            <button
+                type="button"
+                data-testid="clear-lines"
+                onClick={() => props.form.setValue('lines', [])}
+            >
                 Clear lines
             </button>
             <button
@@ -93,18 +97,41 @@ vi.mock('@/components/inventory/movement-line-editor', () => ({
 }));
 
 vi.mock('@/components/ui/select', () => {
-    const SelectCtx = createContext<{ onValueChange?: (value: string) => void }>({});
+    const SelectCtx = createContext<{
+        onValueChange?: (value: string) => void;
+    }>({});
 
-    const Select = ({ onValueChange, children }: PropsWithChildren<{ value?: string; onValueChange: (value: string) => void }>) => (
-        <SelectCtx.Provider value={{ onValueChange }}>{children}</SelectCtx.Provider>
+    const Select = ({
+        onValueChange,
+        children,
+    }: PropsWithChildren<{
+        value?: string;
+        onValueChange: (value: string) => void;
+    }>) => (
+        <SelectCtx.Provider value={{ onValueChange }}>
+            {children}
+        </SelectCtx.Provider>
     );
-    const SelectTrigger = ({ children }: PropsWithChildren) => <div>{children}</div>;
-    const SelectContent = ({ children }: PropsWithChildren) => <div>{children}</div>;
-    const SelectValue = ({ placeholder }: { placeholder?: string }) => <span>{placeholder ?? ''}</span>;
-    const SelectItem = ({ value, children }: PropsWithChildren<{ value: string }>) => {
+    const SelectTrigger = ({ children }: PropsWithChildren) => (
+        <div>{children}</div>
+    );
+    const SelectContent = ({ children }: PropsWithChildren) => (
+        <div>{children}</div>
+    );
+    const SelectValue = ({ placeholder }: { placeholder?: string }) => (
+        <span>{placeholder ?? ''}</span>
+    );
+    const SelectItem = ({
+        value,
+        children,
+    }: PropsWithChildren<{ value: string }>) => {
         const ctx = useContext(SelectCtx);
         return (
-            <button type="button" data-testid={`select-item-${value}`} onClick={() => ctx.onValueChange?.(value)}>
+            <button
+                type="button"
+                data-testid={`select-item-${value}`}
+                onClick={() => ctx.onValueChange?.(value)}
+            >
                 {children}
             </button>
         );
@@ -158,9 +185,13 @@ describe('MovementCreatePage', () => {
         renderPage();
 
         await user.click(screen.getByTestId('clear-lines'));
-        await user.click(screen.getByRole('button', { name: /post movement/i }));
+        await user.click(
+            screen.getByRole('button', { name: /post movement/i }),
+        );
 
-        expect(await screen.findByText('Add at least one line')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Add at least one line'),
+        ).toBeInTheDocument();
         expect(mutateAsyncMock).not.toHaveBeenCalled();
     });
 
@@ -178,7 +209,9 @@ describe('MovementCreatePage', () => {
         await user.click(screen.getByTestId('select-item-TRANSFER'));
 
         await user.click(screen.getByTestId('seed-transfer-line'));
-        await user.click(screen.getByRole('button', { name: /post movement/i }));
+        await user.click(
+            screen.getByRole('button', { name: /post movement/i }),
+        );
 
         await waitFor(() => {
             expect(publishToastMock).toHaveBeenCalled();

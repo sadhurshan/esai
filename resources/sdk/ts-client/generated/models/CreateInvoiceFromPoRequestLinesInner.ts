@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,56 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateInvoiceFromPoRequestLinesInner
  */
 export interface CreateInvoiceFromPoRequestLinesInner {
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     poLineId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     quantity?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     qtyInvoiced?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     unitPriceMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     description?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {Array<number>}
      * @memberof CreateInvoiceFromPoRequestLinesInner
      */
@@ -72,51 +71,66 @@ export interface CreateInvoiceFromPoRequestLinesInner {
 /**
  * Check if a given object implements the CreateInvoiceFromPoRequestLinesInner interface.
  */
-export function instanceOfCreateInvoiceFromPoRequestLinesInner(value: object): value is CreateInvoiceFromPoRequestLinesInner {
+export function instanceOfCreateInvoiceFromPoRequestLinesInner(
+    value: object,
+): value is CreateInvoiceFromPoRequestLinesInner {
     if (!('poLineId' in value) || value['poLineId'] === undefined) return false;
     return true;
 }
 
-export function CreateInvoiceFromPoRequestLinesInnerFromJSON(json: any): CreateInvoiceFromPoRequestLinesInner {
+export function CreateInvoiceFromPoRequestLinesInnerFromJSON(
+    json: any,
+): CreateInvoiceFromPoRequestLinesInner {
     return CreateInvoiceFromPoRequestLinesInnerFromJSONTyped(json, false);
 }
 
-export function CreateInvoiceFromPoRequestLinesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateInvoiceFromPoRequestLinesInner {
+export function CreateInvoiceFromPoRequestLinesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateInvoiceFromPoRequestLinesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'poLineId': json['po_line_id'],
-        'quantity': json['quantity'] == null ? undefined : json['quantity'],
-        'qtyInvoiced': json['qty_invoiced'] == null ? undefined : json['qty_invoiced'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'unitPriceMinor': json['unit_price_minor'] == null ? undefined : json['unit_price_minor'],
-        'description': json['description'] == null ? undefined : json['description'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'taxCodeIds': json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
+        poLineId: json['po_line_id'],
+        quantity: json['quantity'] == null ? undefined : json['quantity'],
+        qtyInvoiced:
+            json['qty_invoiced'] == null ? undefined : json['qty_invoiced'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        unitPriceMinor:
+            json['unit_price_minor'] == null
+                ? undefined
+                : json['unit_price_minor'],
+        description:
+            json['description'] == null ? undefined : json['description'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        taxCodeIds:
+            json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
     };
 }
 
-export function CreateInvoiceFromPoRequestLinesInnerToJSON(json: any): CreateInvoiceFromPoRequestLinesInner {
+export function CreateInvoiceFromPoRequestLinesInnerToJSON(
+    json: any,
+): CreateInvoiceFromPoRequestLinesInner {
     return CreateInvoiceFromPoRequestLinesInnerToJSONTyped(json, false);
 }
 
-export function CreateInvoiceFromPoRequestLinesInnerToJSONTyped(value?: CreateInvoiceFromPoRequestLinesInner | null, ignoreDiscriminator: boolean = false): any {
+export function CreateInvoiceFromPoRequestLinesInnerToJSONTyped(
+    value?: CreateInvoiceFromPoRequestLinesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'po_line_id': value['poLineId'],
-        'quantity': value['quantity'],
-        'qty_invoiced': value['qtyInvoiced'],
-        'unit_price': value['unitPrice'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'description': value['description'],
-        'uom': value['uom'],
-        'tax_code_ids': value['taxCodeIds'],
+        po_line_id: value['poLineId'],
+        quantity: value['quantity'],
+        qty_invoiced: value['qtyInvoiced'],
+        unit_price: value['unitPrice'],
+        unit_price_minor: value['unitPriceMinor'],
+        description: value['description'],
+        uom: value['uom'],
+        tax_code_ids: value['taxCodeIds'],
     };
 }
-

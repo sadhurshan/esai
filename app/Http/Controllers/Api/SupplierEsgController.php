@@ -250,10 +250,13 @@ class SupplierEsgController extends ApiController
             ]);
         }
 
-        $document = $this->exportService->export($user, $supplier, $from, $to);
+            $documents = $this->exportService->export($user, $supplier, $from, $to);
 
         return $this->ok(
-            (new DocumentResource($document))->toArray($request),
+                [
+                    'pdf' => (new DocumentResource($documents['pdf']))->toArray($request),
+                    'csv' => (new DocumentResource($documents['csv']))->toArray($request),
+                ],
             'Scope-3 support pack generated.'
         );
     }

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,93 +12,92 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface Plan
  */
 export interface Plan {
     /**
-     * 
+     *
      * @type {number}
      * @memberof Plan
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Plan
      */
     code: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Plan
      */
     name: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Plan
      */
     priceUsd: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Plan
      */
     rfqsPerMonth?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Plan
      */
     usersMax?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Plan
      */
     analyticsEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Plan
      */
     inventoryEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Plan
      */
     multiCurrencyEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Plan
      */
     taxEngineEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Plan
      */
     localizationEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Plan
      */
     exportsEnabled?: boolean;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Plan
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Plan
      */
@@ -120,26 +119,53 @@ export function PlanFromJSON(json: any): Plan {
     return PlanFromJSONTyped(json, false);
 }
 
-export function PlanFromJSONTyped(json: any, ignoreDiscriminator: boolean): Plan {
+export function PlanFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): Plan {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'code': json['code'],
-        'name': json['name'],
-        'priceUsd': json['price_usd'],
-        'rfqsPerMonth': json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
-        'usersMax': json['users_max'] == null ? undefined : json['users_max'],
-        'analyticsEnabled': json['analytics_enabled'] == null ? undefined : json['analytics_enabled'],
-        'inventoryEnabled': json['inventory_enabled'] == null ? undefined : json['inventory_enabled'],
-        'multiCurrencyEnabled': json['multi_currency_enabled'] == null ? undefined : json['multi_currency_enabled'],
-        'taxEngineEnabled': json['tax_engine_enabled'] == null ? undefined : json['tax_engine_enabled'],
-        'localizationEnabled': json['localization_enabled'] == null ? undefined : json['localization_enabled'],
-        'exportsEnabled': json['exports_enabled'] == null ? undefined : json['exports_enabled'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        code: json['code'],
+        name: json['name'],
+        priceUsd: json['price_usd'],
+        rfqsPerMonth:
+            json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
+        usersMax: json['users_max'] == null ? undefined : json['users_max'],
+        analyticsEnabled:
+            json['analytics_enabled'] == null
+                ? undefined
+                : json['analytics_enabled'],
+        inventoryEnabled:
+            json['inventory_enabled'] == null
+                ? undefined
+                : json['inventory_enabled'],
+        multiCurrencyEnabled:
+            json['multi_currency_enabled'] == null
+                ? undefined
+                : json['multi_currency_enabled'],
+        taxEngineEnabled:
+            json['tax_engine_enabled'] == null
+                ? undefined
+                : json['tax_engine_enabled'],
+        localizationEnabled:
+            json['localization_enabled'] == null
+                ? undefined
+                : json['localization_enabled'],
+        exportsEnabled:
+            json['exports_enabled'] == null
+                ? undefined
+                : json['exports_enabled'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -147,27 +173,34 @@ export function PlanToJSON(json: any): Plan {
     return PlanToJSONTyped(json, false);
 }
 
-export function PlanToJSONTyped(value?: Plan | null, ignoreDiscriminator: boolean = false): any {
+export function PlanToJSONTyped(
+    value?: Plan | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'code': value['code'],
-        'name': value['name'],
-        'price_usd': value['priceUsd'],
-        'rfqs_per_month': value['rfqsPerMonth'],
-        'users_max': value['usersMax'],
-        'analytics_enabled': value['analyticsEnabled'],
-        'inventory_enabled': value['inventoryEnabled'],
-        'multi_currency_enabled': value['multiCurrencyEnabled'],
-        'tax_engine_enabled': value['taxEngineEnabled'],
-        'localization_enabled': value['localizationEnabled'],
-        'exports_enabled': value['exportsEnabled'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        code: value['code'],
+        name: value['name'],
+        price_usd: value['priceUsd'],
+        rfqs_per_month: value['rfqsPerMonth'],
+        users_max: value['usersMax'],
+        analytics_enabled: value['analyticsEnabled'],
+        inventory_enabled: value['inventoryEnabled'],
+        multi_currency_enabled: value['multiCurrencyEnabled'],
+        tax_engine_enabled: value['taxEngineEnabled'],
+        localization_enabled: value['localizationEnabled'],
+        exports_enabled: value['exportsEnabled'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

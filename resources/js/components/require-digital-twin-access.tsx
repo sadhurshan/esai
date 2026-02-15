@@ -1,13 +1,16 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { ShieldAlert } from 'lucide-react';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { ShieldAlert } from 'lucide-react';
+import { Outlet, useNavigate } from 'react-router-dom';
 
 import { EmptyState } from '@/components/empty-state';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { useAuth } from '@/contexts/auth-context';
 
-const DIGITAL_TWIN_FEATURE_KEYS = ['digital_twin_enabled', 'digital_twin.access'];
+const DIGITAL_TWIN_FEATURE_KEYS = [
+    'digital_twin_enabled',
+    'digital_twin.access',
+];
 const SUPPLIER_ROLE_PREFIX = 'supplier_';
 
 function hasDigitalTwinAccess(hasFeature: (key: string) => boolean): boolean {
@@ -26,7 +29,8 @@ export function RequireDigitalTwinAccess() {
         if (!featureEnabled) {
             notifyPlanLimit({
                 code: 'digital_twin_disabled',
-                message: 'Digital Twin Library is available on Growth plans and above.',
+                message:
+                    'Digital Twin Library is available on Growth plans and above.',
             });
         }
     }, [featureEnabled, notifyPlanLimit]);
@@ -60,7 +64,9 @@ export function RequireDigitalTwinAccess() {
                     description="Your current plan does not include digital twins. Upgrade to unlock the curated part library and RFQ prefills."
                     icon={<ShieldAlert className="h-12 w-12 text-amber-500" />}
                     ctaLabel="View billing options"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </section>
         );

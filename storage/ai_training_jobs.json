@@ -1,0 +1,301 @@
+{
+  "bfa5e81e-d34a-42df-88a7-14453feacfa7": {
+    "id": "bfa5e81e-d34a-42df-88a7-14453feacfa7",
+    "feature": "forecast",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "Database URL not configured. Set AI_SERVICE_DATABASE_URL or pass db_url to AISupplyService.",
+    "created_at": "2026-02-11T15:37:34.809130+00:00",
+    "updated_at": "2026-02-11T15:37:34.863142+00:00",
+    "started_at": "2026-02-11T15:37:34.846139+00:00",
+    "finished_at": "2026-02-11T15:37:34.863142+00:00"
+  },
+  "0d619234-d813-4844-90ba-aceee353e2c6": {
+    "id": "0d619234-d813-4844-90ba-aceee353e2c6",
+    "feature": "risk",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "Database URL not configured. Set AI_SERVICE_DATABASE_URL or pass db_url to AISupplyService.",
+    "created_at": "2026-02-11T15:56:10.977080+00:00",
+    "updated_at": "2026-02-11T15:56:11.036520+00:00",
+    "started_at": "2026-02-11T15:56:11.024518+00:00",
+    "finished_at": "2026-02-11T15:56:11.036520+00:00"
+  },
+  "8ec520c0-d106-4104-8b31-9af59481e4e6": {
+    "id": "8ec520c0-d106-4104-8b31-9af59481e4e6",
+    "feature": "forecast",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "No module named 'pymysql'",
+    "created_at": "2026-02-11T16:09:04.034522+00:00",
+    "updated_at": "2026-02-11T16:09:04.153539+00:00",
+    "started_at": "2026-02-11T16:09:04.051523+00:00",
+    "finished_at": "2026-02-11T16:09:04.153539+00:00"
+  },
+  "609d3f66-1469-40e6-a0f0-7272218b9fe9": {
+    "id": "609d3f66-1469-40e6-a0f0-7272218b9fe9",
+    "feature": "forecast",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "No module named 'pymysql'",
+    "created_at": "2026-02-11T16:10:41.511294+00:00",
+    "updated_at": "2026-02-11T16:10:41.540298+00:00",
+    "started_at": "2026-02-11T16:10:41.531298+00:00",
+    "finished_at": "2026-02-11T16:10:41.540298+00:00"
+  },
+  "a8f80dbb-1fe3-4623-97a7-a9a498e23639": {
+    "id": "a8f80dbb-1fe3-4623-97a7-a9a498e23639",
+    "feature": "forecast",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "No module named 'pymysql'",
+    "created_at": "2026-02-11T16:11:32.709748+00:00",
+    "updated_at": "2026-02-11T16:11:32.843762+00:00",
+    "started_at": "2026-02-11T16:11:32.730749+00:00",
+    "finished_at": "2026-02-11T16:11:32.843762+00:00"
+  },
+  "4976bdf2-a7cb-4554-b8d0-dd104f0f709b": {
+    "id": "4976bdf2-a7cb-4554-b8d0-dd104f0f709b",
+    "feature": "forecast",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "(pymysql.err.ProgrammingError) (1146, \"Table 'elements-supply-ai.inventory_transactions' doesn't exist\")\n[SQL: \n            SELECT part_id,\n                   DATE(transaction_date) AS txn_date,\n                   SUM(quantity) AS quantity\n            FROM inventory_transactions\n            WHERE transaction_date >= %(start_date)s\n              AND transaction_date < %(end_date_exclusive)s\n              AND transaction_type IN (%(transaction_types_1)s, %(transaction_types_2)s, %(transaction_types_3)s, %(transaction_types_4)s)\n         AND company_id = %(company_id)s\n            GROUP BY part_id, txn_date\n            ORDER BY part_id, txn_date\n        ]\n[parameters: {'start_date': datetime.date(2025, 2, 11), 'end_date_exclusive': datetime.date(2026, 2, 12), 'company_id': 1, 'transaction_types_1': 'issue', 'transaction_types_2': 'return', 'transaction_types_3': 'transfer', 'transaction_types_4': 'adjustment'}]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+    "created_at": "2026-02-11T16:16:38.258329+00:00",
+    "updated_at": "2026-02-11T16:16:38.757387+00:00",
+    "started_at": "2026-02-11T16:16:38.276332+00:00",
+    "finished_at": "2026-02-11T16:16:38.757387+00:00"
+  },
+  "c5a3b166-5632-4d15-981a-2c4846184218": {
+    "id": "c5a3b166-5632-4d15-981a-2c4846184218",
+    "feature": "forecast",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": {
+      "feature": "forecast",
+      "parts_trained": 0,
+      "horizon": 30,
+      "avg_mape": null,
+      "avg_mae": null,
+      "best_model_distribution": {},
+      "data_window_start": null,
+      "data_window_end": null,
+      "rows_processed": 0,
+      "duration_ms": 251.43
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T16:27:21.168159+00:00",
+    "updated_at": "2026-02-11T16:27:21.443183+00:00",
+    "started_at": "2026-02-11T16:27:21.187162+00:00",
+    "finished_at": "2026-02-11T16:27:21.443183+00:00"
+  },
+  "a29be3a3-a2aa-4120-9a35-949aff907e22": {
+    "id": "a29be3a3-a2aa-4120-9a35-949aff907e22",
+    "feature": "forecast",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": {
+      "feature": "forecast",
+      "parts_trained": 0,
+      "horizon": 30,
+      "avg_mape": null,
+      "avg_mae": null,
+      "best_model_distribution": {},
+      "data_window_start": null,
+      "data_window_end": null,
+      "rows_processed": 0,
+      "duration_ms": 32.47
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T16:31:12.278660+00:00",
+    "updated_at": "2026-02-11T16:31:12.332664+00:00",
+    "started_at": "2026-02-11T16:31:12.295660+00:00",
+    "finished_at": "2026-02-11T16:31:12.332664+00:00"
+  },
+  "68716e31-df05-4de1-b7db-cfb3e62ab620": {
+    "id": "68716e31-df05-4de1-b7db-cfb3e62ab620",
+    "feature": "risk",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": null,
+    "error_message": "No supplier data available for risk training",
+    "created_at": "2026-02-11T16:40:49.629474+00:00",
+    "updated_at": "2026-02-11T16:40:49.839169+00:00",
+    "started_at": "2026-02-11T16:40:49.650479+00:00",
+    "finished_at": "2026-02-11T16:40:49.839169+00:00"
+  },
+  "f7276a89-0017-46b7-bfa8-8d352054bd12": {
+    "id": "f7276a89-0017-46b7-bfa8-8d352054bd12",
+    "feature": "rag",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1,
+      "reindex_all": false
+    },
+    "result": {
+      "feature": "rag",
+      "company_id": 1,
+      "reindex_all": false,
+      "chunks_scanned": 0,
+      "documents_scanned": 0,
+      "tenants_touched": [],
+      "duration_ms": 0.04
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T16:49:21.106212+00:00",
+    "updated_at": "2026-02-11T16:49:21.125213+00:00",
+    "started_at": "2026-02-11T16:49:21.120213+00:00",
+    "finished_at": "2026-02-11T16:49:21.125213+00:00"
+  },
+  "f2455beb-c06e-4ac9-9d71-f3c0a4912b6c": {
+    "id": "f2455beb-c06e-4ac9-9d71-f3c0a4912b6c",
+    "feature": "actions",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1,
+      "parameters": {}
+    },
+    "result": {
+      "feature": "actions",
+      "message": "Training hook placeholder executed.",
+      "parameters": {
+        "company_id": 1,
+        "parameters": {}
+      },
+      "duration_ms": 0.0
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T16:50:33.652372+00:00",
+    "updated_at": "2026-02-11T16:50:33.668372+00:00",
+    "started_at": "2026-02-11T16:50:33.663372+00:00",
+    "finished_at": "2026-02-11T16:50:33.668372+00:00"
+  },
+  "62e96981-5fca-42fd-a2fc-2c5d4a891a52": {
+    "id": "62e96981-5fca-42fd-a2fc-2c5d4a891a52",
+    "feature": "workflows",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1,
+      "parameters": {}
+    },
+    "result": {
+      "feature": "workflows",
+      "message": "Training hook placeholder executed.",
+      "parameters": {
+        "company_id": 1,
+        "parameters": {}
+      },
+      "duration_ms": 0.0
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T16:51:36.243815+00:00",
+    "updated_at": "2026-02-11T16:51:36.285815+00:00",
+    "started_at": "2026-02-11T16:51:36.277815+00:00",
+    "finished_at": "2026-02-11T16:51:36.285815+00:00"
+  },
+  "2660ff31-616f-4a71-bf04-dafce72f3cad": {
+    "id": "2660ff31-616f-4a71-bf04-dafce72f3cad",
+    "feature": "chat",
+    "status": "failed",
+    "parameters": {
+      "company_id": 1,
+      "parameters": {}
+    },
+    "result": null,
+    "error_message": "dataset_upload_id is required for chat training",
+    "created_at": "2026-02-11T17:31:45.844903+00:00",
+    "updated_at": "2026-02-11T17:31:45.881902+00:00",
+    "started_at": "2026-02-11T17:31:45.872902+00:00",
+    "finished_at": "2026-02-11T17:31:45.880903+00:00"
+  },
+  "21458b65-a892-48aa-8c34-54fd7fcca742": {
+    "id": "21458b65-a892-48aa-8c34-54fd7fcca742",
+    "feature": "forecast",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": {
+      "feature": "forecast",
+      "parts_trained": 0,
+      "horizon": 30,
+      "avg_mape": null,
+      "avg_mae": null,
+      "best_model_distribution": {},
+      "data_window_start": null,
+      "data_window_end": null,
+      "rows_processed": 0,
+      "duration_ms": 332.55
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T17:38:42.218318+00:00",
+    "updated_at": "2026-02-11T17:38:42.574326+00:00",
+    "started_at": "2026-02-11T17:38:42.235319+00:00",
+    "finished_at": "2026-02-11T17:38:42.574326+00:00"
+  },
+  "54b6d4f7-fbc4-41dd-a0dc-3a9eb493037f": {
+    "id": "54b6d4f7-fbc4-41dd-a0dc-3a9eb493037f",
+    "feature": "risk",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1
+    },
+    "result": {
+      "feature": "risk",
+      "samples": 0,
+      "metrics": {},
+      "status": "no_data",
+      "data_window_start": null,
+      "data_window_end": null,
+      "duration_ms": 204.1
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T17:49:59.797231+00:00",
+    "updated_at": "2026-02-11T17:50:00.059236+00:00",
+    "started_at": "2026-02-11T17:49:59.850232+00:00",
+    "finished_at": "2026-02-11T17:50:00.059236+00:00"
+  },
+  "a6e433cb-1800-4067-a38b-98190a1ef309": {
+    "id": "a6e433cb-1800-4067-a38b-98190a1ef309",
+    "feature": "chat",
+    "status": "completed",
+    "parameters": {
+      "company_id": 1,
+      "parameters": {}
+    },
+    "result": {
+      "feature": "chat",
+      "status": "no_data",
+      "dataset_upload_id": null,
+      "duration_ms": 0.01
+    },
+    "error_message": null,
+    "created_at": "2026-02-11T17:51:01.394436+00:00",
+    "updated_at": "2026-02-11T17:51:01.418435+00:00",
+    "started_at": "2026-02-11T17:51:01.409436+00:00",
+    "finished_at": "2026-02-11T17:51:01.417435+00:00"
+  }
+}

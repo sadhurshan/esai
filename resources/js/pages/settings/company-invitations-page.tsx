@@ -1,64 +1,123 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { formatDistanceToNow } from 'date-fns';
+import { MailPlus, ShieldCheck, UserPlus2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { formatDistanceToNow } from 'date-fns';
-import { MailPlus, ShieldCheck, UserPlus2 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EmptyState } from '@/components/empty-state';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
+import {
+    COMPANY_ROLE_LABELS,
+    COMPANY_ROLE_OPTIONS,
+    COMPANY_ROLE_VALUES,
+} from '@/constants/company-roles';
 import { useAuth } from '@/contexts/auth-context';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import {
     useCompanyInvitations,
     useRevokeCompanyInvitation,
     useSendCompanyInvitations,
-    type InvitationDraft,
     type CompanyInvitationCollection,
+    type InvitationDraft,
 } from '@/hooks/api/useCompanyInvitations';
-import type { CompanyInvitation, CompanyInvitationStatus, CompanyUserRole } from '@/types/company';
 import { cn } from '@/lib/utils';
-import { COMPANY_ROLE_LABELS, COMPANY_ROLE_OPTIONS, COMPANY_ROLE_VALUES } from '@/constants/company-roles';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import type {
+    CompanyInvitation,
+    CompanyInvitationStatus,
+    CompanyUserRole,
+} from '@/types/company';
 
 const MAX_INVITES_PER_BATCH = 25;
 const DEFAULT_ROLE: CompanyUserRole = 'buyer_requester';
 
 const invitationEntrySchema = z.object({
-    email: z.string().trim().min(1, 'Email is required.').email('Enter a valid email.'),
+    email: z
+        .string()
+        .trim()
+        .min(1, 'Email is required.')
+        .email('Enter a valid email.'),
     role: z.enum(COMPANY_ROLE_VALUES, { required_error: 'Select a role.' }),
     expiresAt: z
         .string()
         .optional()
         .nullable()
-        .refine((value) => !value || value.length === 0 || !Number.isNaN(Date.parse(value)), 'Enter a valid expiration date.'),
-    message: z.string().optional().nullable().refine((value) => !value || value.length <= 500, 'Message must be 500 characters or less.'),
+        .refine(
+            (value) =>
+                !value ||
+                value.length === 0 ||
+                !Number.isNaN(Date.parse(value)),
+            'Enter a valid expiration date.',
+        ),
+    message: z
+        .string()
+        .optional()
+        .nullable()
+        .refine(
+            (value) => !value || value.length <= 500,
+            'Message must be 500 characters or less.',
+        ),
 });
 
 const invitationFormSchema = z.object({
     invitations: z
         .array(invitationEntrySchema)
         .min(1, 'Add at least one teammate to invite.')
-        .max(MAX_INVITES_PER_BATCH, `You can send up to ${MAX_INVITES_PER_BATCH} invitations at once.`),
+        .max(
+            MAX_INVITES_PER_BATCH,
+            `You can send up to ${MAX_INVITES_PER_BATCH} invitations at once.`,
+        ),
 });
 
 type InvitationFormValues = z.infer<typeof invitationFormSchema>;
 
-const STATUS_META: Record<CompanyInvitationStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; className?: string }> = {
+const STATUS_META: Record<
+    CompanyInvitationStatus,
+    {
+        label: string;
+        variant: 'default' | 'secondary' | 'destructive' | 'outline';
+        className?: string;
+    }
+> = {
     pending: { label: 'Pending', variant: 'secondary' },
     accepted: { label: 'Accepted', variant: 'default' },
     revoked: { label: 'Revoked', variant: 'destructive' },
-    expired: { label: 'Expired', variant: 'outline', className: 'border-amber-300 text-amber-800 bg-amber-50' },
+    expired: {
+        label: 'Expired',
+        variant: 'outline',
+        className: 'border-amber-300 text-amber-800 bg-amber-50',
+    },
 };
 
 function getDefaultInvitationRow() {
@@ -70,7 +129,9 @@ function getDefaultInvitationRow() {
     } satisfies InvitationFormValues['invitations'][number];
 }
 
-function sanitizeInvitationPayload(values: InvitationFormValues['invitations']): InvitationDraft[] {
+function sanitizeInvitationPayload(
+    values: InvitationFormValues['invitations'],
+): InvitationDraft[] {
     return values.map((entry) => ({
         email: entry.email.trim(),
         role: entry.role,
@@ -124,9 +185,15 @@ function computeStats(collection?: CompanyInvitationCollection | null) {
 
     return {
         total: items.length,
-        pending: items.filter((invitation) => invitation.status === 'pending').length,
-        accepted: items.filter((invitation) => invitation.status === 'accepted').length,
-        revokedOrExpired: items.filter((invitation) => invitation.status === 'revoked' || invitation.status === 'expired').length,
+        pending: items.filter((invitation) => invitation.status === 'pending')
+            .length,
+        accepted: items.filter((invitation) => invitation.status === 'accepted')
+            .length,
+        revokedOrExpired: items.filter(
+            (invitation) =>
+                invitation.status === 'revoked' ||
+                invitation.status === 'expired',
+        ).length,
     };
 }
 
@@ -136,10 +203,13 @@ export function CompanyInvitationsPage() {
     const isOwner = userRole === 'owner';
     const canManageInvitations = isOwner || isAdmin;
 
-    const invitationsQuery = useCompanyInvitations(undefined, { enabled: canManageInvitations });
+    const invitationsQuery = useCompanyInvitations(undefined, {
+        enabled: canManageInvitations,
+    });
     const sendInvitations = useSendCompanyInvitations();
     const revokeInvitation = useRevokeCompanyInvitation();
-    const [invitationToRevoke, setInvitationToRevoke] = useState<CompanyInvitation | null>(null);
+    const [invitationToRevoke, setInvitationToRevoke] =
+        useState<CompanyInvitation | null>(null);
 
     const form = useForm<InvitationFormValues>({
         resolver: zodResolver(invitationFormSchema),
@@ -147,9 +217,15 @@ export function CompanyInvitationsPage() {
         mode: 'onChange',
     });
 
-    const invitationFields = useFieldArray({ control: form.control, name: 'invitations' });
+    const invitationFields = useFieldArray({
+        control: form.control,
+        name: 'invitations',
+    });
 
-    const stats = useMemo(() => computeStats(invitationsQuery.data), [invitationsQuery.data]);
+    const stats = useMemo(
+        () => computeStats(invitationsQuery.data),
+        [invitationsQuery.data],
+    );
 
     if (!canManageInvitations) {
         return <AccessDeniedPage />;
@@ -161,8 +237,12 @@ export function CompanyInvitationsPage() {
             await sendInvitations.mutateAsync(payload);
             publishToast({
                 variant: 'success',
-                title: payload.length === 1 ? 'Invitation sent' : 'Invitations sent',
-                description: 'Each recipient received an email with their acceptance link.',
+                title:
+                    payload.length === 1
+                        ? 'Invitation sent'
+                        : 'Invitations sent',
+                description:
+                    'Each recipient received an email with their acceptance link.',
             });
             form.reset({ invitations: [getDefaultInvitationRow()] });
         } catch (error) {
@@ -170,7 +250,8 @@ export function CompanyInvitationsPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to send invitations',
-                description: 'Please review the highlighted fields or try again later.',
+                description:
+                    'Please review the highlighted fields or try again later.',
             });
         }
     });
@@ -205,162 +286,268 @@ export function CompanyInvitationsPage() {
                 <title>Company invitations · Elements Supply</title>
             </Helmet>
             <div>
-                <p className="text-sm text-muted-foreground">Workspace · Settings</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Invite your team</h1>
                 <p className="text-sm text-muted-foreground">
-                    Send role-scoped invitations so buyers, suppliers, and finance teams can collaborate inside your tenant.
+                    Workspace · Settings
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Invite your team
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Send role-scoped invitations so buyers, suppliers, and
+                    finance teams can collaborate inside your tenant.
                 </p>
             </div>
             <Alert>
                 <ShieldCheck className="h-5 w-5" />
                 <AlertTitle>Owner or buyer admin required</AlertTitle>
                 <AlertDescription>
-                    Only owners and buyer admins can invite new users. Invitations expire automatically after 7 days unless you set an earlier deadline.
+                    Only owners and buyer admins can invite new users.
+                    Invitations expire automatically after 7 days unless you set
+                    an earlier deadline.
                 </AlertDescription>
             </Alert>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <InvitationStat label="Pending" value={stats.pending} description="Awaiting acceptance" />
-                <InvitationStat label="Accepted" value={stats.accepted} description="Joined your workspace" />
-                <InvitationStat label="Revoked / expired" value={stats.revokedOrExpired} description="No longer valid" />
-                <InvitationStat label="Total sent" value={stats.total} description="All invitations" />
+                <InvitationStat
+                    label="Pending"
+                    value={stats.pending}
+                    description="Awaiting acceptance"
+                />
+                <InvitationStat
+                    label="Accepted"
+                    value={stats.accepted}
+                    description="Joined your workspace"
+                />
+                <InvitationStat
+                    label="Revoked / expired"
+                    value={stats.revokedOrExpired}
+                    description="No longer valid"
+                />
+                <InvitationStat
+                    label="Total sent"
+                    value={stats.total}
+                    description="All invitations"
+                />
             </div>
             <div className="grid gap-6 lg:grid-cols-[1.3fr_1.7fr]">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
-                            <UserPlus2 className="h-5 w-5 text-muted-foreground" /> Invite teammates
+                            <UserPlus2 className="h-5 w-5 text-muted-foreground" />{' '}
+                            Invite teammates
                         </CardTitle>
-                        <CardDescription>Draft up to {MAX_INVITES_PER_BATCH} invitations per batch.</CardDescription>
+                        <CardDescription>
+                            Draft up to {MAX_INVITES_PER_BATCH} invitations per
+                            batch.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Form {...form}>
                             <form onSubmit={handleSend} className="space-y-4">
                                 <div className="space-y-4">
-                                    {invitationFields.fields.map((field, index) => (
-                                        <div key={field.id} className="space-y-4 rounded-lg border p-4">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm font-medium">Invitation {index + 1}</p>
-                                                {invitationFields.fields.length > 1 ? (
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => invitationFields.remove(index)}
-                                                        disabled={sendInvitations.isPending}
-                                                    >
-                                                        Remove
-                                                    </Button>
-                                                ) : null}
-                                            </div>
-                                            <div className="grid gap-4">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`invitations.${index}.email`}
-                                                    render={({ field: controlField }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Email address</FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    type="email"
-                                                                    placeholder="teammate@company.com"
-                                                                    {...controlField}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`invitations.${index}.role`}
-                                                    render={({ field: controlField }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Role</FormLabel>
-                                                            <Select
-                                                                value={controlField.value}
-                                                                onValueChange={controlField.onChange}
-                                                                disabled={sendInvitations.isPending}
-                                                            >
+                                    {invitationFields.fields.map(
+                                        (field, index) => (
+                                            <div
+                                                key={field.id}
+                                                className="space-y-4 rounded-lg border p-4"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-sm font-medium">
+                                                        Invitation {index + 1}
+                                                    </p>
+                                                    {invitationFields.fields
+                                                        .length > 1 ? (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                invitationFields.remove(
+                                                                    index,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                sendInvitations.isPending
+                                                            }
+                                                        >
+                                                            Remove
+                                                        </Button>
+                                                    ) : null}
+                                                </div>
+                                                <div className="grid gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`invitations.${index}.email`}
+                                                        render={({
+                                                            field: controlField,
+                                                        }) => (
+                                                            <FormItem>
+                                                                <FormLabel>
+                                                                    Email
+                                                                    address
+                                                                </FormLabel>
                                                                 <FormControl>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder="Select a role" />
-                                                                    </SelectTrigger>
+                                                                    <Input
+                                                                        type="email"
+                                                                        placeholder="teammate@company.com"
+                                                                        {...controlField}
+                                                                    />
                                                                 </FormControl>
-                                                                <SelectContent>
-                                                                    <SelectGroup>
-                                                                        {COMPANY_ROLE_OPTIONS.map((role) => (
-                                                                            <SelectItem key={role.value} value={role.value}>
-                                                                                <div>
-                                                                                    <p className="text-sm font-medium">{role.label}</p>
-                                                                                    <p className="text-xs text-muted-foreground">
-                                                                                        {role.description}
-                                                                                    </p>
-                                                                                </div>
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </SelectGroup>
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`invitations.${index}.expiresAt`}
-                                                    render={({ field: controlField }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Expires at</FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    type="datetime-local"
-                                                                    {...controlField}
-                                                                    value={controlField.value ?? ''}
-                                                                />
-                                                            </FormControl>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                Leave blank to keep the default 7-day expiration window.
-                                                            </p>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`invitations.${index}.message`}
-                                                    render={({ field: controlField }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Personal message</FormLabel>
-                                                            <FormControl>
-                                                                <Textarea
-                                                                    rows={3}
-                                                                    placeholder="Let teammates know why you are inviting them."
-                                                                    {...controlField}
-                                                                    value={controlField.value ?? ''}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`invitations.${index}.role`}
+                                                        render={({
+                                                            field: controlField,
+                                                        }) => (
+                                                            <FormItem>
+                                                                <FormLabel>
+                                                                    Role
+                                                                </FormLabel>
+                                                                <Select
+                                                                    value={
+                                                                        controlField.value
+                                                                    }
+                                                                    onValueChange={
+                                                                        controlField.onChange
+                                                                    }
+                                                                    disabled={
+                                                                        sendInvitations.isPending
+                                                                    }
+                                                                >
+                                                                    <FormControl>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Select a role" />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectGroup>
+                                                                            {COMPANY_ROLE_OPTIONS.map(
+                                                                                (
+                                                                                    role,
+                                                                                ) => (
+                                                                                    <SelectItem
+                                                                                        key={
+                                                                                            role.value
+                                                                                        }
+                                                                                        value={
+                                                                                            role.value
+                                                                                        }
+                                                                                    >
+                                                                                        <div>
+                                                                                            <p className="text-sm font-medium">
+                                                                                                {
+                                                                                                    role.label
+                                                                                                }
+                                                                                            </p>
+                                                                                            <p className="text-xs text-muted-foreground">
+                                                                                                {
+                                                                                                    role.description
+                                                                                                }
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    </SelectItem>
+                                                                                ),
+                                                                            )}
+                                                                        </SelectGroup>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`invitations.${index}.expiresAt`}
+                                                        render={({
+                                                            field: controlField,
+                                                        }) => (
+                                                            <FormItem>
+                                                                <FormLabel>
+                                                                    Expires at
+                                                                </FormLabel>
+                                                                <FormControl>
+                                                                    <Input
+                                                                        type="datetime-local"
+                                                                        {...controlField}
+                                                                        value={
+                                                                            controlField.value ??
+                                                                            ''
+                                                                        }
+                                                                    />
+                                                                </FormControl>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    Leave blank
+                                                                    to keep the
+                                                                    default
+                                                                    7-day
+                                                                    expiration
+                                                                    window.
+                                                                </p>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`invitations.${index}.message`}
+                                                        render={({
+                                                            field: controlField,
+                                                        }) => (
+                                                            <FormItem>
+                                                                <FormLabel>
+                                                                    Personal
+                                                                    message
+                                                                </FormLabel>
+                                                                <FormControl>
+                                                                    <Textarea
+                                                                        rows={3}
+                                                                        placeholder="Let teammates know why you are inviting them."
+                                                                        {...controlField}
+                                                                        value={
+                                                                            controlField.value ??
+                                                                            ''
+                                                                        }
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ),
+                                    )}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3">
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => invitationFields.append(getDefaultInvitationRow())}
-                                        disabled={invitationFields.fields.length >= MAX_INVITES_PER_BATCH || sendInvitations.isPending}
+                                        onClick={() =>
+                                            invitationFields.append(
+                                                getDefaultInvitationRow(),
+                                            )
+                                        }
+                                        disabled={
+                                            invitationFields.fields.length >=
+                                                MAX_INVITES_PER_BATCH ||
+                                            sendInvitations.isPending
+                                        }
                                     >
                                         Add another invite
                                     </Button>
                                     <Button
                                         type="submit"
-                                        disabled={sendInvitations.isPending || !form.formState.isValid}
+                                        disabled={
+                                            sendInvitations.isPending ||
+                                            !form.formState.isValid
+                                        }
                                     >
-                                        {sendInvitations.isPending ? 'Sending…' : 'Send invitations'}
+                                        {sendInvitations.isPending
+                                            ? 'Sending…'
+                                            : 'Send invitations'}
                                     </Button>
                                 </div>
                             </form>
@@ -371,9 +558,13 @@ export function CompanyInvitationsPage() {
                     <CardHeader className="flex flex-row items-center justify-between gap-4">
                         <div>
                             <CardTitle className="flex items-center gap-2 text-lg">
-                                <MailPlus className="h-5 w-5 text-muted-foreground" /> Recent invitations
+                                <MailPlus className="h-5 w-5 text-muted-foreground" />{' '}
+                                Recent invitations
                             </CardTitle>
-                            <CardDescription>Track acceptance status and revoke invites if needed.</CardDescription>
+                            <CardDescription>
+                                Track acceptance status and revoke invites if
+                                needed.
+                            </CardDescription>
                         </div>
                         <Button
                             variant="outline"
@@ -389,10 +580,16 @@ export function CompanyInvitationsPage() {
                             <InvitationListSkeleton />
                         ) : invitationsQuery.isError ? (
                             <Alert variant="destructive">
-                                <AlertTitle>Unable to load invitations</AlertTitle>
-                                <AlertDescription>{invitationsQuery.error?.message ?? 'Please try again later.'}</AlertDescription>
+                                <AlertTitle>
+                                    Unable to load invitations
+                                </AlertTitle>
+                                <AlertDescription>
+                                    {invitationsQuery.error?.message ??
+                                        'Please try again later.'}
+                                </AlertDescription>
                             </Alert>
-                        ) : (invitationsQuery.data?.items?.length ?? 0) === 0 ? (
+                        ) : (invitationsQuery.data?.items?.length ?? 0) ===
+                          0 ? (
                             <EmptyState
                                 title="No invitations yet"
                                 description="Invite your sourcing, supplier, or finance teammates to get started."
@@ -401,24 +598,42 @@ export function CompanyInvitationsPage() {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead className="text-left text-xs uppercase text-muted-foreground">
+                                    <thead className="text-left text-xs text-muted-foreground uppercase">
                                         <tr>
-                                            <th className="py-2 pr-3 font-medium">Recipient</th>
-                                            <th className="py-2 pr-3 font-medium">Status</th>
-                                            <th className="py-2 pr-3 font-medium">Sent</th>
-                                            <th className="py-2 pr-3 font-medium">Expires</th>
-                                            <th className="py-2 pr-3 font-medium text-right">Actions</th>
+                                            <th className="py-2 pr-3 font-medium">
+                                                Recipient
+                                            </th>
+                                            <th className="py-2 pr-3 font-medium">
+                                                Status
+                                            </th>
+                                            <th className="py-2 pr-3 font-medium">
+                                                Sent
+                                            </th>
+                                            <th className="py-2 pr-3 font-medium">
+                                                Expires
+                                            </th>
+                                            <th className="py-2 pr-3 text-right font-medium">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {invitationsQuery.data?.items.map((invitation) => (
-                                            <InvitationRow
-                                                key={invitation.id}
-                                                invitation={invitation}
-                                                onRevoke={() => setInvitationToRevoke(invitation)}
-                                                disableActions={revokeInvitation.isPending}
-                                            />
-                                        ))}
+                                        {invitationsQuery.data?.items.map(
+                                            (invitation) => (
+                                                <InvitationRow
+                                                    key={invitation.id}
+                                                    invitation={invitation}
+                                                    onRevoke={() =>
+                                                        setInvitationToRevoke(
+                                                            invitation,
+                                                        )
+                                                    }
+                                                    disableActions={
+                                                        revokeInvitation.isPending
+                                                    }
+                                                />
+                                            ),
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -439,7 +654,9 @@ export function CompanyInvitationsPage() {
                         ? `This prevents ${invitationToRevoke.email} from joining your workspace unless you send a new invitation.`
                         : undefined
                 }
-                confirmLabel={revokeInvitation.isPending ? 'Revoking…' : 'Revoke'}
+                confirmLabel={
+                    revokeInvitation.isPending ? 'Revoking…' : 'Revoke'
+                }
                 confirmVariant="destructive"
                 isProcessing={revokeInvitation.isPending}
                 onConfirm={handleConfirmRevoke}
@@ -454,11 +671,7 @@ interface InvitationStatProps {
     description: string;
 }
 
-function InvitationStat({
-    label,
-    value,
-    description,
-}: InvitationStatProps) {
+function InvitationStat({ label, value, description }: InvitationStatProps) {
     return (
         <Card>
             <CardContent className="space-y-1 p-4">
@@ -476,7 +689,11 @@ interface InvitationRowProps {
     disableActions?: boolean;
 }
 
-function InvitationRow({ invitation, onRevoke, disableActions }: InvitationRowProps) {
+function InvitationRow({
+    invitation,
+    onRevoke,
+    disableActions,
+}: InvitationRowProps) {
     const statusMeta = STATUS_META[invitation.status];
     const isPending = invitation.status === 'pending';
     const roleLabel = COMPANY_ROLE_LABELS[invitation.role] ?? invitation.role;
@@ -487,31 +704,47 @@ function InvitationRow({ invitation, onRevoke, disableActions }: InvitationRowPr
                 <div className="font-medium">{invitation.email}</div>
                 <div className="text-xs text-muted-foreground">{roleLabel}</div>
                 {invitation.message ? (
-                    <p className="mt-1 text-xs text-muted-foreground">“{invitation.message}”</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        “{invitation.message}”
+                    </p>
                 ) : null}
             </td>
             <td className="py-3 pr-3">
-                <Badge variant={statusMeta.variant} className={cn('capitalize', statusMeta.className)}>
+                <Badge
+                    variant={statusMeta.variant}
+                    className={cn('capitalize', statusMeta.className)}
+                >
                     {statusMeta.label}
                 </Badge>
             </td>
             <td className="py-3 pr-3 align-top">
                 <div>{formatAbsolute(invitation.createdAt)}</div>
-                <div className="text-xs text-muted-foreground">{formatRelative(invitation.createdAt)}</div>
+                <div className="text-xs text-muted-foreground">
+                    {formatRelative(invitation.createdAt)}
+                </div>
             </td>
             <td className="py-3 pr-3 align-top">
                 {invitation.expiresAt ? (
                     <div>
                         <div>{formatAbsolute(invitation.expiresAt)}</div>
-                        <div className="text-xs text-muted-foreground">{formatRelative(invitation.expiresAt)}</div>
+                        <div className="text-xs text-muted-foreground">
+                            {formatRelative(invitation.expiresAt)}
+                        </div>
                     </div>
                 ) : (
-                    <span className="text-muted-foreground">Default window</span>
+                    <span className="text-muted-foreground">
+                        Default window
+                    </span>
                 )}
             </td>
             <td className="py-3 text-right">
                 {isPending ? (
-                    <Button variant="ghost" size="sm" onClick={onRevoke} disabled={disableActions}>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onRevoke}
+                        disabled={disableActions}
+                    >
                         Revoke
                     </Button>
                 ) : (

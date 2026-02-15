@@ -8,25 +8,42 @@ export interface InvalidateQuoteOptions {
     invalidateSupplierLists?: boolean;
 }
 
-export function invalidateQuoteQueries(queryClient: QueryClient, options: InvalidateQuoteOptions = {}): void {
+export function invalidateQuoteQueries(
+    queryClient: QueryClient,
+    options: InvalidateQuoteOptions = {},
+): void {
     const { quoteId, rfqId, invalidateSupplierLists } = options;
 
     if (quoteId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.quotes.detail(quoteId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.quotes.lines(quoteId) });
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.quotes.detail(quoteId),
+        });
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.quotes.lines(quoteId),
+        });
     }
 
     if (rfqId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.quotes.rfq(rfqId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.quotes(rfqId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.quotes.rfq(rfqId),
+        });
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.rfqs.quotes(rfqId),
+        });
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.rfqs.detail(rfqId),
+        });
 
         if (quoteId) {
-            queryClient.invalidateQueries({ queryKey: queryKeys.quotes.revisions(rfqId, quoteId) });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.quotes.revisions(rfqId, quoteId),
+            });
         }
     }
 
     if (invalidateSupplierLists) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.quotes.supplierRoot() });
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.quotes.supplierRoot(),
+        });
     }
 }

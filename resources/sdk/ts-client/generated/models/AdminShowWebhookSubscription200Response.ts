@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 import type { WebhookSubscription } from './WebhookSubscription';
 import {
     WebhookSubscriptionFromJSON,
-    WebhookSubscriptionFromJSONTyped,
     WebhookSubscriptionToJSON,
-    WebhookSubscriptionToJSONTyped,
 } from './WebhookSubscription';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface AdminShowWebhookSubscription200Response
  */
 export interface AdminShowWebhookSubscription200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminShowWebhookSubscription200Response
      */
     status: AdminShowWebhookSubscription200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminShowWebhookSubscription200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {WebhookSubscription}
      * @memberof AdminShowWebhookSubscription200Response
      */
     data: WebhookSubscription;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof AdminShowWebhookSubscription200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const AdminShowWebhookSubscription200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type AdminShowWebhookSubscription200ResponseStatusEnum = typeof AdminShowWebhookSubscription200ResponseStatusEnum[keyof typeof AdminShowWebhookSubscription200ResponseStatusEnum];
-
+export type AdminShowWebhookSubscription200ResponseStatusEnum =
+    (typeof AdminShowWebhookSubscription200ResponseStatusEnum)[keyof typeof AdminShowWebhookSubscription200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the AdminShowWebhookSubscription200Response interface.
  */
-export function instanceOfAdminShowWebhookSubscription200Response(value: object): value is AdminShowWebhookSubscription200Response {
+export function instanceOfAdminShowWebhookSubscription200Response(
+    value: object,
+): value is AdminShowWebhookSubscription200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function AdminShowWebhookSubscription200ResponseFromJSON(json: any): AdminShowWebhookSubscription200Response {
+export function AdminShowWebhookSubscription200ResponseFromJSON(
+    json: any,
+): AdminShowWebhookSubscription200Response {
     return AdminShowWebhookSubscription200ResponseFromJSONTyped(json, false);
 }
 
-export function AdminShowWebhookSubscription200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminShowWebhookSubscription200Response {
+export function AdminShowWebhookSubscription200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminShowWebhookSubscription200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': WebhookSubscriptionFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: WebhookSubscriptionFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminShowWebhookSubscription200ResponseToJSON(json: any): AdminShowWebhookSubscription200Response {
+export function AdminShowWebhookSubscription200ResponseToJSON(
+    json: any,
+): AdminShowWebhookSubscription200Response {
     return AdminShowWebhookSubscription200ResponseToJSONTyped(json, false);
 }
 
-export function AdminShowWebhookSubscription200ResponseToJSONTyped(value?: AdminShowWebhookSubscription200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminShowWebhookSubscription200ResponseToJSONTyped(
+    value?: AdminShowWebhookSubscription200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': WebhookSubscriptionToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: WebhookSubscriptionToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

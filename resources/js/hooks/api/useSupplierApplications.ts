@@ -1,9 +1,15 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
-import { api, type ApiError } from '@/lib/api';
-import { queryKeys } from '@/lib/queryKeys';
 import type { SupplierDocument } from '@/hooks/api/useSupplierDocuments';
 import type { SupplierApplicationStatusValue } from '@/hooks/api/useSupplierSelfService';
+import { api, type ApiError } from '@/lib/api';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface SupplierApplicationRecord {
     id: number;
@@ -33,13 +39,19 @@ export function useSupplierApplications(
     return useQuery<SupplierApplicationCollection, ApiError>({
         queryKey: queryKeys.me.supplierApplications(),
         queryFn: async () =>
-            (await api.get<SupplierApplicationCollection>('/supplier-applications')) as unknown as SupplierApplicationCollection,
+            (await api.get<SupplierApplicationCollection>(
+                '/supplier-applications',
+            )) as unknown as SupplierApplicationCollection,
         staleTime: 15_000,
         enabled: options?.enabled ?? true,
     });
 }
 
-export function useWithdrawSupplierApplication(): UseMutationResult<void, ApiError, number> {
+export function useWithdrawSupplierApplication(): UseMutationResult<
+    void,
+    ApiError,
+    number
+> {
     const queryClient = useQueryClient();
 
     return useMutation<void, ApiError, number>({
@@ -48,8 +60,12 @@ export function useWithdrawSupplierApplication(): UseMutationResult<void, ApiErr
         },
         onSuccess: async () => {
             await Promise.allSettled([
-                queryClient.invalidateQueries({ queryKey: queryKeys.me.supplierApplications() }),
-                queryClient.invalidateQueries({ queryKey: queryKeys.me.supplierStatus() }),
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.me.supplierApplications(),
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.me.supplierStatus(),
+                }),
             ]);
         },
     });

@@ -1,12 +1,12 @@
-import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useCreateAwards } from '../use-create-awards';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import type { RfqItemAwardSummary } from '@/sdk';
+import { useCreateAwards } from '../use-create-awards';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -35,7 +35,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -83,7 +87,9 @@ describe('useCreateAwards', () => {
         useSdkClientMock.mockReturnValue({ createAwards });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useCreateAwards(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateAwards(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync(mutationInput);
 
@@ -95,7 +101,10 @@ describe('useCreateAwards', () => {
         });
 
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Awards saved', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Awards saved',
+                variant: 'success',
+            }),
         );
 
         const expectedKeys = [
@@ -110,7 +119,9 @@ describe('useCreateAwards', () => {
         ];
 
         for (const key of expectedKeys) {
-            expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: key }));
+            expect(invalidateSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ queryKey: key }),
+            );
         }
     });
 
@@ -119,7 +130,9 @@ describe('useCreateAwards', () => {
         useSdkClientMock.mockReturnValue({ createAwards });
 
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useCreateAwards(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateAwards(), {
+            wrapper: Wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({

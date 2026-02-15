@@ -1,8 +1,15 @@
 import type { Invoice } from '@/sdk';
-import type { DocumentAttachment, InvoiceDetail, InvoiceLineDetail, InvoiceSummary } from '@/types/sourcing';
+import type {
+    DocumentAttachment,
+    InvoiceDetail,
+    InvoiceLineDetail,
+    InvoiceSummary,
+} from '@/types/sourcing';
 
 type InvoiceSummaryLike = Record<string, unknown>;
-type InvoiceLike = (Partial<Invoice> & Record<string, unknown>) | Record<string, unknown>;
+type InvoiceLike =
+    | (Partial<Invoice> & Record<string, unknown>)
+    | Record<string, unknown>;
 type InvoiceLineLike = Record<string, unknown>;
 
 const DEFAULT_MINOR_FACTOR = 100;
@@ -22,7 +29,10 @@ const toNumber = (value: unknown): number | undefined => {
     return undefined;
 };
 
-const readNumber = (payload: Record<string, unknown>, ...keys: string[]): number | undefined => {
+const readNumber = (
+    payload: Record<string, unknown>,
+    ...keys: string[]
+): number | undefined => {
     for (const key of keys) {
         if (key in payload) {
             const value = toNumber(payload[key]);
@@ -34,7 +44,10 @@ const readNumber = (payload: Record<string, unknown>, ...keys: string[]): number
     return undefined;
 };
 
-const readString = (payload: Record<string, unknown>, ...keys: string[]): string | undefined => {
+const readString = (
+    payload: Record<string, unknown>,
+    ...keys: string[]
+): string | undefined => {
     for (const key of keys) {
         const value = payload[key];
         if (typeof value === 'string' && value.length > 0) {
@@ -51,7 +64,9 @@ const toMinorUnits = (major?: number): number | undefined => {
     return Math.round(major * DEFAULT_MINOR_FACTOR);
 };
 
-export function mapInvoiceDocument(payload?: Record<string, unknown> | null): DocumentAttachment | null {
+export function mapInvoiceDocument(
+    payload?: Record<string, unknown> | null,
+): DocumentAttachment | null {
     if (!payload) {
         return null;
     }
@@ -63,7 +78,7 @@ export function mapInvoiceDocument(payload?: Record<string, unknown> | null): Do
         sizeBytes: readNumber(payload, 'sizeBytes', 'size_bytes') ?? 0,
         createdAt: readString(payload, 'createdAt', 'created_at') ?? null,
     };
-};
+}
 
 export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
     const source = payload as Record<string, unknown>;
@@ -71,44 +86,78 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
     const taxMajor = readNumber(source, 'taxAmount', 'tax_amount');
     const totalMajor = readNumber(source, 'total');
 
-    const supplierSource = source.supplier as Record<string, unknown> | undefined;
-    const purchaseOrderSource = source.purchaseOrder as Record<string, unknown> | undefined;
-    const purchaseOrderFallback = source.purchase_order as Record<string, unknown> | undefined;
+    const supplierSource = source.supplier as
+        | Record<string, unknown>
+        | undefined;
+    const purchaseOrderSource = source.purchaseOrder as
+        | Record<string, unknown>
+        | undefined;
+    const purchaseOrderFallback = source.purchase_order as
+        | Record<string, unknown>
+        | undefined;
     const purchaseOrderCombined = purchaseOrderSource ?? purchaseOrderFallback;
-    const supplierCompanySource = source.supplierCompany as Record<string, unknown> | undefined;
-    const supplierCompanyFallback = source.supplier_company as Record<string, unknown> | undefined;
-    const supplierCompanyCombined = supplierCompanySource ?? supplierCompanyFallback;
-    const reviewedBySource = source.reviewedBy as Record<string, unknown> | undefined;
-    const reviewedByFallback = source.reviewed_by as Record<string, unknown> | undefined;
+    const supplierCompanySource = source.supplierCompany as
+        | Record<string, unknown>
+        | undefined;
+    const supplierCompanyFallback = source.supplier_company as
+        | Record<string, unknown>
+        | undefined;
+    const supplierCompanyCombined =
+        supplierCompanySource ?? supplierCompanyFallback;
+    const reviewedBySource = source.reviewedBy as
+        | Record<string, unknown>
+        | undefined;
+    const reviewedByFallback = source.reviewed_by as
+        | Record<string, unknown>
+        | undefined;
     const reviewedByCombined = reviewedBySource ?? reviewedByFallback;
-    const document = mapInvoiceDocument((source.document as Record<string, unknown> | undefined) ?? null);
+    const document = mapInvoiceDocument(
+        (source.document as Record<string, unknown> | undefined) ?? null,
+    );
     const attachments = Array.isArray(source.attachments)
         ? (source.attachments as Record<string, unknown>[])
               .map((attachment) => mapInvoiceDocument(attachment))
-              .filter((attachment): attachment is DocumentAttachment => Boolean(attachment))
+              .filter((attachment): attachment is DocumentAttachment =>
+                  Boolean(attachment),
+              )
         : undefined;
 
     return {
         id: readString(source, 'id', 'invoice_id') ?? '',
         companyId: readNumber(source, 'companyId', 'company_id') ?? 0,
-        purchaseOrderId: readNumber(source, 'purchaseOrderId', 'purchase_order_id') ?? 0,
+        purchaseOrderId:
+            readNumber(source, 'purchaseOrderId', 'purchase_order_id') ?? 0,
         supplierId: readNumber(source, 'supplierId', 'supplier_id') ?? 0,
-        invoiceNumber: readString(source, 'invoiceNumber', 'invoice_number') ?? '—',
+        invoiceNumber:
+            readString(source, 'invoiceNumber', 'invoice_number') ?? '—',
         invoiceDate: readString(source, 'invoiceDate', 'invoice_date') ?? null,
         dueDate: readString(source, 'dueDate', 'due_date') ?? null,
         currency: readString(source, 'currency') ?? 'USD',
         status: readString(source, 'status') ?? 'draft',
-        matchedStatus: readString(source, 'matchedStatus', 'matched_status') ?? null,
-        createdByType: readString(source, 'createdByType', 'created_by_type') ?? null,
+        matchedStatus:
+            readString(source, 'matchedStatus', 'matched_status') ?? null,
+        createdByType:
+            readString(source, 'createdByType', 'created_by_type') ?? null,
         createdById: readNumber(source, 'createdById', 'created_by_id') ?? null,
         subtotal: subtotalMajor ?? 0,
         taxAmount: taxMajor ?? 0,
         total: totalMajor ?? 0,
-        subtotalMinor: readNumber(source, 'subtotalMinor', 'subtotal_minor') ?? toMinorUnits(subtotalMajor),
+        subtotalMinor:
+            readNumber(source, 'subtotalMinor', 'subtotal_minor') ??
+            toMinorUnits(subtotalMajor),
         taxAmountMinor:
-            readNumber(source, 'taxAmountMinor', 'tax_amount_minor', 'tax_minor') ?? toMinorUnits(taxMajor),
-        totalMinor: readNumber(source, 'totalMinor', 'total_minor') ?? toMinorUnits(totalMajor),
-        supplierCompanyId: readNumber(source, 'supplierCompanyId', 'supplier_company_id') ?? null,
+            readNumber(
+                source,
+                'taxAmountMinor',
+                'tax_amount_minor',
+                'tax_minor',
+            ) ?? toMinorUnits(taxMajor),
+        totalMinor:
+            readNumber(source, 'totalMinor', 'total_minor') ??
+            toMinorUnits(totalMajor),
+        supplierCompanyId:
+            readNumber(source, 'supplierCompanyId', 'supplier_company_id') ??
+            null,
         supplier: supplierSource
             ? {
                   id: readNumber(supplierSource, 'id') ?? 0,
@@ -124,16 +173,23 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
         purchaseOrder: purchaseOrderCombined
             ? {
                   id: readNumber(purchaseOrderCombined, 'id') ?? 0,
-                  poNumber: readString(purchaseOrderCombined, 'poNumber', 'po_number') ?? null,
+                  poNumber:
+                      readString(
+                          purchaseOrderCombined,
+                          'poNumber',
+                          'po_number',
+                      ) ?? null,
               }
             : null,
         document,
         attachments,
-        matchSummary: (source.matchSummary as Record<string, number> | undefined) ??
+        matchSummary:
+            (source.matchSummary as Record<string, number> | undefined) ??
             (source.match_summary as Record<string, number> | undefined),
         submittedAt: readString(source, 'submittedAt', 'submitted_at') ?? null,
         reviewedAt: readString(source, 'reviewedAt', 'reviewed_at') ?? null,
-        reviewedById: readNumber(source, 'reviewedById', 'reviewed_by_id') ?? null,
+        reviewedById:
+            readNumber(source, 'reviewedById', 'reviewed_by_id') ?? null,
         reviewedBy: reviewedByCombined
             ? {
                   id: readNumber(reviewedByCombined, 'id') ?? 0,
@@ -141,7 +197,8 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
               }
             : null,
         reviewNote: readString(source, 'reviewNote', 'review_note') ?? null,
-        paymentReference: readString(source, 'paymentReference', 'payment_reference') ?? null,
+        paymentReference:
+            readString(source, 'paymentReference', 'payment_reference') ?? null,
         createdAt: readString(source, 'createdAt', 'created_at') ?? null,
         updatedAt: readString(source, 'updatedAt', 'updated_at') ?? null,
     };
@@ -149,7 +206,9 @@ export function mapInvoiceSummary(payload: InvoiceSummaryLike): InvoiceSummary {
 
 const mapInvoiceLine = (payload: InvoiceLineLike): InvoiceLineDetail => {
     const source = payload as Record<string, unknown>;
-    const taxes = Array.isArray(source.taxes) ? (source.taxes as Record<string, unknown>[]) : undefined;
+    const taxes = Array.isArray(source.taxes)
+        ? (source.taxes as Record<string, unknown>[])
+        : undefined;
 
     return {
         id: readNumber(source, 'id') ?? 0,
@@ -162,14 +221,18 @@ const mapInvoiceLine = (payload: InvoiceLineLike): InvoiceLineDetail => {
         unitPriceMinor:
             readNumber(source, 'unitPriceMinor', 'unit_price_minor') ??
             toMinorUnits(readNumber(source, 'unitPrice', 'unit_price')),
-        taxCodeIds: taxes?.map((tax) => readNumber(tax, 'taxCodeId', 'tax_code_id') ?? 0).filter((id) => id > 0),
+        taxCodeIds: taxes
+            ?.map((tax) => readNumber(tax, 'taxCodeId', 'tax_code_id') ?? 0)
+            .filter((id) => id > 0),
     };
 };
 
 export function mapInvoiceDetail(payload: InvoiceLike): InvoiceDetail {
     const summary = mapInvoiceSummary(payload);
     const source = payload as Record<string, unknown>;
-    const linesSource = Array.isArray(source.lines) ? (source.lines as InvoiceLineLike[]) : [];
+    const linesSource = Array.isArray(source.lines)
+        ? (source.lines as InvoiceLineLike[])
+        : [];
     const matches = Array.isArray(source.matches) ? source.matches : [];
 
     return {

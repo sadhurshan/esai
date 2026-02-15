@@ -449,6 +449,20 @@ class AiClient
     }
 
     /**
+     * @param array<string, mixed> $payload
+     * @return array{job_id:?string,job:array<string,mixed>|null,response:array<string,mixed>}
+     */
+    public function trainChat(array $payload): array
+    {
+        return $this->dispatchTrainingRequest(
+            endpoint: 'train/chat',
+            payload: $payload,
+            feature: 'train_chat',
+            successMessage: 'Chat training job accepted.',
+        );
+    }
+
+    /**
      * @return array{job:array<string,mixed>|null,response:array<string,mixed>}
      */
     public function trainingStatus(string $jobId): array

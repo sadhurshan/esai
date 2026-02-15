@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { AwardLinesRequestLinesInner } from './AwardLinesRequestLinesInner';
 import {
     AwardLinesRequestLinesInnerFromJSON,
-    AwardLinesRequestLinesInnerFromJSONTyped,
     AwardLinesRequestLinesInnerToJSON,
-    AwardLinesRequestLinesInnerToJSONTyped,
 } from './AwardLinesRequestLinesInner';
 
 /**
- * 
+ *
  * @export
  * @interface AwardLinesRequest
  */
 export interface AwardLinesRequest {
     /**
-     * 
+     *
      * @type {Array<AwardLinesRequestLinesInner>}
      * @memberof AwardLinesRequest
      */
@@ -38,7 +35,9 @@ export interface AwardLinesRequest {
 /**
  * Check if a given object implements the AwardLinesRequest interface.
  */
-export function instanceOfAwardLinesRequest(value: object): value is AwardLinesRequest {
+export function instanceOfAwardLinesRequest(
+    value: object,
+): value is AwardLinesRequest {
     if (!('lines' in value) || value['lines'] === undefined) return false;
     return true;
 }
@@ -47,13 +46,17 @@ export function AwardLinesRequestFromJSON(json: any): AwardLinesRequest {
     return AwardLinesRequestFromJSONTyped(json, false);
 }
 
-export function AwardLinesRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AwardLinesRequest {
+export function AwardLinesRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AwardLinesRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'lines': ((json['lines'] as Array<any>).map(AwardLinesRequestLinesInnerFromJSON)),
+        lines: (json['lines'] as Array<any>).map(
+            AwardLinesRequestLinesInnerFromJSON,
+        ),
     };
 }
 
@@ -61,14 +64,17 @@ export function AwardLinesRequestToJSON(json: any): AwardLinesRequest {
     return AwardLinesRequestToJSONTyped(json, false);
 }
 
-export function AwardLinesRequestToJSONTyped(value?: AwardLinesRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AwardLinesRequestToJSONTyped(
+    value?: AwardLinesRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'lines': ((value['lines'] as Array<any>).map(AwardLinesRequestLinesInnerToJSON)),
+        lines: (value['lines'] as Array<any>).map(
+            AwardLinesRequestLinesInnerToJSON,
+        ),
     };
 }
-

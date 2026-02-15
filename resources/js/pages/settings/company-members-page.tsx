@@ -1,32 +1,70 @@
+import { formatDistanceToNow } from 'date-fns';
+import {
+    AlertTriangle,
+    ShieldCheck,
+    UserCog,
+    UserMinus2,
+    Users,
+} from 'lucide-react';
 import { useMemo, useState, type ComponentType } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { formatDistanceToNow } from 'date-fns';
-import { AlertTriangle, ShieldCheck, UserCog, UserMinus2, Users } from 'lucide-react';
 
+import { EmptyState } from '@/components/empty-state';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { EmptyState } from '@/components/empty-state';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { publishToast } from '@/components/ui/use-toast';
+import {
+    COMPANY_ROLE_LABELS,
+    COMPANY_ROLE_OPTIONS,
+} from '@/constants/company-roles';
 import { useAuth } from '@/contexts/auth-context';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import {
     useCompanyMembers,
     useRemoveCompanyMember,
     useUpdateCompanyMember,
 } from '@/hooks/api/useCompanyMembers';
-import { COMPANY_ROLE_LABELS, COMPANY_ROLE_OPTIONS } from '@/constants/company-roles';
-import type { CompanyMember, CompanyMemberRoleConflict, CompanyUserRole } from '@/types/company';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import type {
+    CompanyMember,
+    CompanyMemberRoleConflict,
+    CompanyUserRole,
+} from '@/types/company';
 
 const PAGE_SIZE = 25;
-const BUYER_ROLES = new Set<CompanyUserRole>(['owner', 'buyer_admin', 'buyer_member', 'buyer_requester', 'finance']);
-const SUPPLIER_ROLES = new Set<CompanyUserRole>(['supplier_admin', 'supplier_estimator']);
+const BUYER_ROLES = new Set<CompanyUserRole>([
+    'owner',
+    'buyer_admin',
+    'buyer_member',
+    'buyer_requester',
+    'finance',
+]);
+const SUPPLIER_ROLES = new Set<CompanyUserRole>([
+    'supplier_admin',
+    'supplier_estimator',
+]);
 
 export function CompanyMembersPage() {
     const { state, isAdmin } = useAuth();
@@ -36,13 +74,18 @@ export function CompanyMembersPage() {
     const canManageMembers = isOwner || isAdmin;
 
     const [cursor, setCursor] = useState<string | undefined>(undefined);
-    const [memberToRemove, setMemberToRemove] = useState<CompanyMember | null>(null);
+    const [memberToRemove, setMemberToRemove] = useState<CompanyMember | null>(
+        null,
+    );
 
     const membersQuery = useCompanyMembers({ cursor, perPage: PAGE_SIZE });
     const updateMember = useUpdateCompanyMember();
     const removeMember = useRemoveCompanyMember();
 
-    const members = useMemo(() => membersQuery.data?.items ?? [], [membersQuery.data]);
+    const members = useMemo(
+        () => membersQuery.data?.items ?? [],
+        [membersQuery.data],
+    );
     const meta = useMemo(() => membersQuery.data?.meta, [membersQuery.data]);
     const perPage = meta?.perPage ?? PAGE_SIZE;
     const canGoPrev = Boolean(meta?.prevCursor);
@@ -51,7 +94,7 @@ export function CompanyMembersPage() {
     const stats = useMemo(() => computeStats(members), [members]);
     const conflictMembers = useMemo(
         () => members.filter((member) => member.roleConflict?.hasConflict),
-        [members]
+        [members],
     );
     const hasRoleConflicts = conflictMembers.length > 0;
 
@@ -59,13 +102,19 @@ export function CompanyMembersPage() {
         return <AccessDeniedPage />;
     }
 
-    const handleRoleChange = async (member: CompanyMember, nextRole: CompanyUserRole) => {
+    const handleRoleChange = async (
+        member: CompanyMember,
+        nextRole: CompanyUserRole,
+    ) => {
         if (member.role === nextRole) {
             return;
         }
 
         try {
-            await updateMember.mutateAsync({ memberId: member.id, role: nextRole });
+            await updateMember.mutateAsync({
+                memberId: member.id,
+                role: nextRole,
+            });
             publishToast({
                 variant: 'success',
                 title: 'Role updated',
@@ -76,7 +125,8 @@ export function CompanyMembersPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to update role',
-                description: 'Please try again or ensure at least one owner remains.',
+                description:
+                    'Please try again or ensure at least one owner remains.',
             });
         }
     };
@@ -98,7 +148,8 @@ export function CompanyMembersPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to remove member',
-                description: 'Ensure another owner exists before removing this user.',
+                description:
+                    'Ensure another owner exists before removing this user.',
             });
         } finally {
             setMemberToRemove(null);
@@ -115,45 +166,71 @@ export function CompanyMembersPage() {
                 <title>Team roster · Elements Supply</title>
             </Helmet>
             <div>
-                <p className="text-sm text-muted-foreground">Workspace · Settings</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Manage your team</h1>
                 <p className="text-sm text-muted-foreground">
-                    Downgrade, remove, or reassign roles for teammates who already accepted their invitations.
+                    Workspace · Settings
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Manage your team
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Downgrade, remove, or reassign roles for teammates who
+                    already accepted their invitations.
                 </p>
             </div>
             <Alert>
                 <ShieldCheck className="h-5 w-5" />
                 <AlertTitle>Owner or buyer admin required</AlertTitle>
                 <AlertDescription>
-                    Only owners and buyer admins can change roles or revoke workspace access. Every company must retain at least one owner.
+                    Only owners and buyer admins can change roles or revoke
+                    workspace access. Every company must retain at least one
+                    owner.
                 </AlertDescription>
             </Alert>
             {hasRoleConflicts ? (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-5 w-5" />
-                    <AlertTitle>Cross-company role conflicts detected</AlertTitle>
+                    <AlertTitle>
+                        Cross-company role conflicts detected
+                    </AlertTitle>
                     <AlertDescription className="space-y-2">
                         <p>
-                            Some teammates hold different roles in other workspaces. Confirm these cross-tenant assignments are intentional before downgrading or removing access.
+                            Some teammates hold different roles in other
+                            workspaces. Confirm these cross-tenant assignments
+                            are intentional before downgrading or removing
+                            access.
                         </p>
                         <ul className="space-y-1 text-xs text-muted-foreground">
                             {conflictMembers.slice(0, 3).map((member) => (
                                 <li key={member.id}>
-                                    <span className="font-medium text-foreground">{member.name}</span>
-                                    <span> · {formatConflictSummary(member.roleConflict)}</span>
+                                    <span className="font-medium text-foreground">
+                                        {member.name}
+                                    </span>
+                                    <span>
+                                        {' '}
+                                        ·{' '}
+                                        {formatConflictSummary(
+                                            member.roleConflict,
+                                        )}
+                                    </span>
                                 </li>
                             ))}
                         </ul>
                         {conflictMembers.length > 3 ? (
                             <p className="text-xs font-medium text-muted-foreground">
-                                +{conflictMembers.length - 3} additional conflicts
+                                +{conflictMembers.length - 3} additional
+                                conflicts
                             </p>
                         ) : null}
                     </AlertDescription>
                 </Alert>
             ) : null}
             <div className="grid gap-4 md:grid-cols-3">
-                <MemberStatCard icon={Users} label="Members on this page" value={stats.total} helper={`Up to ${perPage} per page`} />
+                <MemberStatCard
+                    icon={Users}
+                    label="Members on this page"
+                    value={stats.total}
+                    helper={`Up to ${perPage} per page`}
+                />
                 <MemberStatCard
                     icon={UserCog}
                     label="Buyer roles"
@@ -171,7 +248,10 @@ export function CompanyMembersPage() {
                 <CardHeader className="flex flex-row items-center justify-between gap-4">
                     <div>
                         <CardTitle className="text-xl">Team roster</CardTitle>
-                        <CardDescription>View active members, adjust their roles, or revoke workspace access.</CardDescription>
+                        <CardDescription>
+                            View active members, adjust their roles, or revoke
+                            workspace access.
+                        </CardDescription>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>
@@ -181,7 +261,9 @@ export function CompanyMembersPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setCursor(meta?.prevCursor ?? undefined)}
+                                onClick={() =>
+                                    setCursor(meta?.prevCursor ?? undefined)
+                                }
                                 disabled={isLoading || !canGoPrev}
                             >
                                 Previous
@@ -207,7 +289,9 @@ export function CompanyMembersPage() {
                     ) : isError ? (
                         <Alert variant="destructive">
                             <AlertTitle>Unable to load team roster</AlertTitle>
-                            <AlertDescription>Please refresh the page or try again later.</AlertDescription>
+                            <AlertDescription>
+                                Please refresh the page or try again later.
+                            </AlertDescription>
                         </Alert>
                     ) : !hasMembers ? (
                         <EmptyState
@@ -218,13 +302,23 @@ export function CompanyMembersPage() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
-                                <thead className="text-left text-xs uppercase text-muted-foreground">
+                                <thead className="text-left text-xs text-muted-foreground uppercase">
                                     <tr>
-                                        <th className="py-2 pr-3 font-medium">Member</th>
-                                        <th className="py-2 pr-3 font-medium">Role</th>
-                                        <th className="py-2 pr-3 font-medium">Last activity</th>
-                                        <th className="py-2 pr-3 font-medium">Membership</th>
-                                        <th className="py-2 pl-3 text-right font-medium">Actions</th>
+                                        <th className="py-2 pr-3 font-medium">
+                                            Member
+                                        </th>
+                                        <th className="py-2 pr-3 font-medium">
+                                            Role
+                                        </th>
+                                        <th className="py-2 pr-3 font-medium">
+                                            Last activity
+                                        </th>
+                                        <th className="py-2 pr-3 font-medium">
+                                            Membership
+                                        </th>
+                                        <th className="py-2 pl-3 text-right font-medium">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -259,7 +353,9 @@ export function CompanyMembersPage() {
                         ? `Revoking access will remove ${memberToRemove.name} from this workspace immediately.`
                         : undefined
                 }
-                confirmLabel={removeMember.isPending ? 'Removing…' : 'Remove member'}
+                confirmLabel={
+                    removeMember.isPending ? 'Removing…' : 'Remove member'
+                }
                 confirmVariant="destructive"
                 isProcessing={removeMember.isPending}
                 onConfirm={handleRemoveConfirmed}
@@ -275,7 +371,12 @@ interface MemberStatCardProps {
     helper: string;
 }
 
-function MemberStatCard({ icon: Icon, label, value, helper }: MemberStatCardProps) {
+function MemberStatCard({
+    icon: Icon,
+    label,
+    value,
+    helper,
+}: MemberStatCardProps) {
     return (
         <Card>
             <CardContent className="flex items-center gap-4 p-4">
@@ -328,14 +429,27 @@ function MemberRow({
             <td className="py-3 pr-3">
                 <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
-                        {member.avatarUrl ? <AvatarImage src={member.avatarUrl} alt={member.name} /> : null}
-                        <AvatarFallback>{initials || member.email[0]?.toUpperCase() || '?'}</AvatarFallback>
+                        {member.avatarUrl ? (
+                            <AvatarImage
+                                src={member.avatarUrl}
+                                alt={member.name}
+                            />
+                        ) : null}
+                        <AvatarFallback>
+                            {initials || member.email[0]?.toUpperCase() || '?'}
+                        </AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="font-medium leading-tight">{member.name}</p>
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
+                        <p className="leading-tight font-medium">
+                            {member.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {member.email}
+                        </p>
                         {member.jobTitle ? (
-                            <p className="text-xs text-muted-foreground">{member.jobTitle}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {member.jobTitle}
+                            </p>
                         ) : null}
                     </div>
                 </div>
@@ -343,7 +457,9 @@ function MemberRow({
             <td className="py-3 pr-3">
                 <Select
                     value={member.role}
-                    onValueChange={(value) => onRoleChange(member, value as CompanyUserRole)}
+                    onValueChange={(value) =>
+                        onRoleChange(member, value as CompanyUserRole)
+                    }
                     disabled={disableRoleChange}
                 >
                     <SelectTrigger className="w-[14rem]">
@@ -353,8 +469,12 @@ function MemberRow({
                         {COMPANY_ROLE_OPTIONS.map((role) => (
                             <SelectItem key={role.value} value={role.value}>
                                 <div>
-                                    <p className="text-sm font-medium">{role.label}</p>
-                                    <p className="text-xs text-muted-foreground">{role.description}</p>
+                                    <p className="text-sm font-medium">
+                                        {role.label}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {role.description}
+                                    </p>
                                 </div>
                             </SelectItem>
                         ))}
@@ -365,20 +485,35 @@ function MemberRow({
                 {member.lastLoginAt ? (
                     <div>
                         <p>{formatDate(member.lastLoginAt)}</p>
-                        <p className="text-xs text-muted-foreground">{formatRelative(member.lastLoginAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                            {formatRelative(member.lastLoginAt)}
+                        </p>
                     </div>
                 ) : (
-                    <span className="text-xs text-muted-foreground">No activity</span>
+                    <span className="text-xs text-muted-foreground">
+                        No activity
+                    </span>
                 )}
             </td>
             <td className="py-3 pr-3">
                 <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-2">
-                        <Badge variant={member.membership.isDefault ? 'default' : 'secondary'}>
-                            {member.membership.isDefault ? 'Default' : 'Non-default'}
+                        <Badge
+                            variant={
+                                member.membership.isDefault
+                                    ? 'default'
+                                    : 'secondary'
+                            }
+                        >
+                            {member.membership.isDefault
+                                ? 'Default'
+                                : 'Non-default'}
                         </Badge>
                         {member.isActiveCompany ? (
-                            <Badge variant="outline" className="border-green-300 text-green-700">
+                            <Badge
+                                variant="outline"
+                                className="border-green-300 text-green-700"
+                            >
                                 Active session
                             </Badge>
                         ) : null}
@@ -387,7 +522,10 @@ function MemberRow({
                         ) : null}
                     </div>
                     {member.membership.lastUsedAt ? (
-                        <p>Last used {formatRelative(member.membership.lastUsedAt)}</p>
+                        <p>
+                            Last used{' '}
+                            {formatRelative(member.membership.lastUsedAt)}
+                        </p>
                     ) : null}
                 </div>
             </td>
@@ -406,8 +544,14 @@ function MemberRow({
     );
 }
 
-function RoleConflictBadge({ conflict }: { conflict: CompanyMemberRoleConflict }) {
-    const label = conflict.buyerSupplierConflict ? 'Buyer vs supplier' : 'Role mismatch';
+function RoleConflictBadge({
+    conflict,
+}: {
+    conflict: CompanyMemberRoleConflict;
+}) {
+    const label = conflict.buyerSupplierConflict
+        ? 'Buyer vs supplier'
+        : 'Role mismatch';
 
     return (
         <Tooltip>
@@ -416,7 +560,9 @@ function RoleConflictBadge({ conflict }: { conflict: CompanyMemberRoleConflict }
             </TooltipTrigger>
             <TooltipContent>
                 <p className="font-semibold">{label}</p>
-                <p className="text-xs text-white/90">{formatConflictSummary(conflict)}</p>
+                <p className="text-xs text-white/90">
+                    {formatConflictSummary(conflict)}
+                </p>
             </TooltipContent>
         </Tooltip>
     );
@@ -439,8 +585,12 @@ function MemberListSkeleton() {
 }
 
 function computeStats(members: CompanyMember[]) {
-    const buyerCount = members.filter((member) => BUYER_ROLES.has(member.role)).length;
-    const supplierCount = members.filter((member) => SUPPLIER_ROLES.has(member.role)).length;
+    const buyerCount = members.filter((member) =>
+        BUYER_ROLES.has(member.role),
+    ).length;
+    const supplierCount = members.filter((member) =>
+        SUPPLIER_ROLES.has(member.role),
+    ).length;
     const total = members.length;
 
     return { buyerCount, supplierCount, total };
@@ -466,7 +616,8 @@ function formatRelative(value: string) {
 
 function formatConflictSummary(conflict: CompanyMemberRoleConflict) {
     const roleList = conflict.distinctRoles.join(', ');
-    const companyLabel = conflict.totalCompanies === 1 ? 'company' : 'companies';
+    const companyLabel =
+        conflict.totalCompanies === 1 ? 'company' : 'companies';
 
     if (conflict.buyerSupplierConflict) {
         return `${roleList} across buyer and supplier workspaces (${conflict.totalCompanies} ${companyLabel})`;

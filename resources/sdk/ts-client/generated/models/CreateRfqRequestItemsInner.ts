@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,63 +12,62 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateRfqRequestItemsInner
  */
 export interface CreateRfqRequestItemsInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     partName: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     spec?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     method: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     material: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     tolerance?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     finish?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateRfqRequestItemsInner
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqRequestItemsInner
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateRfqRequestItemsInner
      */
@@ -78,7 +77,9 @@ export interface CreateRfqRequestItemsInner {
 /**
  * Check if a given object implements the CreateRfqRequestItemsInner interface.
  */
-export function instanceOfCreateRfqRequestItemsInner(value: object): value is CreateRfqRequestItemsInner {
+export function instanceOfCreateRfqRequestItemsInner(
+    value: object,
+): value is CreateRfqRequestItemsInner {
     if (!('partName' in value) || value['partName'] === undefined) return false;
     if (!('method' in value) || value['method'] === undefined) return false;
     if (!('material' in value) || value['material'] === undefined) return false;
@@ -86,48 +87,56 @@ export function instanceOfCreateRfqRequestItemsInner(value: object): value is Cr
     return true;
 }
 
-export function CreateRfqRequestItemsInnerFromJSON(json: any): CreateRfqRequestItemsInner {
+export function CreateRfqRequestItemsInnerFromJSON(
+    json: any,
+): CreateRfqRequestItemsInner {
     return CreateRfqRequestItemsInnerFromJSONTyped(json, false);
 }
 
-export function CreateRfqRequestItemsInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateRfqRequestItemsInner {
+export function CreateRfqRequestItemsInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateRfqRequestItemsInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'partName': json['part_name'],
-        'spec': json['spec'] == null ? undefined : json['spec'],
-        'method': json['method'],
-        'material': json['material'],
-        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
-        'finish': json['finish'] == null ? undefined : json['finish'],
-        'quantity': json['quantity'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
+        partName: json['part_name'],
+        spec: json['spec'] == null ? undefined : json['spec'],
+        method: json['method'],
+        material: json['material'],
+        tolerance: json['tolerance'] == null ? undefined : json['tolerance'],
+        finish: json['finish'] == null ? undefined : json['finish'],
+        quantity: json['quantity'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        targetPrice:
+            json['target_price'] == null ? undefined : json['target_price'],
     };
 }
 
-export function CreateRfqRequestItemsInnerToJSON(json: any): CreateRfqRequestItemsInner {
+export function CreateRfqRequestItemsInnerToJSON(
+    json: any,
+): CreateRfqRequestItemsInner {
     return CreateRfqRequestItemsInnerToJSONTyped(json, false);
 }
 
-export function CreateRfqRequestItemsInnerToJSONTyped(value?: CreateRfqRequestItemsInner | null, ignoreDiscriminator: boolean = false): any {
+export function CreateRfqRequestItemsInnerToJSONTyped(
+    value?: CreateRfqRequestItemsInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'part_name': value['partName'],
-        'spec': value['spec'],
-        'method': value['method'],
-        'material': value['material'],
-        'tolerance': value['tolerance'],
-        'finish': value['finish'],
-        'quantity': value['quantity'],
-        'uom': value['uom'],
-        'target_price': value['targetPrice'],
+        part_name: value['partName'],
+        spec: value['spec'],
+        method: value['method'],
+        material: value['material'],
+        tolerance: value['tolerance'],
+        finish: value['finish'],
+        quantity: value['quantity'],
+        uom: value['uom'],
+        target_price: value['targetPrice'],
     };
 }
-

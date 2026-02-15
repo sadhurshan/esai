@@ -1,9 +1,13 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { MatchCandidate } from '@/types/sourcing';
 import { HttpError, MatchingApi, type ListMatchCandidatesQuery } from '@/sdk';
+import type { MatchCandidate } from '@/types/sourcing';
 
 import { mapMatchCandidate } from './utils';
 
@@ -27,7 +31,11 @@ export const useMatchCandidates = (
 ): UseQueryResult<MatchCandidateListResult, HttpError> => {
     const matchingApi = useSdkClient(MatchingApi);
 
-    return useQuery<MatchCandidateCollectionResponse, HttpError, MatchCandidateListResult>({
+    return useQuery<
+        MatchCandidateCollectionResponse,
+        HttpError,
+        MatchCandidateListResult
+    >({
         queryKey: queryKeys.matching.candidates({
             cursor: params.cursor,
             perPage: params.perPage ?? DEFAULT_PER_PAGE,
@@ -50,9 +58,14 @@ export const useMatchCandidates = (
                 search: params.search,
             })) as MatchCandidateCollectionResponse,
         select: (response) => {
-            const rawItems = (response?.items ?? response?.data ?? []) as unknown[];
+            const rawItems = (response?.items ??
+                response?.data ??
+                []) as unknown[];
             const items = rawItems
-                .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+                .filter(
+                    (item): item is Record<string, unknown> =>
+                        typeof item === 'object' && item !== null,
+                )
                 .map((item) => mapMatchCandidate(item));
 
             return {

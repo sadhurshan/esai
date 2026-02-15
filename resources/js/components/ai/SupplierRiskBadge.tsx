@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Shield, ShieldCheck } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { errorToast } from '@/components/toasts';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +43,8 @@ export interface SupplierRiskInsight extends Record<string, unknown> {
     generated_at?: string | null;
     explanation?: string | string[] | null;
     summary?: string | null;
+    badges?: string[] | null;
+    mitigation_tips?: string[] | null;
 }
 
 export interface SupplierRiskBadgeProps {
@@ -75,8 +77,14 @@ export function SupplierRiskBadge({
     const [isUnavailable, setIsUnavailable] = useState(false);
     const [insight, setInsight] = useState<SupplierRiskInsight | null>(null);
 
-    const riskLevel = useMemo<RiskLevel>(() => normalizeRiskLevel(insight?.risk_category), [insight?.risk_category]);
-    const explanationItems = useMemo(() => normalizeExplanation(insight?.explanation), [insight?.explanation]);
+    const riskLevel = useMemo<RiskLevel>(
+        () => normalizeRiskLevel(insight?.risk_category),
+        [insight?.risk_category],
+    );
+    const explanationItems = useMemo(
+        () => normalizeExplanation(insight?.explanation),
+        [insight?.explanation],
+    );
     const lastUpdated = useMemo(() => resolveTimestamp(insight), [insight]);
 
     const handleFetch = useCallback(
@@ -112,14 +120,26 @@ export function SupplierRiskBadge({
                 setIsUnavailable(true);
 
                 if (!options?.silent) {
-                    const message = error instanceof ApiError ? error.message : 'Unexpected error occurred.';
+                    const message =
+                        error instanceof ApiError
+                            ? error.message
+                            : 'Unexpected error occurred.';
                     errorToast('Supplier risk unavailable', message);
                 }
             } finally {
                 setIsLoading(false);
             }
         },
-        [disabled, entityId, entityType, hasFetched, isLoading, isUnavailable, supplier, supplierId],
+        [
+            disabled,
+            entityId,
+            entityType,
+            hasFetched,
+            isLoading,
+            isUnavailable,
+            supplier,
+            supplierId,
+        ],
     );
 
     useEffect(() => {
@@ -141,16 +161,27 @@ export function SupplierRiskBadge({
     };
 
     const handleHoverPrefetch = () => {
-        if (!prefetchOnHover || disabled || hasFetched || isLoading || isUnavailable) {
+        if (
+            !prefetchOnHover ||
+            disabled ||
+            hasFetched ||
+            isLoading ||
+            isUnavailable
+        ) {
             return;
         }
 
         void handleFetch({ silent: true });
     };
 
-    const badgeClasses = cn('cursor-pointer select-none transition-colors', BADGE_STYLES[riskLevel], className, {
-        'pointer-events-none opacity-60': disabled,
-    });
+    const badgeClasses = cn(
+        'cursor-pointer transition-colors select-none',
+        BADGE_STYLES[riskLevel],
+        className,
+        {
+            'pointer-events-none opacity-60': disabled,
+        },
+    );
 
     return (
         <>
@@ -169,8 +200,13 @@ export function SupplierRiskBadge({
                     disabled={disabled}
                     className="inline-flex items-center gap-2 outline-none"
                 >
-                    {renderBadgeIcon({ disabled, isUnavailable, isLoading, riskLevel })}
-                    <span className="whitespace-nowrap text-xs font-medium">
+                    {renderBadgeIcon({
+                        disabled,
+                        isUnavailable,
+                        isLoading,
+                        riskLevel,
+                    })}
+                    <span className="text-xs font-medium whitespace-nowrap">
                         {renderBadgeLabel({
                             disabled,
                             isUnavailable,
@@ -210,7 +246,8 @@ export function SupplierRiskBadge({
                     <SheetFooter>
                         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-xs text-muted-foreground">
-                                Last updated {formatDate(lastUpdated, { fallback: '—' })}
+                                Last updated{' '}
+                                {formatDate(lastUpdated, { fallback: '—' })}
                             </p>
                             <Button
                                 variant="outline"
@@ -237,7 +274,14 @@ interface BadgeLabelOptions {
     label: string;
 }
 
-function renderBadgeLabel({ disabled, isUnavailable, isLoading, hasInsight, riskLevel, label }: BadgeLabelOptions): string {
+function renderBadgeLabel({
+    disabled,
+    isUnavailable,
+    isLoading,
+    hasInsight,
+    riskLevel,
+    label,
+}: BadgeLabelOptions): string {
     if (disabled) {
         return `${label} locked`;
     }
@@ -264,9 +308,16 @@ interface BadgeIconOptions {
     riskLevel: RiskLevel;
 }
 
-function renderBadgeIcon({ disabled, isUnavailable, isLoading, riskLevel }: BadgeIconOptions) {
+function renderBadgeIcon({
+    disabled,
+    isUnavailable,
+    isLoading,
+    riskLevel,
+}: BadgeIconOptions) {
     if (disabled || isUnavailable) {
-        return <Shield className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />;
+        return (
+            <Shield className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+        );
     }
 
     if (isLoading) {
@@ -304,7 +355,11 @@ function renderDrawerBody({
     formatDate,
 }: DrawerBodyOptions) {
     if (disabled) {
-        return <p className="text-sm text-muted-foreground">You do not have access to supplier risk insights.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                You do not have access to supplier risk insights.
+            </p>
+        );
     }
 
     if (isLoading && !insight) {
@@ -319,7 +374,8 @@ function renderDrawerBody({
     if (isUnavailable) {
         return (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                AI risk hint unavailable right now. Please try refreshing in a moment.
+                AI risk hint unavailable right now. Please try refreshing in a
+                moment.
             </div>
         );
     }
@@ -335,18 +391,44 @@ function renderDrawerBody({
     return (
         <div className="space-y-6">
             <div className="rounded-lg border bg-card/40 p-5 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Risk score</p>
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                    Risk score
+                </p>
                 <p className="mt-2 text-4xl font-semibold text-foreground">
-                    {formatNumber(insight.risk_score ?? null, { maximumFractionDigits: 1 })}
+                    {formatNumber(insight.risk_score ?? null, {
+                        maximumFractionDigits: 1,
+                    })}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    {RISK_COPY[riskLevel]} • Updated {formatDate(lastUpdated, { fallback: '—' })}
+                    {RISK_COPY[riskLevel]} • Updated{' '}
+                    {formatDate(lastUpdated, { fallback: '—' })}
                 </p>
             </div>
 
+            {Array.isArray(insight.badges) && insight.badges.length > 0 ? (
+                <div>
+                    <p className="text-sm font-semibold text-foreground">
+                        Signals
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {insight.badges.map((badge) => (
+                            <Badge
+                                key={badge}
+                                variant="outline"
+                                className="text-[11px]"
+                            >
+                                {badge}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+
             {explanationItems.length > 0 && (
                 <div>
-                    <p className="text-sm font-semibold text-foreground">Why this matters</p>
+                    <p className="text-sm font-semibold text-foreground">
+                        Why this matters
+                    </p>
                     <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
                         {explanationItems.map((item) => (
                             <li key={item}>{item}</li>
@@ -354,6 +436,20 @@ function renderDrawerBody({
                     </ul>
                 </div>
             )}
+
+            {Array.isArray(insight.mitigation_tips) &&
+            insight.mitigation_tips.length > 0 ? (
+                <div>
+                    <p className="text-sm font-semibold text-foreground">
+                        Mitigation tips
+                    </p>
+                    <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                        {insight.mitigation_tips.map((tip) => (
+                            <li key={tip}>{tip}</li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
         </div>
     );
 }

@@ -9,11 +9,14 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+import type {
+    NameType,
+    ValueType,
+} from 'recharts/types/component/DefaultTooltipContent';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import type { ForecastReportSeries } from '@/hooks/api/analytics/use-analytics';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export interface ForecastLineChartProps {
     /** List of series returned by the analytics forecast API. */
@@ -56,7 +59,11 @@ export function ForecastLineChart({
     className,
 }: ForecastLineChartProps) {
     const chartData = useMemo(() => {
-        return buildChartData(series ?? [], focusPartId ?? null, labelFormatter);
+        return buildChartData(
+            series ?? [],
+            focusPartId ?? null,
+            labelFormatter,
+        );
     }, [series, focusPartId, labelFormatter]);
 
     return (
@@ -70,11 +77,23 @@ export function ForecastLineChart({
             ) : (
                 <div style={{ height }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 10, right: 12, left: 12, bottom: 8 }}>
-                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <LineChart
+                            data={chartData}
+                            margin={{ top: 10, right: 12, left: 12, bottom: 8 }}
+                        >
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                className="stroke-muted"
+                            />
                             <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                             <YAxis tick={{ fontSize: 12 }} />
-                            <Tooltip content={<ForecastTooltip valueFormatter={valueFormatter} />} />
+                            <Tooltip
+                                content={
+                                    <ForecastTooltip
+                                        valueFormatter={valueFormatter}
+                                    />
+                                }
+                            />
                             <Legend />
                             <Line
                                 type="monotone"
@@ -109,29 +128,50 @@ function buildChartData(
     labelFormatter?: (date: string) => string,
 ): AggregatedPoint[] {
     const buckets = new Map<string, AggregatedPoint>();
-    const filteredSeries = focusPartId ? series.filter((entry) => entry.partId === focusPartId) : series;
+    const filteredSeries = focusPartId
+        ? series.filter((entry) => entry.partId === focusPartId)
+        : series;
 
     filteredSeries.forEach((entry) => {
         entry.data.forEach((point) => {
-            const label = labelFormatter ? labelFormatter(point.date) : point.date;
-            const existing = buckets.get(point.date) ?? { label, raw: point.date, actual: 0, forecast: 0 };
+            const label = labelFormatter
+                ? labelFormatter(point.date)
+                : point.date;
+            const existing = buckets.get(point.date) ?? {
+                label,
+                raw: point.date,
+                actual: 0,
+                forecast: 0,
+            };
             existing.actual += point.actual;
             existing.forecast += point.forecast;
             buckets.set(point.date, existing);
         });
     });
 
-    return Array.from(buckets.values()).sort((a, b) => a.raw.localeCompare(b.raw));
+    return Array.from(buckets.values()).sort((a, b) =>
+        a.raw.localeCompare(b.raw),
+    );
 }
 
 interface ForecastTooltipProps {
     active?: boolean;
-    payload?: Array<{ value?: ValueType; dataKey?: string | number; color?: string; name?: NameType }>;
+    payload?: Array<{
+        value?: ValueType;
+        dataKey?: string | number;
+        color?: string;
+        name?: NameType;
+    }>;
     label?: NameType;
     valueFormatter?: (value: number, key: 'actual' | 'forecast') => string;
 }
 
-function ForecastTooltip({ active, payload, label, valueFormatter }: ForecastTooltipProps) {
+function ForecastTooltip({
+    active,
+    payload,
+    label,
+    valueFormatter,
+}: ForecastTooltipProps) {
     if (!active || !payload || payload.length === 0) {
         return null;
     }
@@ -145,15 +185,31 @@ function ForecastTooltip({ active, payload, label, valueFormatter }: ForecastToo
                         return null;
                     }
                     const key = String(item.dataKey);
-                    const formatted = valueFormatter ? valueFormatter(Number(item.value), key === 'actual' ? 'actual' : 'forecast') : Number(item.value).toLocaleString();
+                    const formatted = valueFormatter
+                        ? valueFormatter(
+                              Number(item.value),
+                              key === 'actual' ? 'actual' : 'forecast',
+                          )
+                        : Number(item.value).toLocaleString();
 
                     return (
-                        <div key={key} className="flex items-center justify-between gap-4">
+                        <div
+                            key={key}
+                            className="flex items-center justify-between gap-4"
+                        >
                             <span className="flex items-center gap-2 text-muted-foreground">
-                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color ?? '#2563eb' }} />
+                                <span
+                                    className="h-2 w-2 rounded-full"
+                                    style={{
+                                        backgroundColor:
+                                            item.color ?? '#2563eb',
+                                    }}
+                                />
                                 {item.name ?? key}
                             </span>
-                            <span className="font-semibold text-foreground">{formatted}</span>
+                            <span className="font-semibold text-foreground">
+                                {formatted}
+                            </span>
                         </div>
                     );
                 })}

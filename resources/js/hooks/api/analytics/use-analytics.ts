@@ -1,8 +1,12 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSdkClient } from '@/contexts/api-client-context';
-import { AnalyticsApi, type ApiSuccessResponse } from '@/sdk';
-import { queryKeys } from '@/lib/queryKeys';
 import { api, buildQuery, type ApiError } from '@/lib/api';
+import { queryKeys } from '@/lib/queryKeys';
+import { AnalyticsApi, type ApiSuccessResponse } from '@/sdk';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 export interface AnalyticsKpis {
     openRfqs: number;
@@ -238,7 +242,9 @@ const DEFAULT_SUPPLIER_FILTERS: SupplierPerformanceFiltersUsed = {
     supplierId: null,
 };
 
-export function useAnalyticsOverview(enabled: boolean): UseQueryResult<AnalyticsOverviewResult, unknown> {
+export function useAnalyticsOverview(
+    enabled: boolean,
+): UseQueryResult<AnalyticsOverviewResult, unknown> {
     const analyticsApi = useSdkClient(AnalyticsApi);
 
     return useQuery<AnalyticsOverviewResult>({
@@ -266,7 +272,9 @@ export function useForecastReport(
         placeholderData: keepPreviousData,
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            const response = (await api.post(`/v1/analytics/forecast-report${query}`)) as unknown;
+            const response = (await api.post(
+                `/v1/analytics/forecast-report${query}`,
+            )) as unknown;
 
             return normalizeForecastReportResponse(response);
         },
@@ -286,7 +294,9 @@ export function useSupplierPerformanceReport(
         placeholderData: keepPreviousData,
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            const response = (await api.post(`/v1/analytics/supplier-performance-report${query}`)) as unknown;
+            const response = (await api.post(
+                `/v1/analytics/supplier-performance-report${query}`,
+            )) as unknown;
 
             return normalizeSupplierReportResponse(response);
         },
@@ -318,18 +328,26 @@ export function useAnalyticsSupplierOptions(
         placeholderData: keepPreviousData,
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            const response = (await api.get(`/v1/analytics/supplier-options${query}`)) as SupplierOptionResponse | null;
-            const rawItems = Array.isArray(response?.items) ? response?.items : [];
+            const response = (await api.get(
+                `/v1/analytics/supplier-options${query}`,
+            )) as SupplierOptionResponse | null;
+            const rawItems = Array.isArray(response?.items)
+                ? response?.items
+                : [];
 
             return rawItems
                 .map((item) => normalizeSupplierOption(item))
-                .filter((item): item is AnalyticsSupplierOption => item !== null);
+                .filter(
+                    (item): item is AnalyticsSupplierOption => item !== null,
+                );
         },
         staleTime: 60_000,
     });
 }
 
-function normalizeOverviewResponse(response: ApiSuccessResponse | null): AnalyticsOverviewResult {
+function normalizeOverviewResponse(
+    response: ApiSuccessResponse | null,
+): AnalyticsOverviewResult {
     if (!response || typeof response !== 'object') {
         return PLACEHOLDER_OVERVIEW;
     }
@@ -377,30 +395,32 @@ function normalizeOverviewResponse(response: ApiSuccessResponse | null): Analyti
 
     const metaPayload = (response.meta ?? {}) as Record<string, unknown>;
     const meta = {
-        from: typeof metaPayload.from === 'string' ? metaPayload.from : undefined,
+        from:
+            typeof metaPayload.from === 'string' ? metaPayload.from : undefined,
         to: typeof metaPayload.to === 'string' ? metaPayload.to : undefined,
     };
 
     return { kpis, charts, meta };
 }
 
-function mapSnapshotGroups(payload: unknown): Record<string, SnapshotPayload[]> {
+function mapSnapshotGroups(
+    payload: unknown,
+): Record<string, SnapshotPayload[]> {
     if (!payload || typeof payload !== 'object') {
         return {};
     }
 
-    return Object.entries(payload as Record<string, unknown>).reduce<Record<string, SnapshotPayload[]>>(
-        (acc, [key, value]) => {
-            if (Array.isArray(value)) {
-                acc[key] = value
-                    .map((entry) => normalizeSnapshot(entry))
-                    .filter((entry): entry is SnapshotPayload => entry !== null);
-            }
+    return Object.entries(payload as Record<string, unknown>).reduce<
+        Record<string, SnapshotPayload[]>
+    >((acc, [key, value]) => {
+        if (Array.isArray(value)) {
+            acc[key] = value
+                .map((entry) => normalizeSnapshot(entry))
+                .filter((entry): entry is SnapshotPayload => entry !== null);
+        }
 
-            return acc;
-        },
-        {},
-    );
+        return acc;
+    }, {});
 }
 
 function normalizeSnapshot(entry: unknown): SnapshotPayload | null {
@@ -412,25 +432,40 @@ function normalizeSnapshot(entry: unknown): SnapshotPayload | null {
 
     return {
         type: typeof record.type === 'string' ? record.type : null,
-        period_start: typeof record.period_start === 'string' ? record.period_start : null,
-        period_end: typeof record.period_end === 'string' ? record.period_end : null,
+        period_start:
+            typeof record.period_start === 'string'
+                ? record.period_start
+                : null,
+        period_end:
+            typeof record.period_end === 'string' ? record.period_end : null,
         value: toNumber(record.value),
-        meta: typeof record.meta === 'object' && record.meta !== null ? (record.meta as Record<string, unknown>) : undefined,
+        meta:
+            typeof record.meta === 'object' && record.meta !== null
+                ? (record.meta as Record<string, unknown>)
+                : undefined,
     };
 }
 
-function normalizeSupplierOption(payload: SupplierOptionApiPayload | null | undefined): AnalyticsSupplierOption | null {
+function normalizeSupplierOption(
+    payload: SupplierOptionApiPayload | null | undefined,
+): AnalyticsSupplierOption | null {
     if (!payload) {
         return null;
     }
 
-    const numericId = typeof payload.id === 'string' || typeof payload.id === 'number' ? Number(payload.id) : NaN;
+    const numericId =
+        typeof payload.id === 'string' || typeof payload.id === 'number'
+            ? Number(payload.id)
+            : NaN;
 
     if (!Number.isFinite(numericId) || numericId <= 0) {
         return null;
     }
 
-    const name = typeof payload.name === 'string' && payload.name.trim().length > 0 ? payload.name.trim() : `Supplier #${numericId}`;
+    const name =
+        typeof payload.name === 'string' && payload.name.trim().length > 0
+            ? payload.name.trim()
+            : `Supplier #${numericId}`;
 
     return {
         id: numericId,
@@ -482,12 +517,16 @@ function clampPercentage(value: number): number {
     return Number(value.toFixed(2));
 }
 
-function mapTopSuppliers(snapshot: SnapshotPayload | null): SupplierSpendPoint[] {
+function mapTopSuppliers(
+    snapshot: SnapshotPayload | null,
+): SupplierSpendPoint[] {
     if (!snapshot?.meta) {
         return [];
     }
 
-    const suppliers = (snapshot.meta as Record<string, unknown>)['top_suppliers'];
+    const suppliers = (snapshot.meta as Record<string, unknown>)[
+        'top_suppliers'
+    ];
 
     if (!Array.isArray(suppliers)) {
         return [];
@@ -501,7 +540,11 @@ function mapTopSuppliers(snapshot: SnapshotPayload | null): SupplierSpendPoint[]
 
         return {
             supplierId: normalizeSupplierId(supplierIdRaw),
-            supplierName: typeof supplierNameRaw === 'string' && supplierNameRaw.trim().length > 0 ? supplierNameRaw : 'Supplier',
+            supplierName:
+                typeof supplierNameRaw === 'string' &&
+                supplierNameRaw.trim().length > 0
+                    ? supplierNameRaw
+                    : 'Supplier',
             total: toNumber(totalRaw),
         } satisfies SupplierSpendPoint;
     });
@@ -521,7 +564,9 @@ function normalizeSupplierId(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
-function buildForecastReportQueryParams(params: ForecastReportParams = {}): Record<string, unknown> {
+function buildForecastReportQueryParams(
+    params: ForecastReportParams = {},
+): Record<string, unknown> {
     const query: Record<string, unknown> = {};
     const start = sanitizeDateInput(params.startDate);
     const end = sanitizeDateInput(params.endDate);
@@ -552,7 +597,9 @@ function buildForecastReportQueryParams(params: ForecastReportParams = {}): Reco
     return query;
 }
 
-function buildSupplierPerformanceQueryParams(params: SupplierPerformanceParams = {}): Record<string, unknown> {
+function buildSupplierPerformanceQueryParams(
+    params: SupplierPerformanceParams = {},
+): Record<string, unknown> {
     const query: Record<string, unknown> = {};
     const start = sanitizeDateInput(params.startDate);
     const end = sanitizeDateInput(params.endDate);
@@ -573,7 +620,9 @@ function buildSupplierPerformanceQueryParams(params: SupplierPerformanceParams =
     return query;
 }
 
-function normalizeForecastReportResponse(payload: unknown): ForecastReportResult {
+function normalizeForecastReportResponse(
+    payload: unknown,
+): ForecastReportResult {
     if (!payload || typeof payload !== 'object') {
         return createEmptyForecastReportResult();
     }
@@ -586,7 +635,9 @@ function normalizeForecastReportResponse(payload: unknown): ForecastReportResult
     };
 }
 
-function normalizeSupplierReportResponse(payload: unknown): SupplierPerformanceReportResult {
+function normalizeSupplierReportResponse(
+    payload: unknown,
+): SupplierPerformanceReportResult {
     if (!payload || typeof payload !== 'object') {
         return createEmptySupplierReportResult();
     }
@@ -610,7 +661,9 @@ function normalizeForecastReport(value: unknown): ForecastReport {
         series: normalizeForecastSeries(record.series),
         table: normalizeForecastTable(record.table),
         aggregates: normalizeForecastAggregates(record.aggregates),
-        filtersUsed: normalizeForecastFilters(record.filters_used ?? record.filtersUsed),
+        filtersUsed: normalizeForecastFilters(
+            record.filters_used ?? record.filtersUsed,
+        ),
     };
 }
 
@@ -624,7 +677,9 @@ function normalizeSupplierReport(value: unknown): SupplierPerformanceReport {
     return {
         series: normalizeSupplierSeries(record.series),
         table: normalizeSupplierTable(record.table),
-        filtersUsed: normalizeSupplierFilters(record.filters_used ?? record.filtersUsed),
+        filtersUsed: normalizeSupplierFilters(
+            record.filters_used ?? record.filtersUsed,
+        ),
     };
 }
 
@@ -643,12 +698,17 @@ function normalizeForecastSeries(value: unknown): ForecastReportSeries[] {
             const dataPoints = Array.isArray(record.data)
                 ? record.data
                       .map((point) => normalizeForecastSeriesPoint(point))
-                      .filter((point): point is ForecastReportSeriesPoint => point !== null)
+                      .filter(
+                          (point): point is ForecastReportSeriesPoint =>
+                              point !== null,
+                      )
                 : [];
 
-            const partId = normalizeSupplierId(record.part_id ?? record.partId) ?? 0;
+            const partId =
+                normalizeSupplierId(record.part_id ?? record.partId) ?? 0;
             const partName =
-                readStringField(record, 'part_name', 'partName') ?? `Part ${partId > 0 ? partId : ''}`.trim();
+                readStringField(record, 'part_name', 'partName') ??
+                `Part ${partId > 0 ? partId : ''}`.trim();
 
             return {
                 partId,
@@ -659,7 +719,9 @@ function normalizeForecastSeries(value: unknown): ForecastReportSeries[] {
         .filter((entry): entry is ForecastReportSeries => entry !== null);
 }
 
-function normalizeForecastSeriesPoint(entry: unknown): ForecastReportSeriesPoint | null {
+function normalizeForecastSeriesPoint(
+    entry: unknown,
+): ForecastReportSeriesPoint | null {
     if (!entry || typeof entry !== 'object') {
         return null;
     }
@@ -690,19 +752,29 @@ function normalizeForecastTable(value: unknown): ForecastReportRow[] {
             }
 
             const record = entry as Record<string, unknown>;
-            const partId = normalizeSupplierId(record.part_id ?? record.partId) ?? 0;
+            const partId =
+                normalizeSupplierId(record.part_id ?? record.partId) ?? 0;
             const partName =
-                readStringField(record, 'part_name', 'partName') ?? `Part ${partId > 0 ? partId : ''}`.trim();
+                readStringField(record, 'part_name', 'partName') ??
+                `Part ${partId > 0 ? partId : ''}`.trim();
 
             return {
                 partId,
                 partName: partName || 'Part',
-                totalForecast: toNumber(record.total_forecast ?? record.totalForecast),
-                totalActual: toNumber(record.total_actual ?? record.totalActual),
+                totalForecast: toNumber(
+                    record.total_forecast ?? record.totalForecast,
+                ),
+                totalActual: toNumber(
+                    record.total_actual ?? record.totalActual,
+                ),
                 mape: toNumber(record.mape),
                 mae: toNumber(record.mae),
-                reorderPoint: toNumber(record.reorder_point ?? record.reorderPoint),
-                safetyStock: toNumber(record.safety_stock ?? record.safetyStock),
+                reorderPoint: toNumber(
+                    record.reorder_point ?? record.reorderPoint,
+                ),
+                safetyStock: toNumber(
+                    record.safety_stock ?? record.safetyStock,
+                ),
             } satisfies ForecastReportRow;
         })
         .filter((row): row is ForecastReportRow => row !== null);
@@ -720,9 +792,15 @@ function normalizeForecastAggregates(value: unknown): ForecastReportAggregates {
         totalActual: toNumber(record.total_actual ?? record.totalActual),
         mape: toNumber(record.mape),
         mae: toNumber(record.mae),
-        avgDailyDemand: toNumber(record.avg_daily_demand ?? record.avgDailyDemand),
-        recommendedReorderPoint: toNumber(record.recommended_reorder_point ?? record.recommendedReorderPoint),
-        recommendedSafetyStock: toNumber(record.recommended_safety_stock ?? record.recommendedSafetyStock),
+        avgDailyDemand: toNumber(
+            record.avg_daily_demand ?? record.avgDailyDemand,
+        ),
+        recommendedReorderPoint: toNumber(
+            record.recommended_reorder_point ?? record.recommendedReorderPoint,
+        ),
+        recommendedSafetyStock: toNumber(
+            record.recommended_safety_stock ?? record.recommendedSafetyStock,
+        ),
     } satisfies ForecastReportAggregates;
 }
 
@@ -736,14 +814,22 @@ function normalizeForecastFilters(value: unknown): ForecastReportFiltersUsed {
     return {
         startDate: readStringField(record, 'start_date', 'startDate'),
         endDate: readStringField(record, 'end_date', 'endDate'),
-        bucket: readStringField(record, 'bucket') ?? DEFAULT_FORECAST_FILTERS.bucket,
+        bucket:
+            readStringField(record, 'bucket') ??
+            DEFAULT_FORECAST_FILTERS.bucket,
         partIds: normalizeNumberArray(record.part_ids ?? record.partIds),
-        categoryIds: normalizeStringArray(record.category_ids ?? record.categoryIds),
-        locationIds: normalizeNumberArray(record.location_ids ?? record.locationIds),
+        categoryIds: normalizeStringArray(
+            record.category_ids ?? record.categoryIds,
+        ),
+        locationIds: normalizeNumberArray(
+            record.location_ids ?? record.locationIds,
+        ),
     } satisfies ForecastReportFiltersUsed;
 }
 
-function normalizeSupplierSeries(value: unknown): SupplierPerformanceMetricSeries[] {
+function normalizeSupplierSeries(
+    value: unknown,
+): SupplierPerformanceMetricSeries[] {
     if (!Array.isArray(value)) {
         return [];
     }
@@ -755,7 +841,11 @@ function normalizeSupplierSeries(value: unknown): SupplierPerformanceMetricSerie
             }
 
             const record = entry as Record<string, unknown>;
-            const metricName = readStringField(record, 'metric_name', 'metricName');
+            const metricName = readStringField(
+                record,
+                'metric_name',
+                'metricName',
+            );
             if (!metricName) {
                 return null;
             }
@@ -763,7 +853,10 @@ function normalizeSupplierSeries(value: unknown): SupplierPerformanceMetricSerie
             const dataPoints = Array.isArray(record.data)
                 ? record.data
                       .map((point) => normalizeSupplierMetricPoint(point))
-                      .filter((point): point is SupplierMetricPoint => point !== null)
+                      .filter(
+                          (point): point is SupplierMetricPoint =>
+                              point !== null,
+                      )
                 : [];
 
             return {
@@ -772,10 +865,14 @@ function normalizeSupplierSeries(value: unknown): SupplierPerformanceMetricSerie
                 data: dataPoints,
             } satisfies SupplierPerformanceMetricSeries;
         })
-        .filter((entry): entry is SupplierPerformanceMetricSeries => entry !== null);
+        .filter(
+            (entry): entry is SupplierPerformanceMetricSeries => entry !== null,
+        );
 }
 
-function normalizeSupplierMetricPoint(entry: unknown): SupplierMetricPoint | null {
+function normalizeSupplierMetricPoint(
+    entry: unknown,
+): SupplierMetricPoint | null {
     if (!entry || typeof entry !== 'object') {
         return null;
     }
@@ -807,24 +904,47 @@ function normalizeSupplierTable(value: unknown): SupplierPerformanceTableRow[] {
             const record = entry as Record<string, unknown>;
 
             return {
-                supplierId: normalizeSupplierId(record.supplier_id ?? record.supplierId),
-                supplierName: readStringField(record, 'supplier_name', 'supplierName'),
-                onTimeDeliveryRate: toNumber(record.on_time_delivery_rate ?? record.onTimeDeliveryRate),
+                supplierId: normalizeSupplierId(
+                    record.supplier_id ?? record.supplierId,
+                ),
+                supplierName: readStringField(
+                    record,
+                    'supplier_name',
+                    'supplierName',
+                ),
+                onTimeDeliveryRate: toNumber(
+                    record.on_time_delivery_rate ?? record.onTimeDeliveryRate,
+                ),
                 defectRate: toNumber(record.defect_rate ?? record.defectRate),
-                leadTimeVariance: toNumber(record.lead_time_variance ?? record.leadTimeVariance),
-                priceVolatility: toNumber(record.price_volatility ?? record.priceVolatility),
-                serviceResponsiveness: toNumber(record.service_responsiveness ?? record.serviceResponsiveness),
+                leadTimeVariance: toNumber(
+                    record.lead_time_variance ?? record.leadTimeVariance,
+                ),
+                priceVolatility: toNumber(
+                    record.price_volatility ?? record.priceVolatility,
+                ),
+                serviceResponsiveness: toNumber(
+                    record.service_responsiveness ??
+                        record.serviceResponsiveness,
+                ),
                 riskScore: (() => {
-                    const numeric = Number(record.risk_score ?? record.riskScore);
+                    const numeric = Number(
+                        record.risk_score ?? record.riskScore,
+                    );
                     return Number.isFinite(numeric) ? numeric : null;
                 })(),
-                riskCategory: readStringField(record, 'risk_category', 'riskCategory'),
+                riskCategory: readStringField(
+                    record,
+                    'risk_category',
+                    'riskCategory',
+                ),
             } satisfies SupplierPerformanceTableRow;
         })
         .filter((row): row is SupplierPerformanceTableRow => row !== null);
 }
 
-function normalizeSupplierFilters(value: unknown): SupplierPerformanceFiltersUsed {
+function normalizeSupplierFilters(
+    value: unknown,
+): SupplierPerformanceFiltersUsed {
     if (!value || typeof value !== 'object') {
         return { ...DEFAULT_SUPPLIER_FILTERS };
     }
@@ -834,8 +954,12 @@ function normalizeSupplierFilters(value: unknown): SupplierPerformanceFiltersUse
     return {
         startDate: readStringField(record, 'start_date', 'startDate'),
         endDate: readStringField(record, 'end_date', 'endDate'),
-        bucket: readStringField(record, 'bucket') ?? DEFAULT_SUPPLIER_FILTERS.bucket,
-        supplierId: normalizeSupplierId(record.supplier_id ?? record.supplierId),
+        bucket:
+            readStringField(record, 'bucket') ??
+            DEFAULT_SUPPLIER_FILTERS.bucket,
+        supplierId: normalizeSupplierId(
+            record.supplier_id ?? record.supplierId,
+        ),
     } satisfies SupplierPerformanceFiltersUsed;
 }
 
@@ -852,10 +976,15 @@ function normalizeReportSummary(payload: unknown): ReportSummary {
         : [];
 
     return {
-        summaryMarkdown: readStringField(record, 'summary_markdown', 'summaryMarkdown') ?? '',
+        summaryMarkdown:
+            readStringField(record, 'summary_markdown', 'summaryMarkdown') ??
+            '',
         bullets,
-        source: readStringField(record, 'source') ?? DEFAULT_REPORT_SUMMARY.source,
-        provider: readStringField(record, 'provider') ?? DEFAULT_REPORT_SUMMARY.provider,
+        source:
+            readStringField(record, 'source') ?? DEFAULT_REPORT_SUMMARY.source,
+        provider:
+            readStringField(record, 'provider') ??
+            DEFAULT_REPORT_SUMMARY.provider,
     } satisfies ReportSummary;
 }
 
@@ -903,7 +1032,10 @@ function normalizeStringArray(value: unknown): string[] {
         .filter((entry) => entry.length > 0);
 }
 
-function readStringField(record: Record<string, unknown>, ...keys: string[]): string | null {
+function readStringField(
+    record: Record<string, unknown>,
+    ...keys: string[]
+): string | null {
     for (const key of keys) {
         const value = record[key];
         if (typeof value === 'string') {

@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
@@ -9,7 +13,11 @@ export interface ExportPoInput {
     poId: number;
 }
 
-export function useExportPo(): UseMutationResult<ExportPurchaseOrderResponse, Error, ExportPoInput> {
+export function useExportPo(): UseMutationResult<
+    ExportPurchaseOrderResponse,
+    Error,
+    ExportPoInput
+> {
     const purchaseOrdersApi = useSdkClient(PurchaseOrdersApi);
     const queryClient = useQueryClient();
 
@@ -32,7 +40,9 @@ export function useExportPo(): UseMutationResult<ExportPurchaseOrderResponse, Er
                 description: 'Download link generated for this PO.',
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(poId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.detail(poId),
+            });
         },
         onError: (error) => {
             publishToast({

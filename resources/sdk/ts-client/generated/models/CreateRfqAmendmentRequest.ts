@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateRfqAmendmentRequest
  */
 export interface CreateRfqAmendmentRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRfqAmendmentRequest
      */
@@ -30,37 +29,46 @@ export interface CreateRfqAmendmentRequest {
 /**
  * Check if a given object implements the CreateRfqAmendmentRequest interface.
  */
-export function instanceOfCreateRfqAmendmentRequest(value: object): value is CreateRfqAmendmentRequest {
+export function instanceOfCreateRfqAmendmentRequest(
+    value: object,
+): value is CreateRfqAmendmentRequest {
     if (!('body' in value) || value['body'] === undefined) return false;
     return true;
 }
 
-export function CreateRfqAmendmentRequestFromJSON(json: any): CreateRfqAmendmentRequest {
+export function CreateRfqAmendmentRequestFromJSON(
+    json: any,
+): CreateRfqAmendmentRequest {
     return CreateRfqAmendmentRequestFromJSONTyped(json, false);
 }
 
-export function CreateRfqAmendmentRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateRfqAmendmentRequest {
+export function CreateRfqAmendmentRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateRfqAmendmentRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'body': json['body'],
+        body: json['body'],
     };
 }
 
-export function CreateRfqAmendmentRequestToJSON(json: any): CreateRfqAmendmentRequest {
+export function CreateRfqAmendmentRequestToJSON(
+    json: any,
+): CreateRfqAmendmentRequest {
     return CreateRfqAmendmentRequestToJSONTyped(json, false);
 }
 
-export function CreateRfqAmendmentRequestToJSONTyped(value?: CreateRfqAmendmentRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreateRfqAmendmentRequestToJSONTyped(
+    value?: CreateRfqAmendmentRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'body': value['body'],
+        body: value['body'],
     };
 }
-

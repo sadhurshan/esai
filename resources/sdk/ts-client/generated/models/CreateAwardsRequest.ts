@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,17 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { CreateAwardsRequestItemsInner } from './CreateAwardsRequestItemsInner';
 import {
     CreateAwardsRequestItemsInnerFromJSON,
-    CreateAwardsRequestItemsInnerFromJSONTyped,
     CreateAwardsRequestItemsInnerToJSON,
-    CreateAwardsRequestItemsInnerToJSONTyped,
 } from './CreateAwardsRequestItemsInner';
 
 /**
- * 
+ *
  * @export
  * @interface CreateAwardsRequest
  */
@@ -34,7 +31,7 @@ export interface CreateAwardsRequest {
      */
     rfqId: number;
     /**
-     * 
+     *
      * @type {Array<CreateAwardsRequestItemsInner>}
      * @memberof CreateAwardsRequest
      */
@@ -44,7 +41,9 @@ export interface CreateAwardsRequest {
 /**
  * Check if a given object implements the CreateAwardsRequest interface.
  */
-export function instanceOfCreateAwardsRequest(value: object): value is CreateAwardsRequest {
+export function instanceOfCreateAwardsRequest(
+    value: object,
+): value is CreateAwardsRequest {
     if (!('rfqId' in value) || value['rfqId'] === undefined) return false;
     if (!('items' in value) || value['items'] === undefined) return false;
     return true;
@@ -54,14 +53,18 @@ export function CreateAwardsRequestFromJSON(json: any): CreateAwardsRequest {
     return CreateAwardsRequestFromJSONTyped(json, false);
 }
 
-export function CreateAwardsRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateAwardsRequest {
+export function CreateAwardsRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateAwardsRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfqId': json['rfq_id'],
-        'items': ((json['items'] as Array<any>).map(CreateAwardsRequestItemsInnerFromJSON)),
+        rfqId: json['rfq_id'],
+        items: (json['items'] as Array<any>).map(
+            CreateAwardsRequestItemsInnerFromJSON,
+        ),
     };
 }
 
@@ -69,15 +72,18 @@ export function CreateAwardsRequestToJSON(json: any): CreateAwardsRequest {
     return CreateAwardsRequestToJSONTyped(json, false);
 }
 
-export function CreateAwardsRequestToJSONTyped(value?: CreateAwardsRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreateAwardsRequestToJSONTyped(
+    value?: CreateAwardsRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq_id': value['rfqId'],
-        'items': ((value['items'] as Array<any>).map(CreateAwardsRequestItemsInnerToJSON)),
+        rfq_id: value['rfqId'],
+        items: (value['items'] as Array<any>).map(
+            CreateAwardsRequestItemsInnerToJSON,
+        ),
     };
 }
-

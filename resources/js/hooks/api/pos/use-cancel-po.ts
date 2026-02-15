@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
@@ -31,8 +35,12 @@ export function useCancelPo(): UseMutationResult<void, Error, CancelPoInput> {
                 description: 'Suppliers will be notified of the cancellation.',
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(poId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.root() });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.detail(poId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.root(),
+            });
 
             if (rfqId && Number.isFinite(rfqId) && rfqId > 0) {
                 const normalizedRfqId = Number(rfqId);
@@ -55,7 +63,8 @@ export function useCancelPo(): UseMutationResult<void, Error, CancelPoInput> {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to cancel purchase order',
-                description: error.message ?? 'Please try again in a few moments.',
+                description:
+                    error.message ?? 'Please try again in a few moments.',
             });
         },
     });

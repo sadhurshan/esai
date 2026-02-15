@@ -2,17 +2,15 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**approveCreditNote**](CreditNotesApi.md#approvecreditnoteoperation) | **POST** /api/credit-notes/{creditNoteId}/approve | Approve or reject credit note |
-| [**attachCreditNoteFile**](CreditNotesApi.md#attachcreditnotefile) | **POST** /api/credit-notes/{creditNoteId}/attachments | Upload attachment for credit note |
-| [**createCreditNote**](CreditNotesApi.md#createcreditnote) | **POST** /api/credit-notes/invoices/{invoiceId} | Draft credit note from invoice |
-| [**issueCreditNote**](CreditNotesApi.md#issuecreditnote) | **POST** /api/credit-notes/{creditNoteId}/issue | Issue credit note to supplier |
-| [**listCreditNotes**](CreditNotesApi.md#listcreditnotes) | **GET** /api/credit-notes | List credit notes for tenant |
-| [**showCreditNote**](CreditNotesApi.md#showcreditnote) | **GET** /api/credit-notes/{creditNoteId} | Retrieve credit note |
-| [**updateCreditNoteLines**](CreditNotesApi.md#updatecreditnotelinesoperation) | **PUT** /api/credit-notes/{creditNoteId}/lines | Update credit note lines |
-
-
+| Method                                                                        | HTTP request                                          | Description                       |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------- |
+| [**approveCreditNote**](CreditNotesApi.md#approvecreditnoteoperation)         | **POST** /api/credit-notes/{creditNoteId}/approve     | Approve or reject credit note     |
+| [**attachCreditNoteFile**](CreditNotesApi.md#attachcreditnotefile)            | **POST** /api/credit-notes/{creditNoteId}/attachments | Upload attachment for credit note |
+| [**createCreditNote**](CreditNotesApi.md#createcreditnote)                    | **POST** /api/credit-notes/invoices/{invoiceId}       | Draft credit note from invoice    |
+| [**issueCreditNote**](CreditNotesApi.md#issuecreditnote)                      | **POST** /api/credit-notes/{creditNoteId}/issue       | Issue credit note to supplier     |
+| [**listCreditNotes**](CreditNotesApi.md#listcreditnotes)                      | **GET** /api/credit-notes                             | List credit notes for tenant      |
+| [**showCreditNote**](CreditNotesApi.md#showcreditnote)                        | **GET** /api/credit-notes/{creditNoteId}              | Retrieve credit note              |
+| [**updateCreditNoteLines**](CreditNotesApi.md#updatecreditnotelinesoperation) | **PUT** /api/credit-notes/{creditNoteId}/lines        | Update credit note lines          |
 
 ## approveCreditNote
 
@@ -31,7 +29,7 @@ import type { ApproveCreditNoteOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -60,11 +58,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **creditNoteId** | `string` |  | [Defaults to `undefined`] |
-| **approveCreditNoteRequest** | [ApproveCreditNoteRequest](ApproveCreditNoteRequest.md) |  | |
+| Name                         | Type                                                    | Description | Notes                     |
+| ---------------------------- | ------------------------------------------------------- | ----------- | ------------------------- |
+| **creditNoteId**             | `string`                                                |             | [Defaults to `undefined`] |
+| **approveCreditNoteRequest** | [ApproveCreditNoteRequest](ApproveCreditNoteRequest.md) |             |                           |
 
 ### Return type
 
@@ -79,14 +76,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Credit note review captured. |  -  |
+
+| Status code | Description                  | Response headers |
+| ----------- | ---------------------------- | ---------------- |
+| **200**     | Credit note review captured. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## attachCreditNoteFile
 
@@ -105,7 +101,7 @@ import type { AttachCreditNoteFileRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -134,11 +130,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **creditNoteId** | `string` |  | [Defaults to `undefined`] |
-| **file** | `Blob` |  | [Defaults to `undefined`] |
+| Name             | Type     | Description | Notes                     |
+| ---------------- | -------- | ----------- | ------------------------- |
+| **creditNoteId** | `string` |             | [Defaults to `undefined`] |
+| **file**         | `Blob`   |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -153,14 +148,13 @@ example().catch(console.error);
 - **Content-Type**: `multipart/form-data`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Credit note attachment uploaded. |  -  |
+
+| Status code | Description                      | Response headers |
+| ----------- | -------------------------------- | ---------------- |
+| **200**     | Credit note attachment uploaded. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## createCreditNote
 
@@ -179,7 +173,7 @@ import type { CreateCreditNoteRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -212,13 +206,12 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **invoiceId** | `string` |  | [Defaults to `undefined`] |
-| **reason** | `string` |  | [Defaults to `undefined`] |
-| **amountMinor** | `number` |  | [Defaults to `undefined`] |
-| **attachments** | `Array<Blob>` |  | [Optional] |
+| Name            | Type          | Description | Notes                     |
+| --------------- | ------------- | ----------- | ------------------------- |
+| **invoiceId**   | `string`      |             | [Defaults to `undefined`] |
+| **reason**      | `string`      |             | [Defaults to `undefined`] |
+| **amountMinor** | `number`      |             | [Defaults to `undefined`] |
+| **attachments** | `Array<Blob>` |             | [Optional]                |
 
 ### Return type
 
@@ -233,14 +226,13 @@ example().catch(console.error);
 - **Content-Type**: `multipart/form-data`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Credit note created in draft state. |  -  |
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **201**     | Credit note created in draft state. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## issueCreditNote
 
@@ -259,7 +251,7 @@ import type { IssueCreditNoteRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -286,10 +278,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **creditNoteId** | `string` |  | [Defaults to `undefined`] |
+| Name             | Type     | Description | Notes                     |
+| ---------------- | -------- | ----------- | ------------------------- |
+| **creditNoteId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -304,14 +295,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Credit note marked as issued. |  -  |
+
+| Status code | Description                   | Response headers |
+| ----------- | ----------------------------- | ---------------- |
+| **200**     | Credit note marked as issued. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listCreditNotes
 
@@ -322,43 +312,40 @@ List credit notes for tenant
 ### Example
 
 ```ts
-import {
-  Configuration,
-  CreditNotesApi,
-} from '';
+import { Configuration, CreditNotesApi } from '';
 import type { ListCreditNotesRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new CreditNotesApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new CreditNotesApi(config);
 
-  const body = {
-    // number (optional)
-    page: 56,
-    // number (optional)
-    perPage: 56,
-    // 'draft' | 'pending_review' | 'issued' | 'approved' | 'rejected' (optional)
-    status: status_example,
-    // number (optional)
-    invoiceId: 56,
-    // Date (optional)
-    createdFrom: 2013-10-20,
-    // Date (optional)
-    createdTo: 2013-10-20,
-  } satisfies ListCreditNotesRequest;
+    const body = {
+        // number (optional)
+        page: 56,
+        // number (optional)
+        perPage: 56,
+        // 'draft' | 'pending_review' | 'issued' | 'approved' | 'rejected' (optional)
+        status: status_example,
+        // number (optional)
+        invoiceId: 56,
+        // Date (optional)
+        createdFrom: 2013 - 10 - 20,
+        // Date (optional)
+        createdTo: 2013 - 10 - 20,
+    } satisfies ListCreditNotesRequest;
 
-  try {
-    const data = await api.listCreditNotes(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.listCreditNotes(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -367,15 +354,14 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **page** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **perPage** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **status** | `draft`, `pending_review`, `issued`, `approved`, `rejected` |  | [Optional] [Defaults to `undefined`] [Enum: draft, pending_review, issued, approved, rejected] |
-| **invoiceId** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **createdFrom** | `Date` |  | [Optional] [Defaults to `undefined`] |
-| **createdTo** | `Date` |  | [Optional] [Defaults to `undefined`] |
+| Name            | Type                                                        | Description | Notes                                                                                          |
+| --------------- | ----------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| **page**        | `number`                                                    |             | [Optional] [Defaults to `undefined`]                                                           |
+| **perPage**     | `number`                                                    |             | [Optional] [Defaults to `undefined`]                                                           |
+| **status**      | `draft`, `pending_review`, `issued`, `approved`, `rejected` |             | [Optional] [Defaults to `undefined`] [Enum: draft, pending_review, issued, approved, rejected] |
+| **invoiceId**   | `number`                                                    |             | [Optional] [Defaults to `undefined`]                                                           |
+| **createdFrom** | `Date`                                                      |             | [Optional] [Defaults to `undefined`]                                                           |
+| **createdTo**   | `Date`                                                      |             | [Optional] [Defaults to `undefined`]                                                           |
 
 ### Return type
 
@@ -390,14 +376,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated credit notes scoped to the current company. |  -  |
+
+| Status code | Description                                           | Response headers |
+| ----------- | ----------------------------------------------------- | ---------------- |
+| **200**     | Paginated credit notes scoped to the current company. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showCreditNote
 
@@ -416,7 +401,7 @@ import type { ShowCreditNoteRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -443,10 +428,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **creditNoteId** | `string` |  | [Defaults to `undefined`] |
+| Name             | Type     | Description | Notes                     |
+| ---------------- | -------- | ----------- | ------------------------- |
+| **creditNoteId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -461,14 +445,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Credit note detail with invoice linkage. |  -  |
+
+| Status code | Description                              | Response headers |
+| ----------- | ---------------------------------------- | ---------------- |
+| **200**     | Credit note detail with invoice linkage. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateCreditNoteLines
 
@@ -487,7 +470,7 @@ import type { UpdateCreditNoteLinesOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -516,11 +499,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **creditNoteId** | `string` |  | [Defaults to `undefined`] |
-| **updateCreditNoteLinesRequest** | [UpdateCreditNoteLinesRequest](UpdateCreditNoteLinesRequest.md) |  | |
+| Name                             | Type                                                            | Description | Notes                     |
+| -------------------------------- | --------------------------------------------------------------- | ----------- | ------------------------- |
+| **creditNoteId**                 | `string`                                                        |             | [Defaults to `undefined`] |
+| **updateCreditNoteLinesRequest** | [UpdateCreditNoteLinesRequest](UpdateCreditNoteLinesRequest.md) |             |                           |
 
 ### Return type
 
@@ -535,11 +517,10 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Credit note lines updated. |  -  |
+
+| Status code | Description                | Response headers |
+| ----------- | -------------------------- | ---------------- |
+| **200**     | Credit note lines updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

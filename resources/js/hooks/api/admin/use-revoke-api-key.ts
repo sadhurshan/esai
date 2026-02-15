@@ -1,6 +1,10 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
-import { successToast, errorToast } from '@/components/toasts';
+import { errorToast, successToast } from '@/components/toasts';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { AdminApi } from '@/sdk';
@@ -9,7 +13,11 @@ interface RevokeApiKeyInput {
     keyId: number;
 }
 
-export function useRevokeApiKey(): UseMutationResult<void, unknown, RevokeApiKeyInput> {
+export function useRevokeApiKey(): UseMutationResult<
+    void,
+    unknown,
+    RevokeApiKeyInput
+> {
     const adminApi = useSdkClient(AdminApi);
     const queryClient = useQueryClient();
 
@@ -19,10 +27,15 @@ export function useRevokeApiKey(): UseMutationResult<void, unknown, RevokeApiKey
         },
         onSuccess: () => {
             successToast('API key revoked');
-            queryClient.invalidateQueries({ queryKey: queryKeys.admin.apiKeys() });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.admin.apiKeys(),
+            });
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unable to revoke API key.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to revoke API key.';
             errorToast('API key revocation failed', message);
         },
     });

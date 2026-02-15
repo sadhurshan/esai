@@ -1,9 +1,17 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { CursorPaginated, SalesOrderSummary, SupplierOrderFilters } from '@/types/orders';
 import { HttpError, OrdersAppApi } from '@/sdk';
+import type {
+    CursorPaginated,
+    SalesOrderSummary,
+    SupplierOrderFilters,
+} from '@/types/orders';
 
 export type SupplierOrderListResult = CursorPaginated<SalesOrderSummary>;
 

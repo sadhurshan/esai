@@ -1,16 +1,16 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HelmetProvider } from 'react-helmet-async';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Location } from 'react-router-dom';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AwardReviewPage } from '../award-review-page';
+import type { UseRfqAwardCandidatesResult } from '@/hooks/api/awards/use-rfq-award-candidates';
 import type {
     ListRfqAwardCandidates200ResponseAllOfData,
     RfqAwardCandidateLine,
     RfqItemAwardSummary,
 } from '@/sdk';
-import type { UseRfqAwardCandidatesResult } from '@/hooks/api/awards/use-rfq-award-candidates';
+import { AwardReviewPage } from '../award-review-page';
 
 const mockNavigate = vi.fn();
 const mockLocation: Location & { state?: unknown } = {
@@ -22,7 +22,10 @@ const mockLocation: Location & { state?: unknown } = {
 };
 
 vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+    const actual =
+        await vi.importActual<typeof import('react-router-dom')>(
+            'react-router-dom',
+        );
     return {
         ...actual,
         useNavigate: () => mockNavigate,
@@ -49,7 +52,8 @@ vi.mock('@/contexts/auth-context', () => ({
 
 const useRfqAwardCandidatesMock = vi.fn();
 vi.mock('@/hooks/api/awards/use-rfq-award-candidates', () => ({
-    useRfqAwardCandidates: (...args: unknown[]) => useRfqAwardCandidatesMock(...args),
+    useRfqAwardCandidates: (...args: unknown[]) =>
+        useRfqAwardCandidatesMock(...args),
 }));
 
 const createAwardsMutation = {
@@ -144,7 +148,9 @@ function mockAwardCandidatesResult(
         isFetching: false,
         refetch,
     };
-    useRfqAwardCandidatesMock.mockReturnValue(result as UseRfqAwardCandidatesResult);
+    useRfqAwardCandidatesMock.mockReturnValue(
+        result as UseRfqAwardCandidatesResult,
+    );
     return { refetch };
 }
 
@@ -176,8 +182,12 @@ describe('AwardReviewPage', () => {
         renderPage();
         const user = userEvent.setup();
 
-        await user.click(screen.getByRole('radio', { name: /Alpha Manufacturing/i }));
-        await user.click(screen.getByRole('button', { name: /Create awards/i }));
+        await user.click(
+            screen.getByRole('radio', { name: /Alpha Manufacturing/i }),
+        );
+        await user.click(
+            screen.getByRole('button', { name: /Create awards/i }),
+        );
 
         await waitFor(() => {
             expect(createAwardsMutation.mutateAsync).toHaveBeenCalledWith({
@@ -224,8 +234,14 @@ describe('AwardReviewPage', () => {
         renderPage();
         const user = userEvent.setup();
 
-        await user.click(screen.getByRole('button', { name: /Convert to PO/i }));
-        await user.click(await screen.findByRole('button', { name: /Create purchase orders/i }));
+        await user.click(
+            screen.getByRole('button', { name: /Convert to PO/i }),
+        );
+        await user.click(
+            await screen.findByRole('button', {
+                name: /Create purchase orders/i,
+            }),
+        );
 
         await waitFor(() => {
             expect(createPoMutation.mutateAsync).toHaveBeenCalledWith({
@@ -244,7 +260,9 @@ describe('AwardReviewPage', () => {
         renderPage();
 
         await waitFor(() => {
-            expect(screen.getByRole('radio', { name: /Alpha Manufacturing/i })).toBeChecked();
+            expect(
+                screen.getByRole('radio', { name: /Alpha Manufacturing/i }),
+            ).toBeChecked();
         });
     });
 });

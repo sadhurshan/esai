@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface QuoteAttachmentsInner
  */
 export interface QuoteAttachmentsInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteAttachmentsInner
      */
     id?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteAttachmentsInner
      */
     filename?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteAttachmentsInner
      */
     path?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteAttachmentsInner
      */
     mime?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteAttachmentsInner
      */
@@ -54,25 +53,31 @@ export interface QuoteAttachmentsInner {
 /**
  * Check if a given object implements the QuoteAttachmentsInner interface.
  */
-export function instanceOfQuoteAttachmentsInner(value: object): value is QuoteAttachmentsInner {
+export function instanceOfQuoteAttachmentsInner(
+    value: object,
+): value is QuoteAttachmentsInner {
     return true;
 }
 
-export function QuoteAttachmentsInnerFromJSON(json: any): QuoteAttachmentsInner {
+export function QuoteAttachmentsInnerFromJSON(
+    json: any,
+): QuoteAttachmentsInner {
     return QuoteAttachmentsInnerFromJSONTyped(json, false);
 }
 
-export function QuoteAttachmentsInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteAttachmentsInner {
+export function QuoteAttachmentsInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): QuoteAttachmentsInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'filename': json['filename'] == null ? undefined : json['filename'],
-        'path': json['path'] == null ? undefined : json['path'],
-        'mime': json['mime'] == null ? undefined : json['mime'],
-        'sizeBytes': json['size_bytes'] == null ? undefined : json['size_bytes'],
+        id: json['id'] == null ? undefined : json['id'],
+        filename: json['filename'] == null ? undefined : json['filename'],
+        path: json['path'] == null ? undefined : json['path'],
+        mime: json['mime'] == null ? undefined : json['mime'],
+        sizeBytes: json['size_bytes'] == null ? undefined : json['size_bytes'],
     };
 }
 
@@ -80,18 +85,19 @@ export function QuoteAttachmentsInnerToJSON(json: any): QuoteAttachmentsInner {
     return QuoteAttachmentsInnerToJSONTyped(json, false);
 }
 
-export function QuoteAttachmentsInnerToJSONTyped(value?: QuoteAttachmentsInner | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteAttachmentsInnerToJSONTyped(
+    value?: QuoteAttachmentsInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'filename': value['filename'],
-        'path': value['path'],
-        'mime': value['mime'],
-        'size_bytes': value['sizeBytes'],
+        id: value['id'],
+        filename: value['filename'],
+        path: value['path'],
+        mime: value['mime'],
+        size_bytes: value['sizeBytes'],
     };
 }
-

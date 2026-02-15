@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,110 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ListSupplierApplications200ResponseAllOfData } from './ListSupplierApplications200ResponseAllOfData';
 import {
     ListSupplierApplications200ResponseAllOfDataFromJSON,
-    ListSupplierApplications200ResponseAllOfDataFromJSONTyped,
     ListSupplierApplications200ResponseAllOfDataToJSON,
-    ListSupplierApplications200ResponseAllOfDataToJSONTyped,
 } from './ListSupplierApplications200ResponseAllOfData';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListSupplierApplications200Response
  */
 export interface ListSupplierApplications200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListSupplierApplications200Response
      */
     status: ListSupplierApplications200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListSupplierApplications200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListSupplierApplications200ResponseAllOfData}
      * @memberof ListSupplierApplications200Response
      */
     data: ListSupplierApplications200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListSupplierApplications200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListSupplierApplications200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListSupplierApplications200ResponseStatusEnum = typeof ListSupplierApplications200ResponseStatusEnum[keyof typeof ListSupplierApplications200ResponseStatusEnum];
-
+export type ListSupplierApplications200ResponseStatusEnum =
+    (typeof ListSupplierApplications200ResponseStatusEnum)[keyof typeof ListSupplierApplications200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListSupplierApplications200Response interface.
  */
-export function instanceOfListSupplierApplications200Response(value: object): value is ListSupplierApplications200Response {
+export function instanceOfListSupplierApplications200Response(
+    value: object,
+): value is ListSupplierApplications200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListSupplierApplications200ResponseFromJSON(json: any): ListSupplierApplications200Response {
+export function ListSupplierApplications200ResponseFromJSON(
+    json: any,
+): ListSupplierApplications200Response {
     return ListSupplierApplications200ResponseFromJSONTyped(json, false);
 }
 
-export function ListSupplierApplications200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListSupplierApplications200Response {
+export function ListSupplierApplications200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListSupplierApplications200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListSupplierApplications200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListSupplierApplications200ResponseAllOfDataFromJSON(
+            json['data'],
+        ),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListSupplierApplications200ResponseToJSON(json: any): ListSupplierApplications200Response {
+export function ListSupplierApplications200ResponseToJSON(
+    json: any,
+): ListSupplierApplications200Response {
     return ListSupplierApplications200ResponseToJSONTyped(json, false);
 }
 
-export function ListSupplierApplications200ResponseToJSONTyped(value?: ListSupplierApplications200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListSupplierApplications200ResponseToJSONTyped(
+    value?: ListSupplierApplications200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListSupplierApplications200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListSupplierApplications200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

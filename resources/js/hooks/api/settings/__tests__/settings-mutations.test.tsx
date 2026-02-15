@@ -1,21 +1,30 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { buildCompanySettingsPayload, useUpdateCompanySettings } from '../use-update-company';
-import { buildLocalizationSettingsPayload, useUpdateLocalizationSettings } from '../use-update-localization';
-import { buildNumberingSettingsPayload, useUpdateNumberingSettings } from '../use-update-numbering';
+import { useSdkClient } from '@/contexts/api-client-context';
+import { api } from '@/lib/api';
+import { queryKeys } from '@/lib/queryKeys';
+import { CompanySettingsFromJSON } from '@/sdk';
+import type { LocalizationSettings, NumberingSettings } from '@/types/settings';
 import { mapCompanySettings } from '../use-company';
 import { mapLocalizationSettings } from '../use-localization';
 import { mapNumberingSettings } from '../use-numbering';
-import type { LocalizationSettings, NumberingSettings } from '@/types/settings';
 import type { UpdateCompanySettingsInput } from '../use-update-company';
-import { queryKeys } from '@/lib/queryKeys';
-import { useSdkClient } from '@/contexts/api-client-context';
-import { api } from '@/lib/api';
-import { CompanySettingsFromJSON } from '@/sdk';
+import {
+    buildCompanySettingsPayload,
+    useUpdateCompanySettings,
+} from '../use-update-company';
+import {
+    buildLocalizationSettingsPayload,
+    useUpdateLocalizationSettings,
+} from '../use-update-localization';
+import {
+    buildNumberingSettingsPayload,
+    useUpdateNumberingSettings,
+} from '../use-update-numbering';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -92,7 +101,11 @@ function createWrapper() {
     });
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, queryClient };
@@ -198,7 +211,9 @@ describe('settings mutation hooks', () => {
         apiPatchMock.mockResolvedValue(apiResponse);
 
         const { Wrapper, queryClient } = createWrapper();
-        const { result } = renderHook(() => useUpdateCompanySettings(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useUpdateCompanySettings(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync(companyInput);
 
@@ -213,8 +228,12 @@ describe('settings mutation hooks', () => {
         expect(data.get('bill_to[line1]')).toBe('1 Market St');
 
         await waitFor(() => {
-            expect(queryClient.getQueryData(queryKeys.settings.company())).toEqual(
-                mapCompanySettings(CompanySettingsFromJSON(apiResponse as never)),
+            expect(
+                queryClient.getQueryData(queryKeys.settings.company()),
+            ).toEqual(
+                mapCompanySettings(
+                    CompanySettingsFromJSON(apiResponse as never),
+                ),
             );
         });
     });
@@ -232,18 +251,21 @@ describe('settings mutation hooks', () => {
         updateLocalizationSettings.mockResolvedValue({ data: apiResponse });
 
         const { Wrapper, queryClient } = createWrapper();
-        const { result } = renderHook(() => useUpdateLocalizationSettings(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useUpdateLocalizationSettings(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync(localizationInput);
 
         expect(updateLocalizationSettings).toHaveBeenCalledWith({
-            localizationSettings: buildLocalizationSettingsPayload(localizationInput),
+            localizationSettings:
+                buildLocalizationSettingsPayload(localizationInput),
         });
 
         await waitFor(() => {
-            expect(queryClient.getQueryData(queryKeys.settings.localization())).toEqual(
-                mapLocalizationSettings(apiResponse as never),
-            );
+            expect(
+                queryClient.getQueryData(queryKeys.settings.localization()),
+            ).toEqual(mapLocalizationSettings(apiResponse as never));
         });
     });
 
@@ -260,7 +282,9 @@ describe('settings mutation hooks', () => {
         updateNumberingSettings.mockResolvedValue({ data: apiResponse });
 
         const { Wrapper, queryClient } = createWrapper();
-        const { result } = renderHook(() => useUpdateNumberingSettings(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useUpdateNumberingSettings(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync(numberingInput);
 
@@ -269,9 +293,9 @@ describe('settings mutation hooks', () => {
         });
 
         await waitFor(() => {
-            expect(queryClient.getQueryData(queryKeys.settings.numbering())).toEqual(
-                mapNumberingSettings(apiResponse as never),
-            );
+            expect(
+                queryClient.getQueryData(queryKeys.settings.numbering()),
+            ).toEqual(mapNumberingSettings(apiResponse as never));
         });
     });
 });

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -29,7 +29,12 @@ const rfqLineSchema = z.object({
         .positive('Quantity must be greater than zero.'),
     uom: z.string().min(1, 'Unit of measure is required.'),
     targetPrice: z
-        .union([z.coerce.number({ invalid_type_error: 'Target price must be a number.' }), z.literal('')])
+        .union([
+            z.coerce.number({
+                invalid_type_error: 'Target price must be a number.',
+            }),
+            z.literal(''),
+        ])
         .optional()
         .transform((value) => (value === '' ? undefined : value)),
     requiredDate: z
@@ -117,7 +122,10 @@ export function RfqLineEditorModal({
             await onSubmit(values);
             onOpenChange(false);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to save RFQ line.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to save RFQ line.';
             publishToast({
                 variant: 'destructive',
                 title: 'Line save failed',
@@ -137,9 +145,15 @@ export function RfqLineEditorModal({
                 <form className="grid gap-4" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
                         <Label htmlFor="partName">Part / Description</Label>
-                        <Input id="partName" {...form.register('partName')} placeholder="Bracket, machined" />
+                        <Input
+                            id="partName"
+                            {...form.register('partName')}
+                            placeholder="Bracket, machined"
+                        />
                         {form.formState.errors.partName ? (
-                            <p className="text-sm text-destructive">{form.formState.errors.partName.message}</p>
+                            <p className="text-sm text-destructive">
+                                {form.formState.errors.partName.message}
+                            </p>
                         ) : null}
                     </div>
 
@@ -156,58 +170,105 @@ export function RfqLineEditorModal({
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor="method">Manufacturing method</Label>
-                            <Input id="method" {...form.register('method')} placeholder="CNC machining" />
+                            <Input
+                                id="method"
+                                {...form.register('method')}
+                                placeholder="CNC machining"
+                            />
                             {form.formState.errors.method ? (
-                                <p className="text-sm text-destructive">{form.formState.errors.method.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {form.formState.errors.method.message}
+                                </p>
                             ) : null}
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="material">Material</Label>
-                            <Input id="material" {...form.register('material')} placeholder="6061-T6 Aluminum" />
+                            <Input
+                                id="material"
+                                {...form.register('material')}
+                                placeholder="6061-T6 Aluminum"
+                            />
                             {form.formState.errors.material ? (
-                                <p className="text-sm text-destructive">{form.formState.errors.material.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {form.formState.errors.material.message}
+                                </p>
                             ) : null}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="tolerance">Tolerance (optional)</Label>
-                            <Input id="tolerance" {...form.register('tolerance')} placeholder="±0.05 mm" />
+                            <Label htmlFor="tolerance">
+                                Tolerance (optional)
+                            </Label>
+                            <Input
+                                id="tolerance"
+                                {...form.register('tolerance')}
+                                placeholder="±0.05 mm"
+                            />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="finish">Finish (optional)</Label>
-                            <Input id="finish" {...form.register('finish')} placeholder="Anodized" />
+                            <Input
+                                id="finish"
+                                {...form.register('finish')}
+                                placeholder="Anodized"
+                            />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor="quantity">Quantity</Label>
-                            <Input id="quantity" type="number" min="0" step="1" {...form.register('quantity')} />
+                            <Input
+                                id="quantity"
+                                type="number"
+                                min="0"
+                                step="1"
+                                {...form.register('quantity')}
+                            />
                             {form.formState.errors.quantity ? (
-                                <p className="text-sm text-destructive">{form.formState.errors.quantity.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {form.formState.errors.quantity.message}
+                                </p>
                             ) : null}
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="uom">Unit of measure</Label>
-                            <Input id="uom" {...form.register('uom')} placeholder="ea" />
+                            <Input
+                                id="uom"
+                                {...form.register('uom')}
+                                placeholder="ea"
+                            />
                             {/* TODO: integrate unit conversion helper once localization endpoint is wired. */}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="targetPrice">Target price (optional)</Label>
-                            <Input id="targetPrice" type="number" step="0.01" {...form.register('targetPrice')} />
+                            <Label htmlFor="targetPrice">
+                                Target price (optional)
+                            </Label>
+                            <Input
+                                id="targetPrice"
+                                type="number"
+                                step="0.01"
+                                {...form.register('targetPrice')}
+                            />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="requiredDate">Required date (optional)</Label>
-                            <Input id="requiredDate" type="date" {...form.register('requiredDate')} />
+                            <Label htmlFor="requiredDate">
+                                Required date (optional)
+                            </Label>
+                            <Input
+                                id="requiredDate"
+                                type="date"
+                                {...form.register('requiredDate')}
+                            />
                         </div>
                     </div>
 

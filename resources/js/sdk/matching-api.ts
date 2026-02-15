@@ -1,6 +1,10 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    HTTPQuery,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, HTTPQuery, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
 export interface ListMatchCandidatesQuery {
     cursor?: string | null;
@@ -104,7 +108,10 @@ export class MatchingApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async resolveMatch(payload: ResolveMatchPayload, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+    async resolveMatch(
+        payload: ResolveMatchPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<Record<string, unknown>> {
         const headers: HTTPHeaders = {
             'Content-Type': 'application/json',
         };

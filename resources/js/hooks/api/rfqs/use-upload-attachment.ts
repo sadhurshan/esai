@@ -14,7 +14,10 @@ export function useUploadAttachment() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ rfqId, file }: UploadAttachmentPayload): Promise<UploadRfqAttachment201Response> => {
+        mutationFn: async ({
+            rfqId,
+            file,
+        }: UploadAttachmentPayload): Promise<UploadRfqAttachment201Response> => {
             return rfqsApi.uploadRfqAttachment({
                 rfqId: String(rfqId),
                 file,
@@ -22,7 +25,9 @@ export function useUploadAttachment() {
         },
         onSuccess: (_response, variables) => {
             const rfqId = String(variables.rfqId);
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.attachments(rfqId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.attachments(rfqId),
+            });
         },
     });
 }

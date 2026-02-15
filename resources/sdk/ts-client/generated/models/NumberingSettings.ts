@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,53 +12,47 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { NumberingRule } from './NumberingRule';
-import {
-    NumberingRuleFromJSON,
-    NumberingRuleFromJSONTyped,
-    NumberingRuleToJSON,
-    NumberingRuleToJSONTyped,
-} from './NumberingRule';
+import { NumberingRuleFromJSON, NumberingRuleToJSON } from './NumberingRule';
 
 /**
- * 
+ *
  * @export
  * @interface NumberingSettings
  */
 export interface NumberingSettings {
     /**
-     * 
+     *
      * @type {NumberingRule}
      * @memberof NumberingSettings
      */
     rfq: NumberingRule;
     /**
-     * 
+     *
      * @type {NumberingRule}
      * @memberof NumberingSettings
      */
     quote: NumberingRule;
     /**
-     * 
+     *
      * @type {NumberingRule}
      * @memberof NumberingSettings
      */
     po: NumberingRule;
     /**
-     * 
+     *
      * @type {NumberingRule}
      * @memberof NumberingSettings
      */
     invoice: NumberingRule;
     /**
-     * 
+     *
      * @type {NumberingRule}
      * @memberof NumberingSettings
      */
     grn: NumberingRule;
     /**
-     * 
+     *
      * @type {NumberingRule}
      * @memberof NumberingSettings
      */
@@ -68,7 +62,9 @@ export interface NumberingSettings {
 /**
  * Check if a given object implements the NumberingSettings interface.
  */
-export function instanceOfNumberingSettings(value: object): value is NumberingSettings {
+export function instanceOfNumberingSettings(
+    value: object,
+): value is NumberingSettings {
     if (!('rfq' in value) || value['rfq'] === undefined) return false;
     if (!('quote' in value) || value['quote'] === undefined) return false;
     if (!('po' in value) || value['po'] === undefined) return false;
@@ -82,18 +78,20 @@ export function NumberingSettingsFromJSON(json: any): NumberingSettings {
     return NumberingSettingsFromJSONTyped(json, false);
 }
 
-export function NumberingSettingsFromJSONTyped(json: any, ignoreDiscriminator: boolean): NumberingSettings {
+export function NumberingSettingsFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): NumberingSettings {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfq': NumberingRuleFromJSON(json['rfq']),
-        'quote': NumberingRuleFromJSON(json['quote']),
-        'po': NumberingRuleFromJSON(json['po']),
-        'invoice': NumberingRuleFromJSON(json['invoice']),
-        'grn': NumberingRuleFromJSON(json['grn']),
-        'credit': NumberingRuleFromJSON(json['credit']),
+        rfq: NumberingRuleFromJSON(json['rfq']),
+        quote: NumberingRuleFromJSON(json['quote']),
+        po: NumberingRuleFromJSON(json['po']),
+        invoice: NumberingRuleFromJSON(json['invoice']),
+        grn: NumberingRuleFromJSON(json['grn']),
+        credit: NumberingRuleFromJSON(json['credit']),
     };
 }
 
@@ -101,19 +99,20 @@ export function NumberingSettingsToJSON(json: any): NumberingSettings {
     return NumberingSettingsToJSONTyped(json, false);
 }
 
-export function NumberingSettingsToJSONTyped(value?: NumberingSettings | null, ignoreDiscriminator: boolean = false): any {
+export function NumberingSettingsToJSONTyped(
+    value?: NumberingSettings | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq': NumberingRuleToJSON(value['rfq']),
-        'quote': NumberingRuleToJSON(value['quote']),
-        'po': NumberingRuleToJSON(value['po']),
-        'invoice': NumberingRuleToJSON(value['invoice']),
-        'grn': NumberingRuleToJSON(value['grn']),
-        'credit': NumberingRuleToJSON(value['credit']),
+        rfq: NumberingRuleToJSON(value['rfq']),
+        quote: NumberingRuleToJSON(value['quote']),
+        po: NumberingRuleToJSON(value['po']),
+        invoice: NumberingRuleToJSON(value['invoice']),
+        grn: NumberingRuleToJSON(value['grn']),
+        credit: NumberingRuleToJSON(value['credit']),
     };
 }
-

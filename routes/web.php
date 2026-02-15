@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'app')->name('home');
 
+Route::middleware('guest')->group(function () {
+    Route::view('/login', 'app')->name('login');
+    Route::view('/register', 'app')->name('register');
+});
+
 Route::prefix('api/auth')->group(function (): void {
     Route::post('login', [AuthSessionController::class, 'store'])->middleware('guest');
     Route::post('register', [SelfRegistrationController::class, 'register'])->middleware('guest');
@@ -46,6 +51,27 @@ Route::middleware('auth')->group(function () {
 Route::view('/app/setup/plan', 'app')->name('app.setup.plan');
 
 Route::middleware(['auth', 'verified', 'ensure.company.registered'])->group(function () {
+    Route::redirect('/suppliers', '/app/suppliers')->name('legacy.suppliers.index');
+    Route::redirect('/suppliers/{id}', '/app/suppliers/{id}')
+        ->whereNumber('id')
+        ->name('legacy.suppliers.show');
+    Route::redirect('/rfq', '/app/rfqs')->name('legacy.rfq.index');
+    Route::redirect('/rfq/new', '/app/rfqs/new')->name('legacy.rfq.new');
+    Route::redirect('/rfq/{id}', '/app/rfqs/{id}')
+        ->whereNumber('id')
+        ->name('legacy.rfq.show');
+    Route::redirect('/rfq/{id}/open', '/app/rfqs/{id}/open')
+        ->whereNumber('id')
+        ->name('legacy.rfq.open');
+    Route::redirect('/rfq/{id}/compare', '/app/rfqs/{id}/compare')
+        ->whereNumber('id')
+        ->name('legacy.rfq.compare');
+    Route::redirect('/orders', '/app/orders')->name('legacy.orders.index');
+    Route::redirect('/settings/company-profile', '/app/settings/company-profile')
+        ->name('legacy.settings.company-profile');
+    Route::redirect('/admin/companies', '/app/admin/companies')
+        ->name('legacy.admin.companies.index');
+
     Route::view('/app', 'app')->name('dashboard');
 
     Route::view('/app/suppliers', 'app')->name('suppliers.index');

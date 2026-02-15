@@ -1,9 +1,13 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { GoodsReceiptNoteSummary } from '@/types/sourcing';
 import { HttpError, ReceivingApi } from '@/sdk';
+import type { GoodsReceiptNoteSummary } from '@/types/sourcing';
 
 import { mapGrnSummary } from './utils';
 
@@ -63,9 +67,14 @@ export function useGrns(
                 receivedTo: params.receivedTo,
             })) as GrnCollectionResponse,
         select: (response) => {
-            const rawItems = (response?.items ?? response?.data ?? []) as unknown[];
+            const rawItems = (response?.items ??
+                response?.data ??
+                []) as unknown[];
             const items = rawItems
-                .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+                .filter(
+                    (item): item is Record<string, unknown> =>
+                        typeof item === 'object' && item !== null,
+                )
                 .map((item) => mapGrnSummary(item));
 
             return {

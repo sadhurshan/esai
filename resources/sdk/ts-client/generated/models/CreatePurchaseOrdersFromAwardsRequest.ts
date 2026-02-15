@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreatePurchaseOrdersFromAwardsRequest
  */
 export interface CreatePurchaseOrdersFromAwardsRequest {
     /**
-     * 
+     *
      * @type {Array<number>}
      * @memberof CreatePurchaseOrdersFromAwardsRequest
      */
@@ -30,37 +29,46 @@ export interface CreatePurchaseOrdersFromAwardsRequest {
 /**
  * Check if a given object implements the CreatePurchaseOrdersFromAwardsRequest interface.
  */
-export function instanceOfCreatePurchaseOrdersFromAwardsRequest(value: object): value is CreatePurchaseOrdersFromAwardsRequest {
+export function instanceOfCreatePurchaseOrdersFromAwardsRequest(
+    value: object,
+): value is CreatePurchaseOrdersFromAwardsRequest {
     if (!('awardIds' in value) || value['awardIds'] === undefined) return false;
     return true;
 }
 
-export function CreatePurchaseOrdersFromAwardsRequestFromJSON(json: any): CreatePurchaseOrdersFromAwardsRequest {
+export function CreatePurchaseOrdersFromAwardsRequestFromJSON(
+    json: any,
+): CreatePurchaseOrdersFromAwardsRequest {
     return CreatePurchaseOrdersFromAwardsRequestFromJSONTyped(json, false);
 }
 
-export function CreatePurchaseOrdersFromAwardsRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreatePurchaseOrdersFromAwardsRequest {
+export function CreatePurchaseOrdersFromAwardsRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreatePurchaseOrdersFromAwardsRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'awardIds': json['award_ids'],
+        awardIds: json['award_ids'],
     };
 }
 
-export function CreatePurchaseOrdersFromAwardsRequestToJSON(json: any): CreatePurchaseOrdersFromAwardsRequest {
+export function CreatePurchaseOrdersFromAwardsRequestToJSON(
+    json: any,
+): CreatePurchaseOrdersFromAwardsRequest {
     return CreatePurchaseOrdersFromAwardsRequestToJSONTyped(json, false);
 }
 
-export function CreatePurchaseOrdersFromAwardsRequestToJSONTyped(value?: CreatePurchaseOrdersFromAwardsRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreatePurchaseOrdersFromAwardsRequestToJSONTyped(
+    value?: CreatePurchaseOrdersFromAwardsRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'award_ids': value['awardIds'],
+        award_ids: value['awardIds'],
     };
 }
-

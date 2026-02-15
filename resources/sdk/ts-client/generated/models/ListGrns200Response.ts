@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,68 +12,61 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListGrns200ResponseAllOfData } from './ListGrns200ResponseAllOfData';
 import {
     ListGrns200ResponseAllOfDataFromJSON,
-    ListGrns200ResponseAllOfDataFromJSONTyped,
     ListGrns200ResponseAllOfDataToJSON,
-    ListGrns200ResponseAllOfDataToJSONTyped,
 } from './ListGrns200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListGrns200Response
  */
 export interface ListGrns200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListGrns200Response
      */
     status: ListGrns200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListGrns200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListGrns200ResponseAllOfData}
      * @memberof ListGrns200Response
      */
     data: ListGrns200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListGrns200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListGrns200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListGrns200ResponseStatusEnum = typeof ListGrns200ResponseStatusEnum[keyof typeof ListGrns200ResponseStatusEnum];
-
+export type ListGrns200ResponseStatusEnum =
+    (typeof ListGrns200ResponseStatusEnum)[keyof typeof ListGrns200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListGrns200Response interface.
  */
-export function instanceOfListGrns200Response(value: object): value is ListGrns200Response {
+export function instanceOfListGrns200Response(
+    value: object,
+): value is ListGrns200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
@@ -83,16 +76,21 @@ export function ListGrns200ResponseFromJSON(json: any): ListGrns200Response {
     return ListGrns200ResponseFromJSONTyped(json, false);
 }
 
-export function ListGrns200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListGrns200Response {
+export function ListGrns200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListGrns200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListGrns200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListGrns200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
@@ -100,17 +98,18 @@ export function ListGrns200ResponseToJSON(json: any): ListGrns200Response {
     return ListGrns200ResponseToJSONTyped(json, false);
 }
 
-export function ListGrns200ResponseToJSONTyped(value?: ListGrns200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListGrns200ResponseToJSONTyped(
+    value?: ListGrns200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListGrns200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListGrns200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

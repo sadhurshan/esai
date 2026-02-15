@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AuthForgotPasswordRequest
  */
 export interface AuthForgotPasswordRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthForgotPasswordRequest
      */
@@ -30,37 +29,46 @@ export interface AuthForgotPasswordRequest {
 /**
  * Check if a given object implements the AuthForgotPasswordRequest interface.
  */
-export function instanceOfAuthForgotPasswordRequest(value: object): value is AuthForgotPasswordRequest {
+export function instanceOfAuthForgotPasswordRequest(
+    value: object,
+): value is AuthForgotPasswordRequest {
     if (!('email' in value) || value['email'] === undefined) return false;
     return true;
 }
 
-export function AuthForgotPasswordRequestFromJSON(json: any): AuthForgotPasswordRequest {
+export function AuthForgotPasswordRequestFromJSON(
+    json: any,
+): AuthForgotPasswordRequest {
     return AuthForgotPasswordRequestFromJSONTyped(json, false);
 }
 
-export function AuthForgotPasswordRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthForgotPasswordRequest {
+export function AuthForgotPasswordRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthForgotPasswordRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'email': json['email'],
+        email: json['email'],
     };
 }
 
-export function AuthForgotPasswordRequestToJSON(json: any): AuthForgotPasswordRequest {
+export function AuthForgotPasswordRequestToJSON(
+    json: any,
+): AuthForgotPasswordRequest {
     return AuthForgotPasswordRequestToJSONTyped(json, false);
 }
 
-export function AuthForgotPasswordRequestToJSONTyped(value?: AuthForgotPasswordRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AuthForgotPasswordRequestToJSONTyped(
+    value?: AuthForgotPasswordRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'email': value['email'],
+        email: value['email'],
     };
 }
-

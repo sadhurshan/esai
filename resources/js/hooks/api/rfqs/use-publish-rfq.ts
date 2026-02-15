@@ -17,7 +17,9 @@ export function usePublishRfq() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (payload: PublishRfqPayload): Promise<CreateRfq201Response> => {
+        mutationFn: async (
+            payload: PublishRfqPayload,
+        ): Promise<CreateRfq201Response> => {
             const body = serializePublishPayload(payload);
 
             const fetchApi = configuration.fetchApi ?? fetch;
@@ -34,13 +36,19 @@ export function usePublishRfq() {
         },
         onSuccess: (_response, variables) => {
             const rfqId = String(variables.rfqId);
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.timeline(rfqId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.timeline(rfqId),
+            });
         },
     });
 }
 
-function serializePublishPayload(payload: PublishRfqPayload): Record<string, unknown> {
+function serializePublishPayload(
+    payload: PublishRfqPayload,
+): Record<string, unknown> {
     if (!payload.dueAt) {
         throw new Error('Due date is required to publish this RFQ.');
     }
@@ -50,7 +58,10 @@ function serializePublishPayload(payload: PublishRfqPayload): Record<string, unk
     };
 
     if (payload.publishAt !== undefined) {
-        body.publish_at = payload.publishAt === null ? null : normalizeDateInput(payload.publishAt);
+        body.publish_at =
+            payload.publishAt === null
+                ? null
+                : normalizeDateInput(payload.publishAt);
     }
 
     if (payload.notifySuppliers !== undefined) {

@@ -1,24 +1,37 @@
+import { AlertTriangle, CheckCircle2, Handshake, ShieldX } from 'lucide-react';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, Handshake, ShieldX } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { AckStatusChip } from '@/components/pos/ack-status-chip';
 import { PoLineTable } from '@/components/pos/po-line-table';
 import { MoneyCell } from '@/components/quotes/money-cell';
-import { usePo } from '@/hooks/api/pos/use-po';
-import { useAckPo } from '@/hooks/api/pos/use-ack-po';
-import { formatDate } from '@/lib/format';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/auth-context';
+import { useAckPo } from '@/hooks/api/pos/use-ack-po';
+import { usePo } from '@/hooks/api/pos/use-po';
+import { formatDate } from '@/lib/format';
 
 export function SupplierPoDetailPage() {
     const params = useParams<{ purchaseOrderId?: string }>();
@@ -27,8 +40,12 @@ export function SupplierPoDetailPage() {
     const { state, hasFeature, activePersona } = useAuth();
     const supplierRole = state.user?.role === 'supplier';
     const isSupplierPersona = activePersona?.type === 'supplier';
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const supplierPortalEnabled = supplierRole || hasFeature('supplier_portal_enabled') || isSupplierPersona;
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
+    const supplierPortalEnabled =
+        supplierRole ||
+        hasFeature('supplier_portal_enabled') ||
+        isSupplierPersona;
 
     const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
     const [declineReason, setDeclineReason] = useState('');
@@ -65,9 +82,13 @@ export function SupplierPoDetailPage() {
                 <EmptyState
                     title="Invalid purchase order"
                     description="The purchase order identifier is missing or malformed."
-                    icon={<AlertTriangle className="h-10 w-10 text-destructive" />}
+                    icon={
+                        <AlertTriangle className="h-10 w-10 text-destructive" />
+                    }
                     ctaLabel="Back to purchase orders"
-                    ctaProps={{ onClick: () => navigate('/app/purchase-orders') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/purchase-orders'),
+                    }}
                 />
             </div>
         );
@@ -98,7 +119,9 @@ export function SupplierPoDetailPage() {
                 <EmptyState
                     title="Unable to load purchase order"
                     description="We could not retrieve this record. Try again or contact the buyer."
-                    icon={<AlertTriangle className="h-10 w-10 text-destructive" />}
+                    icon={
+                        <AlertTriangle className="h-10 w-10 text-destructive" />
+                    }
                     ctaLabel="Retry"
                     ctaProps={{ onClick: () => poQuery.refetch() }}
                 />
@@ -119,7 +142,9 @@ export function SupplierPoDetailPage() {
                 <EmptyState
                     title="Purchase order not found"
                     description="This purchase order was removed or no longer available."
-                    icon={<AlertTriangle className="h-10 w-10 text-destructive" />}
+                    icon={
+                        <AlertTriangle className="h-10 w-10 text-destructive" />
+                    }
                     ctaLabel="Back to dashboard"
                     ctaProps={{ onClick: () => navigate('/app') }}
                 />
@@ -128,7 +153,8 @@ export function SupplierPoDetailPage() {
     }
 
     const ackStatus = po.ackStatus ?? 'draft';
-    const ackDecisionMade = ackStatus === 'acknowledged' || ackStatus === 'declined';
+    const ackDecisionMade =
+        ackStatus === 'acknowledged' || ackStatus === 'declined';
     const canRespond = po.status === 'sent' && !ackDecisionMade;
 
     const handleAcknowledge = () => {
@@ -172,9 +198,16 @@ export function SupplierPoDetailPage() {
             <Card className="border-border/70">
                 <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Supplier portal</p>
-                        <CardTitle className="text-2xl font-semibold text-foreground">Purchase order {po.poNumber}</CardTitle>
-                        <CardDescription>Review the buyer request and confirm if you can fulfill it.</CardDescription>
+                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                            Supplier portal
+                        </p>
+                        <CardTitle className="text-2xl font-semibold text-foreground">
+                            Purchase order {po.poNumber}
+                        </CardTitle>
+                        <CardDescription>
+                            Review the buyer request and confirm if you can
+                            fulfill it.
+                        </CardDescription>
                     </div>
                     <AckStatusChip
                         status={ackStatus}
@@ -185,32 +218,58 @@ export function SupplierPoDetailPage() {
                     />
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <dl className="grid gap-4 md:grid-cols-3 text-sm">
+                    <dl className="grid gap-4 text-sm md:grid-cols-3">
                         <div>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Issued on</dt>
-                            <dd className="font-medium text-foreground">{formatDate(po.createdAt)}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Revision</dt>
-                            <dd className="font-medium text-foreground">Rev {po.revisionNo}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Total value</dt>
+                            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                Issued on
+                            </dt>
                             <dd className="font-medium text-foreground">
-                                <MoneyCell amountMinor={po.totalMinor} currency={po.currency} label="PO total" />
+                                {formatDate(po.createdAt)}
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Incoterm</dt>
-                            <dd className="font-medium text-foreground">{po.incoterm ?? '—'}</dd>
+                            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                Revision
+                            </dt>
+                            <dd className="font-medium text-foreground">
+                                Rev {po.revisionNo}
+                            </dd>
                         </div>
                         <div>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tax %</dt>
-                            <dd className="font-medium text-foreground">{po.taxPercent ?? '—'}</dd>
+                            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                Total value
+                            </dt>
+                            <dd className="font-medium text-foreground">
+                                <MoneyCell
+                                    amountMinor={po.totalMinor}
+                                    currency={po.currency}
+                                    label="PO total"
+                                />
+                            </dd>
                         </div>
                         <div>
-                            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Status</dt>
-                            <dd className="font-medium capitalize text-foreground">{po.status}</dd>
+                            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                Incoterm
+                            </dt>
+                            <dd className="font-medium text-foreground">
+                                {po.incoterm ?? '—'}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                Tax %
+                            </dt>
+                            <dd className="font-medium text-foreground">
+                                {po.taxPercent ?? '—'}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                Status
+                            </dt>
+                            <dd className="font-medium text-foreground capitalize">
+                                {po.status}
+                            </dd>
                         </div>
                     </dl>
                     {po.ackReason ? (
@@ -219,8 +278,12 @@ export function SupplierPoDetailPage() {
                         </div>
                     ) : null}
                     <div className="flex flex-wrap gap-3">
-                        <Button onClick={handleAcknowledge} disabled={!canRespond || ackMutation.isPending}>
-                            <CheckCircle2 className="mr-2 h-4 w-4" /> Acknowledge PO
+                        <Button
+                            onClick={handleAcknowledge}
+                            disabled={!canRespond || ackMutation.isPending}
+                        >
+                            <CheckCircle2 className="mr-2 h-4 w-4" />{' '}
+                            Acknowledge PO
                         </Button>
                         <Button
                             type="button"
@@ -249,27 +312,46 @@ export function SupplierPoDetailPage() {
                 totalMinor={po.totalMinor}
             />
 
-            <Dialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
+            <Dialog
+                open={declineDialogOpen}
+                onOpenChange={setDeclineDialogOpen}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Decline purchase order</DialogTitle>
-                        <DialogDescription>{declineDialogDescription}</DialogDescription>
+                        <DialogDescription>
+                            {declineDialogDescription}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
-                        <Label htmlFor="decline-reason">Reason (optional)</Label>
+                        <Label htmlFor="decline-reason">
+                            Reason (optional)
+                        </Label>
                         <Textarea
                             id="decline-reason"
                             placeholder="Share why the PO cannot be fulfilled"
                             value={declineReason}
-                            onChange={(event) => setDeclineReason(event.target.value)}
+                            onChange={(event) =>
+                                setDeclineReason(event.target.value)
+                            }
                             rows={4}
                         />
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setDeclineDialogOpen(false)} disabled={ackMutation.isPending}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeclineDialogOpen(false)}
+                            disabled={ackMutation.isPending}
+                        >
                             Cancel
                         </Button>
-                        <Button type="button" variant="destructive" onClick={handleDeclineConfirm} disabled={ackMutation.isPending}>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeclineConfirm}
+                            disabled={ackMutation.isPending}
+                        >
                             Decline PO
                         </Button>
                     </DialogFooter>

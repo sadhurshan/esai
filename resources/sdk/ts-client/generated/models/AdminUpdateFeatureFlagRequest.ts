@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminUpdateFeatureFlagRequest
  */
 export interface AdminUpdateFeatureFlagRequest {
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminUpdateFeatureFlagRequest
      */
@@ -30,36 +29,45 @@ export interface AdminUpdateFeatureFlagRequest {
 /**
  * Check if a given object implements the AdminUpdateFeatureFlagRequest interface.
  */
-export function instanceOfAdminUpdateFeatureFlagRequest(value: object): value is AdminUpdateFeatureFlagRequest {
+export function instanceOfAdminUpdateFeatureFlagRequest(
+    value: object,
+): value is AdminUpdateFeatureFlagRequest {
     return true;
 }
 
-export function AdminUpdateFeatureFlagRequestFromJSON(json: any): AdminUpdateFeatureFlagRequest {
+export function AdminUpdateFeatureFlagRequestFromJSON(
+    json: any,
+): AdminUpdateFeatureFlagRequest {
     return AdminUpdateFeatureFlagRequestFromJSONTyped(json, false);
 }
 
-export function AdminUpdateFeatureFlagRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminUpdateFeatureFlagRequest {
+export function AdminUpdateFeatureFlagRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminUpdateFeatureFlagRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'value': json['value'] == null ? undefined : json['value'],
+        value: json['value'] == null ? undefined : json['value'],
     };
 }
 
-export function AdminUpdateFeatureFlagRequestToJSON(json: any): AdminUpdateFeatureFlagRequest {
+export function AdminUpdateFeatureFlagRequestToJSON(
+    json: any,
+): AdminUpdateFeatureFlagRequest {
     return AdminUpdateFeatureFlagRequestToJSONTyped(json, false);
 }
 
-export function AdminUpdateFeatureFlagRequestToJSONTyped(value?: AdminUpdateFeatureFlagRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminUpdateFeatureFlagRequestToJSONTyped(
+    value?: AdminUpdateFeatureFlagRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'value': value['value'],
+        value: value['value'],
     };
 }
-

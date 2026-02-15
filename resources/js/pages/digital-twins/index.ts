@@ -1,2 +1,2 @@
-export * from './library-page';
 export * from './detail-page';
+export * from './library-page';

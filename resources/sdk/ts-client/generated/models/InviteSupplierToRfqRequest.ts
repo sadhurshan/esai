@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InviteSupplierToRfqRequest
  */
 export interface InviteSupplierToRfqRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof InviteSupplierToRfqRequest
      */
@@ -30,37 +29,47 @@ export interface InviteSupplierToRfqRequest {
 /**
  * Check if a given object implements the InviteSupplierToRfqRequest interface.
  */
-export function instanceOfInviteSupplierToRfqRequest(value: object): value is InviteSupplierToRfqRequest {
-    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+export function instanceOfInviteSupplierToRfqRequest(
+    value: object,
+): value is InviteSupplierToRfqRequest {
+    if (!('supplierId' in value) || value['supplierId'] === undefined)
+        return false;
     return true;
 }
 
-export function InviteSupplierToRfqRequestFromJSON(json: any): InviteSupplierToRfqRequest {
+export function InviteSupplierToRfqRequestFromJSON(
+    json: any,
+): InviteSupplierToRfqRequest {
     return InviteSupplierToRfqRequestFromJSONTyped(json, false);
 }
 
-export function InviteSupplierToRfqRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): InviteSupplierToRfqRequest {
+export function InviteSupplierToRfqRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InviteSupplierToRfqRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'supplierId': json['supplier_id'],
+        supplierId: json['supplier_id'],
     };
 }
 
-export function InviteSupplierToRfqRequestToJSON(json: any): InviteSupplierToRfqRequest {
+export function InviteSupplierToRfqRequestToJSON(
+    json: any,
+): InviteSupplierToRfqRequest {
     return InviteSupplierToRfqRequestToJSONTyped(json, false);
 }
 
-export function InviteSupplierToRfqRequestToJSONTyped(value?: InviteSupplierToRfqRequest | null, ignoreDiscriminator: boolean = false): any {
+export function InviteSupplierToRfqRequestToJSONTyped(
+    value?: InviteSupplierToRfqRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'supplier_id': value['supplierId'],
+        supplier_id: value['supplierId'],
     };
 }
-

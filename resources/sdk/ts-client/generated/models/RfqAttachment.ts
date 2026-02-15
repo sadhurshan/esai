@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RfqAttachmentUploadedBy } from './RfqAttachmentUploadedBy';
 import {
     RfqAttachmentUploadedByFromJSON,
-    RfqAttachmentUploadedByFromJSONTyped,
     RfqAttachmentUploadedByToJSON,
-    RfqAttachmentUploadedByToJSONTyped,
 } from './RfqAttachmentUploadedBy';
 
 /**
@@ -28,7 +25,7 @@ import {
  */
 export interface RfqAttachment {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAttachment
      */
@@ -40,37 +37,37 @@ export interface RfqAttachment {
      */
     documentId?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAttachment
      */
     filename: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAttachment
      */
     mime?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAttachment
      */
     sizeBytes?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAttachment
      */
     url: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RfqAttachment
      */
     uploadedAt: Date;
     /**
-     * 
+     *
      * @type {RfqAttachmentUploadedBy}
      * @memberof RfqAttachment
      */
@@ -84,7 +81,8 @@ export function instanceOfRfqAttachment(value: object): value is RfqAttachment {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('filename' in value) || value['filename'] === undefined) return false;
     if (!('url' in value) || value['url'] === undefined) return false;
-    if (!('uploadedAt' in value) || value['uploadedAt'] === undefined) return false;
+    if (!('uploadedAt' in value) || value['uploadedAt'] === undefined)
+        return false;
     return true;
 }
 
@@ -92,20 +90,26 @@ export function RfqAttachmentFromJSON(json: any): RfqAttachment {
     return RfqAttachmentFromJSONTyped(json, false);
 }
 
-export function RfqAttachmentFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqAttachment {
+export function RfqAttachmentFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqAttachment {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'documentId': json['document_id'] == null ? undefined : json['document_id'],
-        'filename': json['filename'],
-        'mime': json['mime'] == null ? undefined : json['mime'],
-        'sizeBytes': json['size_bytes'] == null ? undefined : json['size_bytes'],
-        'url': json['url'],
-        'uploadedAt': (new Date(json['uploaded_at'])),
-        'uploadedBy': json['uploaded_by'] == null ? undefined : RfqAttachmentUploadedByFromJSON(json['uploaded_by']),
+        id: json['id'],
+        documentId:
+            json['document_id'] == null ? undefined : json['document_id'],
+        filename: json['filename'],
+        mime: json['mime'] == null ? undefined : json['mime'],
+        sizeBytes: json['size_bytes'] == null ? undefined : json['size_bytes'],
+        url: json['url'],
+        uploadedAt: new Date(json['uploaded_at']),
+        uploadedBy:
+            json['uploaded_by'] == null
+                ? undefined
+                : RfqAttachmentUploadedByFromJSON(json['uploaded_by']),
     };
 }
 
@@ -113,21 +117,22 @@ export function RfqAttachmentToJSON(json: any): RfqAttachment {
     return RfqAttachmentToJSONTyped(json, false);
 }
 
-export function RfqAttachmentToJSONTyped(value?: RfqAttachment | null, ignoreDiscriminator: boolean = false): any {
+export function RfqAttachmentToJSONTyped(
+    value?: RfqAttachment | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'document_id': value['documentId'],
-        'filename': value['filename'],
-        'mime': value['mime'],
-        'size_bytes': value['sizeBytes'],
-        'url': value['url'],
-        'uploaded_at': value['uploadedAt'].toISOString(),
-        'uploaded_by': RfqAttachmentUploadedByToJSON(value['uploadedBy']),
+        id: value['id'],
+        document_id: value['documentId'],
+        filename: value['filename'],
+        mime: value['mime'],
+        size_bytes: value['sizeBytes'],
+        url: value['url'],
+        uploaded_at: value['uploadedAt'].toISOString(),
+        uploaded_by: RfqAttachmentUploadedByToJSON(value['uploadedBy']),
     };
 }
-

@@ -1,14 +1,14 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useCreateItem } from '../use-create-item';
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { HttpError } from '@/sdk';
+import { useCreateItem } from '../use-create-item';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -33,7 +33,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -67,7 +71,9 @@ describe('useCreateItem', () => {
         createItem.mockResolvedValue(apiResponse);
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useCreateItem(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateItem(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync({
             sku: '  SKU-1  ',
@@ -96,13 +102,19 @@ describe('useCreateItem', () => {
             title: 'Item created',
         });
 
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.items({}) });
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.item('item-1') });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.items({}),
+        });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.item('item-1'),
+        });
     });
 
     it('rejects when required fields are missing', async () => {
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useCreateItem(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateItem(), {
+            wrapper: Wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({
@@ -141,7 +153,9 @@ describe('useCreateItem', () => {
         createItem.mockRejectedValue(httpError);
 
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useCreateItem(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateItem(), {
+            wrapper: Wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({

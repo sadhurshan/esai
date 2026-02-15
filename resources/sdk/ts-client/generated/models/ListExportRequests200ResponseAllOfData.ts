@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
 import type { ExportRequest } from './ExportRequest';
-import {
-    ExportRequestFromJSON,
-    ExportRequestFromJSONTyped,
-    ExportRequestToJSON,
-    ExportRequestToJSONTyped,
-} from './ExportRequest';
+import { ExportRequestFromJSON, ExportRequestToJSON } from './ExportRequest';
+import type { PageMeta } from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListExportRequests200ResponseAllOfData
  */
 export interface ListExportRequests200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<ExportRequest>}
      * @memberof ListExportRequests200ResponseAllOfData
      */
     items: Array<ExportRequest>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof ListExportRequests200ResponseAllOfData
      */
@@ -51,40 +40,49 @@ export interface ListExportRequests200ResponseAllOfData {
 /**
  * Check if a given object implements the ListExportRequests200ResponseAllOfData interface.
  */
-export function instanceOfListExportRequests200ResponseAllOfData(value: object): value is ListExportRequests200ResponseAllOfData {
+export function instanceOfListExportRequests200ResponseAllOfData(
+    value: object,
+): value is ListExportRequests200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function ListExportRequests200ResponseAllOfDataFromJSON(json: any): ListExportRequests200ResponseAllOfData {
+export function ListExportRequests200ResponseAllOfDataFromJSON(
+    json: any,
+): ListExportRequests200ResponseAllOfData {
     return ListExportRequests200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListExportRequests200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListExportRequests200ResponseAllOfData {
+export function ListExportRequests200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListExportRequests200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(ExportRequestFromJSON)),
-        'meta': PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(ExportRequestFromJSON),
+        meta: PageMetaFromJSON(json['meta']),
     };
 }
 
-export function ListExportRequests200ResponseAllOfDataToJSON(json: any): ListExportRequests200ResponseAllOfData {
+export function ListExportRequests200ResponseAllOfDataToJSON(
+    json: any,
+): ListExportRequests200ResponseAllOfData {
     return ListExportRequests200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListExportRequests200ResponseAllOfDataToJSONTyped(value?: ListExportRequests200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListExportRequests200ResponseAllOfDataToJSONTyped(
+    value?: ListExportRequests200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(ExportRequestToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(ExportRequestToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

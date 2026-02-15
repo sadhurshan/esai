@@ -121,17 +121,23 @@ const mapQuote = (payload: QuoteResponse): QuoteSummary => ({
         leadTimeDays: item.lead_time_days,
         note: item.note ?? undefined,
     })),
-    attachments: (payload.attachments ?? []).map((attachment): QuoteSummary['attachments'][number] => ({
-        id: attachment.id,
-        filename: attachment.filename,
-        path: attachment.path,
-        mime: attachment.mime,
-        sizeBytes: attachment.size_bytes,
-    })),
+    attachments: (payload.attachments ?? []).map(
+        (attachment): QuoteSummary['attachments'][number] => ({
+            id: attachment.id,
+            filename: attachment.filename,
+            path: attachment.path,
+            mime: attachment.mime,
+            sizeBytes: attachment.size_bytes,
+        }),
+    ),
 });
 
-export async function fetchRfqDetail(rfqId: number): Promise<RFQDetailResponse> {
-    return (await api.get<RFQDetailResponse>(`/rfqs/${rfqId}`)) as unknown as RFQDetailResponse;
+export async function fetchRfqDetail(
+    rfqId: number,
+): Promise<RFQDetailResponse> {
+    return (await api.get<RFQDetailResponse>(
+        `/rfqs/${rfqId}`,
+    )) as unknown as RFQDetailResponse;
 }
 
 export function useRFQ(id: number) {

@@ -1,25 +1,33 @@
+import { PackageSearch, RotateCcw, UsersRound } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { PackageSearch, RotateCcw, UsersRound } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { EmptyState } from '@/components/empty-state';
+import { OrderStatusBadge } from '@/components/orders/order-status-badge';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { SupplierDirectoryPicker } from '@/components/rfqs/supplier-directory-picker';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SupplierDirectoryPicker } from '@/components/rfqs/supplier-directory-picker';
-import { Badge } from '@/components/ui/badge';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useFormatting } from '@/contexts/formatting-context';
-import { OrderStatusBadge } from '@/components/orders/order-status-badge';
 import { useBuyerOrders } from '@/hooks/api/orders/use-buyer-orders';
 import type { SalesOrderStatus, SalesOrderSummary } from '@/types/orders';
 import type { Supplier } from '@/types/sourcing';
 
-const STATUS_FILTERS: Array<{ value: 'all' | SalesOrderStatus; label: string }> = [
+const STATUS_FILTERS: Array<{
+    value: 'all' | SalesOrderStatus;
+    label: string;
+}> = [
     { value: 'all', label: 'All' },
     { value: 'pending_ack', label: 'Pending ack' },
     { value: 'accepted', label: 'Accepted' },
@@ -33,9 +41,12 @@ const PER_PAGE = 25;
 export function BuyerOrderListPage() {
     const { formatDate, formatMoney } = useFormatting();
 
-    const [statusFilter, setStatusFilter] = useState<(typeof STATUS_FILTERS)[number]['value']>('all');
+    const [statusFilter, setStatusFilter] =
+        useState<(typeof STATUS_FILTERS)[number]['value']>('all');
     const [supplierPickerOpen, setSupplierPickerOpen] = useState(false);
-    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+        null,
+    );
     const [issuedFrom, setIssuedFrom] = useState('');
     const [issuedTo, setIssuedTo] = useState('');
     const [cursor, setCursor] = useState<string | null>(null);
@@ -54,12 +65,15 @@ export function BuyerOrderListPage() {
     const nextCursor = cursorMeta?.nextCursor ?? null;
     const prevCursor = cursorMeta?.prevCursor ?? null;
 
-    const formatMoneyMinor = useCallback((amountMinor?: number | null, currency?: string) => {
-        if (amountMinor === undefined || amountMinor === null) {
-            return '—';
-        }
-        return formatMoney(amountMinor / 100, { currency });
-    }, [formatMoney]);
+    const formatMoneyMinor = useCallback(
+        (amountMinor?: number | null, currency?: string) => {
+            if (amountMinor === undefined || amountMinor === null) {
+                return '—';
+            }
+            return formatMoney(amountMinor / 100, { currency });
+        },
+        [formatMoney],
+    );
 
     const columns: DataTableColumn<SalesOrderSummary>[] = useMemo(
         () => [
@@ -67,7 +81,10 @@ export function BuyerOrderListPage() {
                 key: 'soNumber',
                 title: 'SO #',
                 render: (order) => (
-                    <Link className="font-semibold text-primary" to={`/app/orders/${order.id}`}>
+                    <Link
+                        className="font-semibold text-primary"
+                        to={`/app/orders/${order.id}`}
+                    >
                         {order.soNumber}
                     </Link>
                 ),
@@ -75,7 +92,9 @@ export function BuyerOrderListPage() {
             {
                 key: 'supplier',
                 title: 'Supplier',
-                render: (order) => order.supplierCompanyName ?? `Supplier #${order.supplierCompanyId}`,
+                render: (order) =>
+                    order.supplierCompanyName ??
+                    `Supplier #${order.supplierCompanyId}`,
             },
             {
                 key: 'issueDate',
@@ -85,7 +104,11 @@ export function BuyerOrderListPage() {
             {
                 key: 'total',
                 title: 'Order total',
-                render: (order) => formatMoneyMinor(order.totals?.totalMinor ?? null, order.currency),
+                render: (order) =>
+                    formatMoneyMinor(
+                        order.totals?.totalMinor ?? null,
+                        order.currency,
+                    ),
             },
             {
                 key: 'fulfillment',
@@ -93,7 +116,13 @@ export function BuyerOrderListPage() {
                 render: (order) => {
                     const shipped = order.fulfillment?.shippedQty ?? 0;
                     const ordered = order.fulfillment?.orderedQty ?? 0;
-                    const percent = Math.min(100, Math.round(order.fulfillment?.percent ?? (ordered ? (shipped / ordered) * 100 : 0)));
+                    const percent = Math.min(
+                        100,
+                        Math.round(
+                            order.fulfillment?.percent ??
+                                (ordered ? (shipped / ordered) * 100 : 0),
+                        ),
+                    );
 
                     return (
                         <TooltipProvider delayDuration={150}>
@@ -107,7 +136,9 @@ export function BuyerOrderListPage() {
                                                 aria-label={`Fulfillment ${percent}%`}
                                             />
                                         </div>
-                                        <span className="text-xs font-medium text-muted-foreground">{percent}%</span>
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            {percent}%
+                                        </span>
                                     </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -179,10 +210,15 @@ export function BuyerOrderListPage() {
             <PlanUpgradeBanner />
 
             <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Buyer workspace</p>
-                <h1 className="text-2xl font-semibold text-foreground">Orders</h1>
+                <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                    Buyer workspace
+                </p>
+                <h1 className="text-2xl font-semibold text-foreground">
+                    Orders
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                    Track supplier acknowledgements, shipment progress, and delivery milestones per PO.
+                    Track supplier acknowledgements, shipment progress, and
+                    delivery milestones per PO.
                 </p>
             </div>
 
@@ -194,7 +230,11 @@ export function BuyerOrderListPage() {
                                 key={filter.value}
                                 type="button"
                                 size="sm"
-                                variant={statusFilter === filter.value ? 'default' : 'outline'}
+                                variant={
+                                    statusFilter === filter.value
+                                        ? 'default'
+                                        : 'outline'
+                                }
                                 onClick={() => {
                                     setStatusFilter(filter.value);
                                     setCursor(null);
@@ -206,7 +246,9 @@ export function BuyerOrderListPage() {
                     </div>
                     <div className="grid gap-4 md:grid-cols-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Supplier filter</label>
+                            <label className="text-xs font-medium text-muted-foreground uppercase">
+                                Supplier filter
+                            </label>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -214,20 +256,31 @@ export function BuyerOrderListPage() {
                                 onClick={() => setSupplierPickerOpen(true)}
                             >
                                 <span className="truncate">
-                                    {selectedSupplier ? selectedSupplier.name : 'Select supplier'}
+                                    {selectedSupplier
+                                        ? selectedSupplier.name
+                                        : 'Select supplier'}
                                 </span>
                                 <UsersRound className="ml-2 h-4 w-4 text-muted-foreground" />
                             </Button>
                             {selectedSupplier ? (
-                                <Button type="button" size="sm" variant="ghost" onClick={handleClearSupplier}>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleClearSupplier}
+                                >
                                     Clear selection
                                 </Button>
                             ) : (
-                                <p className="text-xs text-muted-foreground">Filter by supplier directory entry.</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Filter by supplier directory entry.
+                                </p>
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Issued from</label>
+                            <label className="text-xs font-medium text-muted-foreground uppercase">
+                                Issued from
+                            </label>
                             <Input
                                 type="date"
                                 value={issuedFrom}
@@ -238,7 +291,9 @@ export function BuyerOrderListPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">Issued to</label>
+                            <label className="text-xs font-medium text-muted-foreground uppercase">
+                                Issued to
+                            </label>
                             <Input
                                 type="date"
                                 value={issuedTo}
@@ -249,8 +304,14 @@ export function BuyerOrderListPage() {
                             />
                         </div>
                         <div className="flex items-end">
-                            <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
-                                <RotateCcw className="mr-2 h-4 w-4" /> Reset filters
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleResetFilters}
+                            >
+                                <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                                filters
                             </Button>
                         </div>
                     </div>
@@ -265,13 +326,17 @@ export function BuyerOrderListPage() {
                     <EmptyState
                         title="No activity yet"
                         description="Once suppliers acknowledge your POs you will see mirrored sales orders and shipment updates here."
-                        icon={<PackageSearch className="h-12 w-12 text-muted-foreground" />}
+                        icon={
+                            <PackageSearch className="h-12 w-12 text-muted-foreground" />
+                        }
                     />
                 }
             />
 
             <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm">
-                <span className="text-muted-foreground">Cursor-based pagination</span>
+                <span className="text-muted-foreground">
+                    Cursor-based pagination
+                </span>
                 <div className="flex items-center gap-2">
                     <Button
                         type="button"

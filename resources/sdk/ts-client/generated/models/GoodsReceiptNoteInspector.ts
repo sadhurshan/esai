@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface GoodsReceiptNoteInspector
  */
 export interface GoodsReceiptNoteInspector {
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNoteInspector
      */
     id?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNoteInspector
      */
@@ -36,38 +35,47 @@ export interface GoodsReceiptNoteInspector {
 /**
  * Check if a given object implements the GoodsReceiptNoteInspector interface.
  */
-export function instanceOfGoodsReceiptNoteInspector(value: object): value is GoodsReceiptNoteInspector {
+export function instanceOfGoodsReceiptNoteInspector(
+    value: object,
+): value is GoodsReceiptNoteInspector {
     return true;
 }
 
-export function GoodsReceiptNoteInspectorFromJSON(json: any): GoodsReceiptNoteInspector {
+export function GoodsReceiptNoteInspectorFromJSON(
+    json: any,
+): GoodsReceiptNoteInspector {
     return GoodsReceiptNoteInspectorFromJSONTyped(json, false);
 }
 
-export function GoodsReceiptNoteInspectorFromJSONTyped(json: any, ignoreDiscriminator: boolean): GoodsReceiptNoteInspector {
+export function GoodsReceiptNoteInspectorFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): GoodsReceiptNoteInspector {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
+        id: json['id'] == null ? undefined : json['id'],
+        name: json['name'] == null ? undefined : json['name'],
     };
 }
 
-export function GoodsReceiptNoteInspectorToJSON(json: any): GoodsReceiptNoteInspector {
+export function GoodsReceiptNoteInspectorToJSON(
+    json: any,
+): GoodsReceiptNoteInspector {
     return GoodsReceiptNoteInspectorToJSONTyped(json, false);
 }
 
-export function GoodsReceiptNoteInspectorToJSONTyped(value?: GoodsReceiptNoteInspector | null, ignoreDiscriminator: boolean = false): any {
+export function GoodsReceiptNoteInspectorToJSONTyped(
+    value?: GoodsReceiptNoteInspector | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
+        id: value['id'],
+        name: value['name'],
     };
 }
-

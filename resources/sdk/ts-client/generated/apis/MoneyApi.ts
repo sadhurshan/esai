@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,29 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiSuccessResponse,
-  CreateTaxCodeRequest,
-  ListFxRates200Response,
-  ListTaxCodes200Response,
-  ShowMoneySettings200Response,
-  ShowTaxCode200Response,
-  UpdateMoneySettingsRequest,
-  UpdateTaxCodeRequest,
-  UpsertFxRatesRequest,
+    ApiSuccessResponse,
+    CreateTaxCodeRequest,
+    ListFxRates200Response,
+    ListTaxCodes200Response,
+    ShowMoneySettings200Response,
+    ShowTaxCode200Response,
+    UpdateMoneySettingsRequest,
+    UpdateTaxCodeRequest,
+    UpsertFxRatesRequest,
 } from '../models/index';
 import {
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-    CreateTaxCodeRequestFromJSON,
     CreateTaxCodeRequestToJSON,
     ListFxRates200ResponseFromJSON,
-    ListFxRates200ResponseToJSON,
     ListTaxCodes200ResponseFromJSON,
-    ListTaxCodes200ResponseToJSON,
     ShowMoneySettings200ResponseFromJSON,
-    ShowMoneySettings200ResponseToJSON,
     ShowTaxCode200ResponseFromJSON,
-    ShowTaxCode200ResponseToJSON,
-    UpdateMoneySettingsRequestFromJSON,
     UpdateMoneySettingsRequestToJSON,
-    UpdateTaxCodeRequestFromJSON,
     UpdateTaxCodeRequestToJSON,
-    UpsertFxRatesRequestFromJSON,
     UpsertFxRatesRequestToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface CreateTaxCodeOperationRequest {
     createTaxCodeRequest: CreateTaxCodeRequest;
@@ -69,7 +59,7 @@ export interface ListTaxCodesRequest {
 
 export interface PatchTaxCodeRequest {
     taxCodeId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface RecalcCreditNoteTotalsRequest {
@@ -103,227 +93,304 @@ export interface UpsertFxRatesOperationRequest {
 
 /**
  * MoneyApi - interface
- * 
+ *
  * @export
  * @interface MoneyApiInterface
  */
 export interface MoneyApiInterface {
     /**
-     * 
+     *
      * @summary Create tax code
-     * @param {CreateTaxCodeRequest} createTaxCodeRequest 
+     * @param {CreateTaxCodeRequest} createTaxCodeRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    createTaxCodeRaw(requestParameters: CreateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createTaxCodeRaw(
+        requestParameters: CreateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create tax code
      */
-    createTaxCode(requestParameters: CreateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createTaxCode(
+        requestParameters: CreateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete tax code
-     * @param {number} taxCodeId 
+     * @param {number} taxCodeId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    deleteTaxCodeRaw(requestParameters: DeleteTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteTaxCodeRaw(
+        requestParameters: DeleteTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete tax code
      */
-    deleteTaxCode(requestParameters: DeleteTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteTaxCode(
+        requestParameters: DeleteTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List FX rates
-     * @param {string} [baseCode] 
-     * @param {string} [quoteCode] 
-     * @param {Date} [asOf] 
+     * @param {string} [baseCode]
+     * @param {string} [quoteCode]
+     * @param {Date} [asOf]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    listFxRatesRaw(requestParameters: ListFxRatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListFxRates200Response>>;
+    listFxRatesRaw(
+        requestParameters: ListFxRatesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListFxRates200Response>>;
 
     /**
      * List FX rates
      */
-    listFxRates(requestParameters: ListFxRatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListFxRates200Response>;
+    listFxRates(
+        requestParameters: ListFxRatesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListFxRates200Response>;
 
     /**
-     * 
+     *
      * @summary List tax codes
      * @param {string} [cursor] Cursor token for pagination.
-     * @param {string} [search] 
-     * @param {boolean} [active] 
-     * @param {string} [type] 
+     * @param {string} [search]
+     * @param {boolean} [active]
+     * @param {string} [type]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    listTaxCodesRaw(requestParameters: ListTaxCodesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListTaxCodes200Response>>;
+    listTaxCodesRaw(
+        requestParameters: ListTaxCodesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListTaxCodes200Response>>;
 
     /**
      * List tax codes
      */
-    listTaxCodes(requestParameters: ListTaxCodesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListTaxCodes200Response>;
+    listTaxCodes(
+        requestParameters: ListTaxCodesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListTaxCodes200Response>;
 
     /**
-     * 
+     *
      * @summary Partially update tax code
-     * @param {number} taxCodeId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} taxCodeId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    patchTaxCodeRaw(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    patchTaxCodeRaw(
+        requestParameters: PatchTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Partially update tax code
      */
-    patchTaxCode(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    patchTaxCode(
+        requestParameters: PatchTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Recalculate credit note totals
-     * @param {string} creditNoteId 
+     * @param {string} creditNoteId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    recalcCreditNoteTotalsRaw(requestParameters: RecalcCreditNoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    recalcCreditNoteTotalsRaw(
+        requestParameters: RecalcCreditNoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Recalculate credit note totals
      */
-    recalcCreditNoteTotals(requestParameters: RecalcCreditNoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    recalcCreditNoteTotals(
+        requestParameters: RecalcCreditNoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Recalculate purchase order totals
-     * @param {string} purchaseOrderId 
+     * @param {string} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    recalcPurchaseOrderTotalsRaw(requestParameters: RecalcPurchaseOrderTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    recalcPurchaseOrderTotalsRaw(
+        requestParameters: RecalcPurchaseOrderTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Recalculate purchase order totals
      */
-    recalcPurchaseOrderTotals(requestParameters: RecalcPurchaseOrderTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    recalcPurchaseOrderTotals(
+        requestParameters: RecalcPurchaseOrderTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Recalculate quote totals
-     * @param {string} quoteId 
+     * @param {string} quoteId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    recalcQuoteTotalsRaw(requestParameters: RecalcQuoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    recalcQuoteTotalsRaw(
+        requestParameters: RecalcQuoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Recalculate quote totals
      */
-    recalcQuoteTotals(requestParameters: RecalcQuoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    recalcQuoteTotals(
+        requestParameters: RecalcQuoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Retrieve money settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    showMoneySettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowMoneySettings200Response>>;
+    showMoneySettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowMoneySettings200Response>>;
 
     /**
      * Retrieve money settings
      */
-    showMoneySettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowMoneySettings200Response>;
+    showMoneySettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowMoneySettings200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve tax code
-     * @param {number} taxCodeId 
+     * @param {number} taxCodeId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    showTaxCodeRaw(requestParameters: ShowTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowTaxCode200Response>>;
+    showTaxCodeRaw(
+        requestParameters: ShowTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowTaxCode200Response>>;
 
     /**
      * Retrieve tax code
      */
-    showTaxCode(requestParameters: ShowTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowTaxCode200Response>;
+    showTaxCode(
+        requestParameters: ShowTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowTaxCode200Response>;
 
     /**
-     * 
+     *
      * @summary Update money settings
-     * @param {UpdateMoneySettingsRequest} updateMoneySettingsRequest 
+     * @param {UpdateMoneySettingsRequest} updateMoneySettingsRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    updateMoneySettingsRaw(requestParameters: UpdateMoneySettingsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateMoneySettingsRaw(
+        requestParameters: UpdateMoneySettingsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update money settings
      */
-    updateMoneySettings(requestParameters: UpdateMoneySettingsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateMoneySettings(
+        requestParameters: UpdateMoneySettingsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Update tax code
-     * @param {number} taxCodeId 
-     * @param {UpdateTaxCodeRequest} updateTaxCodeRequest 
+     * @param {number} taxCodeId
+     * @param {UpdateTaxCodeRequest} updateTaxCodeRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    updateTaxCodeRaw(requestParameters: UpdateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateTaxCodeRaw(
+        requestParameters: UpdateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update tax code
      */
-    updateTaxCode(requestParameters: UpdateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateTaxCode(
+        requestParameters: UpdateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Upsert FX rates
-     * @param {UpsertFxRatesRequest} upsertFxRatesRequest 
+     * @param {UpsertFxRatesRequest} upsertFxRatesRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof MoneyApiInterface
      */
-    upsertFxRatesRaw(requestParameters: UpsertFxRatesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    upsertFxRatesRaw(
+        requestParameters: UpsertFxRatesOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Upsert FX rates
      */
-    upsertFxRates(requestParameters: UpsertFxRatesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    upsertFxRates(
+        requestParameters: UpsertFxRatesOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
 export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
-
     /**
      * Create tax code
      */
-    async createTaxCodeRaw(requestParameters: CreateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createTaxCodeRaw(
+        requestParameters: CreateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['createTaxCodeRequest'] == null) {
             throw new runtime.RequiredError(
                 'createTaxCodeRequest',
-                'Required parameter "createTaxCodeRequest" was null or undefined when calling createTaxCode().'
+                'Required parameter "createTaxCodeRequest" was null or undefined when calling createTaxCode().',
             );
         }
 
@@ -334,47 +401,64 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/tax-codes`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateTaxCodeRequestToJSON(requestParameters['createTaxCodeRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreateTaxCodeRequestToJSON(
+                    requestParameters['createTaxCodeRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create tax code
      */
-    async createTaxCode(requestParameters: CreateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createTaxCodeRaw(requestParameters, initOverrides);
+    async createTaxCode(
+        requestParameters: CreateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createTaxCodeRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete tax code
      */
-    async deleteTaxCodeRaw(requestParameters: DeleteTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteTaxCodeRaw(
+        requestParameters: DeleteTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['taxCodeId'] == null) {
             throw new runtime.RequiredError(
                 'taxCodeId',
-                'Required parameter "taxCodeId" was null or undefined when calling deleteTaxCode().'
+                'Required parameter "taxCodeId" was null or undefined when calling deleteTaxCode().',
             );
         }
 
@@ -383,43 +467,61 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/tax-codes/{taxCodeId}`;
-        urlPath = urlPath.replace(`{${"taxCodeId"}}`, encodeURIComponent(String(requestParameters['taxCodeId'])));
+        urlPath = urlPath.replace(
+            `{${'taxCodeId'}}`,
+            encodeURIComponent(String(requestParameters['taxCodeId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete tax code
      */
-    async deleteTaxCode(requestParameters: DeleteTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteTaxCodeRaw(requestParameters, initOverrides);
+    async deleteTaxCode(
+        requestParameters: DeleteTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteTaxCodeRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List FX rates
      */
-    async listFxRatesRaw(requestParameters: ListFxRatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListFxRates200Response>> {
+    async listFxRatesRaw(
+        requestParameters: ListFxRatesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListFxRates200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['baseCode'] != null) {
@@ -437,42 +539,57 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/fx`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListFxRates200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListFxRates200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List FX rates
      */
-    async listFxRates(requestParameters: ListFxRatesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListFxRates200Response> {
-        const response = await this.listFxRatesRaw(requestParameters, initOverrides);
+    async listFxRates(
+        requestParameters: ListFxRatesRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListFxRates200Response> {
+        const response = await this.listFxRatesRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List tax codes
      */
-    async listTaxCodesRaw(requestParameters: ListTaxCodesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListTaxCodes200Response>> {
+    async listTaxCodesRaw(
+        requestParameters: ListTaxCodesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListTaxCodes200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['cursor'] != null) {
@@ -494,53 +611,68 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/tax-codes`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListTaxCodes200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListTaxCodes200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List tax codes
      */
-    async listTaxCodes(requestParameters: ListTaxCodesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListTaxCodes200Response> {
-        const response = await this.listTaxCodesRaw(requestParameters, initOverrides);
+    async listTaxCodes(
+        requestParameters: ListTaxCodesRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListTaxCodes200Response> {
+        const response = await this.listTaxCodesRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Partially update tax code
      */
-    async patchTaxCodeRaw(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async patchTaxCodeRaw(
+        requestParameters: PatchTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['taxCodeId'] == null) {
             throw new runtime.RequiredError(
                 'taxCodeId',
-                'Required parameter "taxCodeId" was null or undefined when calling patchTaxCode().'
+                'Required parameter "taxCodeId" was null or undefined when calling patchTaxCode().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling patchTaxCode().'
+                'Required parameter "requestBody" was null or undefined when calling patchTaxCode().',
             );
         }
 
@@ -551,48 +683,66 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/tax-codes/{taxCodeId}`;
-        urlPath = urlPath.replace(`{${"taxCodeId"}}`, encodeURIComponent(String(requestParameters['taxCodeId'])));
+        urlPath = urlPath.replace(
+            `{${'taxCodeId'}}`,
+            encodeURIComponent(String(requestParameters['taxCodeId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Partially update tax code
      */
-    async patchTaxCode(requestParameters: PatchTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.patchTaxCodeRaw(requestParameters, initOverrides);
+    async patchTaxCode(
+        requestParameters: PatchTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.patchTaxCodeRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Recalculate credit note totals
      */
-    async recalcCreditNoteTotalsRaw(requestParameters: RecalcCreditNoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async recalcCreditNoteTotalsRaw(
+        requestParameters: RecalcCreditNoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['creditNoteId'] == null) {
             throw new runtime.RequiredError(
                 'creditNoteId',
-                'Required parameter "creditNoteId" was null or undefined when calling recalcCreditNoteTotals().'
+                'Required parameter "creditNoteId" was null or undefined when calling recalcCreditNoteTotals().',
             );
         }
 
@@ -601,47 +751,65 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/credit-notes/{creditNoteId}/recalculate`;
-        urlPath = urlPath.replace(`{${"creditNoteId"}}`, encodeURIComponent(String(requestParameters['creditNoteId'])));
+        urlPath = urlPath.replace(
+            `{${'creditNoteId'}}`,
+            encodeURIComponent(String(requestParameters['creditNoteId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Recalculate credit note totals
      */
-    async recalcCreditNoteTotals(requestParameters: RecalcCreditNoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.recalcCreditNoteTotalsRaw(requestParameters, initOverrides);
+    async recalcCreditNoteTotals(
+        requestParameters: RecalcCreditNoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.recalcCreditNoteTotalsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Recalculate purchase order totals
      */
-    async recalcPurchaseOrderTotalsRaw(requestParameters: RecalcPurchaseOrderTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async recalcPurchaseOrderTotalsRaw(
+        requestParameters: RecalcPurchaseOrderTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling recalcPurchaseOrderTotals().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling recalcPurchaseOrderTotals().',
             );
         }
 
@@ -650,47 +818,65 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/recalculate`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Recalculate purchase order totals
      */
-    async recalcPurchaseOrderTotals(requestParameters: RecalcPurchaseOrderTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.recalcPurchaseOrderTotalsRaw(requestParameters, initOverrides);
+    async recalcPurchaseOrderTotals(
+        requestParameters: RecalcPurchaseOrderTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.recalcPurchaseOrderTotalsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Recalculate quote totals
      */
-    async recalcQuoteTotalsRaw(requestParameters: RecalcQuoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async recalcQuoteTotalsRaw(
+        requestParameters: RecalcQuoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['quoteId'] == null) {
             throw new runtime.RequiredError(
                 'quoteId',
-                'Required parameter "quoteId" was null or undefined when calling recalcQuoteTotals().'
+                'Required parameter "quoteId" was null or undefined when calling recalcQuoteTotals().',
             );
         }
 
@@ -699,76 +885,101 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/quotes/{quoteId}/recalculate`;
-        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+        urlPath = urlPath.replace(
+            `{${'quoteId'}}`,
+            encodeURIComponent(String(requestParameters['quoteId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Recalculate quote totals
      */
-    async recalcQuoteTotals(requestParameters: RecalcQuoteTotalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.recalcQuoteTotalsRaw(requestParameters, initOverrides);
+    async recalcQuoteTotals(
+        requestParameters: RecalcQuoteTotalsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.recalcQuoteTotalsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve money settings
      */
-    async showMoneySettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowMoneySettings200Response>> {
+    async showMoneySettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowMoneySettings200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/settings`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowMoneySettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowMoneySettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve money settings
      */
-    async showMoneySettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowMoneySettings200Response> {
+    async showMoneySettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowMoneySettings200Response> {
         const response = await this.showMoneySettingsRaw(initOverrides);
         return await response.value();
     }
@@ -776,11 +987,14 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
     /**
      * Retrieve tax code
      */
-    async showTaxCodeRaw(requestParameters: ShowTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowTaxCode200Response>> {
+    async showTaxCodeRaw(
+        requestParameters: ShowTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowTaxCode200Response>> {
         if (requestParameters['taxCodeId'] == null) {
             throw new runtime.RequiredError(
                 'taxCodeId',
-                'Required parameter "taxCodeId" was null or undefined when calling showTaxCode().'
+                'Required parameter "taxCodeId" was null or undefined when calling showTaxCode().',
             );
         }
 
@@ -789,47 +1003,65 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/tax-codes/{taxCodeId}`;
-        urlPath = urlPath.replace(`{${"taxCodeId"}}`, encodeURIComponent(String(requestParameters['taxCodeId'])));
+        urlPath = urlPath.replace(
+            `{${'taxCodeId'}}`,
+            encodeURIComponent(String(requestParameters['taxCodeId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowTaxCode200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowTaxCode200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve tax code
      */
-    async showTaxCode(requestParameters: ShowTaxCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowTaxCode200Response> {
-        const response = await this.showTaxCodeRaw(requestParameters, initOverrides);
+    async showTaxCode(
+        requestParameters: ShowTaxCodeRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowTaxCode200Response> {
+        const response = await this.showTaxCodeRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update money settings
      */
-    async updateMoneySettingsRaw(requestParameters: UpdateMoneySettingsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateMoneySettingsRaw(
+        requestParameters: UpdateMoneySettingsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['updateMoneySettingsRequest'] == null) {
             throw new runtime.RequiredError(
                 'updateMoneySettingsRequest',
-                'Required parameter "updateMoneySettingsRequest" was null or undefined when calling updateMoneySettings().'
+                'Required parameter "updateMoneySettingsRequest" was null or undefined when calling updateMoneySettings().',
             );
         }
 
@@ -840,54 +1072,71 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/settings`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateMoneySettingsRequestToJSON(requestParameters['updateMoneySettingsRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpdateMoneySettingsRequestToJSON(
+                    requestParameters['updateMoneySettingsRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update money settings
      */
-    async updateMoneySettings(requestParameters: UpdateMoneySettingsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateMoneySettingsRaw(requestParameters, initOverrides);
+    async updateMoneySettings(
+        requestParameters: UpdateMoneySettingsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateMoneySettingsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update tax code
      */
-    async updateTaxCodeRaw(requestParameters: UpdateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateTaxCodeRaw(
+        requestParameters: UpdateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['taxCodeId'] == null) {
             throw new runtime.RequiredError(
                 'taxCodeId',
-                'Required parameter "taxCodeId" was null or undefined when calling updateTaxCode().'
+                'Required parameter "taxCodeId" was null or undefined when calling updateTaxCode().',
             );
         }
 
         if (requestParameters['updateTaxCodeRequest'] == null) {
             throw new runtime.RequiredError(
                 'updateTaxCodeRequest',
-                'Required parameter "updateTaxCodeRequest" was null or undefined when calling updateTaxCode().'
+                'Required parameter "updateTaxCodeRequest" was null or undefined when calling updateTaxCode().',
             );
         }
 
@@ -898,48 +1147,68 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/tax-codes/{taxCodeId}`;
-        urlPath = urlPath.replace(`{${"taxCodeId"}}`, encodeURIComponent(String(requestParameters['taxCodeId'])));
+        urlPath = urlPath.replace(
+            `{${'taxCodeId'}}`,
+            encodeURIComponent(String(requestParameters['taxCodeId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateTaxCodeRequestToJSON(requestParameters['updateTaxCodeRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpdateTaxCodeRequestToJSON(
+                    requestParameters['updateTaxCodeRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update tax code
      */
-    async updateTaxCode(requestParameters: UpdateTaxCodeOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateTaxCodeRaw(requestParameters, initOverrides);
+    async updateTaxCode(
+        requestParameters: UpdateTaxCodeOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateTaxCodeRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Upsert FX rates
      */
-    async upsertFxRatesRaw(requestParameters: UpsertFxRatesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async upsertFxRatesRaw(
+        requestParameters: UpsertFxRatesOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['upsertFxRatesRequest'] == null) {
             throw new runtime.RequiredError(
                 'upsertFxRatesRequest',
-                'Required parameter "upsertFxRatesRequest" was null or undefined when calling upsertFxRates().'
+                'Required parameter "upsertFxRatesRequest" was null or undefined when calling upsertFxRates().',
             );
         }
 
@@ -950,37 +1219,50 @@ export class MoneyApi extends runtime.BaseAPI implements MoneyApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/money/fx`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpsertFxRatesRequestToJSON(requestParameters['upsertFxRatesRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpsertFxRatesRequestToJSON(
+                    requestParameters['upsertFxRatesRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Upsert FX rates
      */
-    async upsertFxRates(requestParameters: UpsertFxRatesOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.upsertFxRatesRaw(requestParameters, initOverrides);
+    async upsertFxRates(
+        requestParameters: UpsertFxRatesOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.upsertFxRatesRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

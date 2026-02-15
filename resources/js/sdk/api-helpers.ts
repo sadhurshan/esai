@@ -17,14 +17,21 @@ export function sanitizeQuery(params: Record<string, unknown>): HTTPQuery {
         }
 
         if (Array.isArray(value)) {
-            acc[`${key}[]`] = value.filter((entry) => entry !== undefined && entry !== null) as HTTPQuery[keyof HTTPQuery];
+            acc[`${key}[]`] = value.filter(
+                (entry) => entry !== undefined && entry !== null,
+            ) as HTTPQuery[keyof HTTPQuery];
             return acc;
         }
 
         if (typeof value === 'object') {
             Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-                if (nestedValue !== undefined && nestedValue !== null && nestedValue !== '') {
-                    acc[`${key}[${nestedKey}]`] = nestedValue as HTTPQuery[keyof HTTPQuery];
+                if (
+                    nestedValue !== undefined &&
+                    nestedValue !== null &&
+                    nestedValue !== ''
+                ) {
+                    acc[`${key}[${nestedKey}]`] =
+                        nestedValue as HTTPQuery[keyof HTTPQuery];
                 }
             });
             return acc;
@@ -46,8 +53,12 @@ export async function parseEnvelope<T>(response: Response): Promise<T> {
 
             if (envelope.meta) {
                 if (data && typeof data === 'object' && !Array.isArray(data)) {
-                    const dataRecord = data as Record<string, unknown> & { meta?: unknown };
-                    const existingMeta = isRecord(dataRecord.meta) ? dataRecord.meta : undefined;
+                    const dataRecord = data as Record<string, unknown> & {
+                        meta?: unknown;
+                    };
+                    const existingMeta = isRecord(dataRecord.meta)
+                        ? dataRecord.meta
+                        : undefined;
 
                     return {
                         ...dataRecord,

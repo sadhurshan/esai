@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,77 +12,73 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { GoodsReceiptNoteInspector } from './GoodsReceiptNoteInspector';
 import {
     GoodsReceiptNoteInspectorFromJSON,
-    GoodsReceiptNoteInspectorFromJSONTyped,
     GoodsReceiptNoteInspectorToJSON,
-    GoodsReceiptNoteInspectorToJSONTyped,
 } from './GoodsReceiptNoteInspector';
 
 /**
- * 
+ *
  * @export
  * @interface PoChangeOrder
  */
 export interface PoChangeOrder {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PoChangeOrder
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PoChangeOrder
      */
     purchaseOrderId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PoChangeOrder
      */
     status: PoChangeOrderStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PoChangeOrder
      */
     reason: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PoChangeOrder
      */
     poRevisionNo?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PoChangeOrder
      */
     proposedByUserId?: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PoChangeOrder
      */
     proposedAt?: Date;
     /**
-     * 
+     *
      * @type {object}
      * @memberof PoChangeOrder
      */
     changesJson?: object;
     /**
-     * 
+     *
      * @type {GoodsReceiptNoteInspector}
      * @memberof PoChangeOrder
      */
     proposedByUser?: GoodsReceiptNoteInspector;
 }
-
 
 /**
  * @export
@@ -90,17 +86,18 @@ export interface PoChangeOrder {
 export const PoChangeOrderStatusEnum = {
     Proposed: 'proposed',
     Accepted: 'accepted',
-    Rejected: 'rejected'
+    Rejected: 'rejected',
 } as const;
-export type PoChangeOrderStatusEnum = typeof PoChangeOrderStatusEnum[keyof typeof PoChangeOrderStatusEnum];
-
+export type PoChangeOrderStatusEnum =
+    (typeof PoChangeOrderStatusEnum)[keyof typeof PoChangeOrderStatusEnum];
 
 /**
  * Check if a given object implements the PoChangeOrder interface.
  */
 export function instanceOfPoChangeOrder(value: object): value is PoChangeOrder {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined) return false;
+    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('reason' in value) || value['reason'] === undefined) return false;
     return true;
@@ -110,21 +107,34 @@ export function PoChangeOrderFromJSON(json: any): PoChangeOrder {
     return PoChangeOrderFromJSONTyped(json, false);
 }
 
-export function PoChangeOrderFromJSONTyped(json: any, ignoreDiscriminator: boolean): PoChangeOrder {
+export function PoChangeOrderFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PoChangeOrder {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'purchaseOrderId': json['purchase_order_id'],
-        'status': json['status'],
-        'reason': json['reason'],
-        'poRevisionNo': json['po_revision_no'] == null ? undefined : json['po_revision_no'],
-        'proposedByUserId': json['proposed_by_user_id'] == null ? undefined : json['proposed_by_user_id'],
-        'proposedAt': json['proposed_at'] == null ? undefined : (new Date(json['proposed_at'])),
-        'changesJson': json['changes_json'] == null ? undefined : json['changes_json'],
-        'proposedByUser': json['proposed_by_user'] == null ? undefined : GoodsReceiptNoteInspectorFromJSON(json['proposed_by_user']),
+        id: json['id'],
+        purchaseOrderId: json['purchase_order_id'],
+        status: json['status'],
+        reason: json['reason'],
+        poRevisionNo:
+            json['po_revision_no'] == null ? undefined : json['po_revision_no'],
+        proposedByUserId:
+            json['proposed_by_user_id'] == null
+                ? undefined
+                : json['proposed_by_user_id'],
+        proposedAt:
+            json['proposed_at'] == null
+                ? undefined
+                : new Date(json['proposed_at']),
+        changesJson:
+            json['changes_json'] == null ? undefined : json['changes_json'],
+        proposedByUser:
+            json['proposed_by_user'] == null
+                ? undefined
+                : GoodsReceiptNoteInspectorFromJSON(json['proposed_by_user']),
     };
 }
 
@@ -132,22 +142,28 @@ export function PoChangeOrderToJSON(json: any): PoChangeOrder {
     return PoChangeOrderToJSONTyped(json, false);
 }
 
-export function PoChangeOrderToJSONTyped(value?: PoChangeOrder | null, ignoreDiscriminator: boolean = false): any {
+export function PoChangeOrderToJSONTyped(
+    value?: PoChangeOrder | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'status': value['status'],
-        'reason': value['reason'],
-        'po_revision_no': value['poRevisionNo'],
-        'proposed_by_user_id': value['proposedByUserId'],
-        'proposed_at': value['proposedAt'] == null ? value['proposedAt'] : value['proposedAt'].toISOString(),
-        'changes_json': value['changesJson'],
-        'proposed_by_user': GoodsReceiptNoteInspectorToJSON(value['proposedByUser']),
+        id: value['id'],
+        purchase_order_id: value['purchaseOrderId'],
+        status: value['status'],
+        reason: value['reason'],
+        po_revision_no: value['poRevisionNo'],
+        proposed_by_user_id: value['proposedByUserId'],
+        proposed_at:
+            value['proposedAt'] == null
+                ? value['proposedAt']
+                : value['proposedAt'].toISOString(),
+        changes_json: value['changesJson'],
+        proposed_by_user: GoodsReceiptNoteInspectorToJSON(
+            value['proposedByUser'],
+        ),
     };
 }
-

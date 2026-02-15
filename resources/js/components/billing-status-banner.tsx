@@ -18,14 +18,18 @@ export function BillingStatusBanner() {
 
     const status = company.billing_status ?? 'inactive';
     const isReadOnly = Boolean(company.billing_read_only);
-    const graceEndsAt = (company.billing_grace_ends_at ?? company.billing_lock_at ?? null) as string | null;
+    const graceEndsAt = (company.billing_grace_ends_at ??
+        company.billing_lock_at ??
+        null) as string | null;
 
     if (status !== 'past_due' && status !== 'cancelled') {
         return null;
     }
 
     const Icon = isReadOnly ? AlertTriangle : Lock;
-    const formattedDeadline = graceEndsAt ? formatDate(graceEndsAt, { dateStyle: 'medium' }) : null;
+    const formattedDeadline = graceEndsAt
+        ? formatDate(graceEndsAt, { dateStyle: 'medium' })
+        : null;
     const title = isReadOnly
         ? 'Payment past due – workspace is read-only'
         : 'Workspace locked until payment is resolved';
@@ -52,7 +56,11 @@ export function BillingStatusBanner() {
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" variant={isReadOnly ? 'secondary' : 'destructive'} onClick={() => navigate('/app/settings/billing')}>
+                <Button
+                    size="sm"
+                    variant={isReadOnly ? 'secondary' : 'destructive'}
+                    onClick={() => navigate('/app/settings/billing')}
+                >
                     Manage billing
                 </Button>
             </div>

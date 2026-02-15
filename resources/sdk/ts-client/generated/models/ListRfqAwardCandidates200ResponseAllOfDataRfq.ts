@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ListRfqAwardCandidates200ResponseAllOfDataRfq
  */
 export interface ListRfqAwardCandidates200ResponseAllOfDataRfq {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataRfq
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataRfq
      */
     number: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataRfq
      */
     title?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataRfq
      */
     status: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataRfq
      */
     currency: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof ListRfqAwardCandidates200ResponseAllOfDataRfq
      */
@@ -60,51 +59,70 @@ export interface ListRfqAwardCandidates200ResponseAllOfDataRfq {
 /**
  * Check if a given object implements the ListRfqAwardCandidates200ResponseAllOfDataRfq interface.
  */
-export function instanceOfListRfqAwardCandidates200ResponseAllOfDataRfq(value: object): value is ListRfqAwardCandidates200ResponseAllOfDataRfq {
+export function instanceOfListRfqAwardCandidates200ResponseAllOfDataRfq(
+    value: object,
+): value is ListRfqAwardCandidates200ResponseAllOfDataRfq {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('number' in value) || value['number'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
-    if (!('isPartiallyAwarded' in value) || value['isPartiallyAwarded'] === undefined) return false;
+    if (
+        !('isPartiallyAwarded' in value) ||
+        value['isPartiallyAwarded'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSON(json: any): ListRfqAwardCandidates200ResponseAllOfDataRfq {
-    return ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSONTyped(json, false);
+export function ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSON(
+    json: any,
+): ListRfqAwardCandidates200ResponseAllOfDataRfq {
+    return ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRfqAwardCandidates200ResponseAllOfDataRfq {
+export function ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRfqAwardCandidates200ResponseAllOfDataRfq {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'number': json['number'],
-        'title': json['title'] == null ? undefined : json['title'],
-        'status': json['status'],
-        'currency': json['currency'],
-        'isPartiallyAwarded': json['is_partially_awarded'],
+        id: json['id'],
+        number: json['number'],
+        title: json['title'] == null ? undefined : json['title'],
+        status: json['status'],
+        currency: json['currency'],
+        isPartiallyAwarded: json['is_partially_awarded'],
     };
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataRfqToJSON(json: any): ListRfqAwardCandidates200ResponseAllOfDataRfq {
-    return ListRfqAwardCandidates200ResponseAllOfDataRfqToJSONTyped(json, false);
+export function ListRfqAwardCandidates200ResponseAllOfDataRfqToJSON(
+    json: any,
+): ListRfqAwardCandidates200ResponseAllOfDataRfq {
+    return ListRfqAwardCandidates200ResponseAllOfDataRfqToJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataRfqToJSONTyped(value?: ListRfqAwardCandidates200ResponseAllOfDataRfq | null, ignoreDiscriminator: boolean = false): any {
+export function ListRfqAwardCandidates200ResponseAllOfDataRfqToJSONTyped(
+    value?: ListRfqAwardCandidates200ResponseAllOfDataRfq | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'number': value['number'],
-        'title': value['title'],
-        'status': value['status'],
-        'currency': value['currency'],
-        'is_partially_awarded': value['isPartiallyAwarded'],
+        id: value['id'],
+        number: value['number'],
+        title: value['title'],
+        status: value['status'],
+        currency: value['currency'],
+        is_partially_awarded: value['isPartiallyAwarded'],
     };
 }
-

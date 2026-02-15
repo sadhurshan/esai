@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -18,7 +22,11 @@ export function useProposeChangeOrder(): UseMutationResult<
 > {
     const queryClient = useQueryClient();
 
-    return useMutation<PurchaseOrderChangeOrder, ApiError, ProposeChangeOrderInput>({
+    return useMutation<
+        PurchaseOrderChangeOrder,
+        ApiError,
+        ProposeChangeOrderInput
+    >({
         mutationFn: async ({ purchaseOrderId, reason, changes }) => {
             const response = (await api.post<PoChangeOrderResponse>(
                 `/purchase-orders/${purchaseOrderId}/change-orders`,
@@ -32,10 +40,14 @@ export function useProposeChangeOrder(): UseMutationResult<
         },
         onSuccess: (_, variables) => {
             void queryClient.invalidateQueries({
-                queryKey: queryKeys.purchaseOrders.changeOrders(variables.purchaseOrderId),
+                queryKey: queryKeys.purchaseOrders.changeOrders(
+                    variables.purchaseOrderId,
+                ),
             });
             void queryClient.invalidateQueries({
-                queryKey: queryKeys.purchaseOrders.detail(variables.purchaseOrderId),
+                queryKey: queryKeys.purchaseOrders.detail(
+                    variables.purchaseOrderId,
+                ),
             });
         },
     });

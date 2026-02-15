@@ -1,0 +1,113 @@
+{
+    "generated_at": "2026-02-13T19:10:33+00:00",
+    "summary": {
+        "total_checks": 17,
+        "failed": 0,
+        "warnings": 1,
+        "result": "pass"
+    },
+    "checks": [
+        {
+            "check": "ai.enabled",
+            "status": "pass",
+            "value": true,
+            "message": "AI feature is enabled."
+        },
+        {
+            "check": "ai.base_url",
+            "status": "pass",
+            "value": "http://localhost:8001",
+            "message": "AI base URL configured."
+        },
+        {
+            "check": "ai.shared_secret",
+            "status": "pass",
+            "value": "configured",
+            "message": "AI shared secret present."
+        },
+        {
+            "check": "feature_flags.ai_rollout",
+            "status": "warn",
+            "value": 0,
+            "message": "No enabled AI Copilot feature flags found in company_feature_flags."
+        },
+        {
+            "check": "route.v1/ai/chat/threads",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.v1/ai/chat/threads/{thread}/send",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.v1/ai/chat/threads/{thread}/tools/resolve",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.v1/ai/actions/plan",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.v1/ai/actions/{draft}/approve",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.v1/ai/actions/{draft}/reject",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.copilot/search",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "route.copilot/answer",
+            "status": "pass",
+            "value": "ok",
+            "message": "Middleware chain covers required launch gates."
+        },
+        {
+            "check": "queue.default",
+            "status": "pass",
+            "value": "database",
+            "message": "Default queue connection configured."
+        },
+        {
+            "check": "queue.pending_jobs",
+            "status": "pass",
+            "value": 0,
+            "message": "Pending job backlog is within expected range."
+        },
+        {
+            "check": "queue.failed_jobs_24h",
+            "status": "pass",
+            "value": 0,
+            "message": "No failed jobs in the last 24h."
+        },
+        {
+            "check": "admin_health.database_connected",
+            "status": "pass",
+            "value": true,
+            "message": "Admin health reports database connectivity."
+        },
+        {
+            "check": "admin_health.pending_webhook_deliveries",
+            "status": "pass",
+            "value": 0,
+            "message": "Webhook pending queue within expected range."
+        }
+    ]
+}

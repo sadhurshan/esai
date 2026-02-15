@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,74 +12,81 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AcknowledgePurchaseOrderRequest
  */
 export interface AcknowledgePurchaseOrderRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AcknowledgePurchaseOrderRequest
      */
     decision: AcknowledgePurchaseOrderRequestDecisionEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AcknowledgePurchaseOrderRequest
      */
     reason?: string;
 }
 
-
 /**
  * @export
  */
 export const AcknowledgePurchaseOrderRequestDecisionEnum = {
     Acknowledged: 'acknowledged',
-    Declined: 'declined'
+    Declined: 'declined',
 } as const;
-export type AcknowledgePurchaseOrderRequestDecisionEnum = typeof AcknowledgePurchaseOrderRequestDecisionEnum[keyof typeof AcknowledgePurchaseOrderRequestDecisionEnum];
-
+export type AcknowledgePurchaseOrderRequestDecisionEnum =
+    (typeof AcknowledgePurchaseOrderRequestDecisionEnum)[keyof typeof AcknowledgePurchaseOrderRequestDecisionEnum];
 
 /**
  * Check if a given object implements the AcknowledgePurchaseOrderRequest interface.
  */
-export function instanceOfAcknowledgePurchaseOrderRequest(value: object): value is AcknowledgePurchaseOrderRequest {
+export function instanceOfAcknowledgePurchaseOrderRequest(
+    value: object,
+): value is AcknowledgePurchaseOrderRequest {
     if (!('decision' in value) || value['decision'] === undefined) return false;
     return true;
 }
 
-export function AcknowledgePurchaseOrderRequestFromJSON(json: any): AcknowledgePurchaseOrderRequest {
+export function AcknowledgePurchaseOrderRequestFromJSON(
+    json: any,
+): AcknowledgePurchaseOrderRequest {
     return AcknowledgePurchaseOrderRequestFromJSONTyped(json, false);
 }
 
-export function AcknowledgePurchaseOrderRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AcknowledgePurchaseOrderRequest {
+export function AcknowledgePurchaseOrderRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AcknowledgePurchaseOrderRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'decision': json['decision'],
-        'reason': json['reason'] == null ? undefined : json['reason'],
+        decision: json['decision'],
+        reason: json['reason'] == null ? undefined : json['reason'],
     };
 }
 
-export function AcknowledgePurchaseOrderRequestToJSON(json: any): AcknowledgePurchaseOrderRequest {
+export function AcknowledgePurchaseOrderRequestToJSON(
+    json: any,
+): AcknowledgePurchaseOrderRequest {
     return AcknowledgePurchaseOrderRequestToJSONTyped(json, false);
 }
 
-export function AcknowledgePurchaseOrderRequestToJSONTyped(value?: AcknowledgePurchaseOrderRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AcknowledgePurchaseOrderRequestToJSONTyped(
+    value?: AcknowledgePurchaseOrderRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'decision': value['decision'],
-        'reason': value['reason'],
+        decision: value['decision'],
+        reason: value['reason'],
     };
 }
-

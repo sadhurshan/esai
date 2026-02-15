@@ -82,7 +82,11 @@ function unwrapEnvelope<T>(payload: ApiEnvelope<T> | T): T {
 async function parseJson<T>(response: Response): Promise<T> {
     const contentType = response.headers.get('content-type') ?? '';
     if (!contentType.includes('application/json')) {
-        throw new HttpError(response, await response.text(), 'Expected JSON response body');
+        throw new HttpError(
+            response,
+            await response.text(),
+            'Expected JSON response body',
+        );
     }
 
     const json = (await response.json()) as ApiEnvelope<T> | T;
@@ -120,8 +124,11 @@ export class AuthApi extends BaseAPI {
         return parseJson<AuthSessionResponse>(response);
     }
 
-    async register(payload: RegisterRequest | FormData): Promise<LoginResponse> {
-        const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
+    async register(
+        payload: RegisterRequest | FormData,
+    ): Promise<LoginResponse> {
+        const isFormData =
+            typeof FormData !== 'undefined' && payload instanceof FormData;
         const response = await this.request({
             path: '/api/auth/register',
             method: 'POST',
@@ -145,7 +152,9 @@ export class AuthApi extends BaseAPI {
         });
     }
 
-    async switchPersona(payload: SwitchPersonaRequest): Promise<AuthSessionResponse> {
+    async switchPersona(
+        payload: SwitchPersonaRequest,
+    ): Promise<AuthSessionResponse> {
         const response = await this.request({
             path: '/api/auth/persona',
             method: 'POST',

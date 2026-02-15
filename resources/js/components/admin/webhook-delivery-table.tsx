@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { CursorPaginationMeta } from '@/lib/pagination';
-import type { WebhookDeliveryItem } from '@/types/admin';
 import { cn } from '@/lib/utils';
+import type { WebhookDeliveryItem } from '@/types/admin';
 
 export interface WebhookDeliveryTableProps {
     deliveries: WebhookDeliveryItem[];
@@ -47,7 +47,7 @@ export function WebhookDeliveryTable({
     return (
         <div className="overflow-hidden rounded-xl border">
             <table className="min-w-full divide-y divide-muted">
-                <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <thead className="bg-muted/40 text-left text-xs tracking-wide text-muted-foreground uppercase">
                     <tr>
                         <th className="px-4 py-3 font-semibold">Event</th>
                         <th className="px-4 py-3 font-semibold">Status</th>
@@ -55,44 +55,69 @@ export function WebhookDeliveryTable({
                         <th className="px-4 py-3 font-semibold">Last error</th>
                         <th className="px-4 py-3 font-semibold">Dispatched</th>
                         <th className="px-4 py-3 font-semibold">Delivered</th>
-                        <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                            Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-muted bg-background text-sm">
                     {deliveries.map((delivery) => {
-                        const statusBadge = statusMap[delivery.status] ?? statusMap.default;
-                        const retryable = delivery.status === 'failed' || delivery.status === 'dead_letter';
+                        const statusBadge =
+                            statusMap[delivery.status] ?? statusMap.default;
+                        const retryable =
+                            delivery.status === 'failed' ||
+                            delivery.status === 'dead_letter';
                         const isRetrying = retryingDeliveryId === delivery.id;
 
                         return (
                             <tr key={delivery.id} className="hover:bg-muted/30">
                                 <td className="px-4 py-3">
                                     <div className="flex flex-col gap-1">
-                                        <span className="font-medium text-foreground">{delivery.event}</span>
-                                        <span className="text-xs text-muted-foreground">#{delivery.id}</span>
+                                        <span className="font-medium text-foreground">
+                                            {delivery.event}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            #{delivery.id}
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <Badge variant={statusBadge.variant} className={cn('capitalize', statusBadge.className)}>
+                                    <Badge
+                                        variant={statusBadge.variant}
+                                        className={cn(
+                                            'capitalize',
+                                            statusBadge.className,
+                                        )}
+                                    >
                                         {statusBadge.label}
                                     </Badge>
                                 </td>
-                                <td className="px-4 py-3">{delivery.attempts}</td>
-                                <td className="px-4 py-3 text-xs text-muted-foreground">
-                                    {delivery.lastError ? truncate(delivery.lastError, 80) : '—'}
+                                <td className="px-4 py-3">
+                                    {delivery.attempts}
                                 </td>
                                 <td className="px-4 py-3 text-xs text-muted-foreground">
-                                    {delivery.dispatchedAt ? formatDateTime(delivery.dispatchedAt) : '—'}
+                                    {delivery.lastError
+                                        ? truncate(delivery.lastError, 80)
+                                        : '—'}
                                 </td>
                                 <td className="px-4 py-3 text-xs text-muted-foreground">
-                                    {delivery.deliveredAt ? formatDateTime(delivery.deliveredAt) : '—'}
+                                    {delivery.dispatchedAt
+                                        ? formatDateTime(delivery.dispatchedAt)
+                                        : '—'}
+                                </td>
+                                <td className="px-4 py-3 text-xs text-muted-foreground">
+                                    {delivery.deliveredAt
+                                        ? formatDateTime(delivery.deliveredAt)
+                                        : '—'}
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                     <Button
                                         type="button"
                                         size="sm"
                                         variant="ghost"
-                                        disabled={!retryable || !onRetry || isRetrying}
+                                        disabled={
+                                            !retryable || !onRetry || isRetrying
+                                        }
                                         onClick={() => onRetry?.(delivery)}
                                     >
                                         {isRetrying ? 'Retrying...' : 'Retry'}
@@ -106,10 +131,22 @@ export function WebhookDeliveryTable({
             <div className="flex flex-col gap-3 border-t bg-muted/20 p-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
                 <span>{deliveries.length} deliveries</span>
                 <div className="flex gap-2">
-                    <Button type="button" variant="outline" size="sm" disabled={!prevCursor} onClick={() => onPrevPage?.(prevCursor)}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!prevCursor}
+                        onClick={() => onPrevPage?.(prevCursor)}
+                    >
                         <ChevronLeft className="mr-1 h-4 w-4" /> Previous
                     </Button>
-                    <Button type="button" variant="outline" size="sm" disabled={!nextCursor} onClick={() => onNextPage?.(nextCursor)}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!nextCursor}
+                        onClick={() => onNextPage?.(nextCursor)}
+                    >
                         Next <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                 </div>
@@ -122,7 +159,10 @@ function LoadingTable() {
     return (
         <div className="space-y-2 rounded-xl border p-4">
             {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="grid gap-3 rounded-lg border bg-muted/20 p-3 md:grid-cols-6">
+                <div
+                    key={index}
+                    className="grid gap-3 rounded-lg border bg-muted/20 p-3 md:grid-cols-6"
+                >
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-4 w-10" />

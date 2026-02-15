@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,69 +12,68 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqLinePayload
  */
 export interface RfqLinePayload {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     partName: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     spec?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     method: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     material: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     tolerance?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     finish?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqLinePayload
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqLinePayload
      */
     targetPrice?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqLinePayload
      */
@@ -90,7 +89,9 @@ export interface RfqLinePayload {
 /**
  * Check if a given object implements the RfqLinePayload interface.
  */
-export function instanceOfRfqLinePayload(value: object): value is RfqLinePayload {
+export function instanceOfRfqLinePayload(
+    value: object,
+): value is RfqLinePayload {
     if (!('partName' in value) || value['partName'] === undefined) return false;
     if (!('method' in value) || value['method'] === undefined) return false;
     if (!('material' in value) || value['material'] === undefined) return false;
@@ -102,23 +103,29 @@ export function RfqLinePayloadFromJSON(json: any): RfqLinePayload {
     return RfqLinePayloadFromJSONTyped(json, false);
 }
 
-export function RfqLinePayloadFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqLinePayload {
+export function RfqLinePayloadFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqLinePayload {
     if (json == null) {
         return json;
     }
     return {
-        
-        'partName': json['part_name'],
-        'spec': json['spec'] == null ? undefined : json['spec'],
-        'method': json['method'],
-        'material': json['material'],
-        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
-        'finish': json['finish'] == null ? undefined : json['finish'],
-        'quantity': json['quantity'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
-        'notes': json['notes'] == null ? undefined : json['notes'],
-        'cadDocumentId': json['cad_document_id'] == null ? undefined : json['cad_document_id'],
+        partName: json['part_name'],
+        spec: json['spec'] == null ? undefined : json['spec'],
+        method: json['method'],
+        material: json['material'],
+        tolerance: json['tolerance'] == null ? undefined : json['tolerance'],
+        finish: json['finish'] == null ? undefined : json['finish'],
+        quantity: json['quantity'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        targetPrice:
+            json['target_price'] == null ? undefined : json['target_price'],
+        notes: json['notes'] == null ? undefined : json['notes'],
+        cadDocumentId:
+            json['cad_document_id'] == null
+                ? undefined
+                : json['cad_document_id'],
     };
 }
 
@@ -126,24 +133,25 @@ export function RfqLinePayloadToJSON(json: any): RfqLinePayload {
     return RfqLinePayloadToJSONTyped(json, false);
 }
 
-export function RfqLinePayloadToJSONTyped(value?: RfqLinePayload | null, ignoreDiscriminator: boolean = false): any {
+export function RfqLinePayloadToJSONTyped(
+    value?: RfqLinePayload | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'part_name': value['partName'],
-        'spec': value['spec'],
-        'method': value['method'],
-        'material': value['material'],
-        'tolerance': value['tolerance'],
-        'finish': value['finish'],
-        'quantity': value['quantity'],
-        'uom': value['uom'],
-        'target_price': value['targetPrice'],
-        'notes': value['notes'],
-        'cad_document_id': value['cadDocumentId'],
+        part_name: value['partName'],
+        spec: value['spec'],
+        method: value['method'],
+        material: value['material'],
+        tolerance: value['tolerance'],
+        finish: value['finish'],
+        quantity: value['quantity'],
+        uom: value['uom'],
+        target_price: value['targetPrice'],
+        notes: value['notes'],
+        cad_document_id: value['cadDocumentId'],
     };
 }
-

@@ -1,16 +1,20 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useSdkClient } from '@/contexts/api-client-context';
+import { mapPurchaseOrder } from '@/hooks/api/usePurchaseOrder';
 import { queryKeys } from '@/lib/queryKeys';
-import { PurchaseOrdersApi } from '@/sdk';
 import type {
     ListPurchaseOrders200ResponseAllOfData,
     ListPurchaseOrdersStatusParameter,
     PageMeta,
 } from '@/sdk';
+import { PurchaseOrdersApi } from '@/sdk';
 import type { PurchaseOrderSummary } from '@/types/sourcing';
-import { mapPurchaseOrder } from '@/hooks/api/usePurchaseOrder';
 
 export interface UsePosParams {
     page?: number;
@@ -22,7 +26,10 @@ export interface UsePosParams {
     ackStatus?: 'all' | 'draft' | 'sent' | 'acknowledged' | 'declined';
 }
 
-export type UsePosResult = UseQueryResult<ListPurchaseOrders200ResponseAllOfData, unknown> & {
+export type UsePosResult = UseQueryResult<
+    ListPurchaseOrders200ResponseAllOfData,
+    unknown
+> & {
     items: PurchaseOrderSummary[];
     meta?: PageMeta;
     total: number;
@@ -59,13 +66,29 @@ function toEndOfDayTimestamp(value?: string): number | undefined {
 
 export function usePos(params: UsePosParams = {}): UsePosResult {
     const purchaseOrdersApi = useSdkClient(PurchaseOrdersApi);
-    const { page = 1, perPage = 20, status = 'all', supplierId, issuedFrom, issuedTo, ackStatus = 'all' } = params;
+    const {
+        page = 1,
+        perPage = 20,
+        status = 'all',
+        supplierId,
+        issuedFrom,
+        issuedTo,
+        ackStatus = 'all',
+    } = params;
     const normalizedStatus = status === 'all' ? undefined : status;
     const issuedFromTimestamp = toStartOfDayTimestamp(issuedFrom);
     const issuedToTimestamp = toEndOfDayTimestamp(issuedTo);
 
     const query = useQuery<ListPurchaseOrders200ResponseAllOfData>({
-        queryKey: queryKeys.purchaseOrders.list({ page, perPage, status, supplierId, issuedFrom, issuedTo, ackStatus }),
+        queryKey: queryKeys.purchaseOrders.list({
+            page,
+            perPage,
+            status,
+            supplierId,
+            issuedFrom,
+            issuedTo,
+            ackStatus,
+        }),
         queryFn: async () => {
             const response = await purchaseOrdersApi.listPurchaseOrders({
                 perPage,
@@ -80,9 +103,15 @@ export function usePos(params: UsePosParams = {}): UsePosResult {
         refetchOnWindowFocus: 'always',
     });
 
-    const rawItems = useMemo(() => query.data?.items ?? [], [query.data?.items]);
+    const rawItems = useMemo(
+        () => query.data?.items ?? [],
+        [query.data?.items],
+    );
     const shouldFilter =
-        supplierId != null || issuedFromTimestamp != null || issuedToTimestamp != null || ackStatus !== 'all';
+        supplierId != null ||
+        issuedFromTimestamp != null ||
+        issuedToTimestamp != null ||
+        ackStatus !== 'all';
 
     const filteredItems = useMemo(() => {
         if (!shouldFilter) {
@@ -95,17 +124,25 @@ export function usePos(params: UsePosParams = {}): UsePosResult {
             }
 
             const createdAt = item.createdAt?.getTime();
-            if (issuedFromTimestamp != null && (createdAt == null || createdAt < issuedFromTimestamp)) {
+            if (
+                issuedFromTimestamp != null &&
+                (createdAt == null || createdAt < issuedFromTimestamp)
+            ) {
                 return false;
             }
 
-            if (issuedToTimestamp != null && (createdAt == null || createdAt > issuedToTimestamp)) {
+            if (
+                issuedToTimestamp != null &&
+                (createdAt == null || createdAt > issuedToTimestamp)
+            ) {
                 return false;
             }
 
             if (ackStatus !== 'all') {
                 const extra = item as unknown as Record<string, unknown>;
-                const normalizedAck = (extra.ackStatus ?? extra.ack_status ?? 'draft') as string;
+                const normalizedAck = (extra.ackStatus ??
+                    extra.ack_status ??
+                    'draft') as string;
                 if (normalizedAck !== ackStatus) {
                     return false;
                 }
@@ -113,11 +150,21 @@ export function usePos(params: UsePosParams = {}): UsePosResult {
 
             return true;
         });
-    }, [ackStatus, issuedFromTimestamp, issuedToTimestamp, rawItems, shouldFilter, supplierId]);
+    }, [
+        ackStatus,
+        issuedFromTimestamp,
+        issuedToTimestamp,
+        rawItems,
+        shouldFilter,
+        supplierId,
+    ]);
 
-    const items = useMemo(() => filteredItems.map(mapPurchaseOrder), [filteredItems]);
+    const items = useMemo(
+        () => filteredItems.map(mapPurchaseOrder),
+        [filteredItems],
+    );
     const meta = query.data?.meta;
-    const total = shouldFilter ? items.length : meta?.total ?? items.length;
+    const total = shouldFilter ? items.length : (meta?.total ?? items.length);
 
     return {
         ...query,

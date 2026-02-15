@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InvoiceLineInput
  */
 export interface InvoiceLineInput {
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineInput
      */
     poLineId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineInput
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineInput
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLineInput
      */
     description?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLineInput
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {Array<number>}
      * @memberof InvoiceLineInput
      */
@@ -60,7 +59,9 @@ export interface InvoiceLineInput {
 /**
  * Check if a given object implements the InvoiceLineInput interface.
  */
-export function instanceOfInvoiceLineInput(value: object): value is InvoiceLineInput {
+export function instanceOfInvoiceLineInput(
+    value: object,
+): value is InvoiceLineInput {
     if (!('poLineId' in value) || value['poLineId'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     return true;
@@ -70,18 +71,22 @@ export function InvoiceLineInputFromJSON(json: any): InvoiceLineInput {
     return InvoiceLineInputFromJSONTyped(json, false);
 }
 
-export function InvoiceLineInputFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceLineInput {
+export function InvoiceLineInputFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceLineInput {
     if (json == null) {
         return json;
     }
     return {
-        
-        'poLineId': json['po_line_id'],
-        'quantity': json['quantity'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'description': json['description'] == null ? undefined : json['description'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'taxCodeIds': json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
+        poLineId: json['po_line_id'],
+        quantity: json['quantity'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        description:
+            json['description'] == null ? undefined : json['description'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        taxCodeIds:
+            json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
     };
 }
 
@@ -89,19 +94,20 @@ export function InvoiceLineInputToJSON(json: any): InvoiceLineInput {
     return InvoiceLineInputToJSONTyped(json, false);
 }
 
-export function InvoiceLineInputToJSONTyped(value?: InvoiceLineInput | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceLineInputToJSONTyped(
+    value?: InvoiceLineInput | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'po_line_id': value['poLineId'],
-        'quantity': value['quantity'],
-        'unit_price': value['unitPrice'],
-        'description': value['description'],
-        'uom': value['uom'],
-        'tax_code_ids': value['taxCodeIds'],
+        po_line_id: value['poLineId'],
+        quantity: value['quantity'],
+        unit_price: value['unitPrice'],
+        description: value['description'],
+        uom: value['uom'],
+        tax_code_ids: value['taxCodeIds'],
     };
 }
-

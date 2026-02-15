@@ -1,9 +1,13 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
-import type { AckOrderPayload, SalesOrderDetail } from '@/types/orders';
 import { HttpError, OrdersAppApi } from '@/sdk';
+import type { AckOrderPayload, SalesOrderDetail } from '@/types/orders';
 
 import { invalidateOrderCaches } from './utils';
 
@@ -11,7 +15,11 @@ export interface AckOrderInput extends AckOrderPayload {
     orderId: string | number;
 }
 
-export function useAckOrder(): UseMutationResult<SalesOrderDetail, HttpError, AckOrderInput> {
+export function useAckOrder(): UseMutationResult<
+    SalesOrderDetail,
+    HttpError,
+    AckOrderInput
+> {
     const queryClient = useQueryClient();
     const ordersApi = useSdkClient(OrdersAppApi);
 
@@ -21,7 +29,10 @@ export function useAckOrder(): UseMutationResult<SalesOrderDetail, HttpError, Ac
         onSuccess: (data, variables) => {
             publishToast({
                 variant: 'success',
-                title: variables.decision === 'accept' ? 'Order accepted' : 'Order declined',
+                title:
+                    variables.decision === 'accept'
+                        ? 'Order accepted'
+                        : 'Order declined',
                 description:
                     variables.decision === 'accept'
                         ? 'Purchase order acknowledgement saved. You can begin fulfillment.'

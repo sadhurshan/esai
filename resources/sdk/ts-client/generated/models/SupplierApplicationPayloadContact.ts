@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SupplierApplicationPayloadContact
  */
 export interface SupplierApplicationPayloadContact {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayloadContact
      */
     name?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayloadContact
      */
     email?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayloadContact
      */
@@ -42,40 +41,49 @@ export interface SupplierApplicationPayloadContact {
 /**
  * Check if a given object implements the SupplierApplicationPayloadContact interface.
  */
-export function instanceOfSupplierApplicationPayloadContact(value: object): value is SupplierApplicationPayloadContact {
+export function instanceOfSupplierApplicationPayloadContact(
+    value: object,
+): value is SupplierApplicationPayloadContact {
     return true;
 }
 
-export function SupplierApplicationPayloadContactFromJSON(json: any): SupplierApplicationPayloadContact {
+export function SupplierApplicationPayloadContactFromJSON(
+    json: any,
+): SupplierApplicationPayloadContact {
     return SupplierApplicationPayloadContactFromJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadContactFromJSONTyped(json: any, ignoreDiscriminator: boolean): SupplierApplicationPayloadContact {
+export function SupplierApplicationPayloadContactFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SupplierApplicationPayloadContact {
     if (json == null) {
         return json;
     }
     return {
-        
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
-        'phone': json['phone'] == null ? undefined : json['phone'],
+        name: json['name'] == null ? undefined : json['name'],
+        email: json['email'] == null ? undefined : json['email'],
+        phone: json['phone'] == null ? undefined : json['phone'],
     };
 }
 
-export function SupplierApplicationPayloadContactToJSON(json: any): SupplierApplicationPayloadContact {
+export function SupplierApplicationPayloadContactToJSON(
+    json: any,
+): SupplierApplicationPayloadContact {
     return SupplierApplicationPayloadContactToJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadContactToJSONTyped(value?: SupplierApplicationPayloadContact | null, ignoreDiscriminator: boolean = false): any {
+export function SupplierApplicationPayloadContactToJSONTyped(
+    value?: SupplierApplicationPayloadContact | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'name': value['name'],
-        'email': value['email'],
-        'phone': value['phone'],
+        name: value['name'],
+        email: value['email'],
+        phone: value['phone'],
     };
 }
-

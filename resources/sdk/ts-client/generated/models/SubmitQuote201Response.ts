@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,105 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { Quote } from './Quote';
-import {
-    QuoteFromJSON,
-    QuoteFromJSONTyped,
-    QuoteToJSON,
-    QuoteToJSONTyped,
-} from './Quote';
+import { QuoteFromJSON, QuoteToJSON } from './Quote';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface SubmitQuote201Response
  */
 export interface SubmitQuote201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SubmitQuote201Response
      */
     status: SubmitQuote201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SubmitQuote201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {Quote}
      * @memberof SubmitQuote201Response
      */
     data: Quote;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof SubmitQuote201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const SubmitQuote201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type SubmitQuote201ResponseStatusEnum = typeof SubmitQuote201ResponseStatusEnum[keyof typeof SubmitQuote201ResponseStatusEnum];
-
+export type SubmitQuote201ResponseStatusEnum =
+    (typeof SubmitQuote201ResponseStatusEnum)[keyof typeof SubmitQuote201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the SubmitQuote201Response interface.
  */
-export function instanceOfSubmitQuote201Response(value: object): value is SubmitQuote201Response {
+export function instanceOfSubmitQuote201Response(
+    value: object,
+): value is SubmitQuote201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function SubmitQuote201ResponseFromJSON(json: any): SubmitQuote201Response {
+export function SubmitQuote201ResponseFromJSON(
+    json: any,
+): SubmitQuote201Response {
     return SubmitQuote201ResponseFromJSONTyped(json, false);
 }
 
-export function SubmitQuote201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): SubmitQuote201Response {
+export function SubmitQuote201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SubmitQuote201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': QuoteFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: QuoteFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function SubmitQuote201ResponseToJSON(json: any): SubmitQuote201Response {
+export function SubmitQuote201ResponseToJSON(
+    json: any,
+): SubmitQuote201Response {
     return SubmitQuote201ResponseToJSONTyped(json, false);
 }
 
-export function SubmitQuote201ResponseToJSONTyped(value?: SubmitQuote201Response | null, ignoreDiscriminator: boolean = false): any {
+export function SubmitQuote201ResponseToJSONTyped(
+    value?: SubmitQuote201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': QuoteToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: QuoteToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

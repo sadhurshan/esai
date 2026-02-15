@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,9 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateExportRequestRequest
  */
@@ -26,49 +25,58 @@ export interface CreateExportRequestRequest {
      */
     type: string;
     /**
-     * 
+     *
      * @type {{ [key: string]: any; }}
      * @memberof CreateExportRequestRequest
      */
-    filters?: { [key: string]: any; };
+    filters?: { [key: string]: any };
 }
 
 /**
  * Check if a given object implements the CreateExportRequestRequest interface.
  */
-export function instanceOfCreateExportRequestRequest(value: object): value is CreateExportRequestRequest {
+export function instanceOfCreateExportRequestRequest(
+    value: object,
+): value is CreateExportRequestRequest {
     if (!('type' in value) || value['type'] === undefined) return false;
     return true;
 }
 
-export function CreateExportRequestRequestFromJSON(json: any): CreateExportRequestRequest {
+export function CreateExportRequestRequestFromJSON(
+    json: any,
+): CreateExportRequestRequest {
     return CreateExportRequestRequestFromJSONTyped(json, false);
 }
 
-export function CreateExportRequestRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateExportRequestRequest {
+export function CreateExportRequestRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateExportRequestRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'type': json['type'],
-        'filters': json['filters'] == null ? undefined : json['filters'],
+        type: json['type'],
+        filters: json['filters'] == null ? undefined : json['filters'],
     };
 }
 
-export function CreateExportRequestRequestToJSON(json: any): CreateExportRequestRequest {
+export function CreateExportRequestRequestToJSON(
+    json: any,
+): CreateExportRequestRequest {
     return CreateExportRequestRequestToJSONTyped(json, false);
 }
 
-export function CreateExportRequestRequestToJSONTyped(value?: CreateExportRequestRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreateExportRequestRequestToJSONTyped(
+    value?: CreateExportRequestRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'type': value['type'],
-        'filters': value['filters'],
+        type: value['type'],
+        filters: value['filters'],
     };
 }
-

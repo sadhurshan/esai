@@ -14,7 +14,10 @@ export function useDeleteAttachment() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ rfqId, attachmentId }: DeleteAttachmentPayload): Promise<ApiSuccessResponse> => {
+        mutationFn: async ({
+            rfqId,
+            attachmentId,
+        }: DeleteAttachmentPayload): Promise<ApiSuccessResponse> => {
             return rfqsApi.deleteRfqAttachment({
                 rfqId: String(rfqId),
                 attachmentId: String(attachmentId),
@@ -22,7 +25,9 @@ export function useDeleteAttachment() {
         },
         onSuccess: (_response, variables) => {
             const rfqId = String(variables.rfqId);
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.attachments(rfqId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.attachments(rfqId),
+            });
         },
     });
 }

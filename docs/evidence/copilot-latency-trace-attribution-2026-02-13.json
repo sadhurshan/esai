@@ -1,0 +1,140 @@
+{
+    "generated_at": "2026-02-13T11:51:04+00:00",
+    "window": {
+        "hours": 1,
+        "from": "2026-02-13T10:51:04+00:00",
+        "to": "2026-02-13T11:51:04+00:00"
+    },
+    "patterns": [
+        "ai_chat_*",
+        "copilot_*",
+        "analytics_copilot"
+    ],
+    "sample_size": 8,
+    "timing_signal_coverage": {
+        "samples_with_signals": 4,
+        "samples_without_signals": 4,
+        "coverage_ratio": 0.5
+    },
+    "field_stats": [
+        {
+            "path": "response.latency_breakdown_ms.total_ms",
+            "count": 4,
+            "min_ms": 1,
+            "max_ms": 2291,
+            "avg_ms": 1138.25,
+            "p95_ms": 2291
+        },
+        {
+            "path": "response.latency_breakdown_ms.provider_ms",
+            "count": 2,
+            "min_ms": 1,
+            "max_ms": 4,
+            "avg_ms": 2.5,
+            "p95_ms": 4
+        },
+        {
+            "path": "response.latency_breakdown_ms.app_ms",
+            "count": 2,
+            "min_ms": 0,
+            "max_ms": 0,
+            "avg_ms": 0,
+            "p95_ms": 0
+        }
+    ],
+    "slow_samples": [
+        {
+            "id": 981,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_message_send",
+            "status": "error",
+            "latency_ms": 4,
+            "created_at": "2026-02-13T11:50:34+00:00",
+            "timing_signals": {
+                "response.latency_breakdown_ms.total_ms": 4,
+                "response.latency_breakdown_ms.provider_ms": 4,
+                "response.latency_breakdown_ms.app_ms": 0
+            }
+        },
+        {
+            "id": 979,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_message_send",
+            "status": "error",
+            "latency_ms": 1,
+            "created_at": "2026-02-13T11:50:26+00:00",
+            "timing_signals": {
+                "response.latency_breakdown_ms.total_ms": 1,
+                "response.latency_breakdown_ms.provider_ms": 1,
+                "response.latency_breakdown_ms.app_ms": 0
+            }
+        },
+        {
+            "id": 974,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_thread_create",
+            "status": "success",
+            "latency_ms": null,
+            "created_at": "2026-02-13T11:49:01+00:00",
+            "timing_signals": []
+        },
+        {
+            "id": 975,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_message_send",
+            "status": "error",
+            "latency_ms": null,
+            "created_at": "2026-02-13T11:49:10+00:00",
+            "timing_signals": {
+                "response.latency_breakdown_ms.total_ms": 2291
+            }
+        },
+        {
+            "id": 976,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_thread_create",
+            "status": "success",
+            "latency_ms": null,
+            "created_at": "2026-02-13T11:50:13+00:00",
+            "timing_signals": []
+        },
+        {
+            "id": 977,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_message_send",
+            "status": "error",
+            "latency_ms": null,
+            "created_at": "2026-02-13T11:50:18+00:00",
+            "timing_signals": {
+                "response.latency_breakdown_ms.total_ms": 2257
+            }
+        },
+        {
+            "id": 978,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_thread_create",
+            "status": "success",
+            "latency_ms": null,
+            "created_at": "2026-02-13T11:50:24+00:00",
+            "timing_signals": []
+        },
+        {
+            "id": 980,
+            "company_id": 3,
+            "company_name": "Jason Enterprise",
+            "feature": "ai_chat_thread_create",
+            "status": "success",
+            "latency_ms": null,
+            "created_at": "2026-02-13T11:50:34+00:00",
+            "timing_signals": []
+        }
+    ],
+    "notes": []
+}

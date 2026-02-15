@@ -1,9 +1,16 @@
-import { Box, CheckCircle2, PackageCheck, PackagePlus, Truck, XCircle } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { SalesOrderTimelineEntry } from '@/types/orders';
+import { format, formatDistanceToNow } from 'date-fns';
+import {
+    Box,
+    CheckCircle2,
+    PackageCheck,
+    PackagePlus,
+    Truck,
+    XCircle,
+} from 'lucide-react';
 
 interface OrderTimelineProps {
     entries?: SalesOrderTimelineEntry[];
@@ -18,18 +25,48 @@ const ICON_PRESETS: Array<{
     icon: React.ComponentType<{ className?: string }>;
     color: string;
 }> = [
-    { matcher: (entry) => entry.type === 'acknowledged', icon: CheckCircle2, color: 'text-emerald-600' },
-    { matcher: (entry) => entry.type === 'shipment' && (entry.metadata?.status === 'delivered'), icon: PackageCheck, color: 'text-emerald-600' },
-    { matcher: (entry) => entry.type === 'shipment', icon: Truck, color: 'text-sky-600' },
-    { matcher: (entry) => entry.type === 'status_change' && (entry.metadata?.status === 'cancelled'), icon: XCircle, color: 'text-destructive' },
-    { matcher: (entry) => entry.type === 'status_change', icon: PackagePlus, color: 'text-indigo-600' },
+    {
+        matcher: (entry) => entry.type === 'acknowledged',
+        icon: CheckCircle2,
+        color: 'text-emerald-600',
+    },
+    {
+        matcher: (entry) =>
+            entry.type === 'shipment' && entry.metadata?.status === 'delivered',
+        icon: PackageCheck,
+        color: 'text-emerald-600',
+    },
+    {
+        matcher: (entry) => entry.type === 'shipment',
+        icon: Truck,
+        color: 'text-sky-600',
+    },
+    {
+        matcher: (entry) =>
+            entry.type === 'status_change' &&
+            entry.metadata?.status === 'cancelled',
+        icon: XCircle,
+        color: 'text-destructive',
+    },
+    {
+        matcher: (entry) => entry.type === 'status_change',
+        icon: PackagePlus,
+        color: 'text-indigo-600',
+    },
 ];
 
 function resolveIcon(entry: SalesOrderTimelineEntry) {
-    return ICON_PRESETS.find(({ matcher }) => matcher(entry)) ?? { icon: Box, color: 'text-muted-foreground' };
+    return (
+        ICON_PRESETS.find(({ matcher }) => matcher(entry)) ?? {
+            icon: Box,
+            color: 'text-muted-foreground',
+        }
+    );
 }
 
-function formatTimestamp(value?: string | null): { relative: string; absolute: string } | null {
+function formatTimestamp(
+    value?: string | null,
+): { relative: string; absolute: string } | null {
     if (!value) {
         return null;
     }
@@ -45,7 +82,13 @@ function formatTimestamp(value?: string | null): { relative: string; absolute: s
     };
 }
 
-export function OrderTimeline({ entries, isLoading, error, onRetry, emptyLabel }: OrderTimelineProps) {
+export function OrderTimeline({
+    entries,
+    isLoading,
+    error,
+    onRetry,
+    emptyLabel,
+}: OrderTimelineProps) {
     if (isLoading) {
         return (
             <div className="space-y-4">
@@ -65,8 +108,15 @@ export function OrderTimeline({ entries, isLoading, error, onRetry, emptyLabel }
     if (error) {
         return (
             <div className="flex flex-col gap-3 text-sm">
-                <p className="text-muted-foreground">Unable to load order events.</p>
-                <Button variant="outline" size="sm" className="w-fit" onClick={onRetry}>
+                <p className="text-muted-foreground">
+                    Unable to load order events.
+                </p>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-fit"
+                    onClick={onRetry}
+                >
                     Retry
                 </Button>
             </div>
@@ -74,7 +124,11 @@ export function OrderTimeline({ entries, isLoading, error, onRetry, emptyLabel }
     }
 
     if (!entries || entries.length === 0) {
-        return <p className="text-sm text-muted-foreground">{emptyLabel ?? 'No events captured yet.'}</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                {emptyLabel ?? 'No events captured yet.'}
+            </p>
+        );
     }
 
     const sorted = [...entries].sort((left, right) => {
@@ -98,10 +152,18 @@ export function OrderTimeline({ entries, isLoading, error, onRetry, emptyLabel }
                         >
                             <Icon className="h-3.5 w-3.5" />
                         </span>
-                        <div className="text-sm font-semibold text-foreground">{entry.summary ?? 'Order event'}</div>
-                        {entry.description ? <p className="text-sm text-muted-foreground">{entry.description}</p> : null}
+                        <div className="text-sm font-semibold text-foreground">
+                            {entry.summary ?? 'Order event'}
+                        </div>
+                        {entry.description ? (
+                            <p className="text-sm text-muted-foreground">
+                                {entry.description}
+                            </p>
+                        ) : null}
                         {entry.actor?.name ? (
-                            <p className="text-xs text-muted-foreground">By {entry.actor.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                By {entry.actor.name}
+                            </p>
                         ) : null}
                         {timestamp ? (
                             <p className="text-xs text-muted-foreground">

@@ -1,8 +1,13 @@
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { PurchaseOrderDelivery } from '@/types/sourcing';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow, format } from 'date-fns';
+import type { PurchaseOrderDelivery } from '@/types/sourcing';
+import { format, formatDistanceToNow } from 'date-fns';
 import { Fragment } from 'react';
 
 type AckState = 'draft' | 'sent' | 'acknowledged' | 'declined' | undefined;
@@ -14,7 +19,10 @@ const STATUS_LABELS: Record<NonNullable<AckState>, string> = {
     declined: 'Declined',
 };
 
-const STATUS_VARIANTS: Record<NonNullable<AckState>, 'outline' | 'secondary' | 'default' | 'destructive'> = {
+const STATUS_VARIANTS: Record<
+    NonNullable<AckState>,
+    'outline' | 'secondary' | 'default' | 'destructive'
+> = {
     draft: 'secondary',
     sent: 'outline',
     acknowledged: 'default',
@@ -47,7 +55,9 @@ function buildTooltipLines(
     const lines: string[] = [];
 
     if (status === 'sent' && (sentAt || latestDelivery?.sentAt)) {
-        lines.push(`Last sent ${formatTimestamp(latestDelivery?.sentAt ?? sentAt) ?? 'recently'}`);
+        lines.push(
+            `Last sent ${formatTimestamp(latestDelivery?.sentAt ?? sentAt) ?? 'recently'}`,
+        );
     }
 
     if (status === 'acknowledged') {
@@ -95,7 +105,13 @@ export function AckStatusChip({
     latestDelivery,
     className,
 }: AckStatusChipProps) {
-    const tooltipLines = buildTooltipLines(status, latestDelivery, sentAt, acknowledgedAt, ackReason);
+    const tooltipLines = buildTooltipLines(
+        status,
+        latestDelivery,
+        sentAt,
+        acknowledgedAt,
+        ackReason,
+    );
     const label = STATUS_LABELS[status] ?? 'Draft';
     const variant = STATUS_VARIANTS[status] ?? 'secondary';
 
@@ -103,7 +119,10 @@ export function AckStatusChip({
         <TooltipProvider delayDuration={150}>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Badge variant={variant} className={cn('uppercase tracking-wide', className)}>
+                    <Badge
+                        variant={variant}
+                        className={cn('tracking-wide uppercase', className)}
+                    >
                         {label}
                     </Badge>
                 </TooltipTrigger>

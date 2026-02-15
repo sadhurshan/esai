@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -31,17 +35,26 @@ export function useApproveChangeOrder(): UseMutationResult<
             return {
                 ...mapPurchaseOrder(response),
                 lines: (response.lines ?? []).map(mapPurchaseOrderLine),
-                changeOrders: (response.change_orders ?? []).map(mapChangeOrder),
+                changeOrders: (response.change_orders ?? []).map(
+                    mapChangeOrder,
+                ),
             };
         },
         onSuccess: (data, variables) => {
             void queryClient.invalidateQueries({
-                queryKey: queryKeys.purchaseOrders.changeOrders(variables.purchaseOrderId),
+                queryKey: queryKeys.purchaseOrders.changeOrders(
+                    variables.purchaseOrderId,
+                ),
             });
             void queryClient.invalidateQueries({
-                queryKey: queryKeys.purchaseOrders.detail(variables.purchaseOrderId),
+                queryKey: queryKeys.purchaseOrders.detail(
+                    variables.purchaseOrderId,
+                ),
             });
-            queryClient.setQueryData(queryKeys.purchaseOrders.detail(variables.purchaseOrderId), data);
+            queryClient.setQueryData(
+                queryKeys.purchaseOrders.detail(variables.purchaseOrderId),
+                data,
+            );
         },
     });
 }

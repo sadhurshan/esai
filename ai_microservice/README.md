@@ -49,6 +49,8 @@ This publishes port `8000`, mounts a named volume at `/app/storage`, and wires t
 | `AI_SERVICE_RISK_THRESHOLDS` | CSV list of threshold cutoffs for supplier risk bands (low, medium, high). |
 | `AI_CACHE_TTL_SECONDS` | TTL for in-memory response caching (defaults to 300 seconds). |
 | `AI_ALLOW_UNGROUNDED_ANSWERS` | When `true`, enables the optional general Q&A path. Clients must also set `allow_general=true` per request. |
+| `AI_SHARED_SECRET` | Shared secret expected in `X-AI-Secret` for all non-probe endpoints. Must match Laravel `AI_SHARED_SECRET`. |
+| `AI_CORS_ALLOW_ORIGINS` | Comma-separated allowed browser origins for CORS (example: `https://app.example.com,https://admin.example.com`). |
 | `PORT` | HTTP port exposed by uvicorn (defaults to 8000). |
 
 ## Health and Readiness

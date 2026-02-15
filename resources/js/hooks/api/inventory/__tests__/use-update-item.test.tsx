@@ -1,13 +1,13 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useUpdateItem } from '../use-update-item';
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
+import { useUpdateItem } from '../use-update-item';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -32,7 +32,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -66,7 +70,9 @@ describe('useUpdateItem', () => {
         updateItem.mockResolvedValue(apiResponse);
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useUpdateItem(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useUpdateItem(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync({
             id: 'item-9',
@@ -97,13 +103,19 @@ describe('useUpdateItem', () => {
             title: 'Item updated',
         });
 
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.items({}) });
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.item('item-9') });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.items({}),
+        });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.item('item-9'),
+        });
     });
 
     it('requires an id before calling the API', async () => {
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useUpdateItem(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useUpdateItem(), {
+            wrapper: Wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({

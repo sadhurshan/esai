@@ -19,7 +19,12 @@ interface WithdrawConfirmDialogProps {
     isProcessing?: boolean;
 }
 
-export function WithdrawConfirmDialog({ open, onOpenChange, onConfirm, isProcessing = false }: WithdrawConfirmDialogProps) {
+export function WithdrawConfirmDialog({
+    open,
+    onOpenChange,
+    onConfirm,
+    isProcessing = false,
+}: WithdrawConfirmDialogProps) {
     const [reason, setReason] = useState('');
 
     const handleOpenChange = (nextOpen: boolean) => {
@@ -44,7 +49,8 @@ export function WithdrawConfirmDialog({ open, onOpenChange, onConfirm, isProcess
                 <DialogHeader>
                     <DialogTitle>Withdraw quote?</DialogTitle>
                     <DialogDescription>
-                        Buyers keep a full audit trail. Provide a short reason so they understand why this quote is being pulled back.
+                        Buyers keep a full audit trail. Provide a short reason
+                        so they understand why this quote is being pulled back.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -58,11 +64,18 @@ export function WithdrawConfirmDialog({ open, onOpenChange, onConfirm, isProcess
                         onChange={(event) => setReason(event.target.value)}
                         disabled={isProcessing}
                     />
-                    <p className="text-xs text-muted-foreground">At least 3 characters.</p>
+                    <p className="text-xs text-muted-foreground">
+                        At least 3 characters.
+                    </p>
                 </div>
 
                 <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        disabled={isProcessing}
+                    >
                         Cancel
                     </Button>
                     <Button

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface MoneySettingsBaseCurrency
  */
 export interface MoneySettingsBaseCurrency {
     /**
-     * 
+     *
      * @type {string}
      * @memberof MoneySettingsBaseCurrency
      */
     code?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof MoneySettingsBaseCurrency
      */
     name?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof MoneySettingsBaseCurrency
      */
     minorUnit?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof MoneySettingsBaseCurrency
      */
@@ -48,42 +47,51 @@ export interface MoneySettingsBaseCurrency {
 /**
  * Check if a given object implements the MoneySettingsBaseCurrency interface.
  */
-export function instanceOfMoneySettingsBaseCurrency(value: object): value is MoneySettingsBaseCurrency {
+export function instanceOfMoneySettingsBaseCurrency(
+    value: object,
+): value is MoneySettingsBaseCurrency {
     return true;
 }
 
-export function MoneySettingsBaseCurrencyFromJSON(json: any): MoneySettingsBaseCurrency {
+export function MoneySettingsBaseCurrencyFromJSON(
+    json: any,
+): MoneySettingsBaseCurrency {
     return MoneySettingsBaseCurrencyFromJSONTyped(json, false);
 }
 
-export function MoneySettingsBaseCurrencyFromJSONTyped(json: any, ignoreDiscriminator: boolean): MoneySettingsBaseCurrency {
+export function MoneySettingsBaseCurrencyFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): MoneySettingsBaseCurrency {
     if (json == null) {
         return json;
     }
     return {
-        
-        'code': json['code'] == null ? undefined : json['code'],
-        'name': json['name'] == null ? undefined : json['name'],
-        'minorUnit': json['minor_unit'] == null ? undefined : json['minor_unit'],
-        'symbol': json['symbol'] == null ? undefined : json['symbol'],
+        code: json['code'] == null ? undefined : json['code'],
+        name: json['name'] == null ? undefined : json['name'],
+        minorUnit: json['minor_unit'] == null ? undefined : json['minor_unit'],
+        symbol: json['symbol'] == null ? undefined : json['symbol'],
     };
 }
 
-export function MoneySettingsBaseCurrencyToJSON(json: any): MoneySettingsBaseCurrency {
+export function MoneySettingsBaseCurrencyToJSON(
+    json: any,
+): MoneySettingsBaseCurrency {
     return MoneySettingsBaseCurrencyToJSONTyped(json, false);
 }
 
-export function MoneySettingsBaseCurrencyToJSONTyped(value?: MoneySettingsBaseCurrency | null, ignoreDiscriminator: boolean = false): any {
+export function MoneySettingsBaseCurrencyToJSONTyped(
+    value?: MoneySettingsBaseCurrency | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'code': value['code'],
-        'name': value['name'],
-        'minor_unit': value['minorUnit'],
-        'symbol': value['symbol'],
+        code: value['code'],
+        name: value['name'],
+        minor_unit: value['minorUnit'],
+        symbol: value['symbol'],
     };
 }
-

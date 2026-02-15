@@ -14,6 +14,17 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from jsonschema import Draft202012Validator, ValidationError
 
+try:  # pragma: no cover - optional dependency load
+    from google.api_core import exceptions as google_exceptions
+    from google.cloud import discoveryengine_v1beta as discoveryengine
+    from google.oauth2 import service_account
+    from google.protobuf.json_format import MessageToDict
+except ImportError:  # pragma: no cover - dependency not installed
+    discoveryengine = None
+    google_exceptions = None
+    service_account = None
+    MessageToDict = None
+
 from ai_microservice.llm_provider import (
     DummyLLMProvider,
     LLMProvider,
@@ -37,12 +48,11 @@ DEFAULT_USER_AGENT = os.getenv(
     "SUPPLIER_SCRAPER_USER_AGENT",
     "ElementsSupplyScraper/1.0 (+https://elements-supply.ai)",
 )
-GOOGLE_SEARCH_ENDPOINT = os.getenv(
-    "SUPPLIER_SCRAPER_GOOGLE_ENDPOINT",
-    "https://www.googleapis.com/customsearch/v1",
-)
-GOOGLE_SEARCH_KEY = os.getenv("SUPPLIER_SCRAPER_GOOGLE_KEY")
-GOOGLE_SEARCH_CX = os.getenv("SUPPLIER_SCRAPER_GOOGLE_CX")
+VERTEX_SEARCH_PROJECT_ID = os.getenv("VERTEX_SEARCH_PROJECT_ID")
+VERTEX_SEARCH_LOCATION = os.getenv("VERTEX_SEARCH_LOCATION", "global")
+VERTEX_SEARCH_DATA_STORE_ID = os.getenv("VERTEX_SEARCH_DATA_STORE_ID")
+VERTEX_SEARCH_SERVING_CONFIG = os.getenv("VERTEX_SEARCH_SERVING_CONFIG", "default_config")
+VERTEX_SEARCH_SA_KEY_PATH = os.getenv("VERTEX_SEARCH_SA_KEY_PATH")
 MAX_PAGE_CHARS = int(os.getenv("SUPPLIER_SCRAPER_MAX_PAGE_CHARS", "8000"))
 SCRAPE_TIMEOUT_SECONDS = float(os.getenv("SUPPLIER_SCRAPER_HTTP_TIMEOUT", "12"))
 SCRAPE_DELAY_SECONDS = float(os.getenv("SUPPLIER_SCRAPER_DELAY_SECONDS", "1.0"))
@@ -84,9 +94,11 @@ class SupplierScraper:
     """Coordinates search -> fetch -> LLM extraction for suppliers."""
 
     llm_provider: LLMProvider = field(default_factory=lambda: build_llm_provider(os.getenv("AI_LLM_PROVIDER", "dummy")))
-    google_search_endpoint: str = GOOGLE_SEARCH_ENDPOINT
-    google_search_key: Optional[str] = GOOGLE_SEARCH_KEY
-    google_search_cx: Optional[str] = GOOGLE_SEARCH_CX
+    vertex_project_id: Optional[str] = VERTEX_SEARCH_PROJECT_ID
+    vertex_location: str = VERTEX_SEARCH_LOCATION
+    vertex_data_store_id: Optional[str] = VERTEX_SEARCH_DATA_STORE_ID
+    vertex_serving_config: str = VERTEX_SEARCH_SERVING_CONFIG
+    vertex_sa_key_path: Optional[str] = VERTEX_SEARCH_SA_KEY_PATH
     max_page_chars: int = MAX_PAGE_CHARS
     request_timeout: float = SCRAPE_TIMEOUT_SECONDS
     inter_request_delay: float = SCRAPE_DELAY_SECONDS
@@ -94,6 +106,8 @@ class SupplierScraper:
 
     def __post_init__(self) -> None:
         self._robots_cache: Dict[str, RobotFileParser] = {}
+        self._vertex_client: Optional["discoveryengine.SearchServiceClient"] = None
+        self._vertex_serving_config_path: Optional[str] = None
 
     def scrape_suppliers(self, query: str, region: Optional[str], max_results: int) -> List[Dict[str, Any]]:
         if not query.strip():
@@ -127,78 +141,147 @@ class SupplierScraper:
         search_query = query.strip()
         if region:
             search_query = f"{search_query} {region.strip()}"
-        return self._search_google(search_query, limit)
+        return self._search_vertex(search_query, limit)
 
-    def _search_google(self, search_query: str, limit: int) -> List[Dict[str, Any]]:
-        if not self.google_search_key or not self.google_search_cx:
+    def _search_vertex(self, search_query: str, limit: int) -> List[Dict[str, Any]]:
+        if discoveryengine is None or service_account is None or google_exceptions is None:
+            raise SupplierScraperError(
+                "Vertex AI Search dependency is missing. Install google-cloud-discoveryengine."
+            )
+        if not self.vertex_project_id or not self.vertex_data_store_id:
             message = (
-                "Supplier scrape search is not configured. Set SUPPLIER_SCRAPER_GOOGLE_KEY "
-                "and SUPPLIER_SCRAPER_GOOGLE_CX."
+                "Supplier scrape search is not configured. Set VERTEX_SEARCH_PROJECT_ID "
+                "and VERTEX_SEARCH_DATA_STORE_ID."
             )
             LOGGER.error(
                 "supplier_scrape_search_disabled",
-                extra={"reason": "missing_google_credentials", "provider": "google"},
+                extra={"reason": "missing_vertex_config", "provider": "vertex_ai_search"},
             )
             raise SupplierScraperError(message)
-        params = {
-            "q": search_query,
-            "key": self.google_search_key,
-            "cx": self.google_search_cx,
-            "num": max(1, min(limit, 10)),
-        }
-        headers = {"User-Agent": self.user_agent}
-        try:
-            response = httpx.get(
-                self.google_search_endpoint,
-                params=params,
-                headers=headers,
-                timeout=self.request_timeout,
+        if not self.vertex_sa_key_path:
+            message = "Supplier scrape search is not configured. Set VERTEX_SEARCH_SA_KEY_PATH."
+            LOGGER.error(
+                "supplier_scrape_search_disabled",
+                extra={"reason": "missing_vertex_credentials", "provider": "vertex_ai_search"},
             )
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            status = exc.response.status_code
-            if status in {401, 403}:
-                message = (
-                    "Google Custom Search API returned 403. Verify the API key is valid, the Custom Search API "
-                    "is enabled in Google Cloud, billing is active, and API key restrictions allow "
-                    "customsearch.googleapis.com."
-                )
-            elif status == 429:
-                message = "Google Custom Search API rate limit exceeded. Reduce request volume or raise quota."
-            else:
-                message = f"Google Custom Search API error: HTTP {status}."
-            LOGGER.warning(
-                "supplier_scrape_search_failed",
-                exc_info=True,
-                extra={"status": status, "provider": "google"},
-            )
-            raise SupplierScraperError(message) from exc
-        except httpx.HTTPError as exc:
-            LOGGER.warning(
-                "supplier_scrape_search_failed",
-                exc_info=True,
-                extra={"error": str(exc), "provider": "google"},
-            )
-            return []
-        data = response.json()
-        items = data.get("items") or []
+            raise SupplierScraperError(message)
+
+        client = self._get_vertex_client()
+        page_size = max(1, min(limit, 50))
+        request = discoveryengine.SearchRequest(
+            serving_config=self._vertex_serving_config_path,
+            query=search_query,
+            page_size=page_size,
+            content_search_spec=discoveryengine.SearchRequest.ContentSearchSpec(
+                snippet_spec=discoveryengine.SearchRequest.ContentSearchSpec.SnippetSpec(return_snippet=True)
+            ),
+        )
         hits: List[Dict[str, Any]] = []
         seen_urls: set[str] = set()
-        for item in items:
-            url = str(item.get("link") or "").strip()
+        try:
+            response = client.search(request=request, timeout=self.request_timeout)
+        except google_exceptions.PermissionDenied as exc:
+            message = (
+                "Vertex AI Search permission denied. Verify the service account has "
+                "Discovery Engine access and the data store is reachable."
+            )
+            LOGGER.warning(
+                "supplier_scrape_search_failed",
+                exc_info=True,
+                extra={"provider": "vertex_ai_search", "error": str(exc)},
+            )
+            raise SupplierScraperError(message) from exc
+        except google_exceptions.ResourceExhausted as exc:
+            message = "Vertex AI Search quota exceeded. Reduce request volume or raise quota."
+            LOGGER.warning(
+                "supplier_scrape_search_failed",
+                exc_info=True,
+                extra={"provider": "vertex_ai_search", "error": str(exc)},
+            )
+            raise SupplierScraperError(message) from exc
+        except google_exceptions.GoogleAPICallError as exc:
+            message = f"Vertex AI Search API error: {exc}"
+            LOGGER.warning(
+                "supplier_scrape_search_failed",
+                exc_info=True,
+                extra={"provider": "vertex_ai_search", "error": str(exc)},
+            )
+            raise SupplierScraperError(message) from exc
+
+        for result in response.results:
+            hit = self._vertex_result_to_hit(result)
+            url = hit.get("url")
             if not url or url in seen_urls:
                 continue
             seen_urls.add(url)
-            hits.append(
-                {
-                    "url": url,
-                    "name": item.get("title"),
-                    "snippet": item.get("snippet"),
-                }
-            )
+            hits.append(hit)
             if len(hits) >= limit:
                 break
         return hits
+
+    def _get_vertex_client(self) -> "discoveryengine.SearchServiceClient":
+        if self._vertex_client is not None:
+            return self._vertex_client
+        if not self.vertex_sa_key_path or not os.path.exists(self.vertex_sa_key_path):
+            raise SupplierScraperError(
+                "Vertex AI Search credentials missing. Ensure VERTEX_SEARCH_SA_KEY_PATH points to a file."
+            )
+        credentials = service_account.Credentials.from_service_account_file(self.vertex_sa_key_path)
+        location = (self.vertex_location or "global").strip() or "global"
+        if location == "global":
+            endpoint = "discoveryengine.googleapis.com"
+        else:
+            endpoint = f"{location}-discoveryengine.googleapis.com"
+        self._vertex_client = discoveryengine.SearchServiceClient(
+            credentials=credentials,
+            client_options={"api_endpoint": endpoint},
+        )
+        self._vertex_serving_config_path = (
+            f"projects/{self.vertex_project_id}/locations/{location}/dataStores/"
+            f"{self.vertex_data_store_id}/servingConfigs/{self.vertex_serving_config}"
+        )
+        return self._vertex_client
+
+    def _vertex_result_to_hit(self, result: Any) -> Dict[str, Any]:
+        doc = getattr(result, "document", None)
+        derived: Dict[str, Any] = {}
+        if doc is not None:
+            derived_struct = getattr(doc, "derived_struct_data", None)
+            if isinstance(derived_struct, dict):
+                derived = derived_struct
+            elif derived_struct is not None:
+                try:
+                    derived = dict(derived_struct)
+                except Exception:
+                    if MessageToDict:
+                        try:
+                            derived = MessageToDict(derived_struct)
+                        except Exception:
+                            derived = {}
+                    else:
+                        derived = {}
+        url = (
+            getattr(doc, "uri", None)
+            or derived.get("link")
+            or derived.get("url")
+            or derived.get("uri")
+        )
+        title = getattr(doc, "title", None) or derived.get("title")
+        snippet = ""
+        snippets = derived.get("snippets") or derived.get("snippet")
+        if isinstance(snippets, list) and snippets:
+            first = snippets[0]
+            if isinstance(first, dict):
+                snippet = str(first.get("snippet") or first.get("text") or "")
+            else:
+                snippet = str(first)
+        elif isinstance(snippets, str):
+            snippet = snippets
+        return {
+            "url": str(url or "").strip(),
+            "name": title,
+            "snippet": snippet or None,
+        }
 
     # --- http/robots helpers ----------------------------------------------------------------
     def _is_allowed(self, url: str) -> bool:

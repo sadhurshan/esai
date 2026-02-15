@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 
@@ -10,7 +14,11 @@ interface ReplayDlqResponse {
     replayed: number;
 }
 
-export function useReplayDlq(): UseMutationResult<ReplayDlqResponse, ApiError, ReplayDlqPayload> {
+export function useReplayDlq(): UseMutationResult<
+    ReplayDlqResponse,
+    ApiError,
+    ReplayDlqPayload
+> {
     const queryClient = useQueryClient();
 
     return useMutation<ReplayDlqResponse, ApiError, ReplayDlqPayload>({
@@ -24,7 +32,9 @@ export function useReplayDlq(): UseMutationResult<ReplayDlqResponse, ApiError, R
             })) as unknown as ReplayDlqResponse;
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['events', 'deliveries'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['events', 'deliveries'],
+            });
         },
     });
 }

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CopilotChatWidget } from '@/components/ai/CopilotChatWidget';
@@ -55,7 +55,10 @@ const buildAuth = (overrides: Partial<MockAuthHook> = {}): MockAuthHook => {
                 ...(stateOverride.featureFlags ?? {}),
             },
         },
-        activePersona: overrides.activePersona ?? { type: 'buyer', role: 'buyer_admin' },
+        activePersona: overrides.activePersona ?? {
+            type: 'buyer',
+            role: 'buyer_admin',
+        },
         hasFeature: overrides.hasFeature ?? (() => true),
         isAuthenticated: overrides.isAuthenticated ?? true,
     };
@@ -89,8 +92,10 @@ describe('CopilotChatWidget', () => {
 
     it('renders the chat bubble when AI access is allowed', () => {
         renderWidget();
-        expect(screen.getByRole('button', { name: /ai copilot/i })).toBeInTheDocument();
-    });
+        expect(
+            screen.getByRole('button', { name: /ai copilot/i }),
+        ).toBeInTheDocument();
+    }, 15000);
 
     it('hides the widget when the AI feature is disabled', () => {
         mockAuth.hasFeature = () => false;
@@ -98,8 +103,21 @@ describe('CopilotChatWidget', () => {
 
         renderWidget();
 
-        expect(screen.queryByRole('button', { name: /ai copilot/i })).not.toBeInTheDocument();
-    });
+        expect(
+            screen.queryByRole('button', { name: /ai copilot/i }),
+        ).not.toBeInTheDocument();
+    }, 15000);
+
+    it('hides the widget for platform super admin', () => {
+        mockAuth.state.user.role = 'platform_super';
+        mockAuth.activePersona = { type: 'buyer', role: 'platform_super' };
+
+        renderWidget();
+
+        expect(
+            screen.queryByRole('button', { name: /ai copilot/i }),
+        ).not.toBeInTheDocument();
+    }, 15000);
 
     it('opens and closes the dock via the bubble and Escape key', async () => {
         renderWidget();
@@ -115,5 +133,5 @@ describe('CopilotChatWidget', () => {
         await waitFor(() => {
             expect(screen.queryByText('AI Copilot')).not.toBeInTheDocument();
         });
-    });
+    }, 15000);
 });

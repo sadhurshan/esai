@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\DigitalTwin\DigitalTwinPromptService;
 
 
 
@@ -20,6 +21,12 @@ class RFQResource extends JsonResource
             : (is_array($this->meta) ? $this->meta : (array) $this->meta);
         $paymentTerms = is_array($rawMeta) ? ($rawMeta['payment_terms'] ?? null) : null;
         $taxPercent = is_array($rawMeta) ? ($rawMeta['tax_percent'] ?? null) : null;
+        $digitalTwinId = is_array($rawMeta) ? ($rawMeta['digital_twin_id'] ?? null) : null;
+        $digitalTwinPrompts = [];
+
+        if ($digitalTwinId) {
+            $digitalTwinPrompts = app(DigitalTwinPromptService::class)->buildForRfq($this->resource);
+        }
 
         return [
             'id' => (string) $this->getRouteKey(),
@@ -42,6 +49,10 @@ class RFQResource extends JsonResource
             'paymentTerms' => $paymentTerms,
             'tax_percent' => $taxPercent,
             'taxPercent' => $taxPercent,
+            'digital_twin_id' => $digitalTwinId,
+            'digitalTwinId' => $digitalTwinId,
+            'digital_twin_prompts' => $digitalTwinPrompts,
+            'digitalTwinPrompts' => $digitalTwinPrompts,
             'notes' => $this->notes,
             'open_bidding' => (bool) $this->open_bidding,
             'is_open_bidding' => (bool) $this->open_bidding,

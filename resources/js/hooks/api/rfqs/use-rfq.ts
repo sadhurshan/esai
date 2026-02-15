@@ -10,7 +10,10 @@ export interface UseRfqOptions {
     enabled?: boolean;
 }
 
-async function fetchRfq(rfqsApi: RFQsApi, rfqId: string | number): Promise<Rfq> {
+async function fetchRfq(
+    rfqsApi: RFQsApi,
+    rfqId: string | number,
+): Promise<Rfq> {
     const response = await rfqsApi.showRfq({
         rfqId: String(rfqId),
     });
@@ -18,7 +21,10 @@ async function fetchRfq(rfqsApi: RFQsApi, rfqId: string | number): Promise<Rfq> 
     return response.data;
 }
 
-export function useRfq(rfqId: RfqIdentifier, options: UseRfqOptions = {}): UseQueryResult<Rfq> {
+export function useRfq(
+    rfqId: RfqIdentifier,
+    options: UseRfqOptions = {},
+): UseQueryResult<Rfq> {
     const rfqsApi = useSdkClient(RFQsApi);
     const enabled = options.enabled ?? Boolean(rfqId);
 

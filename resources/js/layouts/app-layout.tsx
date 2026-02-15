@@ -1,16 +1,20 @@
-import { Sidebar, SidebarFooter, SidebarHeader, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { Branding } from '@/config/branding';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { BillingStatusBanner } from '@/components/billing-status-banner';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { SidebarNav } from '@/components/sidebar-nav';
 import { TopBar } from '@/components/top-bar';
-import { FormattingProvider } from '@/contexts/formatting-context';
-import { useAuth } from '@/contexts/auth-context';
-import { useEffect } from 'react';
+import {
+    Sidebar,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarInset,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
+import { Branding } from '@/config/branding';
 import { isPlatformRole } from '@/constants/platform-roles';
-import { CopilotWidgetProvider } from '@/contexts/copilot-widget-context';
-import { CopilotChatWidget } from '@/components/ai/CopilotChatWidget';
+import { useAuth } from '@/contexts/auth-context';
+import { FormattingProvider } from '@/contexts/formatting-context';
+import { useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const SUPPLIER_ALLOWED_PREFIXES = [
     '/app/rfqs',
@@ -52,54 +56,77 @@ export function AppLayout() {
 
         if (isSupplierMode) {
             if (location.pathname === '/app' || location.pathname === '/app/') {
-                navigate('/app/supplier', { replace: true, state: { from: location.pathname } });
+                navigate('/app/supplier', {
+                    replace: true,
+                    state: { from: location.pathname },
+                });
                 return;
             }
 
-            if (location.pathname === '/app/quotes' || location.pathname === '/app/quotes/') {
-                navigate('/app/supplier/quotes', { replace: true, state: { from: location.pathname } });
+            if (
+                location.pathname === '/app/quotes' ||
+                location.pathname === '/app/quotes/'
+            ) {
+                navigate('/app/supplier/quotes', {
+                    replace: true,
+                    state: { from: location.pathname },
+                });
                 return;
             }
 
-            const allowed = SUPPLIER_ALLOWED_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
+            const allowed = SUPPLIER_ALLOWED_PREFIXES.some((prefix) =>
+                location.pathname.startsWith(prefix),
+            );
             if (!allowed && location.pathname !== SUPPLIER_REDIRECT_PATH) {
-                navigate(SUPPLIER_REDIRECT_PATH, { replace: true, state: { from: location.pathname } });
+                navigate(SUPPLIER_REDIRECT_PATH, {
+                    replace: true,
+                    state: { from: location.pathname },
+                });
             }
             return;
         }
 
-        const isSupplierRoute = SUPPLIER_ONLY_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
+        const isSupplierRoute = SUPPLIER_ONLY_PREFIXES.some((prefix) =>
+            location.pathname.startsWith(prefix),
+        );
         if (isSupplierRoute && location.pathname !== BUYER_REDIRECT_PATH) {
-            navigate(BUYER_REDIRECT_PATH, { replace: true, state: { from: location.pathname } });
+            navigate(BUYER_REDIRECT_PATH, {
+                replace: true,
+                state: { from: location.pathname },
+            });
         }
     }, [isPlatformOperator, isSupplierMode, location.pathname, navigate]);
 
     return (
         <FormattingProvider>
-            <CopilotWidgetProvider>
-                <SidebarProvider>
-                    <div className="flex min-h-screen w-full bg-muted/20">
-                        <Sidebar variant="inset">
-                            <SidebarHeader className="px-4 py-3">
-                                <img src={Branding.logo.whiteText} alt={Branding.name} className="h-12 w-fit" />
-                            </SidebarHeader>
-                            <SidebarNav />
-                            <SidebarFooter className="px-4 py-6 text-xs text-muted-foreground">
-                                <p>&copy; {new Date().getFullYear()} {Branding.name}</p>
-                            </SidebarFooter>
-                        </Sidebar>
-                        <SidebarInset>
-                            <TopBar />
-                            <BillingStatusBanner />
-                            <PlanUpgradeBanner />
-                            <main className="flex flex-1 flex-col overflow-y-auto px-4 pb-8 pt-4">
-                                <Outlet />
-                            </main>
-                        </SidebarInset>
-                    </div>
-                </SidebarProvider>
-                {/* <CopilotChatWidget /> */}
-            </CopilotWidgetProvider>
+            <SidebarProvider>
+                <div className="flex min-h-screen w-full bg-muted/20">
+                    <Sidebar variant="inset">
+                        <SidebarHeader className="px-4 py-3">
+                            <img
+                                src={Branding.logo.whiteText}
+                                alt={Branding.name}
+                                className="h-12 w-fit"
+                            />
+                        </SidebarHeader>
+                        <SidebarNav />
+                        <SidebarFooter className="px-4 py-6 text-xs text-muted-foreground">
+                            <p>
+                                &copy; {new Date().getFullYear()}{' '}
+                                {Branding.name}
+                            </p>
+                        </SidebarFooter>
+                    </Sidebar>
+                    <SidebarInset>
+                        <TopBar />
+                        <BillingStatusBanner />
+                        <PlanUpgradeBanner />
+                        <main className="flex flex-1 flex-col overflow-y-auto px-4 pt-4 pb-8">
+                            <Outlet />
+                        </main>
+                    </SidebarInset>
+                </div>
+            </SidebarProvider>
         </FormattingProvider>
     );
 }

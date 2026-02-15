@@ -16,11 +16,20 @@ class _StubService:
         self.last_forecast_args: Dict[str, Any] = {}
         self.supplier_payload: Dict[str, Any] = {}
 
-    def predict_demand(self, part_id: int, history: Dict[str, float], horizon: int) -> Dict[str, Any]:
+    def predict_demand(
+        self,
+        part_id: int,
+        history: Dict[str, float],
+        horizon: int,
+        lead_time_days: int | None = None,
+        lead_time_variance_days: float | None = None,
+    ) -> Dict[str, Any]:
         self.last_forecast_args = {
             "part_id": part_id,
             "history": history,
             "horizon": horizon,
+            "lead_time_days": lead_time_days,
+            "lead_time_variance_days": lead_time_variance_days,
         }
         return {
             "model": "moving_average",
@@ -162,6 +171,8 @@ def test_forecast_endpoint_returns_expected_payload(client: TestClient, stub_ser
             "2024-01-01": 5.0,
             "2024-01-02": 7.5,
         },
+        "lead_time_days": None,
+        "lead_time_variance_days": None,
     }
 
 

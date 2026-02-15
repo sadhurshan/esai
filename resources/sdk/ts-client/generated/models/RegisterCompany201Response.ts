@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { RegisterCompany201ResponseAllOfData } from './RegisterCompany201ResponseAllOfData';
 import {
     RegisterCompany201ResponseAllOfDataFromJSON,
-    RegisterCompany201ResponseAllOfDataFromJSONTyped,
     RegisterCompany201ResponseAllOfDataToJSON,
-    RegisterCompany201ResponseAllOfDataToJSONTyped,
 } from './RegisterCompany201ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface RegisterCompany201Response
  */
 export interface RegisterCompany201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompany201Response
      */
     status: RegisterCompany201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompany201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {RegisterCompany201ResponseAllOfData}
      * @memberof RegisterCompany201Response
      */
     data: RegisterCompany201ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof RegisterCompany201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const RegisterCompany201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type RegisterCompany201ResponseStatusEnum = typeof RegisterCompany201ResponseStatusEnum[keyof typeof RegisterCompany201ResponseStatusEnum];
-
+export type RegisterCompany201ResponseStatusEnum =
+    (typeof RegisterCompany201ResponseStatusEnum)[keyof typeof RegisterCompany201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the RegisterCompany201Response interface.
  */
-export function instanceOfRegisterCompany201Response(value: object): value is RegisterCompany201Response {
+export function instanceOfRegisterCompany201Response(
+    value: object,
+): value is RegisterCompany201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function RegisterCompany201ResponseFromJSON(json: any): RegisterCompany201Response {
+export function RegisterCompany201ResponseFromJSON(
+    json: any,
+): RegisterCompany201Response {
     return RegisterCompany201ResponseFromJSONTyped(json, false);
 }
 
-export function RegisterCompany201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): RegisterCompany201Response {
+export function RegisterCompany201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RegisterCompany201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': RegisterCompany201ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: RegisterCompany201ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function RegisterCompany201ResponseToJSON(json: any): RegisterCompany201Response {
+export function RegisterCompany201ResponseToJSON(
+    json: any,
+): RegisterCompany201Response {
     return RegisterCompany201ResponseToJSONTyped(json, false);
 }
 
-export function RegisterCompany201ResponseToJSONTyped(value?: RegisterCompany201Response | null, ignoreDiscriminator: boolean = false): any {
+export function RegisterCompany201ResponseToJSONTyped(
+    value?: RegisterCompany201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': RegisterCompany201ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: RegisterCompany201ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

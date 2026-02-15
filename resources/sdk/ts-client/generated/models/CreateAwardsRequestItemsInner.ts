@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateAwardsRequestItemsInner
  */
 export interface CreateAwardsRequestItemsInner {
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateAwardsRequestItemsInner
      */
     rfqItemId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateAwardsRequestItemsInner
      */
@@ -42,42 +41,54 @@ export interface CreateAwardsRequestItemsInner {
 /**
  * Check if a given object implements the CreateAwardsRequestItemsInner interface.
  */
-export function instanceOfCreateAwardsRequestItemsInner(value: object): value is CreateAwardsRequestItemsInner {
-    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined) return false;
-    if (!('quoteItemId' in value) || value['quoteItemId'] === undefined) return false;
+export function instanceOfCreateAwardsRequestItemsInner(
+    value: object,
+): value is CreateAwardsRequestItemsInner {
+    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined)
+        return false;
+    if (!('quoteItemId' in value) || value['quoteItemId'] === undefined)
+        return false;
     return true;
 }
 
-export function CreateAwardsRequestItemsInnerFromJSON(json: any): CreateAwardsRequestItemsInner {
+export function CreateAwardsRequestItemsInnerFromJSON(
+    json: any,
+): CreateAwardsRequestItemsInner {
     return CreateAwardsRequestItemsInnerFromJSONTyped(json, false);
 }
 
-export function CreateAwardsRequestItemsInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateAwardsRequestItemsInner {
+export function CreateAwardsRequestItemsInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateAwardsRequestItemsInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfqItemId': json['rfq_item_id'],
-        'quoteItemId': json['quote_item_id'],
-        'awardedQty': json['awarded_qty'] == null ? undefined : json['awarded_qty'],
+        rfqItemId: json['rfq_item_id'],
+        quoteItemId: json['quote_item_id'],
+        awardedQty:
+            json['awarded_qty'] == null ? undefined : json['awarded_qty'],
     };
 }
 
-export function CreateAwardsRequestItemsInnerToJSON(json: any): CreateAwardsRequestItemsInner {
+export function CreateAwardsRequestItemsInnerToJSON(
+    json: any,
+): CreateAwardsRequestItemsInner {
     return CreateAwardsRequestItemsInnerToJSONTyped(json, false);
 }
 
-export function CreateAwardsRequestItemsInnerToJSONTyped(value?: CreateAwardsRequestItemsInner | null, ignoreDiscriminator: boolean = false): any {
+export function CreateAwardsRequestItemsInnerToJSONTyped(
+    value?: CreateAwardsRequestItemsInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq_item_id': value['rfqItemId'],
-        'quote_item_id': value['quoteItemId'],
-        'awarded_qty': value['awardedQty'],
+        rfq_item_id: value['rfqItemId'],
+        quote_item_id: value['quoteItemId'],
+        awarded_qty: value['awardedQty'],
     };
 }
-

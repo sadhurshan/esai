@@ -21,10 +21,18 @@ export interface SubmitRfpProposalInput {
 
 export type SubmitRfpProposalResult = Record<string, unknown>;
 
-export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResult, ApiError | Error, SubmitRfpProposalInput> {
+export function useSubmitRfpProposal(): UseMutationResult<
+    SubmitRfpProposalResult,
+    ApiError | Error,
+    SubmitRfpProposalInput
+> {
     const { notifyPlanLimit } = useAuth();
 
-    return useMutation<SubmitRfpProposalResult, ApiError | Error, SubmitRfpProposalInput>({
+    return useMutation<
+        SubmitRfpProposalResult,
+        ApiError | Error,
+        SubmitRfpProposalInput
+    >({
         mutationFn: async (input) => {
             const rfpId = String(input.rfpId);
             if (!rfpId || rfpId.length === 0) {
@@ -42,16 +50,28 @@ export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResul
                 formData.append('value_add_summary', trimmedValueAdd);
             }
 
-            if (typeof input.priceTotal === 'number' && Number.isFinite(input.priceTotal)) {
+            if (
+                typeof input.priceTotal === 'number' &&
+                Number.isFinite(input.priceTotal)
+            ) {
                 formData.append('price_total', input.priceTotal.toString());
             }
 
-            if (typeof input.priceTotalMinor === 'number' && Number.isFinite(input.priceTotalMinor)) {
-                formData.append('price_total_minor', String(Math.round(input.priceTotalMinor)));
+            if (
+                typeof input.priceTotalMinor === 'number' &&
+                Number.isFinite(input.priceTotalMinor)
+            ) {
+                formData.append(
+                    'price_total_minor',
+                    String(Math.round(input.priceTotalMinor)),
+                );
             }
 
             if (input.supplierCompanyId) {
-                formData.append('supplier_company_id', String(input.supplierCompanyId));
+                formData.append(
+                    'supplier_company_id',
+                    String(input.supplierCompanyId),
+                );
             }
 
             (input.attachments ?? []).forEach((file) => {
@@ -59,16 +79,22 @@ export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResul
                     return;
                 }
                 if (file.size > MAX_RFP_PROPOSAL_ATTACHMENT_BYTES) {
-                    throw new Error(`${file.name} exceeds the 50 MB attachment limit.`);
+                    throw new Error(
+                        `${file.name} exceeds the 50 MB attachment limit.`,
+                    );
                 }
                 formData.append('attachments[]', file, file.name);
             });
 
-            const response = await api.post<SubmitRfpProposalResult>(`/rfps/${rfpId}/proposals`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
+            const response = await api.post<SubmitRfpProposalResult>(
+                `/rfps/${rfpId}/proposals`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
                 },
-            });
+            );
 
             return response.data;
         },
@@ -76,7 +102,8 @@ export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResul
             publishToast({
                 variant: 'success',
                 title: 'Proposal submitted',
-                description: 'We notified the buyer and logged your submission.',
+                description:
+                    'We notified the buyer and logged your submission.',
             });
         },
         onError: (error) => {
@@ -84,14 +111,18 @@ export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResul
                 if (error.status === 402) {
                     notifyPlanLimit({
                         code: 'rfp_proposals',
-                        message: error.message ?? 'Upgrade your plan to submit RFP proposals.',
+                        message:
+                            error.message ??
+                            'Upgrade your plan to submit RFP proposals.',
                     });
                 }
 
                 publishToast({
                     variant: 'destructive',
                     title: 'Submission failed',
-                    description: error.message ?? 'Unable to submit the proposal right now.',
+                    description:
+                        error.message ??
+                        'Unable to submit the proposal right now.',
                 });
                 return;
             }
@@ -99,7 +130,8 @@ export function useSubmitRfpProposal(): UseMutationResult<SubmitRfpProposalResul
             publishToast({
                 variant: 'destructive',
                 title: 'Unexpected error',
-                description: error.message ?? 'Unable to submit the proposal right now.',
+                description:
+                    error.message ?? 'Unable to submit the proposal right now.',
             });
         },
     });

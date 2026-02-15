@@ -15,6 +15,7 @@ use App\Models\RfqItem;
 use App\Models\RfqItemAward;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Services\RfqVersionService;
 use App\Support\Audit\AuditLogger;
 use App\Support\CompanyContext;
@@ -36,6 +37,7 @@ class AwardLineItemsAction
         private readonly NotificationService $notifications,
         protected readonly AuditLogger $auditLogger,
         protected readonly RfqVersionService $rfqVersionService,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {
     }
 
@@ -229,6 +231,10 @@ class AwardLineItemsAction
         });
 
         $winnerSupplierIds = array_values(array_unique($winnerSupplierIds));
+
+        if ($winnerSupplierIds !== []) {
+            $this->digitalTwinLinkService->linkSupplierCertificates($rfq, $winnerSupplierIds, $user);
+        }
 
         $filteredLoserItems = [];
         foreach ($loserItems as $supplierId => $itemIds) {

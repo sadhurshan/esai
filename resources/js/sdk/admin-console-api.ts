@@ -1,53 +1,58 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
-import { parseEnvelope, sanitizeQuery } from './api-helpers';
 import { toCursorMeta, toOffsetMeta } from '@/lib/pagination';
 import type {
     AdminAnalyticsOverview,
-    AiAdminUsageMetrics,
     AdminRolesPayload,
-    AuditLogFilters,
-    AuditLogResponse,
-    AuditLogEntry,
+    AiAdminUsageMetrics,
+    AiEventEntry,
     AiEventFilters,
     AiEventResponse,
-    AiEventEntry,
+    AiModelMetricEntry,
     AiModelMetricFilters,
     AiModelMetricResponse,
-    AiModelMetricEntry,
-    ModelTrainingJob,
-    ModelTrainingJobFilters,
-    ModelTrainingJobListResponse,
-    StartAiTrainingPayload,
-    SupplierScrapeJob,
-    SupplierScrapeJobFilters,
-    SupplierScrapeJobListResponse,
-    StartSupplierScrapePayload,
-    ScrapedSupplier,
-    ScrapedSupplierFilters,
-    ScrapedSupplierListResponse,
     ApproveScrapedSupplierPayload,
-    DiscardScrapedSupplierPayload,
+    AuditLogEntry,
+    AuditLogFilters,
+    AuditLogResponse,
+    CompaniesHouseLookupResponse,
     CompanyApprovalFilters,
     CompanyApprovalItem,
     CompanyApprovalResponse,
-    CompaniesHouseLookupResponse,
-    CursorPaginatedResponse,
     CreateWebhookPayload,
+    CursorPaginatedResponse,
+    DiscardScrapedSupplierPayload,
     ListWebhookDeliveriesParams,
     ListWebhooksParams,
+    ModelTrainingJob,
+    ModelTrainingJobFilters,
+    ModelTrainingJobListResponse,
+    ScrapedSupplier,
+    ScrapedSupplierFilters,
+    ScrapedSupplierListResponse,
+    StartAiTrainingPayload,
+    StartSupplierScrapePayload,
+    SupplierApplicationAuditLogResponse,
     SupplierApplicationFilters,
     SupplierApplicationItem,
-    SupplierApplicationAuditLogResponse,
     SupplierApplicationResponse,
+    SupplierScrapeJob,
+    SupplierScrapeJobFilters,
+    SupplierScrapeJobListResponse,
     UpdateRolePayload,
     UpdateWebhookPayload,
+    UploadAiTrainingDatasetPayload,
+    UploadAiTrainingDatasetResponse,
     WebhookDeliveryItem,
     WebhookSubscriptionItem,
     WebhookTestPayload,
 } from '@/types/admin';
+import { parseEnvelope, sanitizeQuery } from './api-helpers';
 
 interface PaginatedEnvelope<T> {
     items?: T[];
@@ -59,7 +64,9 @@ export class AdminConsoleApi extends BaseAPI {
         super(configuration);
     }
 
-    async analyticsOverview(initOverrides?: RequestInit | InitOverrideFunction): Promise<AdminAnalyticsOverview> {
+    async analyticsOverview(
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<AdminAnalyticsOverview> {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -73,7 +80,9 @@ export class AdminConsoleApi extends BaseAPI {
         return parseEnvelope<AdminAnalyticsOverview>(response);
     }
 
-    async aiUsageMetrics(initOverrides?: RequestInit | InitOverrideFunction): Promise<AiAdminUsageMetrics> {
+    async aiUsageMetrics(
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<AiAdminUsageMetrics> {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -84,7 +93,9 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<{ metrics: AiAdminUsageMetrics }>(response);
+        const data = await parseEnvelope<{ metrics: AiAdminUsageMetrics }>(
+            response,
+        );
 
         return data.metrics;
     }
@@ -155,7 +166,8 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<AuditLogEntry>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<AuditLogEntry>>(response);
 
         return {
             items: data.items ?? [],
@@ -186,7 +198,8 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<AiEventEntry>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<AiEventEntry>>(response);
 
         return {
             items: data.items ?? [],
@@ -216,7 +229,10 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<AiModelMetricEntry>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<AiModelMetricEntry>>(
+                response,
+            );
 
         return {
             items: data.items ?? [],
@@ -250,7 +266,8 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<ModelTrainingJob>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<ModelTrainingJob>>(response);
 
         return {
             items: data.items ?? [],
@@ -281,6 +298,40 @@ export class AdminConsoleApi extends BaseAPI {
         const data = await parseEnvelope<{ job: ModelTrainingJob }>(response);
 
         return data.job;
+    }
+
+    async uploadAiTrainingDataset(
+        payload: UploadAiTrainingDatasetPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<UploadAiTrainingDatasetResponse> {
+        const headers: HTTPHeaders = {};
+        const formData = new FormData();
+        formData.set('company_id', String(payload.companyId));
+        formData.set('dataset', payload.dataset);
+
+        const response = await this.request(
+            {
+                path: '/api/v1/admin/ai-training/datasets',
+                method: 'POST',
+                headers,
+                body: formData,
+            },
+            initOverrides,
+        );
+
+        const data = await parseEnvelope<{
+            dataset_upload_id: string;
+            filename: string;
+            size_bytes: number | null;
+            stored_path?: string;
+        }>(response);
+
+        return {
+            datasetUploadId: data.dataset_upload_id,
+            filename: data.filename,
+            sizeBytes: data.size_bytes ?? null,
+            storedPath: data.stored_path,
+        } satisfies UploadAiTrainingDatasetResponse;
     }
 
     async getAiTrainingJob(
@@ -345,7 +396,8 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<SupplierScrapeJob>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<SupplierScrapeJob>>(response);
 
         return {
             items: data.items ?? [],
@@ -410,7 +462,8 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<ScrapedSupplier>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<ScrapedSupplier>>(response);
 
         return {
             items: data.items ?? [],
@@ -436,7 +489,9 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<{ scraped_supplier: ScrapedSupplier }>(response);
+        const data = await parseEnvelope<{ scraped_supplier: ScrapedSupplier }>(
+            response,
+        );
 
         return data.scraped_supplier;
     }
@@ -446,7 +501,8 @@ export class AdminConsoleApi extends BaseAPI {
         payload: DiscardScrapedSupplierPayload = {},
         initOverrides?: RequestInit | InitOverrideFunction,
     ): Promise<ScrapedSupplier> {
-        const hasNotes = typeof payload.notes === 'string' && payload.notes.trim() !== '';
+        const hasNotes =
+            typeof payload.notes === 'string' && payload.notes.trim() !== '';
         const headers: HTTPHeaders = hasNotes
             ? {
                   'Content-Type': 'application/json',
@@ -463,7 +519,9 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<{ scraped_supplier: ScrapedSupplier }>(response);
+        const data = await parseEnvelope<{ scraped_supplier: ScrapedSupplier }>(
+            response,
+        );
 
         return data.scraped_supplier;
     }
@@ -488,7 +546,10 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<CompanyApprovalItem>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<CompanyApprovalItem>>(
+                response,
+            );
 
         return {
             items: data.items ?? [],
@@ -534,7 +595,10 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<SupplierApplicationItem>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<SupplierApplicationItem>>(
+                response,
+            );
 
         return {
             items: data.items ?? [],
@@ -568,7 +632,10 @@ export class AdminConsoleApi extends BaseAPI {
         } satisfies SupplierApplicationAuditLogResponse;
     }
 
-    async approveCompany(companyId: number, initOverrides?: RequestInit | InitOverrideFunction): Promise<CompanyApprovalItem> {
+    async approveCompany(
+        companyId: number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<CompanyApprovalItem> {
         const headers: HTTPHeaders = {};
 
         const response = await this.request(
@@ -612,7 +679,8 @@ export class AdminConsoleApi extends BaseAPI {
         payload?: { notes?: string | null },
         initOverrides?: RequestInit | InitOverrideFunction,
     ): Promise<SupplierApplicationItem> {
-        const noteValue = typeof payload?.notes === 'string' ? payload.notes.trim() : '';
+        const noteValue =
+            typeof payload?.notes === 'string' ? payload.notes.trim() : '';
         const hasNotes = noteValue.length > 0;
         const headers: HTTPHeaders = hasNotes
             ? {
@@ -698,7 +766,10 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<WebhookSubscriptionItem>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<WebhookSubscriptionItem>>(
+                response,
+            );
 
         return {
             items: data.items ?? [],
@@ -719,12 +790,18 @@ export class AdminConsoleApi extends BaseAPI {
                 path: '/api/admin/webhook-subscriptions',
                 method: 'POST',
                 headers,
-                body: buildWebhookPayload(payload, { requireCompanyId: true, requireUrl: true, requireEvents: true }),
+                body: buildWebhookPayload(payload, {
+                    requireCompanyId: true,
+                    requireUrl: true,
+                    requireEvents: true,
+                }),
             },
             initOverrides,
         );
 
-        const data = await parseEnvelope<{ subscription: WebhookSubscriptionItem }>(response);
+        const data = await parseEnvelope<{
+            subscription: WebhookSubscriptionItem;
+        }>(response);
         return data.subscription;
     }
 
@@ -747,11 +824,16 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<{ subscription: WebhookSubscriptionItem }>(response);
+        const data = await parseEnvelope<{
+            subscription: WebhookSubscriptionItem;
+        }>(response);
         return data.subscription;
     }
 
-    async deleteWebhook(subscriptionId: string, initOverrides?: RequestInit | InitOverrideFunction): Promise<void> {
+    async deleteWebhook(
+        subscriptionId: string,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<void> {
         const headers: HTTPHeaders = {};
 
         const response = await this.request(
@@ -788,7 +870,10 @@ export class AdminConsoleApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<WebhookDeliveryItem>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<WebhookDeliveryItem>>(
+                response,
+            );
 
         return {
             items: data.items ?? [],
@@ -796,7 +881,10 @@ export class AdminConsoleApi extends BaseAPI {
         };
     }
 
-    async retryWebhookDelivery(deliveryId: string, initOverrides?: RequestInit | InitOverrideFunction): Promise<void> {
+    async retryWebhookDelivery(
+        deliveryId: string,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<void> {
         const headers: HTTPHeaders = {};
 
         const response = await this.request(
@@ -811,7 +899,9 @@ export class AdminConsoleApi extends BaseAPI {
         await parseEnvelope(response);
     }
 
-    private normalizeTrainingPayload(payload: StartAiTrainingPayload): Record<string, unknown> {
+    private normalizeTrainingPayload(
+        payload: StartAiTrainingPayload,
+    ): Record<string, unknown> {
         const rawBody = {
             feature: payload.feature,
             company_id: payload.companyId,
@@ -823,21 +913,26 @@ export class AdminConsoleApi extends BaseAPI {
             parameters: payload.parameters,
         } satisfies Record<string, unknown>;
 
-        return Object.entries(rawBody).reduce<Record<string, unknown>>((acc, [key, value]) => {
-            if (value === undefined || value === null) {
-                return acc;
-            }
+        return Object.entries(rawBody).reduce<Record<string, unknown>>(
+            (acc, [key, value]) => {
+                if (value === undefined || value === null) {
+                    return acc;
+                }
 
-            if (typeof value === 'string' && value.trim() === '') {
-                return acc;
-            }
+                if (typeof value === 'string' && value.trim() === '') {
+                    return acc;
+                }
 
-            acc[key] = value;
-            return acc;
-        }, {});
+                acc[key] = value;
+                return acc;
+            },
+            {},
+        );
     }
 
-    private buildApproveScrapedSupplierFormData(payload: ApproveScrapedSupplierPayload): FormData {
+    private buildApproveScrapedSupplierFormData(
+        payload: ApproveScrapedSupplierPayload,
+    ): FormData {
         const formData = new FormData();
         formData.set('name', payload.name);
 
@@ -848,9 +943,17 @@ export class AdminConsoleApi extends BaseAPI {
         this.appendScalarField(formData, 'city', payload.city);
         this.appendScalarField(formData, 'state', payload.state);
         this.appendScalarField(formData, 'country', payload.country);
-        this.appendScalarField(formData, 'product_summary', payload.productSummary);
+        this.appendScalarField(
+            formData,
+            'product_summary',
+            payload.productSummary,
+        );
         this.appendScalarField(formData, 'notes', payload.notes);
-        this.appendScalarField(formData, 'lead_time_days', payload.leadTimeDays);
+        this.appendScalarField(
+            formData,
+            'lead_time_days',
+            payload.leadTimeDays,
+        );
         this.appendScalarField(formData, 'moq', payload.moq);
 
         if (payload.attachment) {
@@ -861,23 +964,59 @@ export class AdminConsoleApi extends BaseAPI {
             formData.set('attachment_type', payload.attachmentType);
         }
 
-        this.appendArrayField(formData, 'certifications[]', payload.certifications);
+        this.appendArrayField(
+            formData,
+            'certifications[]',
+            payload.certifications,
+        );
 
         const capabilities = payload.capabilities;
         if (capabilities) {
-            this.appendArrayField(formData, 'capabilities[methods][]', capabilities.methods);
-            this.appendArrayField(formData, 'capabilities[materials][]', capabilities.materials);
-            this.appendArrayField(formData, 'capabilities[finishes][]', capabilities.finishes);
-            this.appendArrayField(formData, 'capabilities[industries][]', capabilities.industries);
-            this.appendArrayField(formData, 'capabilities[tolerances][]', capabilities.tolerances);
-            this.appendScalarField(formData, 'capabilities[price_band]', capabilities.priceBand);
-            this.appendScalarField(formData, 'capabilities[summary]', capabilities.summary);
+            this.appendArrayField(
+                formData,
+                'capabilities[methods][]',
+                capabilities.methods,
+            );
+            this.appendArrayField(
+                formData,
+                'capabilities[materials][]',
+                capabilities.materials,
+            );
+            this.appendArrayField(
+                formData,
+                'capabilities[finishes][]',
+                capabilities.finishes,
+            );
+            this.appendArrayField(
+                formData,
+                'capabilities[industries][]',
+                capabilities.industries,
+            );
+            this.appendArrayField(
+                formData,
+                'capabilities[tolerances][]',
+                capabilities.tolerances,
+            );
+            this.appendScalarField(
+                formData,
+                'capabilities[price_band]',
+                capabilities.priceBand,
+            );
+            this.appendScalarField(
+                formData,
+                'capabilities[summary]',
+                capabilities.summary,
+            );
         }
 
         return formData;
     }
 
-    private appendScalarField(formData: FormData, key: string, value: unknown): void {
+    private appendScalarField(
+        formData: FormData,
+        key: string,
+        value: unknown,
+    ): void {
         if (value === undefined || value === null) {
             return;
         }
@@ -915,7 +1054,8 @@ export class AdminConsoleApi extends BaseAPI {
                 return;
             }
 
-            const stringValue = typeof value === 'string' ? value.trim() : String(value);
+            const stringValue =
+                typeof value === 'string' ? value.trim() : String(value);
             if (stringValue === '') {
                 return;
             }

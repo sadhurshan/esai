@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,35 +12,31 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { UpdateGrnRequestLinesInner } from './UpdateGrnRequestLinesInner';
 import {
     UpdateGrnRequestLinesInnerFromJSON,
-    UpdateGrnRequestLinesInnerFromJSONTyped,
     UpdateGrnRequestLinesInnerToJSON,
-    UpdateGrnRequestLinesInnerToJSONTyped,
 } from './UpdateGrnRequestLinesInner';
 
 /**
- * 
+ *
  * @export
  * @interface UpdateGrnRequest
  */
 export interface UpdateGrnRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateGrnRequest
      */
     status?: UpdateGrnRequestStatusEnum;
     /**
-     * 
+     *
      * @type {Array<UpdateGrnRequestLinesInner>}
      * @memberof UpdateGrnRequest
      */
     lines?: Array<UpdateGrnRequestLinesInner>;
 }
-
 
 /**
  * @export
@@ -49,15 +45,17 @@ export const UpdateGrnRequestStatusEnum = {
     Draft: 'draft',
     Inspecting: 'inspecting',
     Accepted: 'accepted',
-    Rejected: 'rejected'
+    Rejected: 'rejected',
 } as const;
-export type UpdateGrnRequestStatusEnum = typeof UpdateGrnRequestStatusEnum[keyof typeof UpdateGrnRequestStatusEnum];
-
+export type UpdateGrnRequestStatusEnum =
+    (typeof UpdateGrnRequestStatusEnum)[keyof typeof UpdateGrnRequestStatusEnum];
 
 /**
  * Check if a given object implements the UpdateGrnRequest interface.
  */
-export function instanceOfUpdateGrnRequest(value: object): value is UpdateGrnRequest {
+export function instanceOfUpdateGrnRequest(
+    value: object,
+): value is UpdateGrnRequest {
     return true;
 }
 
@@ -65,14 +63,21 @@ export function UpdateGrnRequestFromJSON(json: any): UpdateGrnRequest {
     return UpdateGrnRequestFromJSONTyped(json, false);
 }
 
-export function UpdateGrnRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateGrnRequest {
+export function UpdateGrnRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateGrnRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'] == null ? undefined : json['status'],
-        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(UpdateGrnRequestLinesInnerFromJSON)),
+        status: json['status'] == null ? undefined : json['status'],
+        lines:
+            json['lines'] == null
+                ? undefined
+                : (json['lines'] as Array<any>).map(
+                      UpdateGrnRequestLinesInnerFromJSON,
+                  ),
     };
 }
 
@@ -80,15 +85,21 @@ export function UpdateGrnRequestToJSON(json: any): UpdateGrnRequest {
     return UpdateGrnRequestToJSONTyped(json, false);
 }
 
-export function UpdateGrnRequestToJSONTyped(value?: UpdateGrnRequest | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateGrnRequestToJSONTyped(
+    value?: UpdateGrnRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(UpdateGrnRequestLinesInnerToJSON)),
+        status: value['status'],
+        lines:
+            value['lines'] == null
+                ? undefined
+                : (value['lines'] as Array<any>).map(
+                      UpdateGrnRequestLinesInnerToJSON,
+                  ),
     };
 }
-

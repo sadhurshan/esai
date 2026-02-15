@@ -14,7 +14,7 @@ Add corresponding Eloquent models: SupplierScrapeJob and ScrapedSupplier, includ
 Prompt
 
 "In ai_microservice/, create supplier_scraper.py with a class SupplierScraper containing methods:
-• scrape_suppliers(query: str, region: str | None, max_results: int) -> list[dict] – uses a search API (e.g. Bing or Google Custom Search via requests) to fetch business websites related to the query/region; then for each result, fetch the page and use the existing LLM provider to extract structured information (name, address, products, contact info) via a prompt like ‘Extract supplier profile from this webpage:…’. Respect robots.txt by skipping disallowed domains.
+• scrape_suppliers(query: str, region: str | None, max_results: int) -> list[dict] – uses Vertex AI Search (Discovery Engine) to fetch business websites related to the query/region; then for each result, fetch the page and use the existing LLM provider to extract structured information (name, address, products, contact info) via a prompt like ‘Extract supplier profile from this webpage:…’. Respect robots.txt by skipping disallowed domains.
 • Handle rate limiting and errors gracefully; return a confidence score per site.
 Add FastAPI endpoints in app.py:
 • POST /scrape/suppliers accepts ScrapeSuppliersRequest with query, region, and max_results; enqueues a background task and returns a job ID.

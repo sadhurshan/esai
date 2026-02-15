@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { Invoice } from './Invoice';
-import {
-    InvoiceFromJSON,
-    InvoiceFromJSONTyped,
-    InvoiceToJSON,
-    InvoiceToJSONTyped,
-} from './Invoice';
+import { InvoiceFromJSON, InvoiceToJSON } from './Invoice';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 
 /**
- * 
+ *
  * @export
  * @interface InvoiceCollection
  */
 export interface InvoiceCollection {
     /**
-     * 
+     *
      * @type {Array<Invoice>}
      * @memberof InvoiceCollection
      */
     items: Array<Invoice>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof InvoiceCollection
      */
@@ -51,7 +40,9 @@ export interface InvoiceCollection {
 /**
  * Check if a given object implements the InvoiceCollection interface.
  */
-export function instanceOfInvoiceCollection(value: object): value is InvoiceCollection {
+export function instanceOfInvoiceCollection(
+    value: object,
+): value is InvoiceCollection {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
@@ -61,14 +52,16 @@ export function InvoiceCollectionFromJSON(json: any): InvoiceCollection {
     return InvoiceCollectionFromJSONTyped(json, false);
 }
 
-export function InvoiceCollectionFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceCollection {
+export function InvoiceCollectionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceCollection {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(InvoiceFromJSON)),
-        'meta': PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(InvoiceFromJSON),
+        meta: PageMetaFromJSON(json['meta']),
     };
 }
 
@@ -76,15 +69,16 @@ export function InvoiceCollectionToJSON(json: any): InvoiceCollection {
     return InvoiceCollectionToJSONTyped(json, false);
 }
 
-export function InvoiceCollectionToJSONTyped(value?: InvoiceCollection | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceCollectionToJSONTyped(
+    value?: InvoiceCollection | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(InvoiceToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(InvoiceToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

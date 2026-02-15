@@ -1,27 +1,40 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
+import { NumberingRuleEditor } from '@/components/settings/numbering-rule-editor';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { publishToast } from '@/components/ui/use-toast';
-import { NumberingRuleEditor } from '@/components/settings/numbering-rule-editor';
 import { useAuth } from '@/contexts/auth-context';
 import {
     useNumberingSettings,
     useUpdateNumberingSettings,
     type UpdateNumberingSettingsInput,
 } from '@/hooks/api/settings';
-import type { NumberingRule, NumberingSettings } from '@/types/settings';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import type { NumberingRule, NumberingSettings } from '@/types/settings';
 
-const DOC_KEYS: Array<keyof NumberingSettings> = ['rfq', 'quote', 'po', 'invoice', 'grn', 'credit'];
+const DOC_KEYS: Array<keyof NumberingSettings> = [
+    'rfq',
+    'quote',
+    'po',
+    'invoice',
+    'grn',
+    'credit',
+];
 
 type FormRule = NumberingRule & { sample?: string | null };
 
@@ -31,12 +44,18 @@ const ruleSchema = z.object({
         .max(12, 'Prefixes cannot exceed 12 characters.')
         .default(''),
     sequenceLength: z
-        .number({ required_error: 'Sequence length is required.', invalid_type_error: 'Sequence length is required.' })
+        .number({
+            required_error: 'Sequence length is required.',
+            invalid_type_error: 'Sequence length is required.',
+        })
         .int('Sequence length must be a whole number.')
         .min(3, 'Minimum length is 3.')
         .max(10, 'Maximum length is 10.'),
     next: z
-        .number({ required_error: 'Next number is required.', invalid_type_error: 'Next number is required.' })
+        .number({
+            required_error: 'Next number is required.',
+            invalid_type_error: 'Next number is required.',
+        })
         .int('Next value must be a whole number.')
         .min(1, 'Next number must be at least 1.'),
     reset: z.enum(['never', 'yearly']),
@@ -60,19 +79,38 @@ type DocumentMeta = {
 };
 
 const DOC_META: Record<keyof NumberingSettings, DocumentMeta> = {
-    rfq: { label: 'RFQs', description: 'Requests for Quote share this pattern.' },
-    quote: { label: 'Quotes', description: 'Supplier quotes inherit this numbering sequence.' },
-    po: { label: 'Purchase Orders', description: 'Applied to buyer-issued POs.' },
-    invoice: { label: 'Invoices', description: 'Used when billing customers and internal AP.' },
-    grn: { label: 'Goods Receipts', description: 'Receiving documents and inspection logs.' },
-    credit: { label: 'Credit Notes', description: 'Refund or correction documents reference this rule.' },
+    rfq: {
+        label: 'RFQs',
+        description: 'Requests for Quote share this pattern.',
+    },
+    quote: {
+        label: 'Quotes',
+        description: 'Supplier quotes inherit this numbering sequence.',
+    },
+    po: {
+        label: 'Purchase Orders',
+        description: 'Applied to buyer-issued POs.',
+    },
+    invoice: {
+        label: 'Invoices',
+        description: 'Used when billing customers and internal AP.',
+    },
+    grn: {
+        label: 'Goods Receipts',
+        description: 'Receiving documents and inspection logs.',
+    },
+    credit: {
+        label: 'Credit Notes',
+        description: 'Refund or correction documents reference this rule.',
+    },
 };
 
-const SECTIONS: Array<{ title: string; docs: Array<keyof NumberingSettings> }> = [
-    { title: 'Sourcing', docs: ['rfq', 'quote'] },
-    { title: 'Purchasing & Receiving', docs: ['po', 'grn'] },
-    { title: 'Finance', docs: ['invoice', 'credit'] },
-];
+const SECTIONS: Array<{ title: string; docs: Array<keyof NumberingSettings> }> =
+    [
+        { title: 'Sourcing', docs: ['rfq', 'quote'] },
+        { title: 'Purchasing & Receiving', docs: ['po', 'grn'] },
+        { title: 'Finance', docs: ['invoice', 'credit'] },
+    ];
 
 const FALLBACK_RULE: FormRule = {
     prefix: '',
@@ -103,7 +141,9 @@ function toFormValues(settings?: NumberingSettings): NumberingFormValues {
     }, {} as NumberingFormValues);
 }
 
-function buildPayload(values: NumberingFormValues): UpdateNumberingSettingsInput {
+function buildPayload(
+    values: NumberingFormValues,
+): UpdateNumberingSettingsInput {
     return DOC_KEYS.reduce((acc, key) => {
         const rule = values[key];
         acc[key] = {
@@ -128,7 +168,9 @@ function padSample(rule?: FormRule): string {
         return 'PFX-0001';
     }
 
-    const next = Number.isFinite(rule.next) ? Math.max(1, Math.trunc(rule.next)) : 1;
+    const next = Number.isFinite(rule.next)
+        ? Math.max(1, Math.trunc(rule.next))
+        : 1;
     const padding = Math.max(3, Math.min(10, rule.sequenceLength ?? 3));
     const padded = String(next).padStart(padding, '0');
     return `${rule.prefix ?? ''}${padded}`;
@@ -138,7 +180,9 @@ function buildPreview(values: NumberingFormValues): PreviewRow[] {
     return DOC_KEYS.map((key) => {
         const rule = values[key];
         const sample = padSample(rule);
-        const overflow = rule.sequenceLength ? String(rule.next ?? '').length > rule.sequenceLength : false;
+        const overflow = rule.sequenceLength
+            ? String(rule.next ?? '').length > rule.sequenceLength
+            : false;
         return {
             key,
             sample,
@@ -166,7 +210,9 @@ export function NumberingSettingsPage() {
         }
     }, [numberingQuery.data, form]);
 
-    const watchedValues = (useWatch<NumberingFormValues>({ control: form.control }) ?? form.getValues()) as NumberingFormValues;
+    const watchedValues = (useWatch<NumberingFormValues>({
+        control: form.control,
+    }) ?? form.getValues()) as NumberingFormValues;
     const preview = useMemo(() => buildPreview(watchedValues), [watchedValues]);
 
     const handleSubmit = form.handleSubmit(async (values) => {
@@ -175,14 +221,16 @@ export function NumberingSettingsPage() {
             publishToast({
                 variant: 'success',
                 title: 'Numbering rules saved',
-                description: 'New documents will now follow the updated numbering patterns.',
+                description:
+                    'New documents will now follow the updated numbering patterns.',
             });
         } catch (error) {
             void error;
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to save numbering rules',
-                description: 'Please resolve the highlighted fields and try again.',
+                description:
+                    'Please resolve the highlighted fields and try again.',
             });
         }
     });
@@ -199,17 +247,25 @@ export function NumberingSettingsPage() {
                 <title>Numbering settings · Elements Supply</title>
             </Helmet>
             <div>
-                <p className="text-sm text-muted-foreground">Workspace · Settings</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Document numbering</h1>
                 <p className="text-sm text-muted-foreground">
-                    Align RFQs, purchase orders, invoices, and receiving docs with the prefixes and reset cadences your ERP expects.
+                    Workspace · Settings
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Document numbering
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Align RFQs, purchase orders, invoices, and receiving docs
+                    with the prefixes and reset cadences your ERP expects.
                 </p>
             </div>
             {isLoading ? (
                 <Skeleton className="h-96 w-full" />
             ) : (
                 <Form {...form}>
-                    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid gap-6 lg:grid-cols-[2fr_1fr]"
+                    >
                         <div className="space-y-6">
                             {SECTIONS.map((section) => (
                                 <Card key={section.title}>
@@ -223,14 +279,24 @@ export function NumberingSettingsPage() {
                                                 control={form.control}
                                                 name={docKey}
                                                 label={DOC_META[docKey].label}
-                                                description={DOC_META[docKey].description}
+                                                description={
+                                                    DOC_META[docKey].description
+                                                }
                                             />
                                         ))}
                                     </CardContent>
-                                    {section.docs[section.docs.length - 1] === 'credit' ? (
+                                    {section.docs[section.docs.length - 1] ===
+                                    'credit' ? (
                                         <CardFooter className="justify-end">
-                                            <Button type="submit" disabled={updateNumbering.isPending}>
-                                                {updateNumbering.isPending ? 'Saving…' : 'Save numbering rules'}
+                                            <Button
+                                                type="submit"
+                                                disabled={
+                                                    updateNumbering.isPending
+                                                }
+                                            >
+                                                {updateNumbering.isPending
+                                                    ? 'Saving…'
+                                                    : 'Save numbering rules'}
                                             </Button>
                                         </CardFooter>
                                     ) : null}
@@ -244,19 +310,38 @@ export function NumberingSettingsPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-3 text-sm">
                                     {preview.map((row) => (
-                                        <div key={row.key} className="rounded-lg border p-3">
+                                        <div
+                                            key={row.key}
+                                            className="rounded-lg border p-3"
+                                        >
                                             <div className="flex items-center justify-between gap-2">
                                                 <div>
-                                                    <p className="font-medium">{DOC_META[row.key].label}</p>
-                                                    <p className="text-xs text-muted-foreground">{DOC_META[row.key].description}</p>
+                                                    <p className="font-medium">
+                                                        {
+                                                            DOC_META[row.key]
+                                                                .label
+                                                        }
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {
+                                                            DOC_META[row.key]
+                                                                .description
+                                                        }
+                                                    </p>
                                                 </div>
                                                 <Badge variant="outline">
-                                                    {row.reset === 'yearly' ? 'Resets yearly' : 'Continuous'}
+                                                    {row.reset === 'yearly'
+                                                        ? 'Resets yearly'
+                                                        : 'Continuous'}
                                                 </Badge>
                                             </div>
-                                            <p className="mt-2 font-mono text-lg">{row.sample}</p>
+                                            <p className="mt-2 font-mono text-lg">
+                                                {row.sample}
+                                            </p>
                                             {row.warning ? (
-                                                <p className="text-xs text-destructive">{row.warning}</p>
+                                                <p className="text-xs text-destructive">
+                                                    {row.warning}
+                                                </p>
                                             ) : null}
                                         </div>
                                     ))}
@@ -268,16 +353,32 @@ export function NumberingSettingsPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-3 text-sm text-muted-foreground">
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Sequence padding</Label>
-                                        <p>Use at least 4 digits so yearly volumes do not collide.</p>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Sequence padding
+                                        </Label>
+                                        <p>
+                                            Use at least 4 digits so yearly
+                                            volumes do not collide.
+                                        </p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Prefixes</Label>
-                                        <p>Keep prefixes short (≤12 characters) to avoid truncated document titles.</p>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Prefixes
+                                        </Label>
+                                        <p>
+                                            Keep prefixes short (≤12 characters)
+                                            to avoid truncated document titles.
+                                        </p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Reset cadence</Label>
-                                        <p>Select yearly resets if accounting requires {`YYYY-0001`} style sequences.</p>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Reset cadence
+                                        </Label>
+                                        <p>
+                                            Select yearly resets if accounting
+                                            requires {`YYYY-0001`} style
+                                            sequences.
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>

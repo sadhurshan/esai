@@ -1,8 +1,8 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
-import { queryKeys } from '@/lib/queryKeys';
 import { toCursorMeta, type CursorPaginationMeta } from '@/lib/pagination';
+import { queryKeys } from '@/lib/queryKeys';
 import type {
     PermissionDefinition,
     PermissionGroup,
@@ -56,15 +56,19 @@ function mapRoleTemplate(payload: ApiRoleTemplate): RoleTemplate {
         slug: payload.slug,
         name: payload.name,
         description: payload.description ?? null,
-        permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+        permissions: Array.isArray(payload.permissions)
+            ? payload.permissions
+            : [],
         isSystem: Boolean(payload.is_system),
     };
 }
 
-function mapPermissionDefinition(payload: ApiPermissionDefinition): PermissionDefinition {
+function mapPermissionDefinition(
+    payload: ApiPermissionDefinition,
+): PermissionDefinition {
     return {
         key: payload.key ?? '',
-        label: payload.label ?? (payload.key ?? ''),
+        label: payload.label ?? payload.key ?? '',
         description: payload.description ?? null,
         level: payload.level ?? null,
         domain: payload.domain ?? null,
@@ -74,7 +78,7 @@ function mapPermissionDefinition(payload: ApiPermissionDefinition): PermissionDe
 function mapPermissionGroup(payload: ApiPermissionGroup): PermissionGroup {
     return {
         id: payload.id ?? '',
-        label: payload.label ?? (payload.id ?? ''),
+        label: payload.label ?? payload.id ?? '',
         description: payload.description ?? null,
         permissions: Array.isArray(payload.permissions)
             ? payload.permissions.map(mapPermissionDefinition)
@@ -82,8 +86,12 @@ function mapPermissionGroup(payload: ApiPermissionGroup): PermissionGroup {
     };
 }
 
-function normalizeResponse(response: RoleTemplateResponse): RoleTemplateQueryResult {
-    const source = Array.isArray(response.items) ? response.items : response.roles;
+function normalizeResponse(
+    response: RoleTemplateResponse,
+): RoleTemplateQueryResult {
+    const source = Array.isArray(response.items)
+        ? response.items
+        : response.roles;
 
     const roles = Array.isArray(source) ? source.map(mapRoleTemplate) : [];
     const permissionGroups = Array.isArray(response.permission_groups)
@@ -94,7 +102,7 @@ function normalizeResponse(response: RoleTemplateResponse): RoleTemplateQueryRes
 }
 
 export function useCompanyRoleTemplates(
-    params: UseCompanyRoleTemplatesParams = {}
+    params: UseCompanyRoleTemplatesParams = {},
 ): UseQueryResult<RoleTemplateQueryResult, ApiError> {
     const query = buildQuery({
         cursor: params.cursor ?? undefined,
@@ -107,7 +115,9 @@ export function useCompanyRoleTemplates(
             perPage: params.perPage ?? null,
         }),
         queryFn: async () => {
-            const response = await api.get<RoleTemplateResponse>(`/company-role-templates${query}`);
+            const response = await api.get<RoleTemplateResponse>(
+                `/company-role-templates${query}`,
+            );
             return normalizeResponse(response as RoleTemplateResponse);
         },
         staleTime: 30_000,

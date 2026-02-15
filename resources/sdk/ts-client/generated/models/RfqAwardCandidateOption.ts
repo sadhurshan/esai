@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,101 +12,98 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RfqAwardCandidateExistingAward } from './RfqAwardCandidateExistingAward';
 import {
     RfqAwardCandidateExistingAwardFromJSON,
-    RfqAwardCandidateExistingAwardFromJSONTyped,
     RfqAwardCandidateExistingAwardToJSON,
-    RfqAwardCandidateExistingAwardToJSONTyped,
 } from './RfqAwardCandidateExistingAward';
 
 /**
- * 
+ *
  * @export
  * @interface RfqAwardCandidateOption
  */
 export interface RfqAwardCandidateOption {
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     quoteId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     quoteItemId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     supplierId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateOption
      */
     supplierName?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     unitPriceMinor: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateOption
      */
     unitPriceCurrency: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     convertedUnitPriceMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateOption
      */
     convertedCurrency: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof RfqAwardCandidateOption
      */
     conversionUnavailable?: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     leadTimeDays?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateOption
      */
     quoteRevision?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateOption
      */
     quoteStatus?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RfqAwardCandidateOption
      */
     submittedAt?: Date;
     /**
-     * 
+     *
      * @type {RfqAwardCandidateExistingAward}
      * @memberof RfqAwardCandidateOption
      */
@@ -116,67 +113,106 @@ export interface RfqAwardCandidateOption {
 /**
  * Check if a given object implements the RfqAwardCandidateOption interface.
  */
-export function instanceOfRfqAwardCandidateOption(value: object): value is RfqAwardCandidateOption {
+export function instanceOfRfqAwardCandidateOption(
+    value: object,
+): value is RfqAwardCandidateOption {
     if (!('quoteId' in value) || value['quoteId'] === undefined) return false;
-    if (!('quoteItemId' in value) || value['quoteItemId'] === undefined) return false;
-    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined) return false;
-    if (!('unitPriceCurrency' in value) || value['unitPriceCurrency'] === undefined) return false;
-    if (!('convertedCurrency' in value) || value['convertedCurrency'] === undefined) return false;
+    if (!('quoteItemId' in value) || value['quoteItemId'] === undefined)
+        return false;
+    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined)
+        return false;
+    if (
+        !('unitPriceCurrency' in value) ||
+        value['unitPriceCurrency'] === undefined
+    )
+        return false;
+    if (
+        !('convertedCurrency' in value) ||
+        value['convertedCurrency'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function RfqAwardCandidateOptionFromJSON(json: any): RfqAwardCandidateOption {
+export function RfqAwardCandidateOptionFromJSON(
+    json: any,
+): RfqAwardCandidateOption {
     return RfqAwardCandidateOptionFromJSONTyped(json, false);
 }
 
-export function RfqAwardCandidateOptionFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqAwardCandidateOption {
+export function RfqAwardCandidateOptionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqAwardCandidateOption {
     if (json == null) {
         return json;
     }
     return {
-        
-        'quoteId': json['quote_id'],
-        'quoteItemId': json['quote_item_id'],
-        'supplierId': json['supplier_id'] == null ? undefined : json['supplier_id'],
-        'supplierName': json['supplier_name'] == null ? undefined : json['supplier_name'],
-        'unitPriceMinor': json['unit_price_minor'],
-        'unitPriceCurrency': json['unit_price_currency'],
-        'convertedUnitPriceMinor': json['converted_unit_price_minor'] == null ? undefined : json['converted_unit_price_minor'],
-        'convertedCurrency': json['converted_currency'],
-        'conversionUnavailable': json['conversion_unavailable'] == null ? undefined : json['conversion_unavailable'],
-        'leadTimeDays': json['lead_time_days'] == null ? undefined : json['lead_time_days'],
-        'quoteRevision': json['quote_revision'] == null ? undefined : json['quote_revision'],
-        'quoteStatus': json['quote_status'] == null ? undefined : json['quote_status'],
-        'submittedAt': json['submitted_at'] == null ? undefined : (new Date(json['submitted_at'])),
-        'award': json['award'] == null ? undefined : RfqAwardCandidateExistingAwardFromJSON(json['award']),
+        quoteId: json['quote_id'],
+        quoteItemId: json['quote_item_id'],
+        supplierId:
+            json['supplier_id'] == null ? undefined : json['supplier_id'],
+        supplierName:
+            json['supplier_name'] == null ? undefined : json['supplier_name'],
+        unitPriceMinor: json['unit_price_minor'],
+        unitPriceCurrency: json['unit_price_currency'],
+        convertedUnitPriceMinor:
+            json['converted_unit_price_minor'] == null
+                ? undefined
+                : json['converted_unit_price_minor'],
+        convertedCurrency: json['converted_currency'],
+        conversionUnavailable:
+            json['conversion_unavailable'] == null
+                ? undefined
+                : json['conversion_unavailable'],
+        leadTimeDays:
+            json['lead_time_days'] == null ? undefined : json['lead_time_days'],
+        quoteRevision:
+            json['quote_revision'] == null ? undefined : json['quote_revision'],
+        quoteStatus:
+            json['quote_status'] == null ? undefined : json['quote_status'],
+        submittedAt:
+            json['submitted_at'] == null
+                ? undefined
+                : new Date(json['submitted_at']),
+        award:
+            json['award'] == null
+                ? undefined
+                : RfqAwardCandidateExistingAwardFromJSON(json['award']),
     };
 }
 
-export function RfqAwardCandidateOptionToJSON(json: any): RfqAwardCandidateOption {
+export function RfqAwardCandidateOptionToJSON(
+    json: any,
+): RfqAwardCandidateOption {
     return RfqAwardCandidateOptionToJSONTyped(json, false);
 }
 
-export function RfqAwardCandidateOptionToJSONTyped(value?: RfqAwardCandidateOption | null, ignoreDiscriminator: boolean = false): any {
+export function RfqAwardCandidateOptionToJSONTyped(
+    value?: RfqAwardCandidateOption | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'quote_id': value['quoteId'],
-        'quote_item_id': value['quoteItemId'],
-        'supplier_id': value['supplierId'],
-        'supplier_name': value['supplierName'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'unit_price_currency': value['unitPriceCurrency'],
-        'converted_unit_price_minor': value['convertedUnitPriceMinor'],
-        'converted_currency': value['convertedCurrency'],
-        'conversion_unavailable': value['conversionUnavailable'],
-        'lead_time_days': value['leadTimeDays'],
-        'quote_revision': value['quoteRevision'],
-        'quote_status': value['quoteStatus'],
-        'submitted_at': value['submittedAt'] == null ? value['submittedAt'] : value['submittedAt'].toISOString(),
-        'award': RfqAwardCandidateExistingAwardToJSON(value['award']),
+        quote_id: value['quoteId'],
+        quote_item_id: value['quoteItemId'],
+        supplier_id: value['supplierId'],
+        supplier_name: value['supplierName'],
+        unit_price_minor: value['unitPriceMinor'],
+        unit_price_currency: value['unitPriceCurrency'],
+        converted_unit_price_minor: value['convertedUnitPriceMinor'],
+        converted_currency: value['convertedCurrency'],
+        conversion_unavailable: value['conversionUnavailable'],
+        lead_time_days: value['leadTimeDays'],
+        quote_revision: value['quoteRevision'],
+        quote_status: value['quoteStatus'],
+        submitted_at:
+            value['submittedAt'] == null
+                ? value['submittedAt']
+                : value['submittedAt'].toISOString(),
+        award: RfqAwardCandidateExistingAwardToJSON(value['award']),
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,218 +12,202 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { GoodsReceiptNoteInspector } from './GoodsReceiptNoteInspector';
 import {
     GoodsReceiptNoteInspectorFromJSON,
-    GoodsReceiptNoteInspectorFromJSONTyped,
     GoodsReceiptNoteInspectorToJSON,
-    GoodsReceiptNoteInspectorToJSONTyped,
 } from './GoodsReceiptNoteInspector';
 import type { QuoteAttachmentsInner } from './QuoteAttachmentsInner';
 import {
     QuoteAttachmentsInnerFromJSON,
-    QuoteAttachmentsInnerFromJSONTyped,
     QuoteAttachmentsInnerToJSON,
-    QuoteAttachmentsInnerToJSONTyped,
 } from './QuoteAttachmentsInner';
-import type { QuoteRevision } from './QuoteRevision';
-import {
-    QuoteRevisionFromJSON,
-    QuoteRevisionFromJSONTyped,
-    QuoteRevisionToJSON,
-    QuoteRevisionToJSONTyped,
-} from './QuoteRevision';
 import type { QuoteItem } from './QuoteItem';
-import {
-    QuoteItemFromJSON,
-    QuoteItemFromJSONTyped,
-    QuoteItemToJSON,
-    QuoteItemToJSONTyped,
-} from './QuoteItem';
+import { QuoteItemFromJSON, QuoteItemToJSON } from './QuoteItem';
+import type { QuoteRevision } from './QuoteRevision';
+import { QuoteRevisionFromJSON, QuoteRevisionToJSON } from './QuoteRevision';
 
 /**
- * 
+ *
  * @export
  * @interface Quote
  */
 export interface Quote {
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     id: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     rfqId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     supplierId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     status: QuoteStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     currency: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     subtotal?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     subtotalMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     taxAmount?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     taxAmountMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     total?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     totalMinor: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     minOrderQty?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     leadTimeDays?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     note?: string;
-        /**
-         * 
-         * @type {string}
-         * @memberof Quote
-         */
-        incoterm?: string;
-        /**
-         * 
-         * @type {string}
-         * @memberof Quote
-         */
-        paymentTerms?: string;
     /**
-     * 
+     *
+     * @type {string}
+     * @memberof Quote
+     */
+    incoterm?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof Quote
+     */
+    paymentTerms?: string;
+    /**
+     *
      * @type {number}
      * @memberof Quote
      */
     revisionNo?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     submittedBy?: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Quote
      */
     submittedAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Quote
      */
     withdrawnAt?: Date;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Quote
      */
     withdrawReason?: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Quote
      */
     isShortlisted?: boolean;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Quote
      */
     shortlistedAt?: Date;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Quote
      */
     shortlistedBy?: number | null;
     /**
-     * 
+     *
      * @type {GoodsReceiptNoteInspector}
      * @memberof Quote
      */
     supplier?: GoodsReceiptNoteInspector;
     /**
-     * 
+     *
      * @type {Array<QuoteItem>}
      * @memberof Quote
      */
     items?: Array<QuoteItem>;
     /**
-     * 
+     *
      * @type {Array<QuoteAttachmentsInner>}
      * @memberof Quote
      */
     attachments?: Array<QuoteAttachmentsInner>;
     /**
-     * 
+     *
      * @type {Array<QuoteRevision>}
      * @memberof Quote
      */
     revisions?: Array<QuoteRevision>;
 }
-
 
 /**
  * @export
@@ -234,10 +218,10 @@ export const QuoteStatusEnum = {
     Awarded: 'awarded',
     Withdrawn: 'withdrawn',
     Expired: 'expired',
-    Lost: 'lost'
+    Lost: 'lost',
 } as const;
-export type QuoteStatusEnum = typeof QuoteStatusEnum[keyof typeof QuoteStatusEnum];
-
+export type QuoteStatusEnum =
+    (typeof QuoteStatusEnum)[keyof typeof QuoteStatusEnum];
 
 /**
  * Check if a given object implements the Quote interface.
@@ -245,10 +229,12 @@ export type QuoteStatusEnum = typeof QuoteStatusEnum[keyof typeof QuoteStatusEnu
 export function instanceOfQuote(value: object): value is Quote {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('rfqId' in value) || value['rfqId'] === undefined) return false;
-    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+    if (!('supplierId' in value) || value['supplierId'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
-    if (!('totalMinor' in value) || value['totalMinor'] === undefined) return false;
+    if (!('totalMinor' in value) || value['totalMinor'] === undefined)
+        return false;
     return true;
 }
 
@@ -256,41 +242,80 @@ export function QuoteFromJSON(json: any): Quote {
     return QuoteFromJSONTyped(json, false);
 }
 
-export function QuoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): Quote {
+export function QuoteFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): Quote {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'rfqId': json['rfq_id'],
-        'supplierId': json['supplier_id'],
-        'status': json['status'],
-        'currency': json['currency'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'subtotal': json['subtotal'] == null ? undefined : json['subtotal'],
-        'subtotalMinor': json['subtotal_minor'] == null ? undefined : json['subtotal_minor'],
-        'taxAmount': json['tax_amount'] == null ? undefined : json['tax_amount'],
-        'taxAmountMinor': json['tax_amount_minor'] == null ? undefined : json['tax_amount_minor'],
-        'total': json['total'] == null ? undefined : json['total'],
-        'totalMinor': json['total_minor'],
-        'minOrderQty': json['min_order_qty'] == null ? undefined : json['min_order_qty'],
-        'leadTimeDays': json['lead_time_days'] == null ? undefined : json['lead_time_days'],
-        'note': json['note'] == null ? undefined : json['note'],
-            'incoterm': json['incoterm'] == null ? undefined : json['incoterm'],
-            'paymentTerms': json['payment_terms'] == null ? undefined : json['payment_terms'],
-        'revisionNo': json['revision_no'] == null ? undefined : json['revision_no'],
-        'submittedBy': json['submitted_by'] == null ? undefined : json['submitted_by'],
-        'submittedAt': json['submitted_at'] == null ? undefined : (new Date(json['submitted_at'])),
-        'withdrawnAt': json['withdrawn_at'] == null ? undefined : (new Date(json['withdrawn_at'])),
-        'withdrawReason': json['withdraw_reason'] == null ? undefined : json['withdraw_reason'],
-        'isShortlisted': json['is_shortlisted'] == null ? undefined : json['is_shortlisted'],
-        'shortlistedAt': json['shortlisted_at'] == null ? undefined : (new Date(json['shortlisted_at'])),
-        'shortlistedBy': json['shortlisted_by'] == null ? undefined : json['shortlisted_by'],
-        'supplier': json['supplier'] == null ? undefined : GoodsReceiptNoteInspectorFromJSON(json['supplier']),
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(QuoteItemFromJSON)),
-        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(QuoteAttachmentsInnerFromJSON)),
-        'revisions': json['revisions'] == null ? undefined : ((json['revisions'] as Array<any>).map(QuoteRevisionFromJSON)),
+        id: json['id'],
+        rfqId: json['rfq_id'],
+        supplierId: json['supplier_id'],
+        status: json['status'],
+        currency: json['currency'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        subtotal: json['subtotal'] == null ? undefined : json['subtotal'],
+        subtotalMinor:
+            json['subtotal_minor'] == null ? undefined : json['subtotal_minor'],
+        taxAmount: json['tax_amount'] == null ? undefined : json['tax_amount'],
+        taxAmountMinor:
+            json['tax_amount_minor'] == null
+                ? undefined
+                : json['tax_amount_minor'],
+        total: json['total'] == null ? undefined : json['total'],
+        totalMinor: json['total_minor'],
+        minOrderQty:
+            json['min_order_qty'] == null ? undefined : json['min_order_qty'],
+        leadTimeDays:
+            json['lead_time_days'] == null ? undefined : json['lead_time_days'],
+        note: json['note'] == null ? undefined : json['note'],
+        incoterm: json['incoterm'] == null ? undefined : json['incoterm'],
+        paymentTerms:
+            json['payment_terms'] == null ? undefined : json['payment_terms'],
+        revisionNo:
+            json['revision_no'] == null ? undefined : json['revision_no'],
+        submittedBy:
+            json['submitted_by'] == null ? undefined : json['submitted_by'],
+        submittedAt:
+            json['submitted_at'] == null
+                ? undefined
+                : new Date(json['submitted_at']),
+        withdrawnAt:
+            json['withdrawn_at'] == null
+                ? undefined
+                : new Date(json['withdrawn_at']),
+        withdrawReason:
+            json['withdraw_reason'] == null
+                ? undefined
+                : json['withdraw_reason'],
+        isShortlisted:
+            json['is_shortlisted'] == null ? undefined : json['is_shortlisted'],
+        shortlistedAt:
+            json['shortlisted_at'] == null
+                ? undefined
+                : new Date(json['shortlisted_at']),
+        shortlistedBy:
+            json['shortlisted_by'] == null ? undefined : json['shortlisted_by'],
+        supplier:
+            json['supplier'] == null
+                ? undefined
+                : GoodsReceiptNoteInspectorFromJSON(json['supplier']),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(QuoteItemFromJSON),
+        attachments:
+            json['attachments'] == null
+                ? undefined
+                : (json['attachments'] as Array<any>).map(
+                      QuoteAttachmentsInnerFromJSON,
+                  ),
+        revisions:
+            json['revisions'] == null
+                ? undefined
+                : (json['revisions'] as Array<any>).map(QuoteRevisionFromJSON),
     };
 }
 
@@ -298,42 +323,63 @@ export function QuoteToJSON(json: any): Quote {
     return QuoteToJSONTyped(json, false);
 }
 
-export function QuoteToJSONTyped(value?: Quote | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteToJSONTyped(
+    value?: Quote | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'rfq_id': value['rfqId'],
-        'supplier_id': value['supplierId'],
-        'status': value['status'],
-        'currency': value['currency'],
-        'unit_price': value['unitPrice'],
-        'subtotal': value['subtotal'],
-        'subtotal_minor': value['subtotalMinor'],
-        'tax_amount': value['taxAmount'],
-        'tax_amount_minor': value['taxAmountMinor'],
-        'total': value['total'],
-        'total_minor': value['totalMinor'],
-        'min_order_qty': value['minOrderQty'],
-        'lead_time_days': value['leadTimeDays'],
-        'note': value['note'],
-            'incoterm': value['incoterm'],
-            'payment_terms': value['paymentTerms'],
-        'revision_no': value['revisionNo'],
-        'submitted_by': value['submittedBy'],
-        'submitted_at': value['submittedAt'] == null ? value['submittedAt'] : value['submittedAt'].toISOString(),
-        'withdrawn_at': value['withdrawnAt'] == null ? value['withdrawnAt'] : value['withdrawnAt'].toISOString(),
-        'withdraw_reason': value['withdrawReason'],
-        'is_shortlisted': value['isShortlisted'],
-        'shortlisted_at': value['shortlistedAt'] == null ? value['shortlistedAt'] : value['shortlistedAt'].toISOString(),
-        'shortlisted_by': value['shortlistedBy'],
-        'supplier': GoodsReceiptNoteInspectorToJSON(value['supplier']),
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(QuoteItemToJSON)),
-        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(QuoteAttachmentsInnerToJSON)),
-        'revisions': value['revisions'] == null ? undefined : ((value['revisions'] as Array<any>).map(QuoteRevisionToJSON)),
+        id: value['id'],
+        rfq_id: value['rfqId'],
+        supplier_id: value['supplierId'],
+        status: value['status'],
+        currency: value['currency'],
+        unit_price: value['unitPrice'],
+        subtotal: value['subtotal'],
+        subtotal_minor: value['subtotalMinor'],
+        tax_amount: value['taxAmount'],
+        tax_amount_minor: value['taxAmountMinor'],
+        total: value['total'],
+        total_minor: value['totalMinor'],
+        min_order_qty: value['minOrderQty'],
+        lead_time_days: value['leadTimeDays'],
+        note: value['note'],
+        incoterm: value['incoterm'],
+        payment_terms: value['paymentTerms'],
+        revision_no: value['revisionNo'],
+        submitted_by: value['submittedBy'],
+        submitted_at:
+            value['submittedAt'] == null
+                ? value['submittedAt']
+                : value['submittedAt'].toISOString(),
+        withdrawn_at:
+            value['withdrawnAt'] == null
+                ? value['withdrawnAt']
+                : value['withdrawnAt'].toISOString(),
+        withdraw_reason: value['withdrawReason'],
+        is_shortlisted: value['isShortlisted'],
+        shortlisted_at:
+            value['shortlistedAt'] == null
+                ? value['shortlistedAt']
+                : value['shortlistedAt'].toISOString(),
+        shortlisted_by: value['shortlistedBy'],
+        supplier: GoodsReceiptNoteInspectorToJSON(value['supplier']),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(QuoteItemToJSON),
+        attachments:
+            value['attachments'] == null
+                ? undefined
+                : (value['attachments'] as Array<any>).map(
+                      QuoteAttachmentsInnerToJSON,
+                  ),
+        revisions:
+            value['revisions'] == null
+                ? undefined
+                : (value['revisions'] as Array<any>).map(QuoteRevisionToJSON),
     };
 }
-

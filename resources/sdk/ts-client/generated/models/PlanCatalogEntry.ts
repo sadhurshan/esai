@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,201 +12,200 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface PlanCatalogEntry
  */
 export interface PlanCatalogEntry {
     /**
-     * 
+     *
      * @type {string}
      * @memberof PlanCatalogEntry
      */
     code: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PlanCatalogEntry
      */
     name: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     priceUsd?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     rfqsPerMonth?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     invoicesPerMonth?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     usersMax?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     storageGb?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     erpIntegrationsMax?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     analyticsEnabled: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     analyticsHistoryMonths?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     riskScoresEnabled?: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     riskHistoryMonths?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     approvalsEnabled?: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     approvalLevelsLimit?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     rmaEnabled?: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     rmaMonthlyLimit?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     creditNotesEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     globalSearchEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     quoteRevisionsEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     digitalTwinEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     maintenanceEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     inventoryEnabled?: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     inventoryHistoryMonths?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     prEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     multiCurrencyEnabled: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     taxEngineEnabled: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     localizationEnabled: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     exportsEnabled: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     exportRowLimit?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
     dataExportEnabled?: boolean;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanCatalogEntry
      */
     exportHistoryDays?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanCatalogEntry
      */
@@ -216,14 +215,33 @@ export interface PlanCatalogEntry {
 /**
  * Check if a given object implements the PlanCatalogEntry interface.
  */
-export function instanceOfPlanCatalogEntry(value: object): value is PlanCatalogEntry {
+export function instanceOfPlanCatalogEntry(
+    value: object,
+): value is PlanCatalogEntry {
     if (!('code' in value) || value['code'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('analyticsEnabled' in value) || value['analyticsEnabled'] === undefined) return false;
-    if (!('multiCurrencyEnabled' in value) || value['multiCurrencyEnabled'] === undefined) return false;
-    if (!('taxEngineEnabled' in value) || value['taxEngineEnabled'] === undefined) return false;
-    if (!('localizationEnabled' in value) || value['localizationEnabled'] === undefined) return false;
-    if (!('exportsEnabled' in value) || value['exportsEnabled'] === undefined) return false;
+    if (
+        !('analyticsEnabled' in value) ||
+        value['analyticsEnabled'] === undefined
+    )
+        return false;
+    if (
+        !('multiCurrencyEnabled' in value) ||
+        value['multiCurrencyEnabled'] === undefined
+    )
+        return false;
+    if (
+        !('taxEngineEnabled' in value) ||
+        value['taxEngineEnabled'] === undefined
+    )
+        return false;
+    if (
+        !('localizationEnabled' in value) ||
+        value['localizationEnabled'] === undefined
+    )
+        return false;
+    if (!('exportsEnabled' in value) || value['exportsEnabled'] === undefined)
+        return false;
     if (!('isFree' in value) || value['isFree'] === undefined) return false;
     return true;
 }
@@ -232,44 +250,102 @@ export function PlanCatalogEntryFromJSON(json: any): PlanCatalogEntry {
     return PlanCatalogEntryFromJSONTyped(json, false);
 }
 
-export function PlanCatalogEntryFromJSONTyped(json: any, ignoreDiscriminator: boolean): PlanCatalogEntry {
+export function PlanCatalogEntryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PlanCatalogEntry {
     if (json == null) {
         return json;
     }
     return {
-        
-        'code': json['code'],
-        'name': json['name'],
-        'priceUsd': json['price_usd'] == null ? undefined : json['price_usd'],
-        'rfqsPerMonth': json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
-        'invoicesPerMonth': json['invoices_per_month'] == null ? undefined : json['invoices_per_month'],
-        'usersMax': json['users_max'] == null ? undefined : json['users_max'],
-        'storageGb': json['storage_gb'] == null ? undefined : json['storage_gb'],
-        'erpIntegrationsMax': json['erp_integrations_max'] == null ? undefined : json['erp_integrations_max'],
-        'analyticsEnabled': json['analytics_enabled'],
-        'analyticsHistoryMonths': json['analytics_history_months'] == null ? undefined : json['analytics_history_months'],
-        'riskScoresEnabled': json['risk_scores_enabled'] == null ? undefined : json['risk_scores_enabled'],
-        'riskHistoryMonths': json['risk_history_months'] == null ? undefined : json['risk_history_months'],
-        'approvalsEnabled': json['approvals_enabled'] == null ? undefined : json['approvals_enabled'],
-        'approvalLevelsLimit': json['approval_levels_limit'] == null ? undefined : json['approval_levels_limit'],
-        'rmaEnabled': json['rma_enabled'] == null ? undefined : json['rma_enabled'],
-        'rmaMonthlyLimit': json['rma_monthly_limit'] == null ? undefined : json['rma_monthly_limit'],
-        'creditNotesEnabled': json['credit_notes_enabled'] == null ? undefined : json['credit_notes_enabled'],
-        'globalSearchEnabled': json['global_search_enabled'] == null ? undefined : json['global_search_enabled'],
-        'quoteRevisionsEnabled': json['quote_revisions_enabled'] == null ? undefined : json['quote_revisions_enabled'],
-        'digitalTwinEnabled': json['digital_twin_enabled'] == null ? undefined : json['digital_twin_enabled'],
-        'maintenanceEnabled': json['maintenance_enabled'] == null ? undefined : json['maintenance_enabled'],
-        'inventoryEnabled': json['inventory_enabled'] == null ? undefined : json['inventory_enabled'],
-        'inventoryHistoryMonths': json['inventory_history_months'] == null ? undefined : json['inventory_history_months'],
-        'prEnabled': json['pr_enabled'] == null ? undefined : json['pr_enabled'],
-        'multiCurrencyEnabled': json['multi_currency_enabled'],
-        'taxEngineEnabled': json['tax_engine_enabled'],
-        'localizationEnabled': json['localization_enabled'],
-        'exportsEnabled': json['exports_enabled'],
-        'exportRowLimit': json['export_row_limit'] == null ? undefined : json['export_row_limit'],
-        'dataExportEnabled': json['data_export_enabled'] == null ? undefined : json['data_export_enabled'],
-        'exportHistoryDays': json['export_history_days'] == null ? undefined : json['export_history_days'],
-        'isFree': json['is_free'],
+        code: json['code'],
+        name: json['name'],
+        priceUsd: json['price_usd'] == null ? undefined : json['price_usd'],
+        rfqsPerMonth:
+            json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
+        invoicesPerMonth:
+            json['invoices_per_month'] == null
+                ? undefined
+                : json['invoices_per_month'],
+        usersMax: json['users_max'] == null ? undefined : json['users_max'],
+        storageGb: json['storage_gb'] == null ? undefined : json['storage_gb'],
+        erpIntegrationsMax:
+            json['erp_integrations_max'] == null
+                ? undefined
+                : json['erp_integrations_max'],
+        analyticsEnabled: json['analytics_enabled'],
+        analyticsHistoryMonths:
+            json['analytics_history_months'] == null
+                ? undefined
+                : json['analytics_history_months'],
+        riskScoresEnabled:
+            json['risk_scores_enabled'] == null
+                ? undefined
+                : json['risk_scores_enabled'],
+        riskHistoryMonths:
+            json['risk_history_months'] == null
+                ? undefined
+                : json['risk_history_months'],
+        approvalsEnabled:
+            json['approvals_enabled'] == null
+                ? undefined
+                : json['approvals_enabled'],
+        approvalLevelsLimit:
+            json['approval_levels_limit'] == null
+                ? undefined
+                : json['approval_levels_limit'],
+        rmaEnabled:
+            json['rma_enabled'] == null ? undefined : json['rma_enabled'],
+        rmaMonthlyLimit:
+            json['rma_monthly_limit'] == null
+                ? undefined
+                : json['rma_monthly_limit'],
+        creditNotesEnabled:
+            json['credit_notes_enabled'] == null
+                ? undefined
+                : json['credit_notes_enabled'],
+        globalSearchEnabled:
+            json['global_search_enabled'] == null
+                ? undefined
+                : json['global_search_enabled'],
+        quoteRevisionsEnabled:
+            json['quote_revisions_enabled'] == null
+                ? undefined
+                : json['quote_revisions_enabled'],
+        digitalTwinEnabled:
+            json['digital_twin_enabled'] == null
+                ? undefined
+                : json['digital_twin_enabled'],
+        maintenanceEnabled:
+            json['maintenance_enabled'] == null
+                ? undefined
+                : json['maintenance_enabled'],
+        inventoryEnabled:
+            json['inventory_enabled'] == null
+                ? undefined
+                : json['inventory_enabled'],
+        inventoryHistoryMonths:
+            json['inventory_history_months'] == null
+                ? undefined
+                : json['inventory_history_months'],
+        prEnabled: json['pr_enabled'] == null ? undefined : json['pr_enabled'],
+        multiCurrencyEnabled: json['multi_currency_enabled'],
+        taxEngineEnabled: json['tax_engine_enabled'],
+        localizationEnabled: json['localization_enabled'],
+        exportsEnabled: json['exports_enabled'],
+        exportRowLimit:
+            json['export_row_limit'] == null
+                ? undefined
+                : json['export_row_limit'],
+        dataExportEnabled:
+            json['data_export_enabled'] == null
+                ? undefined
+                : json['data_export_enabled'],
+        exportHistoryDays:
+            json['export_history_days'] == null
+                ? undefined
+                : json['export_history_days'],
+        isFree: json['is_free'],
     };
 }
 
@@ -277,45 +353,46 @@ export function PlanCatalogEntryToJSON(json: any): PlanCatalogEntry {
     return PlanCatalogEntryToJSONTyped(json, false);
 }
 
-export function PlanCatalogEntryToJSONTyped(value?: PlanCatalogEntry | null, ignoreDiscriminator: boolean = false): any {
+export function PlanCatalogEntryToJSONTyped(
+    value?: PlanCatalogEntry | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'code': value['code'],
-        'name': value['name'],
-        'price_usd': value['priceUsd'],
-        'rfqs_per_month': value['rfqsPerMonth'],
-        'invoices_per_month': value['invoicesPerMonth'],
-        'users_max': value['usersMax'],
-        'storage_gb': value['storageGb'],
-        'erp_integrations_max': value['erpIntegrationsMax'],
-        'analytics_enabled': value['analyticsEnabled'],
-        'analytics_history_months': value['analyticsHistoryMonths'],
-        'risk_scores_enabled': value['riskScoresEnabled'],
-        'risk_history_months': value['riskHistoryMonths'],
-        'approvals_enabled': value['approvalsEnabled'],
-        'approval_levels_limit': value['approvalLevelsLimit'],
-        'rma_enabled': value['rmaEnabled'],
-        'rma_monthly_limit': value['rmaMonthlyLimit'],
-        'credit_notes_enabled': value['creditNotesEnabled'],
-        'global_search_enabled': value['globalSearchEnabled'],
-        'quote_revisions_enabled': value['quoteRevisionsEnabled'],
-        'digital_twin_enabled': value['digitalTwinEnabled'],
-        'maintenance_enabled': value['maintenanceEnabled'],
-        'inventory_enabled': value['inventoryEnabled'],
-        'inventory_history_months': value['inventoryHistoryMonths'],
-        'pr_enabled': value['prEnabled'],
-        'multi_currency_enabled': value['multiCurrencyEnabled'],
-        'tax_engine_enabled': value['taxEngineEnabled'],
-        'localization_enabled': value['localizationEnabled'],
-        'exports_enabled': value['exportsEnabled'],
-        'export_row_limit': value['exportRowLimit'],
-        'data_export_enabled': value['dataExportEnabled'],
-        'export_history_days': value['exportHistoryDays'],
-        'is_free': value['isFree'],
+        code: value['code'],
+        name: value['name'],
+        price_usd: value['priceUsd'],
+        rfqs_per_month: value['rfqsPerMonth'],
+        invoices_per_month: value['invoicesPerMonth'],
+        users_max: value['usersMax'],
+        storage_gb: value['storageGb'],
+        erp_integrations_max: value['erpIntegrationsMax'],
+        analytics_enabled: value['analyticsEnabled'],
+        analytics_history_months: value['analyticsHistoryMonths'],
+        risk_scores_enabled: value['riskScoresEnabled'],
+        risk_history_months: value['riskHistoryMonths'],
+        approvals_enabled: value['approvalsEnabled'],
+        approval_levels_limit: value['approvalLevelsLimit'],
+        rma_enabled: value['rmaEnabled'],
+        rma_monthly_limit: value['rmaMonthlyLimit'],
+        credit_notes_enabled: value['creditNotesEnabled'],
+        global_search_enabled: value['globalSearchEnabled'],
+        quote_revisions_enabled: value['quoteRevisionsEnabled'],
+        digital_twin_enabled: value['digitalTwinEnabled'],
+        maintenance_enabled: value['maintenanceEnabled'],
+        inventory_enabled: value['inventoryEnabled'],
+        inventory_history_months: value['inventoryHistoryMonths'],
+        pr_enabled: value['prEnabled'],
+        multi_currency_enabled: value['multiCurrencyEnabled'],
+        tax_engine_enabled: value['taxEngineEnabled'],
+        localization_enabled: value['localizationEnabled'],
+        exports_enabled: value['exportsEnabled'],
+        export_row_limit: value['exportRowLimit'],
+        data_export_enabled: value['dataExportEnabled'],
+        export_history_days: value['exportHistoryDays'],
+        is_free: value['isFree'],
     };
 }
-

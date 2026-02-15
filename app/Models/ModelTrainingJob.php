@@ -29,7 +29,7 @@ class ModelTrainingJob extends CompanyScopedModel
         self::FEATURE_RAG => 'trainRag',
         self::FEATURE_ACTIONS => 'trainActions',
         self::FEATURE_WORKFLOWS => 'trainWorkflows',
-        self::FEATURE_CHAT => null,
+        self::FEATURE_CHAT => 'trainChat',
     ];
 
     public const FEATURES = [

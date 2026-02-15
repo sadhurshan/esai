@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,187 +12,179 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { GoodsReceiptNoteInspector } from './GoodsReceiptNoteInspector';
-import {
-    GoodsReceiptNoteInspectorFromJSON,
-    GoodsReceiptNoteInspectorFromJSONTyped,
-    GoodsReceiptNoteInspectorToJSON,
-    GoodsReceiptNoteInspectorToJSONTyped,
-} from './GoodsReceiptNoteInspector';
 import type { DocumentAttachment } from './DocumentAttachment';
 import {
     DocumentAttachmentFromJSON,
-    DocumentAttachmentFromJSONTyped,
     DocumentAttachmentToJSON,
-    DocumentAttachmentToJSONTyped,
 } from './DocumentAttachment';
 import type { GoodsReceiptLine } from './GoodsReceiptLine';
 import {
     GoodsReceiptLineFromJSON,
-    GoodsReceiptLineFromJSONTyped,
     GoodsReceiptLineToJSON,
-    GoodsReceiptLineToJSONTyped,
 } from './GoodsReceiptLine';
+import type { GoodsReceiptNoteInspector } from './GoodsReceiptNoteInspector';
+import {
+    GoodsReceiptNoteInspectorFromJSON,
+    GoodsReceiptNoteInspectorToJSON,
+} from './GoodsReceiptNoteInspector';
 
 /**
- * 
+ *
  * @export
  * @interface GoodsReceiptNote
  */
 export interface GoodsReceiptNote {
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     companyId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     purchaseOrderId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     purchaseOrderNumber?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     poNumber?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     grnNumber: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     number?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     status: GoodsReceiptNoteStatusEnum;
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     inspectedById?: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof GoodsReceiptNote
      */
     inspectedAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof GoodsReceiptNote
      */
     receivedAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof GoodsReceiptNote
      */
     postedAt?: Date;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     reference?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     notes?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     supplierId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GoodsReceiptNote
      */
     supplierName?: string;
     /**
-     * 
+     *
      * @type {GoodsReceiptNoteInspector}
      * @memberof GoodsReceiptNote
      */
     inspector?: GoodsReceiptNoteInspector;
     /**
-     * 
+     *
      * @type {GoodsReceiptNoteInspector}
      * @memberof GoodsReceiptNote
      */
     createdBy?: GoodsReceiptNoteInspector;
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     linesCount?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof GoodsReceiptNote
      */
     attachmentsCount?: number;
     /**
-     * 
+     *
      * @type {Array<GoodsReceiptLine>}
      * @memberof GoodsReceiptNote
      */
     lines?: Array<GoodsReceiptLine>;
     /**
-     * 
+     *
      * @type {Array<DocumentAttachment>}
      * @memberof GoodsReceiptNote
      */
     attachments?: Array<DocumentAttachment>;
     /**
-     * 
+     *
      * @type {Array<object>}
      * @memberof GoodsReceiptNote
      */
     timeline?: Array<object>;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof GoodsReceiptNote
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof GoodsReceiptNote
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -202,18 +194,22 @@ export const GoodsReceiptNoteStatusEnum = {
     Inspecting: 'inspecting',
     Posted: 'posted',
     Variance: 'variance',
-    Rejected: 'rejected'
+    Rejected: 'rejected',
 } as const;
-export type GoodsReceiptNoteStatusEnum = typeof GoodsReceiptNoteStatusEnum[keyof typeof GoodsReceiptNoteStatusEnum];
-
+export type GoodsReceiptNoteStatusEnum =
+    (typeof GoodsReceiptNoteStatusEnum)[keyof typeof GoodsReceiptNoteStatusEnum];
 
 /**
  * Check if a given object implements the GoodsReceiptNote interface.
  */
-export function instanceOfGoodsReceiptNote(value: object): value is GoodsReceiptNote {
+export function instanceOfGoodsReceiptNote(
+    value: object,
+): value is GoodsReceiptNote {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined) return false;
-    if (!('grnNumber' in value) || value['grnNumber'] === undefined) return false;
+    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined)
+        return false;
+    if (!('grnNumber' in value) || value['grnNumber'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -222,37 +218,78 @@ export function GoodsReceiptNoteFromJSON(json: any): GoodsReceiptNote {
     return GoodsReceiptNoteFromJSONTyped(json, false);
 }
 
-export function GoodsReceiptNoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): GoodsReceiptNote {
+export function GoodsReceiptNoteFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): GoodsReceiptNote {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'] == null ? undefined : json['company_id'],
-        'purchaseOrderId': json['purchase_order_id'],
-        'purchaseOrderNumber': json['purchase_order_number'] == null ? undefined : json['purchase_order_number'],
-        'poNumber': json['po_number'] == null ? undefined : json['po_number'],
-        'grnNumber': json['grn_number'],
-        'number': json['number'] == null ? undefined : json['number'],
-        'status': json['status'],
-        'inspectedById': json['inspected_by_id'] == null ? undefined : json['inspected_by_id'],
-        'inspectedAt': json['inspected_at'] == null ? undefined : (new Date(json['inspected_at'])),
-        'receivedAt': json['received_at'] == null ? undefined : (new Date(json['received_at'])),
-        'postedAt': json['posted_at'] == null ? undefined : (new Date(json['posted_at'])),
-        'reference': json['reference'] == null ? undefined : json['reference'],
-        'notes': json['notes'] == null ? undefined : json['notes'],
-        'supplierId': json['supplier_id'] == null ? undefined : json['supplier_id'],
-        'supplierName': json['supplier_name'] == null ? undefined : json['supplier_name'],
-        'inspector': json['inspector'] == null ? undefined : GoodsReceiptNoteInspectorFromJSON(json['inspector']),
-        'createdBy': json['created_by'] == null ? undefined : GoodsReceiptNoteInspectorFromJSON(json['created_by']),
-        'linesCount': json['lines_count'] == null ? undefined : json['lines_count'],
-        'attachmentsCount': json['attachments_count'] == null ? undefined : json['attachments_count'],
-        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(GoodsReceiptLineFromJSON)),
-        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(DocumentAttachmentFromJSON)),
-        'timeline': json['timeline'] == null ? undefined : json['timeline'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'] == null ? undefined : json['company_id'],
+        purchaseOrderId: json['purchase_order_id'],
+        purchaseOrderNumber:
+            json['purchase_order_number'] == null
+                ? undefined
+                : json['purchase_order_number'],
+        poNumber: json['po_number'] == null ? undefined : json['po_number'],
+        grnNumber: json['grn_number'],
+        number: json['number'] == null ? undefined : json['number'],
+        status: json['status'],
+        inspectedById:
+            json['inspected_by_id'] == null
+                ? undefined
+                : json['inspected_by_id'],
+        inspectedAt:
+            json['inspected_at'] == null
+                ? undefined
+                : new Date(json['inspected_at']),
+        receivedAt:
+            json['received_at'] == null
+                ? undefined
+                : new Date(json['received_at']),
+        postedAt:
+            json['posted_at'] == null ? undefined : new Date(json['posted_at']),
+        reference: json['reference'] == null ? undefined : json['reference'],
+        notes: json['notes'] == null ? undefined : json['notes'],
+        supplierId:
+            json['supplier_id'] == null ? undefined : json['supplier_id'],
+        supplierName:
+            json['supplier_name'] == null ? undefined : json['supplier_name'],
+        inspector:
+            json['inspector'] == null
+                ? undefined
+                : GoodsReceiptNoteInspectorFromJSON(json['inspector']),
+        createdBy:
+            json['created_by'] == null
+                ? undefined
+                : GoodsReceiptNoteInspectorFromJSON(json['created_by']),
+        linesCount:
+            json['lines_count'] == null ? undefined : json['lines_count'],
+        attachmentsCount:
+            json['attachments_count'] == null
+                ? undefined
+                : json['attachments_count'],
+        lines:
+            json['lines'] == null
+                ? undefined
+                : (json['lines'] as Array<any>).map(GoodsReceiptLineFromJSON),
+        attachments:
+            json['attachments'] == null
+                ? undefined
+                : (json['attachments'] as Array<any>).map(
+                      DocumentAttachmentFromJSON,
+                  ),
+        timeline: json['timeline'] == null ? undefined : json['timeline'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -260,38 +297,62 @@ export function GoodsReceiptNoteToJSON(json: any): GoodsReceiptNote {
     return GoodsReceiptNoteToJSONTyped(json, false);
 }
 
-export function GoodsReceiptNoteToJSONTyped(value?: GoodsReceiptNote | null, ignoreDiscriminator: boolean = false): any {
+export function GoodsReceiptNoteToJSONTyped(
+    value?: GoodsReceiptNote | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'purchase_order_number': value['purchaseOrderNumber'],
-        'po_number': value['poNumber'],
-        'grn_number': value['grnNumber'],
-        'number': value['number'],
-        'status': value['status'],
-        'inspected_by_id': value['inspectedById'],
-        'inspected_at': value['inspectedAt'] == null ? value['inspectedAt'] : value['inspectedAt'].toISOString(),
-        'received_at': value['receivedAt'] == null ? value['receivedAt'] : value['receivedAt'].toISOString(),
-        'posted_at': value['postedAt'] == null ? value['postedAt'] : value['postedAt'].toISOString(),
-        'reference': value['reference'],
-        'notes': value['notes'],
-        'supplier_id': value['supplierId'],
-        'supplier_name': value['supplierName'],
-        'inspector': GoodsReceiptNoteInspectorToJSON(value['inspector']),
-        'created_by': GoodsReceiptNoteInspectorToJSON(value['createdBy']),
-        'lines_count': value['linesCount'],
-        'attachments_count': value['attachmentsCount'],
-        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(GoodsReceiptLineToJSON)),
-        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(DocumentAttachmentToJSON)),
-        'timeline': value['timeline'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        purchase_order_id: value['purchaseOrderId'],
+        purchase_order_number: value['purchaseOrderNumber'],
+        po_number: value['poNumber'],
+        grn_number: value['grnNumber'],
+        number: value['number'],
+        status: value['status'],
+        inspected_by_id: value['inspectedById'],
+        inspected_at:
+            value['inspectedAt'] == null
+                ? value['inspectedAt']
+                : value['inspectedAt'].toISOString(),
+        received_at:
+            value['receivedAt'] == null
+                ? value['receivedAt']
+                : value['receivedAt'].toISOString(),
+        posted_at:
+            value['postedAt'] == null
+                ? value['postedAt']
+                : value['postedAt'].toISOString(),
+        reference: value['reference'],
+        notes: value['notes'],
+        supplier_id: value['supplierId'],
+        supplier_name: value['supplierName'],
+        inspector: GoodsReceiptNoteInspectorToJSON(value['inspector']),
+        created_by: GoodsReceiptNoteInspectorToJSON(value['createdBy']),
+        lines_count: value['linesCount'],
+        attachments_count: value['attachmentsCount'],
+        lines:
+            value['lines'] == null
+                ? undefined
+                : (value['lines'] as Array<any>).map(GoodsReceiptLineToJSON),
+        attachments:
+            value['attachments'] == null
+                ? undefined
+                : (value['attachments'] as Array<any>).map(
+                      DocumentAttachmentToJSON,
+                  ),
+        timeline: value['timeline'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

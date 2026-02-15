@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ApiKey } from './ApiKey';
-import {
-    ApiKeyFromJSON,
-    ApiKeyFromJSONTyped,
-    ApiKeyToJSON,
-    ApiKeyToJSONTyped,
-} from './ApiKey';
+import { ApiKeyFromJSON, ApiKeyToJSON } from './ApiKey';
 
 /**
- * 
+ *
  * @export
  * @interface AdminCreateApiKey201ResponseAllOfData
  */
 export interface AdminCreateApiKey201ResponseAllOfData {
     /**
-     * 
+     *
      * @type {ApiKey}
      * @memberof AdminCreateApiKey201ResponseAllOfData
      */
@@ -44,38 +38,50 @@ export interface AdminCreateApiKey201ResponseAllOfData {
 /**
  * Check if a given object implements the AdminCreateApiKey201ResponseAllOfData interface.
  */
-export function instanceOfAdminCreateApiKey201ResponseAllOfData(value: object): value is AdminCreateApiKey201ResponseAllOfData {
+export function instanceOfAdminCreateApiKey201ResponseAllOfData(
+    value: object,
+): value is AdminCreateApiKey201ResponseAllOfData {
     return true;
 }
 
-export function AdminCreateApiKey201ResponseAllOfDataFromJSON(json: any): AdminCreateApiKey201ResponseAllOfData {
+export function AdminCreateApiKey201ResponseAllOfDataFromJSON(
+    json: any,
+): AdminCreateApiKey201ResponseAllOfData {
     return AdminCreateApiKey201ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AdminCreateApiKey201ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminCreateApiKey201ResponseAllOfData {
+export function AdminCreateApiKey201ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminCreateApiKey201ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'apiKey': json['api_key'] == null ? undefined : ApiKeyFromJSON(json['api_key']),
-        'token': json['token'] == null ? undefined : json['token'],
+        apiKey:
+            json['api_key'] == null
+                ? undefined
+                : ApiKeyFromJSON(json['api_key']),
+        token: json['token'] == null ? undefined : json['token'],
     };
 }
 
-export function AdminCreateApiKey201ResponseAllOfDataToJSON(json: any): AdminCreateApiKey201ResponseAllOfData {
+export function AdminCreateApiKey201ResponseAllOfDataToJSON(
+    json: any,
+): AdminCreateApiKey201ResponseAllOfData {
     return AdminCreateApiKey201ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AdminCreateApiKey201ResponseAllOfDataToJSONTyped(value?: AdminCreateApiKey201ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminCreateApiKey201ResponseAllOfDataToJSONTyped(
+    value?: AdminCreateApiKey201ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'api_key': ApiKeyToJSON(value['apiKey']),
-        'token': value['token'],
+        api_key: ApiKeyToJSON(value['apiKey']),
+        token: value['token'],
     };
 }
-

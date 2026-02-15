@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/empty-state';
+import { Button } from '@/components/ui/button';
 import { Branding } from '@/config/branding';
 import { Compass } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';

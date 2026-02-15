@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,24 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  AuthForgotPasswordRequest,
-  AuthLogin200Response,
-  AuthLoginRequest,
-  AuthRegister200Response,
-  AuthResetPasswordRequest,
-  SelfRegistrationRequestCompanyDocumentsInner,
+    ApiSuccessResponse,
+    AuthForgotPasswordRequest,
+    AuthLogin200Response,
+    AuthLoginRequest,
+    AuthRegister200Response,
+    AuthResetPasswordRequest,
+    SelfRegistrationRequestCompanyDocumentsInner,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-    AuthForgotPasswordRequestFromJSON,
     AuthForgotPasswordRequestToJSON,
     AuthLogin200ResponseFromJSON,
-    AuthLogin200ResponseToJSON,
-    AuthLoginRequestFromJSON,
     AuthLoginRequestToJSON,
     AuthRegister200ResponseFromJSON,
-    AuthRegister200ResponseToJSON,
-    AuthResetPasswordRequestFromJSON,
     AuthResetPasswordRequestToJSON,
-    SelfRegistrationRequestCompanyDocumentsInnerFromJSON,
-    SelfRegistrationRequestCompanyDocumentsInnerToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AuthForgotPasswordOperationRequest {
     authForgotPasswordRequest: AuthForgotPasswordRequest;
@@ -73,7 +61,7 @@ export interface AuthResetPasswordOperationRequest {
 
 /**
  * AuthApi - interface
- * 
+ *
  * @export
  * @interface AuthApiInterface
  */
@@ -81,92 +69,120 @@ export interface AuthApiInterface {
     /**
      * Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
      * @summary Send password reset link
-     * @param {AuthForgotPasswordRequest} authForgotPasswordRequest 
+     * @param {AuthForgotPasswordRequest} authForgotPasswordRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
-    authForgotPasswordRaw(requestParameters: AuthForgotPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    authForgotPasswordRaw(
+        requestParameters: AuthForgotPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
      * Send password reset link
      */
-    authForgotPassword(requestParameters: AuthForgotPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    authForgotPassword(
+        requestParameters: AuthForgotPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
      * Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
      * @summary Create an authenticated session
-     * @param {AuthLoginRequest} authLoginRequest 
+     * @param {AuthLoginRequest} authLoginRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
-    authLoginRaw(requestParameters: AuthLoginOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthLogin200Response>>;
+    authLoginRaw(
+        requestParameters: AuthLoginOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AuthLogin200Response>>;
 
     /**
      * Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
      * Create an authenticated session
      */
-    authLogin(requestParameters: AuthLoginOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthLogin200Response>;
+    authLogin(
+        requestParameters: AuthLoginOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AuthLogin200Response>;
 
     /**
-     * 
+     *
      * @summary Terminate the authenticated session
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
-    authLogoutRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    authLogoutRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Terminate the authenticated session
      */
-    authLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    authLogout(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
      * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
      * @summary Self-register a buyer company and primary owner
-     * @param {string} name 
-     * @param {string} email 
-     * @param {string} password 
+     * @param {string} name
+     * @param {string} email
+     * @param {string} password
      * @param {string} passwordConfirmation Must match &#x60;password&#x60;.
-     * @param {string} companyName 
+     * @param {string} companyName
      * @param {string} companyDomain Public email domain used for verification.
-     * @param {string} registrationNo 
-     * @param {string} taxId 
-     * @param {string} website 
-     * @param {Array<SelfRegistrationRequestCompanyDocumentsInner>} companyDocuments 
-     * @param {string} [address] 
-     * @param {string} [phone] 
+     * @param {string} registrationNo
+     * @param {string} taxId
+     * @param {string} website
+     * @param {Array<SelfRegistrationRequestCompanyDocumentsInner>} companyDocuments
+     * @param {string} [address]
+     * @param {string} [phone]
      * @param {string} [country] ISO 3166-1 alpha-2 country code.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
-    authRegisterRaw(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthRegister200Response>>;
+    authRegisterRaw(
+        requestParameters: AuthRegisterRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AuthRegister200Response>>;
 
     /**
      * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
      * Self-register a buyer company and primary owner
      */
-    authRegister(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthRegister200Response>;
+    authRegister(
+        requestParameters: AuthRegisterRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AuthRegister200Response>;
 
     /**
      * Verifies the password reset token issued via email and sets a new password for the user.
      * @summary Reset password with token
-     * @param {AuthResetPasswordRequest} authResetPasswordRequest 
+     * @param {AuthResetPasswordRequest} authResetPasswordRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
-    authResetPasswordRaw(requestParameters: AuthResetPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    authResetPasswordRaw(
+        requestParameters: AuthResetPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Verifies the password reset token issued via email and sets a new password for the user.
      * Reset password with token
      */
-    authResetPassword(requestParameters: AuthResetPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    authResetPassword(
+        requestParameters: AuthResetPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
      * Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
@@ -175,30 +191,35 @@ export interface AuthApiInterface {
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
-    authSessionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthLogin200Response>>;
+    authSessionRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AuthLogin200Response>>;
 
     /**
      * Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
      * Inspect the current authenticated session
      */
-    authSession(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthLogin200Response>;
-
+    authSession(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AuthLogin200Response>;
 }
 
 /**
- * 
+ *
  */
 export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
-
     /**
      * Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
      * Send password reset link
      */
-    async authForgotPasswordRaw(requestParameters: AuthForgotPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async authForgotPasswordRaw(
+        requestParameters: AuthForgotPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['authForgotPasswordRequest'] == null) {
             throw new runtime.RequiredError(
                 'authForgotPasswordRequest',
-                'Required parameter "authForgotPasswordRequest" was null or undefined when calling authForgotPassword().'
+                'Required parameter "authForgotPasswordRequest" was null or undefined when calling authForgotPassword().',
             );
         }
 
@@ -208,26 +229,38 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
-
         let urlPath = `/api/auth/forgot-password`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AuthForgotPasswordRequestToJSON(requestParameters['authForgotPasswordRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: AuthForgotPasswordRequestToJSON(
+                    requestParameters['authForgotPasswordRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Sends a password reset link email if the account exists. The response is identical whether or not the email belongs to an account.
      * Send password reset link
      */
-    async authForgotPassword(requestParameters: AuthForgotPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.authForgotPasswordRaw(requestParameters, initOverrides);
+    async authForgotPassword(
+        requestParameters: AuthForgotPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.authForgotPasswordRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
@@ -235,11 +268,14 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      * Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
      * Create an authenticated session
      */
-    async authLoginRaw(requestParameters: AuthLoginOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthLogin200Response>> {
+    async authLoginRaw(
+        requestParameters: AuthLoginOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AuthLogin200Response>> {
         if (requestParameters['authLoginRequest'] == null) {
             throw new runtime.RequiredError(
                 'authLoginRequest',
-                'Required parameter "authLoginRequest" was null or undefined when calling authLogin().'
+                'Required parameter "authLoginRequest" was null or undefined when calling authLogin().',
             );
         }
 
@@ -249,62 +285,83 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
-
         let urlPath = `/api/auth/login`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AuthLoginRequestToJSON(requestParameters['authLoginRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: AuthLoginRequestToJSON(
+                    requestParameters['authLoginRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AuthLogin200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AuthLogin200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Authenticates a user with email and password credentials and returns the enriched session payload used by Inertia and the SDK.
      * Create an authenticated session
      */
-    async authLogin(requestParameters: AuthLoginOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthLogin200Response> {
-        const response = await this.authLoginRaw(requestParameters, initOverrides);
+    async authLogin(
+        requestParameters: AuthLoginOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AuthLogin200Response> {
+        const response = await this.authLoginRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Terminate the authenticated session
      */
-    async authLogoutRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async authLogoutRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/auth/logout`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Terminate the authenticated session
      */
-    async authLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async authLogout(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.authLogoutRaw(initOverrides);
         return await response.value();
     }
@@ -313,74 +370,77 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
      * Self-register a buyer company and primary owner
      */
-    async authRegisterRaw(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthRegister200Response>> {
+    async authRegisterRaw(
+        requestParameters: AuthRegisterRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AuthRegister200Response>> {
         if (requestParameters['name'] == null) {
             throw new runtime.RequiredError(
                 'name',
-                'Required parameter "name" was null or undefined when calling authRegister().'
+                'Required parameter "name" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['email'] == null) {
             throw new runtime.RequiredError(
                 'email',
-                'Required parameter "email" was null or undefined when calling authRegister().'
+                'Required parameter "email" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['password'] == null) {
             throw new runtime.RequiredError(
                 'password',
-                'Required parameter "password" was null or undefined when calling authRegister().'
+                'Required parameter "password" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['passwordConfirmation'] == null) {
             throw new runtime.RequiredError(
                 'passwordConfirmation',
-                'Required parameter "passwordConfirmation" was null or undefined when calling authRegister().'
+                'Required parameter "passwordConfirmation" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['companyName'] == null) {
             throw new runtime.RequiredError(
                 'companyName',
-                'Required parameter "companyName" was null or undefined when calling authRegister().'
+                'Required parameter "companyName" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['companyDomain'] == null) {
             throw new runtime.RequiredError(
                 'companyDomain',
-                'Required parameter "companyDomain" was null or undefined when calling authRegister().'
+                'Required parameter "companyDomain" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['registrationNo'] == null) {
             throw new runtime.RequiredError(
                 'registrationNo',
-                'Required parameter "registrationNo" was null or undefined when calling authRegister().'
+                'Required parameter "registrationNo" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['taxId'] == null) {
             throw new runtime.RequiredError(
                 'taxId',
-                'Required parameter "taxId" was null or undefined when calling authRegister().'
+                'Required parameter "taxId" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['website'] == null) {
             throw new runtime.RequiredError(
                 'website',
-                'Required parameter "website" was null or undefined when calling authRegister().'
+                'Required parameter "website" was null or undefined when calling authRegister().',
             );
         }
 
         if (requestParameters['companyDocuments'] == null) {
             throw new runtime.RequiredError(
                 'companyDocuments',
-                'Required parameter "companyDocuments" was null or undefined when calling authRegister().'
+                'Required parameter "companyDocuments" was null or undefined when calling authRegister().',
             );
         }
 
@@ -415,19 +475,31 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
         }
 
         if (requestParameters['passwordConfirmation'] != null) {
-            formParams.append('password_confirmation', requestParameters['passwordConfirmation'] as any);
+            formParams.append(
+                'password_confirmation',
+                requestParameters['passwordConfirmation'] as any,
+            );
         }
 
         if (requestParameters['companyName'] != null) {
-            formParams.append('company_name', requestParameters['companyName'] as any);
+            formParams.append(
+                'company_name',
+                requestParameters['companyName'] as any,
+            );
         }
 
         if (requestParameters['companyDomain'] != null) {
-            formParams.append('company_domain', requestParameters['companyDomain'] as any);
+            formParams.append(
+                'company_domain',
+                requestParameters['companyDomain'] as any,
+            );
         }
 
         if (requestParameters['registrationNo'] != null) {
-            formParams.append('registration_no', requestParameters['registrationNo'] as any);
+            formParams.append(
+                'registration_no',
+                requestParameters['registrationNo'] as any,
+            );
         }
 
         if (requestParameters['taxId'] != null) {
@@ -451,29 +523,44 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
         }
 
         if (requestParameters['companyDocuments'] != null) {
-            formParams.append('company_documents', requestParameters['companyDocuments']!.join(runtime.COLLECTION_FORMATS["csv"]));
+            formParams.append(
+                'company_documents',
+                requestParameters['companyDocuments']!.join(
+                    runtime.COLLECTION_FORMATS['csv'],
+                ),
+            );
         }
-
 
         let urlPath = `/api/auth/register`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AuthRegister200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AuthRegister200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Creates a user + company record, uploads supporting documents, and returns an authenticated session payload for immediate onboarding.
      * Self-register a buyer company and primary owner
      */
-    async authRegister(requestParameters: AuthRegisterRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthRegister200Response> {
-        const response = await this.authRegisterRaw(requestParameters, initOverrides);
+    async authRegister(
+        requestParameters: AuthRegisterRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AuthRegister200Response> {
+        const response = await this.authRegisterRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
@@ -481,11 +568,14 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      * Verifies the password reset token issued via email and sets a new password for the user.
      * Reset password with token
      */
-    async authResetPasswordRaw(requestParameters: AuthResetPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async authResetPasswordRaw(
+        requestParameters: AuthResetPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['authResetPasswordRequest'] == null) {
             throw new runtime.RequiredError(
                 'authResetPasswordRequest',
-                'Required parameter "authResetPasswordRequest" was null or undefined when calling authResetPassword().'
+                'Required parameter "authResetPasswordRequest" was null or undefined when calling authResetPassword().',
             );
         }
 
@@ -495,26 +585,38 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
-
         let urlPath = `/api/auth/reset-password`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AuthResetPasswordRequestToJSON(requestParameters['authResetPasswordRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: AuthResetPasswordRequestToJSON(
+                    requestParameters['authResetPasswordRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Verifies the password reset token issued via email and sets a new password for the user.
      * Reset password with token
      */
-    async authResetPassword(requestParameters: AuthResetPasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.authResetPasswordRaw(requestParameters, initOverrides);
+    async authResetPassword(
+        requestParameters: AuthResetPasswordOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.authResetPasswordRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
@@ -522,39 +624,47 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      * Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
      * Inspect the current authenticated session
      */
-    async authSessionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthLogin200Response>> {
+    async authSessionRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AuthLogin200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/auth/me`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AuthLogin200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AuthLogin200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Returns the authenticated user, company context, feature flags, and active plan code associated with the current session.
      * Inspect the current authenticated session
      */
-    async authSession(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthLogin200Response> {
+    async authSession(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AuthLogin200Response> {
         const response = await this.authSessionRaw(initOverrides);
         return await response.value();
     }
-
 }

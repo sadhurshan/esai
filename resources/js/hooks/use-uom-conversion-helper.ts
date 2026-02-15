@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 
-import { useAuth } from '@/contexts/auth-context';
 import { useSdkClient } from '@/contexts/api-client-context';
+import { useAuth } from '@/contexts/auth-context';
 import { LocalizationApi } from '@/sdk';
 
 interface ConversionRequest {
@@ -72,7 +72,8 @@ export function useUomConversionHelper() {
                     continue;
                 }
 
-                const normalizedCode = normalizeCode(request.fromCode) ?? baseUomCode;
+                const normalizedCode =
+                    normalizeCode(request.fromCode) ?? baseUomCode;
 
                 if (!isEnabled || normalizedCode === baseUomCode) {
                     results[request.key] = {
@@ -86,15 +87,25 @@ export function useUomConversionHelper() {
                     tasks.push(
                         (async () => {
                             try {
-                                const response = await localizationApi.convertQuantity({
-                                    convertQuantityRequest: {
-                                        qty: 1,
-                                        fromCode: request.fromCode ?? normalizedCode,
-                                        toCode: baseUomCode,
-                                    },
-                                });
-                                const converted = Number(response.data.qtyConverted);
-                                factorCacheRef.current.set(normalizedCode, Number.isFinite(converted) ? converted : NaN);
+                                const response =
+                                    await localizationApi.convertQuantity({
+                                        convertQuantityRequest: {
+                                            qty: 1,
+                                            fromCode:
+                                                request.fromCode ??
+                                                normalizedCode,
+                                            toCode: baseUomCode,
+                                        },
+                                    });
+                                const converted = Number(
+                                    response.data.qtyConverted,
+                                );
+                                factorCacheRef.current.set(
+                                    normalizedCode,
+                                    Number.isFinite(converted)
+                                        ? converted
+                                        : NaN,
+                                );
                             } catch {
                                 factorCacheRef.current.set(normalizedCode, NaN);
                             }
@@ -113,7 +124,8 @@ export function useUomConversionHelper() {
                     continue;
                 }
 
-                const normalizedCode = normalizeCode(request.fromCode) ?? baseUomCode;
+                const normalizedCode =
+                    normalizeCode(request.fromCode) ?? baseUomCode;
 
                 if (!isEnabled || normalizedCode === baseUomCode) {
                     results[request.key] = {
@@ -164,12 +176,19 @@ type BaseQuantityAction =
     | { type: 'success'; formatted: string | null }
     | { type: 'failure' };
 
-function baseQuantityReducer(state: BaseQuantityState, action: BaseQuantityAction): BaseQuantityState {
+function baseQuantityReducer(
+    state: BaseQuantityState,
+    action: BaseQuantityAction,
+): BaseQuantityState {
     switch (action.type) {
         case 'reset':
-            return state.loading || state.formatted !== null ? { formatted: null, loading: false } : state;
+            return state.loading || state.formatted !== null
+                ? { formatted: null, loading: false }
+                : state;
         case 'start':
-            return state.loading ? state : { formatted: state.formatted, loading: true };
+            return state.loading
+                ? state
+                : { formatted: state.formatted, loading: true };
         case 'success':
             return { formatted: action.formatted, loading: false };
         case 'failure':
@@ -180,14 +199,22 @@ function baseQuantityReducer(state: BaseQuantityState, action: BaseQuantityActio
 }
 
 export function useBaseUomQuantity(quantity: unknown, uom?: string | null) {
-    const { baseUomCode, convertMany, formatQuantity, isEnabled } = useUomConversionHelper();
-    const [state, dispatch] = useReducer(baseQuantityReducer, { formatted: null, loading: false });
+    const { baseUomCode, convertMany, formatQuantity, isEnabled } =
+        useUomConversionHelper();
+    const [state, dispatch] = useReducer(baseQuantityReducer, {
+        formatted: null,
+        loading: false,
+    });
 
     const numericQuantity = Number(quantity);
     const normalizedCode = normalizeCode(uom);
     const quantityIsValid = Number.isFinite(numericQuantity);
     const usesBaseUnit = !normalizedCode || normalizedCode === baseUomCode;
-    const needsConversion = isEnabled && quantityIsValid && !usesBaseUnit && Boolean(normalizedCode);
+    const needsConversion =
+        isEnabled &&
+        quantityIsValid &&
+        !usesBaseUnit &&
+        Boolean(normalizedCode);
 
     const immediateFormatted = useMemo(() => {
         if (!isEnabled || !quantityIsValid) {
@@ -199,7 +226,13 @@ export function useBaseUomQuantity(quantity: unknown, uom?: string | null) {
         }
 
         return null;
-    }, [formatQuantity, isEnabled, numericQuantity, quantityIsValid, usesBaseUnit]);
+    }, [
+        formatQuantity,
+        isEnabled,
+        numericQuantity,
+        quantityIsValid,
+        usesBaseUnit,
+    ]);
 
     useEffect(() => {
         if (!needsConversion) {
@@ -222,7 +255,10 @@ export function useBaseUomQuantity(quantity: unknown, uom?: string | null) {
                     return;
                 }
                 const entry = result.single;
-                dispatch({ type: 'success', formatted: entry?.formatted ?? null });
+                dispatch({
+                    type: 'success',
+                    formatted: entry?.formatted ?? null,
+                });
             })
             .catch(() => {
                 if (cancelled) {
@@ -236,7 +272,9 @@ export function useBaseUomQuantity(quantity: unknown, uom?: string | null) {
         };
     }, [convertMany, needsConversion, normalizedCode, numericQuantity]);
 
-    const convertedLabel = needsConversion ? state.formatted : immediateFormatted;
+    const convertedLabel = needsConversion
+        ? state.formatted
+        : immediateFormatted;
     const isLoading = needsConversion ? state.loading : false;
 
     return {

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,105 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { Document } from './Document';
-import {
-    DocumentFromJSON,
-    DocumentFromJSONTyped,
-    DocumentToJSON,
-    DocumentToJSONTyped,
-} from './Document';
+import { DocumentFromJSON, DocumentToJSON } from './Document';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface StoreDocument201Response
  */
 export interface StoreDocument201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof StoreDocument201Response
      */
     status: StoreDocument201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof StoreDocument201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {Document}
      * @memberof StoreDocument201Response
      */
     data: Document;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof StoreDocument201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const StoreDocument201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type StoreDocument201ResponseStatusEnum = typeof StoreDocument201ResponseStatusEnum[keyof typeof StoreDocument201ResponseStatusEnum];
-
+export type StoreDocument201ResponseStatusEnum =
+    (typeof StoreDocument201ResponseStatusEnum)[keyof typeof StoreDocument201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the StoreDocument201Response interface.
  */
-export function instanceOfStoreDocument201Response(value: object): value is StoreDocument201Response {
+export function instanceOfStoreDocument201Response(
+    value: object,
+): value is StoreDocument201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function StoreDocument201ResponseFromJSON(json: any): StoreDocument201Response {
+export function StoreDocument201ResponseFromJSON(
+    json: any,
+): StoreDocument201Response {
     return StoreDocument201ResponseFromJSONTyped(json, false);
 }
 
-export function StoreDocument201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): StoreDocument201Response {
+export function StoreDocument201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): StoreDocument201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': DocumentFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: DocumentFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function StoreDocument201ResponseToJSON(json: any): StoreDocument201Response {
+export function StoreDocument201ResponseToJSON(
+    json: any,
+): StoreDocument201Response {
     return StoreDocument201ResponseToJSONTyped(json, false);
 }
 
-export function StoreDocument201ResponseToJSONTyped(value?: StoreDocument201Response | null, ignoreDiscriminator: boolean = false): any {
+export function StoreDocument201ResponseToJSONTyped(
+    value?: StoreDocument201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': DocumentToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: DocumentToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

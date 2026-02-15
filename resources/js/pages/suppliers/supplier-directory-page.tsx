@@ -1,9 +1,21 @@
+import {
+    Aperture,
+    BadgeCheck,
+    Building2,
+    ChevronRight,
+    Factory,
+    Layers,
+    MapPin,
+    Star,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { Aperture, BadgeCheck, Building2, ChevronRight, Factory, Layers, MapPin, Star } from 'lucide-react';
 
 import { LazySupplierRiskBadge } from '@/components/ai/LazySupplierRiskBadge';
+import { EmptyState } from '@/components/empty-state';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,20 +25,49 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { EmptyState } from '@/components/empty-state';
 import { useSuppliers } from '@/hooks/api/useSuppliers';
 import { useSupplierRiskAccess } from '@/hooks/use-supplier-risk-access';
-import type { Supplier } from '@/types/sourcing';
+import { formatCurrencyMinor } from '@/lib/money';
 import { cn } from '@/lib/utils';
+import type { Supplier } from '@/types/sourcing';
 
-const METHOD_OPTIONS = ['CNC Milling', 'CNC Turning', 'Sheet Metal', 'Injection Molding', 'Additive'];
-const MATERIAL_OPTIONS = ['Aluminum 6061', 'Aluminum 7075', 'Stainless Steel 304', 'Stainless Steel 316', 'ABS', 'PEEK'];
-const FINISH_OPTIONS = ['Anodizing', 'Powder Coat', 'Black Oxide', 'Passivation', 'Polishing'];
-const TOLERANCE_OPTIONS = ['+/- 0.010"', '+/- 0.005"', '+/- 0.002"', 'ISO 2768-m', 'ISO 2768-f'];
-const INDUSTRY_OPTIONS = ['Aerospace', 'Automotive', 'Medical', 'Industrial Equipment', 'Robotics'];
+const METHOD_OPTIONS = [
+    'CNC Milling',
+    'CNC Turning',
+    'Sheet Metal',
+    'Injection Molding',
+    'Additive',
+];
+const MATERIAL_OPTIONS = [
+    'Aluminum 6061',
+    'Aluminum 7075',
+    'Stainless Steel 304',
+    'Stainless Steel 316',
+    'ABS',
+    'PEEK',
+];
+const FINISH_OPTIONS = [
+    'Anodizing',
+    'Powder Coat',
+    'Black Oxide',
+    'Passivation',
+    'Polishing',
+];
+const TOLERANCE_OPTIONS = [
+    '+/- 0.010"',
+    '+/- 0.005"',
+    '+/- 0.002"',
+    'ISO 2768-m',
+    'ISO 2768-f',
+];
+const INDUSTRY_OPTIONS = [
+    'Aerospace',
+    'Automotive',
+    'Medical',
+    'Industrial Equipment',
+    'Robotics',
+];
 
 const LEAD_TIME_OPTIONS = [
     { value: '5', label: '≤ 5 days' },
@@ -83,7 +124,10 @@ export function SupplierDirectoryPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const handle = window.setTimeout(() => setSearchTerm(searchInput.trim()), 300);
+        const handle = window.setTimeout(
+            () => setSearchTerm(searchInput.trim()),
+            300,
+        );
         return () => window.clearTimeout(handle);
     }, [searchInput]);
 
@@ -99,15 +143,19 @@ export function SupplierDirectoryPage() {
             industry: filters.industry || undefined,
             location: filters.location || undefined,
             rating_min: filters.rating ? Number(filters.rating) : undefined,
-            lead_time_max: filters.leadTime ? Number(filters.leadTime) : undefined,
+            lead_time_max: filters.leadTime
+                ? Number(filters.leadTime)
+                : undefined,
             sort: filters.sort,
         };
     }, [filters, page, searchTerm]);
 
     const supplierQuery = useSuppliers(queryParams);
-    const { canViewSupplierRisk, isSupplierRiskLocked } = useSupplierRiskAccess();
+    const { canViewSupplierRisk, isSupplierRiskLocked } =
+        useSupplierRiskAccess();
     const suppliers = supplierQuery.data?.items ?? [];
     const meta = supplierQuery.data?.meta;
+    const costBandEstimate = meta?.costBandEstimate ?? null;
 
     const canGoPrev = meta ? meta.current_page > 1 : false;
     const canGoNext = meta ? meta.current_page < meta.last_page : false;
@@ -125,11 +173,14 @@ export function SupplierDirectoryPage() {
     };
 
     const showSkeleton = supplierQuery.isLoading && !supplierQuery.isError;
-    const showEmptyState = !showSkeleton && !supplierQuery.isError && suppliers.length === 0;
+    const showEmptyState =
+        !showSkeleton && !supplierQuery.isError && suppliers.length === 0;
 
     const paginationCopy = meta
         ? `Showing ${(meta.current_page - 1) * meta.per_page + (suppliers.length > 0 ? 1 : 0)}–${
-              suppliers.length > 0 ? (meta.current_page - 1) * meta.per_page + suppliers.length : 0
+              suppliers.length > 0
+                  ? (meta.current_page - 1) * meta.per_page + suppliers.length
+                  : 0
           } of ${meta.total} suppliers`
         : 'Showing 0 suppliers';
 
@@ -143,9 +194,13 @@ export function SupplierDirectoryPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <Factory className="h-5 w-5 text-muted-foreground" />
                     <div>
-                        <h1 className="text-2xl font-semibold text-foreground">Supplier Directory</h1>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            Supplier Directory
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Discover qualified manufacturers, review certifications, and invite partners directly into RFQs.
+                            Discover qualified manufacturers, review
+                            certifications, and invite partners directly into
+                            RFQs.
                         </p>
                     </div>
                 </div>
@@ -154,7 +209,9 @@ export function SupplierDirectoryPage() {
             <section className="rounded-xl border bg-card p-4 shadow-sm">
                 <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
                     <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium text-muted-foreground">Search</label>
+                        <label className="text-xs font-medium text-muted-foreground">
+                            Search
+                        </label>
                         <Input
                             value={searchInput}
                             onChange={(event) => {
@@ -167,62 +224,96 @@ export function SupplierDirectoryPage() {
                     <FilterSelect
                         label="Capability"
                         value={filters.capability}
-                        onValueChange={(value) => handleFilterChange('capability', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('capability', value)
+                        }
                         options={METHOD_OPTIONS}
                     />
                     <FilterSelect
                         label="Material"
                         value={filters.material}
-                        onValueChange={(value) => handleFilterChange('material', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('material', value)
+                        }
                         options={MATERIAL_OPTIONS}
                     />
                     <FilterSelect
                         label="Finish"
                         value={filters.finish}
-                        onValueChange={(value) => handleFilterChange('finish', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('finish', value)
+                        }
                         options={FINISH_OPTIONS}
                     />
                     <FilterSelect
                         label="Tolerance"
                         value={filters.tolerance}
-                        onValueChange={(value) => handleFilterChange('tolerance', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('tolerance', value)
+                        }
                         options={TOLERANCE_OPTIONS}
                     />
                     <FilterSelect
                         label="Industry"
                         value={filters.industry}
-                        onValueChange={(value) => handleFilterChange('industry', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('industry', value)
+                        }
                         options={INDUSTRY_OPTIONS}
                     />
                     <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium text-muted-foreground">Location</label>
+                        <label className="text-xs font-medium text-muted-foreground">
+                            Location
+                        </label>
                         <Input
                             value={filters.location}
-                            onChange={(event) => handleFilterChange('location', event.target.value)}
+                            onChange={(event) =>
+                                handleFilterChange(
+                                    'location',
+                                    event.target.value,
+                                )
+                            }
                             placeholder="City or country"
                         />
                     </div>
                     <FilterSelect
                         label="Rating"
                         value={filters.rating}
-                        onValueChange={(value) => handleFilterChange('rating', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('rating', value)
+                        }
                         options={RATING_OPTIONS}
                     />
                     <FilterSelect
                         label="Lead time"
                         value={filters.leadTime}
-                        onValueChange={(value) => handleFilterChange('leadTime', value)}
+                        onValueChange={(value) =>
+                            handleFilterChange('leadTime', value)
+                        }
                         options={LEAD_TIME_OPTIONS}
                     />
                     <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium text-muted-foreground">Sort</label>
-                        <Select value={filters.sort} onValueChange={(value) => handleFilterChange('sort', value as DirectoryFilters['sort'])}>
+                        <label className="text-xs font-medium text-muted-foreground">
+                            Sort
+                        </label>
+                        <Select
+                            value={filters.sort}
+                            onValueChange={(value) =>
+                                handleFilterChange(
+                                    'sort',
+                                    value as DirectoryFilters['sort'],
+                                )
+                            }
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Best match" />
                             </SelectTrigger>
                             <SelectContent>
                                 {SORT_OPTIONS.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
+                                    <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                    >
                                         {option.label}
                                     </SelectItem>
                                 ))}
@@ -231,7 +322,12 @@ export function SupplierDirectoryPage() {
                     </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetFilters}
+                    >
                         Clear filters
                     </Button>
                     {searchTerm ? (
@@ -248,16 +344,49 @@ export function SupplierDirectoryPage() {
                 </div>
             ) : null}
 
+            {costBandEstimate ? (
+                <section className="rounded-xl border bg-card p-4 shadow-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="space-y-1">
+                            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                Cost band estimate
+                            </p>
+                            <p className="text-lg font-semibold text-foreground">
+                                {costBandEstimate.status === 'estimated'
+                                    ? `${formatCurrencyMinor(costBandEstimate.minMinor, costBandEstimate.currency)} – ${formatCurrencyMinor(
+                                          costBandEstimate.maxMinor,
+                                          costBandEstimate.currency,
+                                      )}`
+                                    : 'Estimate unavailable'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {costBandEstimate.explanation}
+                            </p>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                            Advisory only
+                        </Badge>
+                    </div>
+                </section>
+            ) : null}
+
             <div className="grid gap-4">
                 {showSkeleton
-                    ? Array.from({ length: 6 }).map((_, index) => <SupplierCardSkeleton key={`supplier-skeleton-${index}`} />)
+                    ? Array.from({ length: 6 }).map((_, index) => (
+                          <SupplierCardSkeleton
+                              key={`supplier-skeleton-${index}`}
+                          />
+                      ))
                     : suppliers.map((supplier) => (
                           <SupplierCard
                               key={supplier.id}
                               supplier={supplier}
-                              onViewProfile={() => navigate(`/app/suppliers/${supplier.id}`)}
+                              onViewProfile={() =>
+                                  navigate(`/app/suppliers/${supplier.id}`)
+                              }
                               showRiskBadge={canViewSupplierRisk}
                               riskBadgeLocked={isSupplierRiskLocked}
+                              filters={filters}
                           />
                       ))}
 
@@ -265,7 +394,9 @@ export function SupplierDirectoryPage() {
                     <EmptyState
                         title="No suppliers matched"
                         description="Try adjusting the filters or search terms to find nearby or qualified partners."
-                        icon={<Aperture className="h-8 w-8 text-muted-foreground" />}
+                        icon={
+                            <Aperture className="h-8 w-8 text-muted-foreground" />
+                        }
                         ctaLabel="Reset filters"
                         ctaProps={{ onClick: handleResetFilters }}
                     />
@@ -273,16 +404,31 @@ export function SupplierDirectoryPage() {
             </div>
 
             <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted-foreground">{paginationCopy}</p>
+                <p className="text-xs text-muted-foreground">
+                    {paginationCopy}
+                </p>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" disabled={!canGoPrev || supplierQuery.isFetching} onClick={() => setPage((current) => Math.max(current - 1, 1))}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!canGoPrev || supplierQuery.isFetching}
+                        onClick={() =>
+                            setPage((current) => Math.max(current - 1, 1))
+                        }
+                    >
                         Previous
                     </Button>
                     <Button
                         variant="outline"
                         size="sm"
                         disabled={!canGoNext || supplierQuery.isFetching}
-                        onClick={() => setPage((current) => (meta ? Math.min(meta.last_page, current + 1) : current))}
+                        onClick={() =>
+                            setPage((current) =>
+                                meta
+                                    ? Math.min(meta.last_page, current + 1)
+                                    : current,
+                            )
+                        }
                     >
                         Next
                     </Button>
@@ -297,27 +443,49 @@ interface SupplierCardProps {
     onViewProfile: () => void;
     showRiskBadge: boolean;
     riskBadgeLocked: boolean;
+    filters: DirectoryFilters;
 }
 
-function SupplierCard({ supplier, onViewProfile, showRiskBadge, riskBadgeLocked }: SupplierCardProps) {
+function SupplierCard({
+    supplier,
+    onViewProfile,
+    showRiskBadge,
+    riskBadgeLocked,
+    filters,
+}: SupplierCardProps) {
     const branding = supplier.branding ?? { logoUrl: null, markUrl: null };
-    const location = [supplier.address.city, supplier.address.country].filter(Boolean).join(', ');
+    const location = [supplier.address.city, supplier.address.country]
+        .filter(Boolean)
+        .join(', ');
     const topMethods = supplier.capabilities.methods?.slice(0, 3) ?? [];
     const topMaterials = supplier.capabilities.materials?.slice(0, 2) ?? [];
+    const rationaleBadges = buildRationaleBadges(supplier, filters);
 
     return (
         <div className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-sm transition hover:border-primary/40">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex flex-1 items-start gap-4">
                     <Avatar className="h-14 w-14 border">
-                        {branding.logoUrl ? <AvatarImage src={branding.logoUrl} alt={supplier.name} /> : null}
-                        <AvatarFallback>{supplier.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        {branding.logoUrl ? (
+                            <AvatarImage
+                                src={branding.logoUrl}
+                                alt={supplier.name}
+                            />
+                        ) : null}
+                        <AvatarFallback>
+                            {supplier.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-3">
-                            <p className="text-lg font-semibold text-foreground">{supplier.name}</p>
+                            <p className="text-lg font-semibold text-foreground">
+                                {supplier.name}
+                            </p>
                             {supplier.company?.isVerified ? (
-                                <Badge variant="secondary" className="inline-flex items-center gap-1 text-[11px]">
+                                <Badge
+                                    variant="secondary"
+                                    className="inline-flex items-center gap-1 text-[11px]"
+                                >
                                     <BadgeCheck className="h-3 w-3" /> Verified
                                 </Badge>
                             ) : null}
@@ -325,23 +493,28 @@ function SupplierCard({ supplier, onViewProfile, showRiskBadge, riskBadgeLocked 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                             {location ? (
                                 <span className="inline-flex items-center gap-1">
-                                    <MapPin className="h-3.5 w-3.5" /> {location}
+                                    <MapPin className="h-3.5 w-3.5" />{' '}
+                                    {location}
                                 </span>
                             ) : null}
                             {typeof supplier.ratingAvg === 'number' ? (
                                 <span className="inline-flex items-center gap-1">
-                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-500" /> {supplier.ratingAvg.toFixed(1)} rating
+                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-500" />{' '}
+                                    {supplier.ratingAvg.toFixed(1)} rating
                                 </span>
                             ) : null}
                             {supplier.leadTimeDays ? (
                                 <span className="inline-flex items-center gap-1">
-                                    <ClockIcon /> {supplier.leadTimeDays} day lead time
+                                    <ClockIcon /> {supplier.leadTimeDays} day
+                                    lead time
                                 </span>
                             ) : null}
                             {showRiskBadge ? (
                                 <LazySupplierRiskBadge
                                     supplierId={supplier.id}
-                                    supplier={buildDirectorySupplierRiskPayload(supplier)}
+                                    supplier={buildDirectorySupplierRiskPayload(
+                                        supplier,
+                                    )}
                                     entityType="supplier_directory"
                                     entityId={supplier.id}
                                     disabled={riskBadgeLocked}
@@ -354,7 +527,11 @@ function SupplierCard({ supplier, onViewProfile, showRiskBadge, riskBadgeLocked 
                                     <Layers className="h-3.5 w-3.5" /> Methods:
                                 </span>
                                 {topMethods.map((method) => (
-                                    <Badge key={method} variant="outline" className="rounded-full text-[11px]">
+                                    <Badge
+                                        key={method}
+                                        variant="outline"
+                                        className="rounded-full text-[11px]"
+                                    >
                                         {method}
                                     </Badge>
                                 ))}
@@ -363,18 +540,41 @@ function SupplierCard({ supplier, onViewProfile, showRiskBadge, riskBadgeLocked 
                         {topMaterials.length > 0 ? (
                             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                 <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                                    <Building2 className="h-3.5 w-3.5" /> Materials:
+                                    <Building2 className="h-3.5 w-3.5" />{' '}
+                                    Materials:
                                 </span>
                                 {topMaterials.map((material) => (
-                                    <Badge key={material} variant="outline" className="rounded-full text-[11px]">
+                                    <Badge
+                                        key={material}
+                                        variant="outline"
+                                        className="rounded-full text-[11px]"
+                                    >
                                         {material}
+                                    </Badge>
+                                ))}
+                            </div>
+                        ) : null}
+                        {rationaleBadges.length > 0 ? (
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                                    <BadgeCheck className="h-3.5 w-3.5" /> Match
+                                    rationale:
+                                </span>
+                                {rationaleBadges.map((badge) => (
+                                    <Badge
+                                        key={badge}
+                                        variant="secondary"
+                                        className="rounded-full text-[11px]"
+                                    >
+                                        {badge}
                                     </Badge>
                                 ))}
                             </div>
                         ) : null}
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                                <BadgeCheck className="h-3.5 w-3.5" /> Certifications:
+                                <BadgeCheck className="h-3.5 w-3.5" />{' '}
+                                Certifications:
                             </span>
                             <Badge variant="secondary" className="rounded-full">
                                 Valid {supplier.certificates.valid}
@@ -390,11 +590,22 @@ function SupplierCard({ supplier, onViewProfile, showRiskBadge, riskBadgeLocked 
                 </div>
                 <div className="flex flex-col gap-2">
                     {supplier.company?.supplierStatus ? (
-                        <Badge className={cn('w-fit capitalize', supplier.company.supplierStatus !== 'approved' ? 'bg-amber-100 text-amber-800' : undefined)}>
+                        <Badge
+                            className={cn(
+                                'w-fit capitalize',
+                                supplier.company.supplierStatus !== 'approved'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : undefined,
+                            )}
+                        >
                             {supplier.company.supplierStatus}
                         </Badge>
                     ) : null}
-                    <Button variant="outline" onClick={onViewProfile} className="inline-flex items-center gap-1">
+                    <Button
+                        variant="outline"
+                        onClick={onViewProfile}
+                        className="inline-flex items-center gap-1"
+                    >
                         View profile <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
@@ -449,7 +660,12 @@ interface FilterSelectProps {
     options: FilterOption[];
 }
 
-function FilterSelect({ label, value, onValueChange, options }: FilterSelectProps) {
+function FilterSelect({
+    label,
+    value,
+    onValueChange,
+    options,
+}: FilterSelectProps) {
     const normalizedOptions = options.map((option) =>
         typeof option === 'string' ? { value: option, label: option } : option,
     );
@@ -458,11 +674,15 @@ function FilterSelect({ label, value, onValueChange, options }: FilterSelectProp
 
     return (
         <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">{label}</label>
+            <label className="text-xs font-medium text-muted-foreground">
+                {label}
+            </label>
             <Select
                 value={selectValue}
                 onValueChange={(nextValue) =>
-                    onValueChange(nextValue === CLEAR_FILTER_VALUE ? '' : nextValue)
+                    onValueChange(
+                        nextValue === CLEAR_FILTER_VALUE ? '' : nextValue,
+                    )
                 }
             >
                 <SelectTrigger>
@@ -483,9 +703,111 @@ function FilterSelect({ label, value, onValueChange, options }: FilterSelectProp
 
 function ClockIcon() {
     return (
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-muted-foreground" aria-hidden>
-            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-            <path d="M12 6v6l3 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5 text-muted-foreground"
+            aria-hidden
+        >
+            <circle
+                cx="12"
+                cy="12"
+                r="10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+            />
+            <path
+                d="M12 6v6l3 2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
         </svg>
     );
+}
+
+function buildRationaleBadges(
+    supplier: Supplier,
+    filters: DirectoryFilters,
+): string[] {
+    const badges: string[] = [];
+
+    if (
+        filters.capability &&
+        supplier.capabilities.methods?.includes(filters.capability)
+    ) {
+        badges.push(`Capability: ${filters.capability}`);
+    }
+
+    if (
+        filters.material &&
+        supplier.capabilities.materials?.includes(filters.material)
+    ) {
+        badges.push(`Material: ${filters.material}`);
+    }
+
+    if (
+        filters.finish &&
+        supplier.capabilities.finishes?.includes(filters.finish)
+    ) {
+        badges.push(`Finish: ${filters.finish}`);
+    }
+
+    if (
+        filters.tolerance &&
+        supplier.capabilities.tolerances?.includes(filters.tolerance)
+    ) {
+        badges.push(`Tolerance: ${filters.tolerance}`);
+    }
+
+    if (
+        filters.industry &&
+        supplier.capabilities.industries?.includes(filters.industry)
+    ) {
+        badges.push(`Industry: ${filters.industry}`);
+    }
+
+    if (filters.location) {
+        const location = [supplier.address.city, supplier.address.country]
+            .filter(Boolean)
+            .join(', ')
+            .toLowerCase();
+        if (location.includes(filters.location.toLowerCase())) {
+            badges.push('Location match');
+        }
+    }
+
+    if (filters.rating) {
+        const ratingMin = Number(filters.rating);
+        if (
+            !Number.isNaN(ratingMin) &&
+            typeof supplier.ratingAvg === 'number' &&
+            supplier.ratingAvg >= ratingMin
+        ) {
+            badges.push(`Rating ≥ ${ratingMin}`);
+        }
+    }
+
+    if (filters.leadTime) {
+        const leadTimeMax = Number(filters.leadTime);
+        if (
+            !Number.isNaN(leadTimeMax) &&
+            typeof supplier.leadTimeDays === 'number' &&
+            supplier.leadTimeDays <= leadTimeMax
+        ) {
+            badges.push(`Lead time ≤ ${leadTimeMax} days`);
+        }
+    }
+
+    if (supplier.company?.isVerified) {
+        badges.push('Verified');
+    }
+
+    if (supplier.certificates.valid > 0) {
+        badges.push(`${supplier.certificates.valid} valid certs`);
+    }
+
+    return badges.slice(0, 4);
 }

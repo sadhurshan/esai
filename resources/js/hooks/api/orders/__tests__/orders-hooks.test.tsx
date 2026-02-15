@@ -1,6 +1,6 @@
-import { type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
+import { type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { publishToast } from '@/components/ui/use-toast';
@@ -21,7 +21,9 @@ vi.mock('@/components/ui/use-toast', () => ({
 const mockedUseSdkClient = vi.mocked(useSdkClient);
 const mockedPublishToast = vi.mocked(publishToast);
 
-const createOrder = (overrides: Partial<SalesOrderDetail> = {}): SalesOrderDetail => ({
+const createOrder = (
+    overrides: Partial<SalesOrderDetail> = {},
+): SalesOrderDetail => ({
     id: 42,
     soNumber: 'SO-42',
     poId: 7,
@@ -51,7 +53,9 @@ function createWrapper() {
     });
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
     );
 
     return { queryClient, wrapper };
@@ -75,12 +79,21 @@ describe('useAckOrder', () => {
         const { result } = renderHook(() => useAckOrder(), { wrapper });
 
         await act(async () => {
-            await result.current.mutateAsync({ orderId: 42, decision: 'accept' });
+            await result.current.mutateAsync({
+                orderId: 42,
+                decision: 'accept',
+            });
         });
 
-        expect(mockOrdersApi.acknowledgeOrder).toHaveBeenCalledWith(42, { decision: 'accept', reason: undefined });
+        expect(mockOrdersApi.acknowledgeOrder).toHaveBeenCalledWith(42, {
+            decision: 'accept',
+            reason: undefined,
+        });
         expect(mockedPublishToast).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Order accepted', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Order accepted',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalled();
     });
@@ -88,7 +101,17 @@ describe('useAckOrder', () => {
 
 describe('useCreateShipment', () => {
     it('creates shipments and notifies downstream caches', async () => {
-        const orderResponse = createOrder({ shipments: [{ id: 99, shipmentNo: 'SHP-1', lines: [], status: 'pending', soId: 42 }] });
+        const orderResponse = createOrder({
+            shipments: [
+                {
+                    id: 99,
+                    shipmentNo: 'SHP-1',
+                    lines: [],
+                    status: 'pending',
+                    soId: 42,
+                },
+            ],
+        });
         mockOrdersApi.createShipment.mockResolvedValue(orderResponse);
         const { queryClient, wrapper } = createWrapper();
         const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -107,7 +130,10 @@ describe('useCreateShipment', () => {
 
         expect(mockOrdersApi.createShipment).toHaveBeenCalledWith(42, payload);
         expect(mockedPublishToast).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Shipment created', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Shipment created',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalled();
     });
@@ -116,7 +142,9 @@ describe('useCreateShipment', () => {
 describe('useUpdateShipmentStatus', () => {
     it('prevents marking delivered without timestamp', async () => {
         const { wrapper } = createWrapper();
-        const { result } = renderHook(() => useUpdateShipmentStatus(), { wrapper });
+        const { result } = renderHook(() => useUpdateShipmentStatus(), {
+            wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({
@@ -133,7 +161,9 @@ describe('useUpdateShipmentStatus', () => {
         mockOrdersApi.updateShipmentStatus.mockResolvedValue(orderResponse);
         const { queryClient, wrapper } = createWrapper();
         const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
-        const { result } = renderHook(() => useUpdateShipmentStatus(), { wrapper });
+        const { result } = renderHook(() => useUpdateShipmentStatus(), {
+            wrapper,
+        });
 
         await act(async () => {
             await result.current.mutateAsync({
@@ -143,9 +173,15 @@ describe('useUpdateShipmentStatus', () => {
             });
         });
 
-        expect(mockOrdersApi.updateShipmentStatus).toHaveBeenCalledWith(55, { status: 'in_transit', deliveredAt: undefined });
+        expect(mockOrdersApi.updateShipmentStatus).toHaveBeenCalledWith(55, {
+            status: 'in_transit',
+            deliveredAt: undefined,
+        });
         expect(mockedPublishToast).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Shipment in transit', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Shipment in transit',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalled();
     });

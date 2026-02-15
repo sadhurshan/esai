@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PurchaseOrder } from './PurchaseOrder';
-import {
-    PurchaseOrderFromJSON,
-    PurchaseOrderFromJSONTyped,
-    PurchaseOrderToJSON,
-    PurchaseOrderToJSONTyped,
-} from './PurchaseOrder';
+import { PurchaseOrderFromJSON, PurchaseOrderToJSON } from './PurchaseOrder';
 
 /**
- * 
+ *
  * @export
  * @interface CreatePurchaseOrdersFromAwards201ResponseAllOfData
  */
 export interface CreatePurchaseOrdersFromAwards201ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<PurchaseOrder>}
      * @memberof CreatePurchaseOrdersFromAwards201ResponseAllOfData
      */
@@ -38,37 +32,57 @@ export interface CreatePurchaseOrdersFromAwards201ResponseAllOfData {
 /**
  * Check if a given object implements the CreatePurchaseOrdersFromAwards201ResponseAllOfData interface.
  */
-export function instanceOfCreatePurchaseOrdersFromAwards201ResponseAllOfData(value: object): value is CreatePurchaseOrdersFromAwards201ResponseAllOfData {
-    if (!('purchaseOrders' in value) || value['purchaseOrders'] === undefined) return false;
+export function instanceOfCreatePurchaseOrdersFromAwards201ResponseAllOfData(
+    value: object,
+): value is CreatePurchaseOrdersFromAwards201ResponseAllOfData {
+    if (!('purchaseOrders' in value) || value['purchaseOrders'] === undefined)
+        return false;
     return true;
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSON(json: any): CreatePurchaseOrdersFromAwards201ResponseAllOfData {
-    return CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSONTyped(json, false);
+export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSON(
+    json: any,
+): CreatePurchaseOrdersFromAwards201ResponseAllOfData {
+    return CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreatePurchaseOrdersFromAwards201ResponseAllOfData {
+export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreatePurchaseOrdersFromAwards201ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'purchaseOrders': ((json['purchase_orders'] as Array<any>).map(PurchaseOrderFromJSON)),
+        purchaseOrders: (json['purchase_orders'] as Array<any>).map(
+            PurchaseOrderFromJSON,
+        ),
     };
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSON(json: any): CreatePurchaseOrdersFromAwards201ResponseAllOfData {
-    return CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSONTyped(json, false);
+export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSON(
+    json: any,
+): CreatePurchaseOrdersFromAwards201ResponseAllOfData {
+    return CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSONTyped(value?: CreatePurchaseOrdersFromAwards201ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSONTyped(
+    value?: CreatePurchaseOrdersFromAwards201ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'purchase_orders': ((value['purchaseOrders'] as Array<any>).map(PurchaseOrderToJSON)),
+        purchase_orders: (value['purchaseOrders'] as Array<any>).map(
+            PurchaseOrderToJSON,
+        ),
     };
 }
-

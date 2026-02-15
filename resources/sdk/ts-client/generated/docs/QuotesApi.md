@@ -2,21 +2,19 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**addQuoteLine**](QuotesApi.md#addquoteline) | **POST** /api/quotes/{quoteId}/lines | Add line to draft quote |
-| [**deleteQuoteLine**](QuotesApi.md#deletequoteline) | **DELETE** /api/quotes/{quoteId}/lines/{quoteItemId} | Remove a quote line |
-| [**listQuoteRevisions**](QuotesApi.md#listquoterevisions) | **GET** /api/rfqs/{rfqId}/quotes/{quoteId}/revisions | List quote revisions |
-| [**listQuotesForRfq**](QuotesApi.md#listquotesforrfq) | **GET** /api/rfqs/{rfqId}/quotes | List quotes for RFQ |
-| [**listSupplierQuotes**](QuotesApi.md#listsupplierquotes) | **GET** /api/supplier/quotes | List quotes for the authenticated supplier company |
-| [**showQuote**](QuotesApi.md#showquote) | **GET** /api/quotes/{quoteId} | Fetch a single quote |
-| [**submitDraftQuote**](QuotesApi.md#submitdraftquote) | **POST** /api/quotes/{quoteId}/submit | Submit a draft quote |
-| [**submitQuote**](QuotesApi.md#submitquoteoperation) | **POST** /api/quotes | Submit quote directly |
-| [**submitQuoteRevision**](QuotesApi.md#submitquoterevisionoperation) | **POST** /api/rfqs/{rfqId}/quotes/{quoteId}/revisions | Submit quote revision |
-| [**updateQuoteLine**](QuotesApi.md#updatequoteline) | **PUT** /api/quotes/{quoteId}/lines/{quoteItemId} | Update an existing quote line |
-| [**withdrawQuote**](QuotesApi.md#withdrawquoteoperation) | **POST** /api/rfqs/{rfqId}/quotes/{quoteId}/withdraw | Withdraw quote |
-
-
+| Method                                                               | HTTP request                                          | Description                                        |
+| -------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------- |
+| [**addQuoteLine**](QuotesApi.md#addquoteline)                        | **POST** /api/quotes/{quoteId}/lines                  | Add line to draft quote                            |
+| [**deleteQuoteLine**](QuotesApi.md#deletequoteline)                  | **DELETE** /api/quotes/{quoteId}/lines/{quoteItemId}  | Remove a quote line                                |
+| [**listQuoteRevisions**](QuotesApi.md#listquoterevisions)            | **GET** /api/rfqs/{rfqId}/quotes/{quoteId}/revisions  | List quote revisions                               |
+| [**listQuotesForRfq**](QuotesApi.md#listquotesforrfq)                | **GET** /api/rfqs/{rfqId}/quotes                      | List quotes for RFQ                                |
+| [**listSupplierQuotes**](QuotesApi.md#listsupplierquotes)            | **GET** /api/supplier/quotes                          | List quotes for the authenticated supplier company |
+| [**showQuote**](QuotesApi.md#showquote)                              | **GET** /api/quotes/{quoteId}                         | Fetch a single quote                               |
+| [**submitDraftQuote**](QuotesApi.md#submitdraftquote)                | **POST** /api/quotes/{quoteId}/submit                 | Submit a draft quote                               |
+| [**submitQuote**](QuotesApi.md#submitquoteoperation)                 | **POST** /api/quotes                                  | Submit quote directly                              |
+| [**submitQuoteRevision**](QuotesApi.md#submitquoterevisionoperation) | **POST** /api/rfqs/{rfqId}/quotes/{quoteId}/revisions | Submit quote revision                              |
+| [**updateQuoteLine**](QuotesApi.md#updatequoteline)                  | **PUT** /api/quotes/{quoteId}/lines/{quoteItemId}     | Update an existing quote line                      |
+| [**withdrawQuote**](QuotesApi.md#withdrawquoteoperation)             | **POST** /api/rfqs/{rfqId}/quotes/{quoteId}/withdraw  | Withdraw quote                                     |
 
 ## addQuoteLine
 
@@ -35,7 +33,7 @@ import type { AddQuoteLineRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -64,11 +62,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
-| **quoteLineRequest** | [QuoteLineRequest](QuoteLineRequest.md) |  | |
+| Name                 | Type                                    | Description | Notes                     |
+| -------------------- | --------------------------------------- | ----------- | ------------------------- |
+| **quoteId**          | `string`                                |             | [Defaults to `undefined`] |
+| **quoteLineRequest** | [QuoteLineRequest](QuoteLineRequest.md) |             |                           |
 
 ### Return type
 
@@ -83,15 +80,14 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Line added and totals recalculated. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                         | Response headers       |
+| ----------- | ----------------------------------- | ---------------------- |
+| **201**     | Line added and totals recalculated. | -                      |
+| **422**     | Payload validation failed.          | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## deleteQuoteLine
 
@@ -110,7 +106,7 @@ import type { DeleteQuoteLineRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -139,11 +135,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
-| **quoteItemId** | `string` |  | [Defaults to `undefined`] |
+| Name            | Type     | Description | Notes                     |
+| --------------- | -------- | ----------- | ------------------------- |
+| **quoteId**     | `string` |             | [Defaults to `undefined`] |
+| **quoteItemId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -158,14 +153,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Updated quote after removal. |  -  |
+
+| Status code | Description                  | Response headers |
+| ----------- | ---------------------------- | ---------------- |
+| **200**     | Updated quote after removal. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listQuoteRevisions
 
@@ -184,7 +178,7 @@ import type { ListQuoteRevisionsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -213,11 +207,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rfqId** | `string` |  | [Defaults to `undefined`] |
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
+| Name        | Type     | Description | Notes                     |
+| ----------- | -------- | ----------- | ------------------------- |
+| **rfqId**   | `string` |             | [Defaults to `undefined`] |
+| **quoteId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -232,14 +225,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Quote revision history. |  -  |
+
+| Status code | Description             | Response headers |
+| ----------- | ----------------------- | ---------------- |
+| **200**     | Quote revision history. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listQuotesForRfq
 
@@ -258,7 +250,7 @@ import type { ListQuotesForRfqRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -285,10 +277,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rfqId** | `string` |  | [Defaults to `undefined`] |
+| Name      | Type     | Description | Notes                     |
+| --------- | -------- | ----------- | ------------------------- |
+| **rfqId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -303,14 +294,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Quotes submitted for the RFQ. |  -  |
+
+| Status code | Description                   | Response headers |
+| ----------- | ----------------------------- | ---------------- |
+| **200**     | Quotes submitted for the RFQ. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listSupplierQuotes
 
@@ -329,7 +319,7 @@ import type { ListSupplierQuotesRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -366,15 +356,14 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rfqId** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **status** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **rfqNumber** | `string` |  | [Optional] [Defaults to `undefined`] |
-| **page** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **perPage** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **sort** | `created_at`, `submitted_at`, `total_minor` |  | [Optional] [Defaults to `undefined`] [Enum: created_at, submitted_at, total_minor] |
+| Name          | Type                                        | Description | Notes                                                                              |
+| ------------- | ------------------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| **rfqId**     | `string`                                    |             | [Optional] [Defaults to `undefined`]                                               |
+| **status**    | `string`                                    |             | [Optional] [Defaults to `undefined`]                                               |
+| **rfqNumber** | `string`                                    |             | [Optional] [Defaults to `undefined`]                                               |
+| **page**      | `number`                                    |             | [Optional] [Defaults to `undefined`]                                               |
+| **perPage**   | `number`                                    |             | [Optional] [Defaults to `undefined`]                                               |
+| **sort**      | `created_at`, `submitted_at`, `total_minor` |             | [Optional] [Defaults to `undefined`] [Enum: created_at, submitted_at, total_minor] |
 
 ### Return type
 
@@ -389,14 +378,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier quotes list. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **200**     | Supplier quotes list. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showQuote
 
@@ -415,7 +403,7 @@ import type { ShowQuoteRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -442,10 +430,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
+| Name        | Type     | Description | Notes                     |
+| ----------- | -------- | ----------- | ------------------------- |
+| **quoteId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -460,15 +447,14 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Quote details including lines, attachments, and revisions. |  -  |
-| **404** | Resource not found. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                                                | Response headers       |
+| ----------- | ---------------------------------------------------------- | ---------------------- |
+| **200**     | Quote details including lines, attachments, and revisions. | -                      |
+| **404**     | Resource not found.                                        | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## submitDraftQuote
 
@@ -487,7 +473,7 @@ import type { SubmitDraftQuoteRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -514,10 +500,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
+| Name        | Type     | Description | Notes                     |
+| ----------- | -------- | ----------- | ------------------------- |
+| **quoteId** | `string` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -532,15 +517,14 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Quote submitted successfully. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                   | Response headers       |
+| ----------- | ----------------------------- | ---------------------- |
+| **200**     | Quote submitted successfully. | -                      |
+| **422**     | Payload validation failed.    | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## submitQuote
 
@@ -559,7 +543,7 @@ import type { SubmitQuoteOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -586,10 +570,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **submitQuoteRequest** | [SubmitQuoteRequest](SubmitQuoteRequest.md) |  | |
+| Name                   | Type                                        | Description | Notes |
+| ---------------------- | ------------------------------------------- | ----------- | ----- |
+| **submitQuoteRequest** | [SubmitQuoteRequest](SubmitQuoteRequest.md) |             |       |
 
 ### Return type
 
@@ -604,15 +587,14 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Quote submitted. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                | Response headers       |
+| ----------- | -------------------------- | ---------------------- |
+| **201**     | Quote submitted.           | -                      |
+| **422**     | Payload validation failed. | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## submitQuoteRevision
 
@@ -631,7 +613,7 @@ import type { SubmitQuoteRevisionOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -662,12 +644,11 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rfqId** | `string` |  | [Defaults to `undefined`] |
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
-| **submitQuoteRevisionRequest** | [SubmitQuoteRevisionRequest](SubmitQuoteRevisionRequest.md) |  | |
+| Name                           | Type                                                        | Description | Notes                     |
+| ------------------------------ | ----------------------------------------------------------- | ----------- | ------------------------- |
+| **rfqId**                      | `string`                                                    |             | [Defaults to `undefined`] |
+| **quoteId**                    | `string`                                                    |             | [Defaults to `undefined`] |
+| **submitQuoteRevisionRequest** | [SubmitQuoteRevisionRequest](SubmitQuoteRevisionRequest.md) |             |                           |
 
 ### Return type
 
@@ -682,14 +663,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Revision accepted. |  -  |
+
+| Status code | Description        | Response headers |
+| ----------- | ------------------ | ---------------- |
+| **201**     | Revision accepted. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateQuoteLine
 
@@ -708,7 +688,7 @@ import type { UpdateQuoteLineRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -739,12 +719,11 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
-| **quoteItemId** | `string` |  | [Defaults to `undefined`] |
-| **quoteLineUpdateRequest** | [QuoteLineUpdateRequest](QuoteLineUpdateRequest.md) |  | |
+| Name                       | Type                                                | Description | Notes                     |
+| -------------------------- | --------------------------------------------------- | ----------- | ------------------------- |
+| **quoteId**                | `string`                                            |             | [Defaults to `undefined`] |
+| **quoteItemId**            | `string`                                            |             | [Defaults to `undefined`] |
+| **quoteLineUpdateRequest** | [QuoteLineUpdateRequest](QuoteLineUpdateRequest.md) |             |                           |
 
 ### Return type
 
@@ -759,15 +738,14 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Line updated and totals recalculated. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                           | Response headers       |
+| ----------- | ------------------------------------- | ---------------------- |
+| **200**     | Line updated and totals recalculated. | -                      |
+| **422**     | Payload validation failed.            | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## withdrawQuote
 
@@ -786,7 +764,7 @@ import type { WithdrawQuoteOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -817,12 +795,11 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rfqId** | `string` |  | [Defaults to `undefined`] |
-| **quoteId** | `string` |  | [Defaults to `undefined`] |
-| **withdrawQuoteRequest** | [WithdrawQuoteRequest](WithdrawQuoteRequest.md) |  | |
+| Name                     | Type                                            | Description | Notes                     |
+| ------------------------ | ----------------------------------------------- | ----------- | ------------------------- |
+| **rfqId**                | `string`                                        |             | [Defaults to `undefined`] |
+| **quoteId**              | `string`                                        |             | [Defaults to `undefined`] |
+| **withdrawQuoteRequest** | [WithdrawQuoteRequest](WithdrawQuoteRequest.md) |             |                           |
 
 ### Return type
 
@@ -837,11 +814,10 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Quote withdrawn. |  -  |
+
+| Status code | Description      | Response headers |
+| ----------- | ---------------- | ---------------- |
+| **200**     | Quote withdrawn. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

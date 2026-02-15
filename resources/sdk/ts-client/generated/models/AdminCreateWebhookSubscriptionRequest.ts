@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,97 +12,107 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminCreateWebhookSubscriptionRequest
  */
 export interface AdminCreateWebhookSubscriptionRequest {
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
     url: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
     secret?: string;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
     events: Array<string>;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
     active?: boolean;
     /**
-     * 
+     *
      * @type {{ [key: string]: any; }}
      * @memberof AdminCreateWebhookSubscriptionRequest
      */
-    retryPolicy?: { [key: string]: any; };
+    retryPolicy?: { [key: string]: any };
 }
 
 /**
  * Check if a given object implements the AdminCreateWebhookSubscriptionRequest interface.
  */
-export function instanceOfAdminCreateWebhookSubscriptionRequest(value: object): value is AdminCreateWebhookSubscriptionRequest {
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+export function instanceOfAdminCreateWebhookSubscriptionRequest(
+    value: object,
+): value is AdminCreateWebhookSubscriptionRequest {
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('url' in value) || value['url'] === undefined) return false;
     if (!('events' in value) || value['events'] === undefined) return false;
     return true;
 }
 
-export function AdminCreateWebhookSubscriptionRequestFromJSON(json: any): AdminCreateWebhookSubscriptionRequest {
+export function AdminCreateWebhookSubscriptionRequestFromJSON(
+    json: any,
+): AdminCreateWebhookSubscriptionRequest {
     return AdminCreateWebhookSubscriptionRequestFromJSONTyped(json, false);
 }
 
-export function AdminCreateWebhookSubscriptionRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminCreateWebhookSubscriptionRequest {
+export function AdminCreateWebhookSubscriptionRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminCreateWebhookSubscriptionRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'companyId': json['company_id'],
-        'url': json['url'],
-        'secret': json['secret'] == null ? undefined : json['secret'],
-        'events': json['events'],
-        'active': json['active'] == null ? undefined : json['active'],
-        'retryPolicy': json['retry_policy'] == null ? undefined : json['retry_policy'],
+        companyId: json['company_id'],
+        url: json['url'],
+        secret: json['secret'] == null ? undefined : json['secret'],
+        events: json['events'],
+        active: json['active'] == null ? undefined : json['active'],
+        retryPolicy:
+            json['retry_policy'] == null ? undefined : json['retry_policy'],
     };
 }
 
-export function AdminCreateWebhookSubscriptionRequestToJSON(json: any): AdminCreateWebhookSubscriptionRequest {
+export function AdminCreateWebhookSubscriptionRequestToJSON(
+    json: any,
+): AdminCreateWebhookSubscriptionRequest {
     return AdminCreateWebhookSubscriptionRequestToJSONTyped(json, false);
 }
 
-export function AdminCreateWebhookSubscriptionRequestToJSONTyped(value?: AdminCreateWebhookSubscriptionRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminCreateWebhookSubscriptionRequestToJSONTyped(
+    value?: AdminCreateWebhookSubscriptionRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'company_id': value['companyId'],
-        'url': value['url'],
-        'secret': value['secret'],
-        'events': value['events'],
-        'active': value['active'],
-        'retry_policy': value['retryPolicy'],
+        company_id: value['companyId'],
+        url: value['url'],
+        secret: value['secret'],
+        events: value['events'],
+        active: value['active'],
+        retry_policy: value['retryPolicy'],
     };
 }
-

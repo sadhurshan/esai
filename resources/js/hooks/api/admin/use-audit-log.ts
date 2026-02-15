@@ -9,7 +9,10 @@ export interface UseAuditLogOptions {
     enabled?: boolean;
 }
 
-export function useAuditLog(filters: AuditLogFilters, options: UseAuditLogOptions = {}): UseQueryResult<AuditLogResponse> {
+export function useAuditLog(
+    filters: AuditLogFilters,
+    options: UseAuditLogOptions = {},
+): UseQueryResult<AuditLogResponse> {
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
     const enabled = options.enabled ?? true;
     const serializedFilters = filters ?? {};

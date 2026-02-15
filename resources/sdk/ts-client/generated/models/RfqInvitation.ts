@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqInvitation
  */
 export interface RfqInvitation {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqInvitation
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqInvitation
      */
     supplierId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqInvitation
      */
     status: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RfqInvitation
      */
     invitedAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RfqInvitation
      */
@@ -56,7 +55,8 @@ export interface RfqInvitation {
  */
 export function instanceOfRfqInvitation(value: object): value is RfqInvitation {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+    if (!('supplierId' in value) || value['supplierId'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -65,17 +65,25 @@ export function RfqInvitationFromJSON(json: any): RfqInvitation {
     return RfqInvitationFromJSONTyped(json, false);
 }
 
-export function RfqInvitationFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqInvitation {
+export function RfqInvitationFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqInvitation {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'supplierId': json['supplier_id'],
-        'status': json['status'],
-        'invitedAt': json['invited_at'] == null ? undefined : (new Date(json['invited_at'])),
-        'respondedAt': json['responded_at'] == null ? undefined : (new Date(json['responded_at'])),
+        id: json['id'],
+        supplierId: json['supplier_id'],
+        status: json['status'],
+        invitedAt:
+            json['invited_at'] == null
+                ? undefined
+                : new Date(json['invited_at']),
+        respondedAt:
+            json['responded_at'] == null
+                ? undefined
+                : new Date(json['responded_at']),
     };
 }
 
@@ -83,18 +91,25 @@ export function RfqInvitationToJSON(json: any): RfqInvitation {
     return RfqInvitationToJSONTyped(json, false);
 }
 
-export function RfqInvitationToJSONTyped(value?: RfqInvitation | null, ignoreDiscriminator: boolean = false): any {
+export function RfqInvitationToJSONTyped(
+    value?: RfqInvitation | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'supplier_id': value['supplierId'],
-        'status': value['status'],
-        'invited_at': value['invitedAt'] == null ? value['invitedAt'] : value['invitedAt'].toISOString(),
-        'responded_at': value['respondedAt'] == null ? value['respondedAt'] : value['respondedAt'].toISOString(),
+        id: value['id'],
+        supplier_id: value['supplierId'],
+        status: value['status'],
+        invited_at:
+            value['invitedAt'] == null
+                ? value['invitedAt']
+                : value['invitedAt'].toISOString(),
+        responded_at:
+            value['respondedAt'] == null
+                ? value['respondedAt']
+                : value['respondedAt'].toISOString(),
     };
 }
-

@@ -1,36 +1,32 @@
-
 # CreateRmaRequest
-
 
 ## Properties
 
-Name | Type
------------- | -------------
-`reason` | string
-`attachments` | Array&lt;string&gt;
+| Name          | Type                |
+| ------------- | ------------------- |
+| `reason`      | string              |
+| `attachments` | Array&lt;string&gt; |
 
 ## Example
 
 ```typescript
-import type { CreateRmaRequest } from ''
+import type { CreateRmaRequest } from '';
 
 // TODO: Update the object below with actual values
 const example = {
-  "reason": null,
-  "attachments": null,
-} satisfies CreateRmaRequest
+    reason: null,
+    attachments: null,
+} satisfies CreateRmaRequest;
 
-console.log(example)
+console.log(example);
 
 // Convert the instance to a JSON string
-const exampleJSON: string = JSON.stringify(example)
-console.log(exampleJSON)
+const exampleJSON: string = JSON.stringify(example);
+console.log(exampleJSON);
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as CreateRmaRequest
-console.log(exampleParsed)
+const exampleParsed = JSON.parse(exampleJSON) as CreateRmaRequest;
+console.log(exampleParsed);
 ```
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-

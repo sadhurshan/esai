@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,95 +12,92 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { InvoiceLineTaxesInner } from './InvoiceLineTaxesInner';
 import {
     InvoiceLineTaxesInnerFromJSON,
-    InvoiceLineTaxesInnerFromJSONTyped,
     InvoiceLineTaxesInnerToJSON,
-    InvoiceLineTaxesInnerToJSONTyped,
 } from './InvoiceLineTaxesInner';
 
 /**
- * 
+ *
  * @export
  * @interface InvoiceLine
  */
 export interface InvoiceLine {
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLine
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLine
      */
     invoiceId?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLine
      */
     poLineId?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLine
      */
     description: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLine
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLine
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceLine
      */
     currency?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLine
      */
     unitPrice: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLine
      */
     unitPriceMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLine
      */
     lineSubtotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLine
      */
     taxTotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLine
      */
     lineTotal?: number;
     /**
-     * 
+     *
      * @type {Array<InvoiceLineTaxesInner>}
      * @memberof InvoiceLine
      */
@@ -112,9 +109,11 @@ export interface InvoiceLine {
  */
 export function instanceOfInvoiceLine(value: object): value is InvoiceLine {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('description' in value) || value['description'] === undefined) return false;
+    if (!('description' in value) || value['description'] === undefined)
+        return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
-    if (!('unitPrice' in value) || value['unitPrice'] === undefined) return false;
+    if (!('unitPrice' in value) || value['unitPrice'] === undefined)
+        return false;
     return true;
 }
 
@@ -122,25 +121,36 @@ export function InvoiceLineFromJSON(json: any): InvoiceLine {
     return InvoiceLineFromJSONTyped(json, false);
 }
 
-export function InvoiceLineFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceLine {
+export function InvoiceLineFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceLine {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'invoiceId': json['invoice_id'] == null ? undefined : json['invoice_id'],
-        'poLineId': json['po_line_id'] == null ? undefined : json['po_line_id'],
-        'description': json['description'],
-        'quantity': json['quantity'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'currency': json['currency'] == null ? undefined : json['currency'],
-        'unitPrice': json['unit_price'],
-        'unitPriceMinor': json['unit_price_minor'] == null ? undefined : json['unit_price_minor'],
-        'lineSubtotal': json['line_subtotal'] == null ? undefined : json['line_subtotal'],
-        'taxTotal': json['tax_total'] == null ? undefined : json['tax_total'],
-        'lineTotal': json['line_total'] == null ? undefined : json['line_total'],
-        'taxes': json['taxes'] == null ? undefined : ((json['taxes'] as Array<any>).map(InvoiceLineTaxesInnerFromJSON)),
+        id: json['id'],
+        invoiceId: json['invoice_id'] == null ? undefined : json['invoice_id'],
+        poLineId: json['po_line_id'] == null ? undefined : json['po_line_id'],
+        description: json['description'],
+        quantity: json['quantity'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        currency: json['currency'] == null ? undefined : json['currency'],
+        unitPrice: json['unit_price'],
+        unitPriceMinor:
+            json['unit_price_minor'] == null
+                ? undefined
+                : json['unit_price_minor'],
+        lineSubtotal:
+            json['line_subtotal'] == null ? undefined : json['line_subtotal'],
+        taxTotal: json['tax_total'] == null ? undefined : json['tax_total'],
+        lineTotal: json['line_total'] == null ? undefined : json['line_total'],
+        taxes:
+            json['taxes'] == null
+                ? undefined
+                : (json['taxes'] as Array<any>).map(
+                      InvoiceLineTaxesInnerFromJSON,
+                  ),
     };
 }
 
@@ -148,26 +158,32 @@ export function InvoiceLineToJSON(json: any): InvoiceLine {
     return InvoiceLineToJSONTyped(json, false);
 }
 
-export function InvoiceLineToJSONTyped(value?: InvoiceLine | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceLineToJSONTyped(
+    value?: InvoiceLine | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'invoice_id': value['invoiceId'],
-        'po_line_id': value['poLineId'],
-        'description': value['description'],
-        'quantity': value['quantity'],
-        'uom': value['uom'],
-        'currency': value['currency'],
-        'unit_price': value['unitPrice'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'line_subtotal': value['lineSubtotal'],
-        'tax_total': value['taxTotal'],
-        'line_total': value['lineTotal'],
-        'taxes': value['taxes'] == null ? undefined : ((value['taxes'] as Array<any>).map(InvoiceLineTaxesInnerToJSON)),
+        id: value['id'],
+        invoice_id: value['invoiceId'],
+        po_line_id: value['poLineId'],
+        description: value['description'],
+        quantity: value['quantity'],
+        uom: value['uom'],
+        currency: value['currency'],
+        unit_price: value['unitPrice'],
+        unit_price_minor: value['unitPriceMinor'],
+        line_subtotal: value['lineSubtotal'],
+        tax_total: value['taxTotal'],
+        line_total: value['lineTotal'],
+        taxes:
+            value['taxes'] == null
+                ? undefined
+                : (value['taxes'] as Array<any>).map(
+                      InvoiceLineTaxesInnerToJSON,
+                  ),
     };
 }
-

@@ -1,7 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import type { EventDeliveryStatus } from '@/types/notifications';
 
-const STATUS_COPY: Record<EventDeliveryStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const STATUS_COPY: Record<
+    EventDeliveryStatus,
+    {
+        label: string;
+        variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    }
+> = {
     pending: { label: 'Pending', variant: 'secondary' },
     success: { label: 'Delivered', variant: 'default' },
     failed: { label: 'Failed', variant: 'destructive' },

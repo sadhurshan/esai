@@ -1,7 +1,17 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import type { HttpError, Quote, QuoteLineRequest, QuoteLineUpdateRequest, SubmitQuote201Response } from '@/sdk';
+import type {
+    HttpError,
+    Quote,
+    QuoteLineRequest,
+    QuoteLineUpdateRequest,
+    SubmitQuote201Response,
+} from '@/sdk';
 import { QuotesApi } from '@/sdk';
 
 import { invalidateQuoteQueries } from './query-invalidation';
@@ -44,10 +54,11 @@ export function useQuoteLines(): UseQuoteLinesResult {
 
     const addLine = useMutation<Quote, HttpError, AddQuoteLineVariables>({
         mutationFn: async ({ quoteId, payload }) => {
-            const response: SubmitQuote201Response = await quotesApi.addQuoteLine({
-                quoteId: String(quoteId),
-                quoteLineRequest: payload,
-            });
+            const response: SubmitQuote201Response =
+                await quotesApi.addQuoteLine({
+                    quoteId: String(quoteId),
+                    quoteLineRequest: payload,
+                });
 
             return response.data;
         },
@@ -58,11 +69,12 @@ export function useQuoteLines(): UseQuoteLinesResult {
 
     const updateLine = useMutation<Quote, HttpError, UpdateQuoteLineVariables>({
         mutationFn: async ({ quoteId, quoteItemId, payload }) => {
-            const response: SubmitQuote201Response = await quotesApi.updateQuoteLine({
-                quoteId: String(quoteId),
-                quoteItemId: String(quoteItemId),
-                quoteLineUpdateRequest: payload,
-            });
+            const response: SubmitQuote201Response =
+                await quotesApi.updateQuoteLine({
+                    quoteId: String(quoteId),
+                    quoteItemId: String(quoteItemId),
+                    quoteLineUpdateRequest: payload,
+                });
 
             return response.data;
         },
@@ -73,10 +85,11 @@ export function useQuoteLines(): UseQuoteLinesResult {
 
     const deleteLine = useMutation<Quote, HttpError, DeleteQuoteLineVariables>({
         mutationFn: async ({ quoteId, quoteItemId }) => {
-            const response: SubmitQuote201Response = await quotesApi.deleteQuoteLine({
-                quoteId: String(quoteId),
-                quoteItemId: String(quoteItemId),
-            });
+            const response: SubmitQuote201Response =
+                await quotesApi.deleteQuoteLine({
+                    quoteId: String(quoteId),
+                    quoteItemId: String(quoteItemId),
+                });
 
             return response.data;
         },

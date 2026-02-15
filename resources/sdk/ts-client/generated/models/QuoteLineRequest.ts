@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,56 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface QuoteLineRequest
  */
 export interface QuoteLineRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteLineRequest
      */
     rfqItemId: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteLineRequest
      */
     unitPriceMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteLineRequest
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteLineRequest
      */
     currency?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteLineRequest
      */
     leadTimeDays: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteLineRequest
      */
     note?: string;
     /**
-     * 
+     *
      * @type {Array<number>}
      * @memberof QuoteLineRequest
      */
     taxCodeIds?: Array<number>;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteLineRequest
      */
@@ -72,9 +71,13 @@ export interface QuoteLineRequest {
 /**
  * Check if a given object implements the QuoteLineRequest interface.
  */
-export function instanceOfQuoteLineRequest(value: object): value is QuoteLineRequest {
-    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined) return false;
-    if (!('leadTimeDays' in value) || value['leadTimeDays'] === undefined) return false;
+export function instanceOfQuoteLineRequest(
+    value: object,
+): value is QuoteLineRequest {
+    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined)
+        return false;
+    if (!('leadTimeDays' in value) || value['leadTimeDays'] === undefined)
+        return false;
     return true;
 }
 
@@ -82,20 +85,26 @@ export function QuoteLineRequestFromJSON(json: any): QuoteLineRequest {
     return QuoteLineRequestFromJSONTyped(json, false);
 }
 
-export function QuoteLineRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteLineRequest {
+export function QuoteLineRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): QuoteLineRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfqItemId': json['rfq_item_id'],
-        'unitPriceMinor': json['unit_price_minor'] == null ? undefined : json['unit_price_minor'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'currency': json['currency'] == null ? undefined : json['currency'],
-        'leadTimeDays': json['lead_time_days'],
-        'note': json['note'] == null ? undefined : json['note'],
-        'taxCodeIds': json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
-        'status': json['status'] == null ? undefined : json['status'],
+        rfqItemId: json['rfq_item_id'],
+        unitPriceMinor:
+            json['unit_price_minor'] == null
+                ? undefined
+                : json['unit_price_minor'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        currency: json['currency'] == null ? undefined : json['currency'],
+        leadTimeDays: json['lead_time_days'],
+        note: json['note'] == null ? undefined : json['note'],
+        taxCodeIds:
+            json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
+        status: json['status'] == null ? undefined : json['status'],
     };
 }
 
@@ -103,21 +112,22 @@ export function QuoteLineRequestToJSON(json: any): QuoteLineRequest {
     return QuoteLineRequestToJSONTyped(json, false);
 }
 
-export function QuoteLineRequestToJSONTyped(value?: QuoteLineRequest | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteLineRequestToJSONTyped(
+    value?: QuoteLineRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq_item_id': value['rfqItemId'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'unit_price': value['unitPrice'],
-        'currency': value['currency'],
-        'lead_time_days': value['leadTimeDays'],
-        'note': value['note'],
-        'tax_code_ids': value['taxCodeIds'],
-        'status': value['status'],
+        rfq_item_id: value['rfqItemId'],
+        unit_price_minor: value['unitPriceMinor'],
+        unit_price: value['unitPrice'],
+        currency: value['currency'],
+        lead_time_days: value['leadTimeDays'],
+        note: value['note'],
+        tax_code_ids: value['taxCodeIds'],
+        status: value['status'],
     };
 }
-

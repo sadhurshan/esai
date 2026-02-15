@@ -1,17 +1,20 @@
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ReactNode } from 'react';
 
-import { ForecastReportPage } from '@/pages/analytics/forecast-report-page';
-import { SupplierPerformancePage } from '@/pages/analytics/supplier-performance-page';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { useForecastReport, useSupplierPerformanceReport } from '@/hooks/api/analytics/use-analytics';
+import {
+    useForecastReport,
+    useSupplierPerformanceReport,
+} from '@/hooks/api/analytics/use-analytics';
 import { useItems } from '@/hooks/api/inventory/use-items';
 import { useLocations } from '@/hooks/api/inventory/use-locations';
 import { useSuppliers } from '@/hooks/api/useSuppliers';
+import { ForecastReportPage } from '@/pages/analytics/forecast-report-page';
+import { SupplierPerformancePage } from '@/pages/analytics/supplier-performance-page';
 
 vi.mock('@/contexts/auth-context', () => ({
     useAuth: vi.fn(),
@@ -61,7 +64,13 @@ vi.mock('@/components/plan-upgrade-banner', () => ({
 }));
 
 vi.mock('@/components/empty-state', () => ({
-    EmptyState: ({ title, description }: { title: string; description?: string }) => (
+    EmptyState: ({
+        title,
+        description,
+    }: {
+        title: string;
+        description?: string;
+    }) => (
         <div>
             <h3>{title}</h3>
             {description ? <p>{description}</p> : null}
@@ -72,7 +81,9 @@ vi.mock('@/components/empty-state', () => ({
 const mockUseAuth = vi.mocked(useAuth);
 const mockUseFormatting = vi.mocked(useFormatting);
 const mockUseForecastReport = vi.mocked(useForecastReport);
-const mockUseSupplierPerformanceReport = vi.mocked(useSupplierPerformanceReport);
+const mockUseSupplierPerformanceReport = vi.mocked(
+    useSupplierPerformanceReport,
+);
 const mockUseItems = vi.mocked(useItems);
 const mockUseLocations = vi.mocked(useLocations);
 const mockUseSuppliers = vi.mocked(useSuppliers);
@@ -246,7 +257,9 @@ describe('SupplierPerformancePage', () => {
 
         renderSupplierPage();
 
-        expect(screen.getByRole('heading', { name: 'Choose a supplier' })).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', { name: 'Choose a supplier' }),
+        ).toBeInTheDocument();
     });
 
     it('shows the supplier summary for supplier personas', () => {

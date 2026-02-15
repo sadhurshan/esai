@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ApiKeyPreview
  */
 export interface ApiKeyPreview {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ApiKeyPreview
      */
@@ -32,13 +31,13 @@ export interface ApiKeyPreview {
      */
     prefix: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ApiKeyPreview
      */
     createdAt: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ApiKeyPreview
      */
@@ -51,8 +50,10 @@ export interface ApiKeyPreview {
 export function instanceOfApiKeyPreview(value: object): value is ApiKeyPreview {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('prefix' in value) || value['prefix'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('lastUsedAt' in value) || value['lastUsedAt'] === undefined) return false;
+    if (!('createdAt' in value) || value['createdAt'] === undefined)
+        return false;
+    if (!('lastUsedAt' in value) || value['lastUsedAt'] === undefined)
+        return false;
     return true;
 }
 
@@ -60,16 +61,18 @@ export function ApiKeyPreviewFromJSON(json: any): ApiKeyPreview {
     return ApiKeyPreviewFromJSONTyped(json, false);
 }
 
-export function ApiKeyPreviewFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiKeyPreview {
+export function ApiKeyPreviewFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ApiKeyPreview {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'prefix': json['prefix'],
-        'createdAt': (new Date(json['created_at'])),
-        'lastUsedAt': (new Date(json['last_used_at'])),
+        id: json['id'],
+        prefix: json['prefix'],
+        createdAt: new Date(json['created_at']),
+        lastUsedAt: new Date(json['last_used_at']),
     };
 }
 
@@ -77,17 +80,18 @@ export function ApiKeyPreviewToJSON(json: any): ApiKeyPreview {
     return ApiKeyPreviewToJSONTyped(json, false);
 }
 
-export function ApiKeyPreviewToJSONTyped(value?: ApiKeyPreview | null, ignoreDiscriminator: boolean = false): any {
+export function ApiKeyPreviewToJSONTyped(
+    value?: ApiKeyPreview | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'prefix': value['prefix'],
-        'created_at': value['createdAt'].toISOString(),
-        'last_used_at': value['lastUsedAt'].toISOString(),
+        id: value['id'],
+        prefix: value['prefix'],
+        created_at: value['createdAt'].toISOString(),
+        last_used_at: value['lastUsedAt'].toISOString(),
     };
 }
-

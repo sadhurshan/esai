@@ -1,11 +1,18 @@
-import { z } from 'zod';
-import type { AdminDigitalTwinCategoryNode, AdminDigitalTwinDetail } from '@/sdk';
+import type {
+    AdminDigitalTwinCategoryNode,
+    AdminDigitalTwinDetail,
+} from '@/sdk';
 import { HttpError } from '@/sdk';
+import { z } from 'zod';
 
 export const digitalTwinSpecSchema = z.object({
     name: z.string().min(1, 'Spec name is required'),
     value: z.string().min(1, 'Spec value is required'),
-    uom: z.string().max(40, 'UoM must be 40 characters or fewer').optional().nullable(),
+    uom: z
+        .string()
+        .max(40, 'UoM must be 40 characters or fewer')
+        .optional()
+        .nullable(),
 });
 
 export const adminDigitalTwinFormSchema = z.object({
@@ -18,12 +25,23 @@ export const adminDigitalTwinFormSchema = z.object({
     title: z.string().min(3, 'Title is required'),
     summary: z.string().max(2000, 'Summary is too long').optional().nullable(),
     version: z.string().min(1, 'Version is required'),
-    revisionNotes: z.string().max(2000, 'Revision notes are too long').optional().nullable(),
-    tags: z.array(z.string().min(1).max(40, 'Tag is too long')).max(12, 'Limit to 12 tags').default([]),
-    specs: z.array(digitalTwinSpecSchema).min(1, 'Add at least one specification'),
+    revisionNotes: z
+        .string()
+        .max(2000, 'Revision notes are too long')
+        .optional()
+        .nullable(),
+    tags: z
+        .array(z.string().min(1).max(40, 'Tag is too long'))
+        .max(12, 'Limit to 12 tags')
+        .default([]),
+    specs: z
+        .array(digitalTwinSpecSchema)
+        .min(1, 'Add at least one specification'),
 });
 
-export type AdminDigitalTwinFormValues = z.infer<typeof adminDigitalTwinFormSchema>;
+export type AdminDigitalTwinFormValues = z.infer<
+    typeof adminDigitalTwinFormSchema
+>;
 
 export const ADMIN_DIGITAL_TWIN_FORM_DEFAULTS: AdminDigitalTwinFormValues = {
     categoryId: '',
@@ -43,7 +61,9 @@ export function flattenDigitalTwinCategories(
     return nodes.flatMap((node) => {
         const indent = depth > 0 ? `${' '.repeat(depth * 2)}> ` : '';
         const current = [{ value: node.id, label: `${indent}${node.name}` }];
-        const children = node.children ? flattenDigitalTwinCategories(node.children, depth + 1) : [];
+        const children = node.children
+            ? flattenDigitalTwinCategories(node.children, depth + 1)
+            : [];
         return [...current, ...children];
     });
 }
@@ -51,7 +71,9 @@ export function flattenDigitalTwinCategories(
 export function resolveDigitalTwinErrorMessage(error: unknown): string {
     if (error instanceof HttpError) {
         const detail =
-            typeof error.body === 'object' && error.body !== null && 'message' in error.body
+            typeof error.body === 'object' &&
+            error.body !== null &&
+            'message' in error.body
                 ? (error.body.message as string | undefined)
                 : undefined;
         if (typeof detail === 'string' && detail.length > 0) {
@@ -66,11 +88,19 @@ export function resolveDigitalTwinErrorMessage(error: unknown): string {
     return 'Something went wrong. Please try again.';
 }
 
-export function mapDigitalTwinToFormValues(digitalTwin: AdminDigitalTwinDetail): AdminDigitalTwinFormValues {
-    const specs = digitalTwin.specs.length > 0 ? digitalTwin.specs : [{ name: '', value: '', uom: '' }];
+export function mapDigitalTwinToFormValues(
+    digitalTwin: AdminDigitalTwinDetail,
+): AdminDigitalTwinFormValues {
+    const specs =
+        digitalTwin.specs.length > 0
+            ? digitalTwin.specs
+            : [{ name: '', value: '', uom: '' }];
 
     return {
-        categoryId: digitalTwin.category?.id != null ? String(digitalTwin.category.id) : '',
+        categoryId:
+            digitalTwin.category?.id != null
+                ? String(digitalTwin.category.id)
+                : '',
         code: digitalTwin.code ?? '',
         title: digitalTwin.title ?? '',
         summary: digitalTwin.summary ?? '',

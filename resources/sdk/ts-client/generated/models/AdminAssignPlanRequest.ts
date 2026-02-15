@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminAssignPlanRequest
  */
 export interface AdminAssignPlanRequest {
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminAssignPlanRequest
      */
     planId: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof AdminAssignPlanRequest
      */
     trialEndsAt?: Date;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminAssignPlanRequest
      */
@@ -42,41 +41,59 @@ export interface AdminAssignPlanRequest {
 /**
  * Check if a given object implements the AdminAssignPlanRequest interface.
  */
-export function instanceOfAdminAssignPlanRequest(value: object): value is AdminAssignPlanRequest {
+export function instanceOfAdminAssignPlanRequest(
+    value: object,
+): value is AdminAssignPlanRequest {
     if (!('planId' in value) || value['planId'] === undefined) return false;
     return true;
 }
 
-export function AdminAssignPlanRequestFromJSON(json: any): AdminAssignPlanRequest {
+export function AdminAssignPlanRequestFromJSON(
+    json: any,
+): AdminAssignPlanRequest {
     return AdminAssignPlanRequestFromJSONTyped(json, false);
 }
 
-export function AdminAssignPlanRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminAssignPlanRequest {
+export function AdminAssignPlanRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminAssignPlanRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'planId': json['plan_id'],
-        'trialEndsAt': json['trial_ends_at'] == null ? undefined : (new Date(json['trial_ends_at'])),
-        'seatsPurchased': json['seats_purchased'] == null ? undefined : json['seats_purchased'],
+        planId: json['plan_id'],
+        trialEndsAt:
+            json['trial_ends_at'] == null
+                ? undefined
+                : new Date(json['trial_ends_at']),
+        seatsPurchased:
+            json['seats_purchased'] == null
+                ? undefined
+                : json['seats_purchased'],
     };
 }
 
-export function AdminAssignPlanRequestToJSON(json: any): AdminAssignPlanRequest {
+export function AdminAssignPlanRequestToJSON(
+    json: any,
+): AdminAssignPlanRequest {
     return AdminAssignPlanRequestToJSONTyped(json, false);
 }
 
-export function AdminAssignPlanRequestToJSONTyped(value?: AdminAssignPlanRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminAssignPlanRequestToJSONTyped(
+    value?: AdminAssignPlanRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'plan_id': value['planId'],
-        'trial_ends_at': value['trialEndsAt'] == null ? value['trialEndsAt'] : value['trialEndsAt'].toISOString(),
-        'seats_purchased': value['seatsPurchased'],
+        plan_id: value['planId'],
+        trial_ends_at:
+            value['trialEndsAt'] == null
+                ? value['trialEndsAt']
+                : value['trialEndsAt'].toISOString(),
+        seats_purchased: value['seatsPurchased'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,83 +12,79 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { MoneySettingsBaseCurrency } from './MoneySettingsBaseCurrency';
 import {
     MoneySettingsBaseCurrencyFromJSON,
-    MoneySettingsBaseCurrencyFromJSONTyped,
     MoneySettingsBaseCurrencyToJSON,
-    MoneySettingsBaseCurrencyToJSONTyped,
 } from './MoneySettingsBaseCurrency';
 
 /**
- * 
+ *
  * @export
  * @interface MoneySettings
  */
 export interface MoneySettings {
     /**
-     * 
+     *
      * @type {number}
      * @memberof MoneySettings
      */
     id?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof MoneySettings
      */
     companyId?: number;
     /**
-     * 
+     *
      * @type {MoneySettingsBaseCurrency}
      * @memberof MoneySettings
      */
     baseCurrency: MoneySettingsBaseCurrency;
     /**
-     * 
+     *
      * @type {MoneySettingsBaseCurrency}
      * @memberof MoneySettings
      */
     pricingCurrency: MoneySettingsBaseCurrency;
     /**
-     * 
+     *
      * @type {string}
      * @memberof MoneySettings
      */
     fxSource: MoneySettingsFxSourceEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof MoneySettings
      */
     priceRoundRule: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof MoneySettings
      */
     taxRegime: MoneySettingsTaxRegimeEnum;
     /**
-     * 
+     *
      * @type {object}
      * @memberof MoneySettings
      */
     defaults: object;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof MoneySettings
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof MoneySettings
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -96,29 +92,34 @@ export interface MoneySettings {
 export const MoneySettingsFxSourceEnum = {
     Manual: 'manual',
     Fixer: 'fixer',
-    Openexchangerates: 'openexchangerates'
+    Openexchangerates: 'openexchangerates',
 } as const;
-export type MoneySettingsFxSourceEnum = typeof MoneySettingsFxSourceEnum[keyof typeof MoneySettingsFxSourceEnum];
+export type MoneySettingsFxSourceEnum =
+    (typeof MoneySettingsFxSourceEnum)[keyof typeof MoneySettingsFxSourceEnum];
 
 /**
  * @export
  */
 export const MoneySettingsTaxRegimeEnum = {
     Exclusive: 'exclusive',
-    Inclusive: 'inclusive'
+    Inclusive: 'inclusive',
 } as const;
-export type MoneySettingsTaxRegimeEnum = typeof MoneySettingsTaxRegimeEnum[keyof typeof MoneySettingsTaxRegimeEnum];
-
+export type MoneySettingsTaxRegimeEnum =
+    (typeof MoneySettingsTaxRegimeEnum)[keyof typeof MoneySettingsTaxRegimeEnum];
 
 /**
  * Check if a given object implements the MoneySettings interface.
  */
 export function instanceOfMoneySettings(value: object): value is MoneySettings {
-    if (!('baseCurrency' in value) || value['baseCurrency'] === undefined) return false;
-    if (!('pricingCurrency' in value) || value['pricingCurrency'] === undefined) return false;
+    if (!('baseCurrency' in value) || value['baseCurrency'] === undefined)
+        return false;
+    if (!('pricingCurrency' in value) || value['pricingCurrency'] === undefined)
+        return false;
     if (!('fxSource' in value) || value['fxSource'] === undefined) return false;
-    if (!('priceRoundRule' in value) || value['priceRoundRule'] === undefined) return false;
-    if (!('taxRegime' in value) || value['taxRegime'] === undefined) return false;
+    if (!('priceRoundRule' in value) || value['priceRoundRule'] === undefined)
+        return false;
+    if (!('taxRegime' in value) || value['taxRegime'] === undefined)
+        return false;
     if (!('defaults' in value) || value['defaults'] === undefined) return false;
     return true;
 }
@@ -127,22 +128,32 @@ export function MoneySettingsFromJSON(json: any): MoneySettings {
     return MoneySettingsFromJSONTyped(json, false);
 }
 
-export function MoneySettingsFromJSONTyped(json: any, ignoreDiscriminator: boolean): MoneySettings {
+export function MoneySettingsFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): MoneySettings {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'companyId': json['company_id'] == null ? undefined : json['company_id'],
-        'baseCurrency': MoneySettingsBaseCurrencyFromJSON(json['base_currency']),
-        'pricingCurrency': MoneySettingsBaseCurrencyFromJSON(json['pricing_currency']),
-        'fxSource': json['fx_source'],
-        'priceRoundRule': json['price_round_rule'],
-        'taxRegime': json['tax_regime'],
-        'defaults': json['defaults'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'] == null ? undefined : json['id'],
+        companyId: json['company_id'] == null ? undefined : json['company_id'],
+        baseCurrency: MoneySettingsBaseCurrencyFromJSON(json['base_currency']),
+        pricingCurrency: MoneySettingsBaseCurrencyFromJSON(
+            json['pricing_currency'],
+        ),
+        fxSource: json['fx_source'],
+        priceRoundRule: json['price_round_rule'],
+        taxRegime: json['tax_regime'],
+        defaults: json['defaults'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -150,23 +161,32 @@ export function MoneySettingsToJSON(json: any): MoneySettings {
     return MoneySettingsToJSONTyped(json, false);
 }
 
-export function MoneySettingsToJSONTyped(value?: MoneySettings | null, ignoreDiscriminator: boolean = false): any {
+export function MoneySettingsToJSONTyped(
+    value?: MoneySettings | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'base_currency': MoneySettingsBaseCurrencyToJSON(value['baseCurrency']),
-        'pricing_currency': MoneySettingsBaseCurrencyToJSON(value['pricingCurrency']),
-        'fx_source': value['fxSource'],
-        'price_round_rule': value['priceRoundRule'],
-        'tax_regime': value['taxRegime'],
-        'defaults': value['defaults'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        base_currency: MoneySettingsBaseCurrencyToJSON(value['baseCurrency']),
+        pricing_currency: MoneySettingsBaseCurrencyToJSON(
+            value['pricingCurrency'],
+        ),
+        fx_source: value['fxSource'],
+        price_round_rule: value['priceRoundRule'],
+        tax_regime: value['taxRegime'],
+        defaults: value['defaults'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

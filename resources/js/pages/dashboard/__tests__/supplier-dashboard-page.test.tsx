@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SupplierDashboardPage } from '@/pages/dashboard/supplier-dashboard-page';
-import { useSupplierDashboardMetrics } from '@/hooks/api/useSupplierDashboardMetrics';
 import { useAuth } from '@/contexts/auth-context';
+import { useSupplierDashboardMetrics } from '@/hooks/api/useSupplierDashboardMetrics';
+import { SupplierDashboardPage } from '@/pages/dashboard/supplier-dashboard-page';
 
 vi.mock('@/hooks/api/useSupplierDashboardMetrics');
 vi.mock('@/contexts/auth-context');
@@ -17,7 +17,8 @@ function mockPersona(
     supplierStatus: 'none' | 'pending' | 'approved' = 'none',
 ) {
     mockUseAuth.mockReturnValue({
-        activePersona: type === 'supplier' ? { type: 'supplier' } : { type: 'buyer' },
+        activePersona:
+            type === 'supplier' ? { type: 'supplier' } : { type: 'buyer' },
         state: {
             company: {
                 start_mode: startMode,
@@ -54,7 +55,9 @@ describe('SupplierDashboardPage', () => {
 
         render(<SupplierDashboardPage />);
 
-        expect(screen.getByText('Switch to supplier persona')).toBeInTheDocument();
+        expect(
+            screen.getByText('Switch to supplier persona'),
+        ).toBeInTheDocument();
     });
 
     it('shows metrics when supplier-first company is pending', () => {
@@ -62,6 +65,8 @@ describe('SupplierDashboardPage', () => {
 
         render(<SupplierDashboardPage />);
 
-        expect(screen.getByText('Complete your supplier application')).toBeInTheDocument();
+        expect(
+            screen.getByText('Complete your supplier application'),
+        ).toBeInTheDocument();
     });
 });

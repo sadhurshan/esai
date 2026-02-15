@@ -62,20 +62,30 @@ export function WorkspaceBreadcrumbs() {
 
     const crumbs = segments
         .map((segmentPath) => {
-            const definition = ROUTE_BREADCRUMBS.find((item) => matchPath({ path: item.path, end: true }, segmentPath));
+            const definition = ROUTE_BREADCRUMBS.find((item) =>
+                matchPath({ path: item.path, end: true }, segmentPath),
+            );
             if (!definition) {
                 return null;
             }
 
-            const match = matchPath({ path: definition.path, end: true }, segmentPath);
-            const label = definition.dynamicLabel && match?.params ? definition.dynamicLabel(match.params) : definition.label;
+            const match = matchPath(
+                { path: definition.path, end: true },
+                segmentPath,
+            );
+            const label =
+                definition.dynamicLabel && match?.params
+                    ? definition.dynamicLabel(match.params)
+                    : definition.label;
 
             return {
                 href: segmentPath,
                 label,
             };
         })
-        .filter((crumb): crumb is { href: string; label: string } => Boolean(crumb));
+        .filter((crumb): crumb is { href: string; label: string } =>
+            Boolean(crumb),
+        );
 
     if (crumbs.length === 0) {
         return null;

@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type QueryKey,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
@@ -41,13 +45,21 @@ export function useDeleteLine() {
             const targetLineId = resolveLineId(variables.lineId);
             const linePrefix = queryKeys.rfqs.lines(rfqId);
             await queryClient.cancelQueries({ queryKey: linePrefix });
-            await queryClient.cancelQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
+            await queryClient.cancelQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
 
-            const previousLines = queryClient.getQueriesData<LinesCache>({ queryKey: linePrefix });
-            const previousRfq = queryClient.getQueryData<Rfq>(queryKeys.rfqs.detail(rfqId));
+            const previousLines = queryClient.getQueriesData<LinesCache>({
+                queryKey: linePrefix,
+            });
+            const previousRfq = queryClient.getQueryData<Rfq>(
+                queryKeys.rfqs.detail(rfqId),
+            );
 
             previousLines.forEach(([key, data]) => {
-                const filteredItems = (data?.items ?? []).filter((item) => resolveLineId(item.id) !== targetLineId);
+                const filteredItems = (data?.items ?? []).filter(
+                    (item) => resolveLineId(item.id) !== targetLineId,
+                );
                 queryClient.setQueryData<LinesCache>(key, {
                     ...data,
                     items: filteredItems,
@@ -55,7 +67,9 @@ export function useDeleteLine() {
             });
 
             if (previousRfq) {
-                const filteredItems = (previousRfq.items ?? []).filter((item) => resolveLineId(item.id) !== targetLineId);
+                const filteredItems = (previousRfq.items ?? []).filter(
+                    (item) => resolveLineId(item.id) !== targetLineId,
+                );
                 queryClient.setQueryData<Rfq>(queryKeys.rfqs.detail(rfqId), {
                     ...previousRfq,
                     items: filteredItems,
@@ -74,14 +88,23 @@ export function useDeleteLine() {
             });
 
             if (context.previousRfq) {
-                queryClient.setQueryData(queryKeys.rfqs.detail(variables.rfqId), context.previousRfq);
+                queryClient.setQueryData(
+                    queryKeys.rfqs.detail(variables.rfqId),
+                    context.previousRfq,
+                );
             }
         },
         onSettled: (_response, _error, variables) => {
             const rfqId = String(variables.rfqId);
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.lines(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.timeline(rfqId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.lines(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.timeline(rfqId),
+            });
         },
     });
 }

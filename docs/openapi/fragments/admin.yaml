@@ -373,6 +373,28 @@ components:
           type: object
           nullable: true
           additionalProperties: true
+    AiTrainingDatasetUploadRequest:
+      type: object
+      required:
+        - company_id
+        - dataset
+      properties:
+        company_id:
+          type: integer
+        dataset:
+          type: string
+          format: binary
+    AiTrainingDatasetUploadData:
+      type: object
+      properties:
+        dataset_upload_id:
+          type: string
+        filename:
+          type: string
+        size_bytes:
+          type: integer
+        stored_path:
+          type: string
 paths:
   /api/admin/health:
     get:
@@ -602,6 +624,30 @@ paths:
                         properties:
                           job:
                             $ref: '#/components/schemas/AiTrainingJob'
+  /api/v1/admin/ai-training/datasets:
+    post:
+      tags:
+        - Admin
+      summary: Upload an AI training dataset
+      operationId: adminUploadAiTrainingDataset
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AiTrainingDatasetUploadRequest'
+      responses:
+        '200':
+          description: Training dataset uploaded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AiTrainingDatasetUploadData'
   /api/v1/admin/ai-training/jobs/{job}:
     parameters:
       - name: job

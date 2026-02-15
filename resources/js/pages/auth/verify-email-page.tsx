@@ -1,31 +1,54 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Branding } from '@/config/branding';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Helmet } from 'react-helmet-async';
-import { MailCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth-context';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { publishToast } from '@/components/ui/use-toast';
+import { Branding } from '@/config/branding';
+import { useAuth } from '@/contexts/auth-context';
+import { MailCheck } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
 
 export function VerifyEmailPage() {
     const navigate = useNavigate();
-    const { isAuthenticated, state, resendVerificationEmail, refresh, logout } = useAuth();
+    const { isAuthenticated, state, resendVerificationEmail, refresh, logout } =
+        useAuth();
     const [isResending, setIsResending] = useState(false);
     const [isChecking, setIsChecking] = useState(false);
 
     const nextRoute = useMemo(() => {
-        if (state.needsSupplierApproval || state.company?.supplier_status === 'pending') {
+        if (
+            state.needsSupplierApproval ||
+            state.company?.supplier_status === 'pending'
+        ) {
             return '/app/setup/supplier-waiting';
         }
 
         const isSupplierStart =
-            state.company?.start_mode === 'supplier' || (state.company?.supplier_status && state.company.supplier_status !== 'none');
+            state.company?.start_mode === 'supplier' ||
+            (state.company?.supplier_status &&
+                state.company.supplier_status !== 'none');
         const needsPlan =
-            !isSupplierStart && (state.requiresPlanSelection || state.company?.requires_plan_selection === true || !state.company?.plan);
+            !isSupplierStart &&
+            (state.requiresPlanSelection ||
+                state.company?.requires_plan_selection === true ||
+                !state.company?.plan);
 
         return needsPlan ? '/app/setup/plan' : '/app';
-    }, [state.company?.plan, state.company?.requires_plan_selection, state.company?.start_mode, state.company?.supplier_status, state.needsSupplierApproval, state.requiresPlanSelection]);
+    }, [
+        state.company?.plan,
+        state.company?.requires_plan_selection,
+        state.company?.start_mode,
+        state.company?.supplier_status,
+        state.needsSupplierApproval,
+        state.requiresPlanSelection,
+    ]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -80,13 +103,14 @@ export function VerifyEmailPage() {
                 publishToast({
                     variant: 'success',
                     title: 'Email verified',
-                    description: 'Thanks for confirming your account. Redirecting you now.',
+                    description:
+                        'Thanks for confirming your account. Redirecting you now.',
                 });
                 const destination = result.needsSupplierApproval
                     ? '/app/setup/supplier-waiting'
                     : result.requiresPlanSelection
-                        ? '/app/setup/plan'
-                        : '/app';
+                      ? '/app/setup/plan'
+                      : '/app';
                 navigate(destination, { replace: true });
                 return;
             }
@@ -94,7 +118,8 @@ export function VerifyEmailPage() {
             publishToast({
                 variant: 'default',
                 title: 'Still waiting for confirmation',
-                description: 'Click the verification link in your email, then try again.',
+                description:
+                    'Click the verification link in your email, then try again.',
             });
         } catch (error) {
             let message = 'Unable to refresh your verification status.';
@@ -124,18 +149,35 @@ export function VerifyEmailPage() {
             </Helmet>
             <Card className="w-full max-w-md text-center shadow-lg">
                 <CardHeader className="items-center space-y-2">
-                    <MailCheck className="h-10 w-10 text-brand-primary" />
-                    <CardTitle className="mt-2 text-2xl font-semibold text-foreground">Check your email</CardTitle>
+                    <MailCheck className="text-brand-primary h-10 w-10" />
+                    <CardTitle className="mt-2 text-2xl font-semibold text-foreground">
+                        Check your email
+                    </CardTitle>
                     <CardDescription>
-                        We sent a verification link to <span className="font-medium text-foreground">{state.user?.email ?? 'your inbox'}</span>.
-                        Follow the instructions to activate your Elements Supply account.
+                        We sent a verification link to{' '}
+                        <span className="font-medium text-foreground">
+                            {state.user?.email ?? 'your inbox'}
+                        </span>
+                        . Follow the instructions to activate your Elements
+                        Supply account.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    <Button className="w-full" onClick={handleCheckStatus} disabled={isChecking || !isAuthenticated}>
-                        {isChecking ? 'Checking status…' : "I've verified my email"}
+                    <Button
+                        className="w-full"
+                        onClick={handleCheckStatus}
+                        disabled={isChecking || !isAuthenticated}
+                    >
+                        {isChecking
+                            ? 'Checking status…'
+                            : "I've verified my email"}
                     </Button>
-                    <Button variant="outline" className="w-full" onClick={handleResend} disabled={isResending || !isAuthenticated}>
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleResend}
+                        disabled={isResending || !isAuthenticated}
+                    >
                         {isResending ? 'Sending…' : 'Resend verification email'}
                     </Button>
                 </CardContent>

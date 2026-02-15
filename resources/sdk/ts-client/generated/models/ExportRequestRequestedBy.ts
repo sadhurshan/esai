@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ExportRequestRequestedBy
  */
 export interface ExportRequestRequestedBy {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ExportRequestRequestedBy
      */
     id?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ExportRequestRequestedBy
      */
     name?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ExportRequestRequestedBy
      */
@@ -42,40 +41,49 @@ export interface ExportRequestRequestedBy {
 /**
  * Check if a given object implements the ExportRequestRequestedBy interface.
  */
-export function instanceOfExportRequestRequestedBy(value: object): value is ExportRequestRequestedBy {
+export function instanceOfExportRequestRequestedBy(
+    value: object,
+): value is ExportRequestRequestedBy {
     return true;
 }
 
-export function ExportRequestRequestedByFromJSON(json: any): ExportRequestRequestedBy {
+export function ExportRequestRequestedByFromJSON(
+    json: any,
+): ExportRequestRequestedBy {
     return ExportRequestRequestedByFromJSONTyped(json, false);
 }
 
-export function ExportRequestRequestedByFromJSONTyped(json: any, ignoreDiscriminator: boolean): ExportRequestRequestedBy {
+export function ExportRequestRequestedByFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ExportRequestRequestedBy {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
+        id: json['id'] == null ? undefined : json['id'],
+        name: json['name'] == null ? undefined : json['name'],
+        email: json['email'] == null ? undefined : json['email'],
     };
 }
 
-export function ExportRequestRequestedByToJSON(json: any): ExportRequestRequestedBy {
+export function ExportRequestRequestedByToJSON(
+    json: any,
+): ExportRequestRequestedBy {
     return ExportRequestRequestedByToJSONTyped(json, false);
 }
 
-export function ExportRequestRequestedByToJSONTyped(value?: ExportRequestRequestedBy | null, ignoreDiscriminator: boolean = false): any {
+export function ExportRequestRequestedByToJSONTyped(
+    value?: ExportRequestRequestedBy | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
-        'email': value['email'],
+        id: value['id'],
+        name: value['name'],
+        email: value['email'],
     };
 }
-

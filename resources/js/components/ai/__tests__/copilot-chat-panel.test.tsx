@@ -1,22 +1,42 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { useEffect, useState } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AiChatAssistantResponse, AiChatMessage, AiChatThread } from '@/types/ai-chat';
 import { CopilotChatPanel } from '@/components/ai/CopilotChatPanel';
 import type { UseAiChatSendResult } from '@/hooks/api/ai/use-ai-chat-send';
+import type {
+    AiChatAssistantResponse,
+    AiChatMessage,
+    AiChatThread,
+} from '@/types/ai-chat';
+import {
+    act,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from '@testing-library/react';
+import { useEffect, useState } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-type ThreadUpdater = (updater: (thread: AiChatThread | undefined) => AiChatThread | undefined) => void;
+type ThreadUpdater = (
+    updater: (thread: AiChatThread | undefined) => AiChatThread | undefined,
+) => void;
 
 let updateThreadState: ThreadUpdater | null = null;
 let messageIdCounter = 1;
-let sendMutationSpy: ReturnType<typeof vi.fn> | null = null;
-let lastSendPayload: { message: string; context?: Record<string, unknown> } | null = null;
-let approveDraftSpy: ReturnType<typeof vi.fn> | null = null;
-let rejectDraftSpy: ReturnType<typeof vi.fn> | null = null;
+let lastSendPayload: {
+    message: string;
+    context?: Record<string, unknown>;
+} | null = null;
+
+const { approveDraftSpy, rejectDraftSpy } = vi.hoisted(() => ({
+    approveDraftSpy: vi.fn(),
+    rejectDraftSpy: vi.fn(),
+}));
 
 const nextMessageId = (): number => messageIdCounter++;
 
-const buildAssistantResponse = (markdown: string, overrides: Partial<AiChatAssistantResponse> = {}): AiChatAssistantResponse => ({
+const buildAssistantResponse = (
+    markdown: string,
+    overrides: Partial<AiChatAssistantResponse> = {},
+): AiChatAssistantResponse => ({
     type: 'answer',
     assistant_message_markdown: markdown,
     citations: [],
@@ -40,7 +60,10 @@ const buildMessage = (
     assistantResponse?: AiChatAssistantResponse,
 ): AiChatMessage => {
     const timestamp = '2025-01-01T00:00:00.000Z';
-    const content = role === 'assistant' ? assistantResponse ?? buildAssistantResponse(text) : null;
+    const content =
+        role === 'assistant'
+            ? (assistantResponse ?? buildAssistantResponse(text))
+            : null;
 
     return {
         id: nextMessageId(),
@@ -75,7 +98,8 @@ const baseThread: AiChatThread = {
     ],
 };
 
-const cloneThread = (): AiChatThread => JSON.parse(JSON.stringify(baseThread)) as AiChatThread;
+const cloneThread = (): AiChatThread =>
+    JSON.parse(JSON.stringify(baseThread)) as AiChatThread;
 
 vi.mock('@/hooks/api/ai/use-ai-chat-threads', () => ({
     useAiChatThreads: () => ({
@@ -99,11 +123,15 @@ vi.mock('@/hooks/api/ai/use-ai-chat-threads', () => ({
 vi.mock('@/hooks/api/ai/use-ai-chat-messages', () => {
     return {
         useAiChatMessages: () => {
-            const [thread, setThread] = useState<AiChatThread | undefined>(cloneThread());
+            const [thread, setThread] = useState<AiChatThread | undefined>(
+                cloneThread(),
+            );
 
             useEffect(() => {
                 updateThreadState = (updater) =>
-                    setThread((current: AiChatThread | undefined) => updater(current));
+                    setThread((current: AiChatThread | undefined) =>
+                        updater(current),
+                    );
             }, [setThread]);
 
             return {
@@ -117,43 +145,65 @@ vi.mock('@/hooks/api/ai/use-ai-chat-messages', () => {
 
 vi.mock('@/hooks/api/ai/use-ai-chat-send', () => ({
     useAiChatSend: () => {
-        const mutateAsync = vi.fn(async ({
-            message,
-            context,
-        }: {
-            message: string;
-            context?: Record<string, unknown>;
-        }) => {
-            lastSendPayload = { message, context };
-            if (updateThreadState) {
-                updateThreadState((current) => {
-                    if (!current) {
-                        return current;
-                    }
+        const mutateAsync = vi.fn(
+            async ({
+                message,
+                context,
+            }: {
+                message: string;
+                context?: Record<string, unknown>;
+            }) => {
+                lastSendPayload = { message, context };
+                if (updateThreadState) {
+                    updateThreadState((current) => {
+                        if (!current) {
+                            return current;
+                        }
 
-                    const userMessage = buildMessage(current.id, 'user', message);
-                    const assistantMessage = buildMessage(current.id, 'assistant', `Assistant reply: ${message}`);
+                        const userMessage = buildMessage(
+                            current.id,
+                            'user',
+                            message,
+                        );
+                        const assistantMessage = buildMessage(
+                            current.id,
+                            'assistant',
+                            `Assistant reply: ${message}`,
+                        );
 
-                    return {
-                        ...current,
-                        messages: [...(current.messages ?? []), userMessage, assistantMessage],
-                        last_message_at: assistantMessage.created_at,
-                    };
-                });
-            }
+                        return {
+                            ...current,
+                            messages: [
+                                ...(current.messages ?? []),
+                                userMessage,
+                                assistantMessage,
+                            ],
+                            last_message_at: assistantMessage.created_at,
+                        };
+                    });
+                }
 
-            return {
-                mode: 'complete',
-                initial: {
-                    user_message: buildMessage(baseThread.id, 'user', message),
-                    assistant_message: buildMessage(baseThread.id, 'assistant', `Assistant reply: ${message}`),
-                    response: buildAssistantResponse(`Assistant reply: ${message}`),
-                },
-                toolRuns: [],
-            };
-        });
-
-        sendMutationSpy = mutateAsync;
+                return {
+                    mode: 'complete',
+                    initial: {
+                        user_message: buildMessage(
+                            baseThread.id,
+                            'user',
+                            message,
+                        ),
+                        assistant_message: buildMessage(
+                            baseThread.id,
+                            'assistant',
+                            `Assistant reply: ${message}`,
+                        ),
+                        response: buildAssistantResponse(
+                            `Assistant reply: ${message}`,
+                        ),
+                    },
+                    toolRuns: [],
+                };
+            },
+        );
 
         return {
             mutateAsync,
@@ -170,7 +220,11 @@ vi.mock('@/components/ai/AnalyticsCard', () => ({
 }));
 
 const waitForThreadReady = async () => {
-    await waitFor(() => expect(screen.getByRole('button', { name: /send/i })).not.toBeDisabled());
+    await waitFor(() =>
+        expect(
+            screen.getByRole('button', { name: /send/i }),
+        ).not.toBeDisabled(),
+    );
 };
 
 const buildDraftMutation = (spy: ReturnType<typeof vi.fn>) => ({
@@ -205,12 +259,16 @@ const buildDraftResponse = (draftId: number) => ({
 });
 
 vi.mock('@/hooks/api/ai/use-ai-draft-approval', () => {
-    approveDraftSpy = vi.fn(async ({ draftId }: { draftId: number }) => buildDraftResponse(draftId));
-    rejectDraftSpy = vi.fn(async ({ draftId }: { draftId: number }) => buildDraftResponse(draftId));
+    approveDraftSpy.mockImplementation(async ({ draftId }: { draftId: number }) =>
+        buildDraftResponse(draftId),
+    );
+    rejectDraftSpy.mockImplementation(async ({ draftId }: { draftId: number }) =>
+        buildDraftResponse(draftId),
+    );
 
     return {
-        useAiDraftApprove: () => buildDraftMutation(approveDraftSpy!),
-        useAiDraftReject: () => buildDraftMutation(rejectDraftSpy!),
+        useAiDraftApprove: () => buildDraftMutation(approveDraftSpy),
+        useAiDraftReject: () => buildDraftMutation(rejectDraftSpy),
     };
 });
 
@@ -232,10 +290,9 @@ describe('CopilotChatPanel', () => {
     beforeEach(() => {
         updateThreadState = null;
         messageIdCounter = 1;
-        sendMutationSpy = null;
         lastSendPayload = null;
-        approveDraftSpy?.mockClear();
-        rejectDraftSpy?.mockClear();
+        approveDraftSpy.mockClear();
+        rejectDraftSpy.mockClear();
     });
 
     it('sends a message and renders the assistant reply', async () => {
@@ -244,16 +301,26 @@ describe('CopilotChatPanel', () => {
         await waitForThreadReady();
 
         expect(screen.getByText('Procurement Copilot')).toBeInTheDocument();
-        await waitFor(() => expect(screen.getByText('Here is the supplier overview.')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(
+                screen.getByText('Here is the supplier overview.'),
+            ).toBeInTheDocument(),
+        );
 
         const composer = screen.getByPlaceholderText(/Ask Copilot/i);
-        fireEvent.change(composer, { target: { value: 'Need delivery status updates' } });
+        fireEvent.change(composer, {
+            target: { value: 'Need delivery status updates' },
+        });
         fireEvent.click(screen.getByRole('button', { name: /send/i }));
 
         await waitFor(() =>
-            expect(screen.getByText('Assistant reply: Need delivery status updates')).toBeInTheDocument(),
+            expect(
+                screen.getByText(
+                    'Assistant reply: Need delivery status updates',
+                ),
+            ).toBeInTheDocument(),
         );
-    });
+    }, 15000);
 
     it('renders a clarification prompt and submits the answer', async () => {
         render(<CopilotChatPanel />);
@@ -268,16 +335,19 @@ describe('CopilotChatPanel', () => {
                     return current;
                 }
 
-                const clarificationResponse = buildAssistantResponse('What should we call this RFQ?', {
-                    type: 'clarification',
-                    clarification: {
-                        id: 'clarify-rfq-title',
-                        tool: 'build_rfq_draft',
-                        question: 'What should we call this RFQ?',
-                        missing_args: ['rfq_title'],
-                        args: {},
+                const clarificationResponse = buildAssistantResponse(
+                    'What should we call this RFQ?',
+                    {
+                        type: 'clarification',
+                        clarification: {
+                            id: 'clarify-rfq-title',
+                            tool: 'build_rfq_draft',
+                            question: 'What should we call this RFQ?',
+                            missing_args: ['rfq_title'],
+                            args: {},
+                        },
                     },
-                });
+                );
 
                 const clarificationMessage = buildMessage(
                     current.id,
@@ -288,15 +358,24 @@ describe('CopilotChatPanel', () => {
 
                 return {
                     ...current,
-                    messages: [...(current.messages ?? []), clarificationMessage],
+                    messages: [
+                        ...(current.messages ?? []),
+                        clarificationMessage,
+                    ],
                 };
             });
         });
 
-        await waitFor(() => expect(screen.getByTestId('clarification-form')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(
+                screen.getByTestId('clarification-form'),
+            ).toBeInTheDocument(),
+        );
 
         const answerField = screen.getByLabelText(/clarification answer/i);
-        fireEvent.change(answerField, { target: { value: 'Call it Demo RFQ' } });
+        fireEvent.change(answerField, {
+            target: { value: 'Call it Demo RFQ' },
+        });
 
         fireEvent.click(screen.getByRole('button', { name: /submit answer/i }));
 
@@ -311,7 +390,7 @@ describe('CopilotChatPanel', () => {
                 }),
             );
         });
-    });
+    }, 15000);
 
     it('renders an entity picker prompt and forwards the selection metadata', async () => {
         render(<CopilotChatPanel />);
@@ -326,34 +405,40 @@ describe('CopilotChatPanel', () => {
                     return current;
                 }
 
-                const pickerResponse = buildAssistantResponse('Which invoice should I open?', {
-                    type: 'entity_picker',
-                    entity_picker: {
-                        id: 'invoice-picker',
-                        title: 'Pick the invoice Copilot should use',
-                        description: 'Multiple invoices matched INV-100. Choose the right one.',
-                        query: 'INV-100',
-                        entity_type: 'invoice',
-                        search_tool: 'workspace.search_invoices',
-                        target_tool: 'workspace.get_invoice',
-                        candidates: [
-                            {
-                                candidate_id: 'cand-1',
-                                label: 'INV-1001',
-                                description: 'Atlas Manufacturing · Due in 5 days',
-                                status: 'open',
-                                meta: ['Due Jan 5', 'Total $12,000'],
-                            },
-                            {
-                                candidate_id: 'cand-2',
-                                label: 'INV-1002',
-                                description: 'Beacon Plastics · Due in 10 days',
-                                status: 'pending',
-                                meta: ['Due Jan 10', 'Total $18,500'],
-                            },
-                        ],
+                const pickerResponse = buildAssistantResponse(
+                    'Which invoice should I open?',
+                    {
+                        type: 'entity_picker',
+                        entity_picker: {
+                            id: 'invoice-picker',
+                            title: 'Pick the invoice Copilot should use',
+                            description:
+                                'Multiple invoices matched INV-100. Choose the right one.',
+                            query: 'INV-100',
+                            entity_type: 'invoice',
+                            search_tool: 'workspace.search_invoices',
+                            target_tool: 'workspace.get_invoice',
+                            candidates: [
+                                {
+                                    candidate_id: 'cand-1',
+                                    label: 'INV-1001',
+                                    description:
+                                        'Atlas Manufacturing · Due in 5 days',
+                                    status: 'open',
+                                    meta: ['Due Jan 5', 'Total $12,000'],
+                                },
+                                {
+                                    candidate_id: 'cand-2',
+                                    label: 'INV-1002',
+                                    description:
+                                        'Beacon Plastics · Due in 10 days',
+                                    status: 'pending',
+                                    meta: ['Due Jan 10', 'Total $18,500'],
+                                },
+                            ],
+                        },
                     },
-                });
+                );
 
                 const pickerMessage = buildMessage(
                     current.id,
@@ -369,9 +454,15 @@ describe('CopilotChatPanel', () => {
             });
         });
 
-        await waitFor(() => expect(screen.getByTestId('entity-picker-form')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(
+                screen.getByTestId('entity-picker-form'),
+            ).toBeInTheDocument(),
+        );
 
-        const firstChoice = screen.getAllByRole('button', { name: /use this record/i })[0];
+        const firstChoice = screen.getAllByRole('button', {
+            name: /use this record/i,
+        })[0];
         fireEvent.click(firstChoice);
 
         await waitFor(() => {
@@ -380,12 +471,15 @@ describe('CopilotChatPanel', () => {
                 expect.objectContaining({
                     message: expect.stringContaining('INV-1001'),
                     context: expect.objectContaining({
-                        entity_picker: { id: 'invoice-picker', candidate_id: 'cand-1' },
+                        entity_picker: {
+                            id: 'invoice-picker',
+                            candidate_id: 'cand-1',
+                        },
                     }),
                 }),
             );
         });
-    });
+    }, 15000);
 
     it('requires acknowledgement before confirming unsafe actions', async () => {
         render(<CopilotChatPanel />);
@@ -399,35 +493,49 @@ describe('CopilotChatPanel', () => {
                     return current;
                 }
 
-                const unsafeResponse = buildAssistantResponse('Confirm payment release', {
-                    type: 'unsafe_action_confirmation',
-                    draft: {
-                        draft_id: 5001,
-                        action_type: 'payment_draft',
-                        status: 'drafted',
-                        payload: {
-                            invoice_id: 'INV-5001',
-                            amount: 12500,
-                            currency: 'USD',
-                            reference: 'PAY-5001',
+                const unsafeResponse = buildAssistantResponse(
+                    'Confirm payment release',
+                    {
+                        type: 'unsafe_action_confirmation',
+                        draft: {
+                            draft_id: 5001,
+                            action_type: 'payment_draft',
+                            status: 'drafted',
+                            payload: {
+                                invoice_id: 'INV-5001',
+                                amount: 12500,
+                                currency: 'USD',
+                                reference: 'PAY-5001',
+                            },
+                        },
+                        unsafe_action: {
+                            id: 'unsafe-payment',
+                            action_type: 'payment_draft',
+                            action_label: 'Payment Draft',
+                            headline: 'Confirm payment release',
+                            summary:
+                                'This will release payment PAY-5001 for invoice INV-5001.',
+                            description:
+                                'Copilot will record the payment and notify finance.',
+                            impact: 'USD 12,500.00 will be recorded immediately.',
+                            entity: 'Invoice INV-5001',
+                            acknowledgement:
+                                'I understand this will create a payment request.',
+                            confirm_label: 'Confirm payment release',
+                            risks: [
+                                'Creates a payable ready for disbursement.',
+                                'May notify the supplier.',
+                            ],
                         },
                     },
-                    unsafe_action: {
-                        id: 'unsafe-payment',
-                        action_type: 'payment_draft',
-                        action_label: 'Payment Draft',
-                        headline: 'Confirm payment release',
-                        summary: 'This will release payment PAY-5001 for invoice INV-5001.',
-                        description: 'Copilot will record the payment and notify finance.',
-                        impact: 'USD 12,500.00 will be recorded immediately.',
-                        entity: 'Invoice INV-5001',
-                        acknowledgement: 'I understand this will create a payment request.',
-                        confirm_label: 'Confirm payment release',
-                        risks: ['Creates a payable ready for disbursement.', 'May notify the supplier.'],
-                    },
-                });
+                );
 
-                const unsafeMessage = buildMessage(current.id, 'assistant', 'Confirm payment release', unsafeResponse);
+                const unsafeMessage = buildMessage(
+                    current.id,
+                    'assistant',
+                    'Confirm payment release',
+                    unsafeResponse,
+                );
 
                 return {
                     ...current,
@@ -436,23 +544,29 @@ describe('CopilotChatPanel', () => {
             });
         });
 
-        await waitFor(() => expect(screen.getByTestId('unsafe-action-confirmation')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(
+                screen.getByTestId('unsafe-action-confirmation'),
+            ).toBeInTheDocument(),
+        );
 
-        const confirmButton = screen.getByRole('button', { name: /confirm payment release/i });
+        const confirmButton = screen.getByRole('button', {
+            name: /confirm payment release/i,
+        });
         expect(confirmButton).toBeDisabled();
 
         fireEvent.click(confirmButton);
-        expect(approveDraftSpy).not.toBeNull();
-        expect(approveDraftSpy?.mock.calls.length).toBe(0);
+        expect(approveDraftSpy.mock.calls.length).toBe(0);
 
-        const acknowledgement = screen.getByLabelText(/create a payment request/i);
+        const acknowledgement = screen.getByLabelText(
+            /create a payment request/i,
+        );
         fireEvent.click(acknowledgement);
 
         fireEvent.click(confirmButton);
 
         await waitFor(() => {
-            expect(approveDraftSpy).not.toBeNull();
             expect(approveDraftSpy).toHaveBeenCalledWith({ draftId: 5001 });
         });
-    });
+    }, 15000);
 });

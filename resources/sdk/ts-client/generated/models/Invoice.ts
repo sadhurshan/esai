@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,185 +12,163 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { InvoiceMatch } from './InvoiceMatch';
-import {
-    InvoiceMatchFromJSON,
-    InvoiceMatchFromJSONTyped,
-    InvoiceMatchToJSON,
-    InvoiceMatchToJSONTyped,
-} from './InvoiceMatch';
 import type { CreditNotePurchaseOrder } from './CreditNotePurchaseOrder';
 import {
     CreditNotePurchaseOrderFromJSON,
-    CreditNotePurchaseOrderFromJSONTyped,
     CreditNotePurchaseOrderToJSON,
-    CreditNotePurchaseOrderToJSONTyped,
 } from './CreditNotePurchaseOrder';
-import type { InvoiceLine } from './InvoiceLine';
-import {
-    InvoiceLineFromJSON,
-    InvoiceLineFromJSONTyped,
-    InvoiceLineToJSON,
-    InvoiceLineToJSONTyped,
-} from './InvoiceLine';
 import type { DocumentAttachment } from './DocumentAttachment';
 import {
     DocumentAttachmentFromJSON,
-    DocumentAttachmentFromJSONTyped,
     DocumentAttachmentToJSON,
-    DocumentAttachmentToJSONTyped,
 } from './DocumentAttachment';
-import type { InvoiceSupplier } from './InvoiceSupplier';
-import {
-    InvoiceSupplierFromJSON,
-    InvoiceSupplierFromJSONTyped,
-    InvoiceSupplierToJSON,
-    InvoiceSupplierToJSONTyped,
-} from './InvoiceSupplier';
 import type { InvoiceDocument } from './InvoiceDocument';
 import {
     InvoiceDocumentFromJSON,
-    InvoiceDocumentFromJSONTyped,
     InvoiceDocumentToJSON,
-    InvoiceDocumentToJSONTyped,
 } from './InvoiceDocument';
+import type { InvoiceLine } from './InvoiceLine';
+import { InvoiceLineFromJSON, InvoiceLineToJSON } from './InvoiceLine';
+import type { InvoiceMatch } from './InvoiceMatch';
+import { InvoiceMatchFromJSON, InvoiceMatchToJSON } from './InvoiceMatch';
 import type { InvoiceMatchSummary } from './InvoiceMatchSummary';
 import {
     InvoiceMatchSummaryFromJSON,
-    InvoiceMatchSummaryFromJSONTyped,
     InvoiceMatchSummaryToJSON,
-    InvoiceMatchSummaryToJSONTyped,
 } from './InvoiceMatchSummary';
+import type { InvoiceSupplier } from './InvoiceSupplier';
+import {
+    InvoiceSupplierFromJSON,
+    InvoiceSupplierToJSON,
+} from './InvoiceSupplier';
 
 /**
- * 
+ *
  * @export
  * @interface Invoice
  */
 export interface Invoice {
     /**
-     * 
+     *
      * @type {string}
      * @memberof Invoice
      */
     id: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Invoice
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Invoice
      */
     purchaseOrderId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Invoice
      */
     supplierId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Invoice
      */
     invoiceNumber: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Invoice
      */
     invoiceDate?: Date;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Invoice
      */
     currency: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Invoice
      */
     status: InvoiceStatusEnum;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Invoice
      */
     subtotal: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Invoice
      */
     taxAmount: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Invoice
      */
     total: number;
     /**
-     * 
+     *
      * @type {InvoiceMatchSummary}
      * @memberof Invoice
      */
     matchSummary?: InvoiceMatchSummary;
     /**
-     * 
+     *
      * @type {InvoiceSupplier}
      * @memberof Invoice
      */
     supplier?: InvoiceSupplier;
     /**
-     * 
+     *
      * @type {CreditNotePurchaseOrder}
      * @memberof Invoice
      */
     purchaseOrder?: CreditNotePurchaseOrder;
     /**
-     * 
+     *
      * @type {Array<InvoiceLine>}
      * @memberof Invoice
      */
     lines?: Array<InvoiceLine>;
     /**
-     * 
+     *
      * @type {Array<InvoiceMatch>}
      * @memberof Invoice
      */
     matches?: Array<InvoiceMatch>;
     /**
-     * 
+     *
      * @type {InvoiceDocument}
      * @memberof Invoice
      */
     document?: InvoiceDocument;
     /**
-     * 
+     *
      * @type {Array<DocumentAttachment>}
      * @memberof Invoice
      */
     attachments?: Array<DocumentAttachment>;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Invoice
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Invoice
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -204,23 +182,27 @@ export const InvoiceStatusEnum = {
     Paid: 'paid',
     Overdue: 'overdue',
     Disputed: 'disputed',
-    Posted: 'posted'
+    Posted: 'posted',
 } as const;
-export type InvoiceStatusEnum = typeof InvoiceStatusEnum[keyof typeof InvoiceStatusEnum];
-
+export type InvoiceStatusEnum =
+    (typeof InvoiceStatusEnum)[keyof typeof InvoiceStatusEnum];
 
 /**
  * Check if a given object implements the Invoice interface.
  */
 export function instanceOfInvoice(value: object): value is Invoice {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
-    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined) return false;
-    if (!('invoiceNumber' in value) || value['invoiceNumber'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
+    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined)
+        return false;
+    if (!('invoiceNumber' in value) || value['invoiceNumber'] === undefined)
+        return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('subtotal' in value) || value['subtotal'] === undefined) return false;
-    if (!('taxAmount' in value) || value['taxAmount'] === undefined) return false;
+    if (!('taxAmount' in value) || value['taxAmount'] === undefined)
+        return false;
     if (!('total' in value) || value['total'] === undefined) return false;
     return true;
 }
@@ -229,32 +211,67 @@ export function InvoiceFromJSON(json: any): Invoice {
     return InvoiceFromJSONTyped(json, false);
 }
 
-export function InvoiceFromJSONTyped(json: any, ignoreDiscriminator: boolean): Invoice {
+export function InvoiceFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): Invoice {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'purchaseOrderId': json['purchase_order_id'],
-        'supplierId': json['supplier_id'] == null ? undefined : json['supplier_id'],
-        'invoiceNumber': json['invoice_number'],
-        'invoiceDate': json['invoice_date'] == null ? undefined : (new Date(json['invoice_date'])),
-        'currency': json['currency'],
-        'status': json['status'],
-        'subtotal': json['subtotal'],
-        'taxAmount': json['tax_amount'],
-        'total': json['total'],
-        'matchSummary': json['match_summary'] == null ? undefined : InvoiceMatchSummaryFromJSON(json['match_summary']),
-        'supplier': json['supplier'] == null ? undefined : InvoiceSupplierFromJSON(json['supplier']),
-        'purchaseOrder': json['purchase_order'] == null ? undefined : CreditNotePurchaseOrderFromJSON(json['purchase_order']),
-        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(InvoiceLineFromJSON)),
-        'matches': json['matches'] == null ? undefined : ((json['matches'] as Array<any>).map(InvoiceMatchFromJSON)),
-        'document': json['document'] == null ? undefined : InvoiceDocumentFromJSON(json['document']),
-        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(DocumentAttachmentFromJSON)),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        purchaseOrderId: json['purchase_order_id'],
+        supplierId:
+            json['supplier_id'] == null ? undefined : json['supplier_id'],
+        invoiceNumber: json['invoice_number'],
+        invoiceDate:
+            json['invoice_date'] == null
+                ? undefined
+                : new Date(json['invoice_date']),
+        currency: json['currency'],
+        status: json['status'],
+        subtotal: json['subtotal'],
+        taxAmount: json['tax_amount'],
+        total: json['total'],
+        matchSummary:
+            json['match_summary'] == null
+                ? undefined
+                : InvoiceMatchSummaryFromJSON(json['match_summary']),
+        supplier:
+            json['supplier'] == null
+                ? undefined
+                : InvoiceSupplierFromJSON(json['supplier']),
+        purchaseOrder:
+            json['purchase_order'] == null
+                ? undefined
+                : CreditNotePurchaseOrderFromJSON(json['purchase_order']),
+        lines:
+            json['lines'] == null
+                ? undefined
+                : (json['lines'] as Array<any>).map(InvoiceLineFromJSON),
+        matches:
+            json['matches'] == null
+                ? undefined
+                : (json['matches'] as Array<any>).map(InvoiceMatchFromJSON),
+        document:
+            json['document'] == null
+                ? undefined
+                : InvoiceDocumentFromJSON(json['document']),
+        attachments:
+            json['attachments'] == null
+                ? undefined
+                : (json['attachments'] as Array<any>).map(
+                      DocumentAttachmentFromJSON,
+                  ),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -262,33 +279,54 @@ export function InvoiceToJSON(json: any): Invoice {
     return InvoiceToJSONTyped(json, false);
 }
 
-export function InvoiceToJSONTyped(value?: Invoice | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceToJSONTyped(
+    value?: Invoice | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'supplier_id': value['supplierId'],
-        'invoice_number': value['invoiceNumber'],
-        'invoice_date': value['invoiceDate'] == null ? value['invoiceDate'] : value['invoiceDate'].toISOString().substring(0,10),
-        'currency': value['currency'],
-        'status': value['status'],
-        'subtotal': value['subtotal'],
-        'tax_amount': value['taxAmount'],
-        'total': value['total'],
-        'match_summary': InvoiceMatchSummaryToJSON(value['matchSummary']),
-        'supplier': InvoiceSupplierToJSON(value['supplier']),
-        'purchase_order': CreditNotePurchaseOrderToJSON(value['purchaseOrder']),
-        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(InvoiceLineToJSON)),
-        'matches': value['matches'] == null ? undefined : ((value['matches'] as Array<any>).map(InvoiceMatchToJSON)),
-        'document': InvoiceDocumentToJSON(value['document']),
-        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(DocumentAttachmentToJSON)),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        purchase_order_id: value['purchaseOrderId'],
+        supplier_id: value['supplierId'],
+        invoice_number: value['invoiceNumber'],
+        invoice_date:
+            value['invoiceDate'] == null
+                ? value['invoiceDate']
+                : value['invoiceDate'].toISOString().substring(0, 10),
+        currency: value['currency'],
+        status: value['status'],
+        subtotal: value['subtotal'],
+        tax_amount: value['taxAmount'],
+        total: value['total'],
+        match_summary: InvoiceMatchSummaryToJSON(value['matchSummary']),
+        supplier: InvoiceSupplierToJSON(value['supplier']),
+        purchase_order: CreditNotePurchaseOrderToJSON(value['purchaseOrder']),
+        lines:
+            value['lines'] == null
+                ? undefined
+                : (value['lines'] as Array<any>).map(InvoiceLineToJSON),
+        matches:
+            value['matches'] == null
+                ? undefined
+                : (value['matches'] as Array<any>).map(InvoiceMatchToJSON),
+        document: InvoiceDocumentToJSON(value['document']),
+        attachments:
+            value['attachments'] == null
+                ? undefined
+                : (value['attachments'] as Array<any>).map(
+                      DocumentAttachmentToJSON,
+                  ),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

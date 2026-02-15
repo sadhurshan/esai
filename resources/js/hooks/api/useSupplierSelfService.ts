@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -6,7 +12,10 @@ import type { SupplierDocument } from './useSupplierDocuments';
 
 export type DirectoryVisibility = 'private' | 'public';
 
-export type SupplierApplicationStatusValue = 'pending' | 'approved' | 'rejected';
+export type SupplierApplicationStatusValue =
+    | 'pending'
+    | 'approved'
+    | 'rejected';
 
 export interface SupplierApplicationSummary {
     id: number;
@@ -68,23 +77,34 @@ export interface SupplierApplicationResponse {
     created_at?: string;
 }
 
-export function useSupplierSelfStatus(initialData?: SupplierSelfStatus | null): UseQueryResult<SupplierSelfStatus, ApiError> {
+export function useSupplierSelfStatus(
+    initialData?: SupplierSelfStatus | null,
+): UseQueryResult<SupplierSelfStatus, ApiError> {
     return useQuery<SupplierSelfStatus, ApiError, SupplierSelfStatus>({
         queryKey: queryKeys.me.supplierStatus(),
         queryFn: async () =>
             // TODO: switch to canonical /me/supplier-application/status once backend endpoint is available.
-            (await api.get<SupplierSelfStatus>('/me/supplier-application/status')) as unknown as SupplierSelfStatus,
+            (await api.get<SupplierSelfStatus>(
+                '/me/supplier-application/status',
+            )) as unknown as SupplierSelfStatus,
         initialData: initialData ?? undefined,
         staleTime: 15_000,
     });
 }
 
-export function useUpdateSupplierVisibility(): UseMutationResult<SupplierSelfStatus, ApiError, UpdateVisibilityInput> {
+export function useUpdateSupplierVisibility(): UseMutationResult<
+    SupplierSelfStatus,
+    ApiError,
+    UpdateVisibilityInput
+> {
     const queryClient = useQueryClient();
 
     return useMutation<SupplierSelfStatus, ApiError, UpdateVisibilityInput>({
         mutationFn: async (payload) =>
-            (await api.put<SupplierSelfStatus>('/me/supplier/visibility', payload)) as unknown as SupplierSelfStatus,
+            (await api.put<SupplierSelfStatus>(
+                '/me/supplier/visibility',
+                payload,
+            )) as unknown as SupplierSelfStatus,
         onSuccess: (status) => {
             queryClient.setQueryData(queryKeys.me.supplierStatus(), status);
         },
@@ -96,8 +116,15 @@ export function useApplyForSupplier(): UseMutationResult<
     ApiError,
     SupplierApplicationPayload
 > {
-    return useMutation<SupplierApplicationResponse, ApiError, SupplierApplicationPayload>({
+    return useMutation<
+        SupplierApplicationResponse,
+        ApiError,
+        SupplierApplicationPayload
+    >({
         mutationFn: async (payload) =>
-            (await api.post<SupplierApplicationResponse>('/me/apply-supplier', payload)) as unknown as SupplierApplicationResponse,
+            (await api.post<SupplierApplicationResponse>(
+                '/me/apply-supplier',
+                payload,
+            )) as unknown as SupplierApplicationResponse,
     });
 }

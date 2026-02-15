@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { emitCopilotDraftRejected } from '@/lib/copilot-events';
@@ -15,16 +19,29 @@ interface RejectDraftVariables {
 }
 
 const unwrap = <T>(payload: T | { data: T }): T => {
-    if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
+    if (
+        payload &&
+        typeof payload === 'object' &&
+        'data' in (payload as Record<string, unknown>)
+    ) {
         return (payload as { data: T }).data;
     }
 
     return payload as T;
 };
 
-const invalidateChatQueries = (queryClient: ReturnType<typeof useQueryClient>, threadId: number): void => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.ai.chat.thread(threadId), exact: false });
-    queryClient.invalidateQueries({ queryKey: queryKeys.ai.chat.root(), exact: false });
+const invalidateChatQueries = (
+    queryClient: ReturnType<typeof useQueryClient>,
+    threadId: number,
+): void => {
+    queryClient.invalidateQueries({
+        queryKey: queryKeys.ai.chat.thread(threadId),
+        exact: false,
+    });
+    queryClient.invalidateQueries({
+        queryKey: queryKeys.ai.chat.root(),
+        exact: false,
+    });
 };
 
 export function useAiDraftApprove(
@@ -38,18 +55,19 @@ export function useAiDraftApprove(
                 throw new Error('Thread is not ready for approvals.');
             }
 
-            const response = await api.post<AiActionDraftResponse>(`/v1/ai/drafts/${variables.draftId}/approve`, {
-                thread_id: threadId,
-            });
+            const response = await api.post<AiActionDraftResponse>(
+                `/v1/ai/drafts/${variables.draftId}/approve`,
+                {
+                    thread_id: threadId,
+                },
+            );
 
             return unwrap(response);
         },
-        onSuccess: (_data, variables) => {
+        onSuccess: () => {
             if (!threadId) {
                 return;
             }
-
-            emitCopilotDraftRejected({ draftId: variables.draftId });
             invalidateChatQueries(queryClient, threadId);
         },
     });
@@ -66,18 +84,21 @@ export function useAiDraftReject(
                 throw new Error('Thread is not ready for rejections.');
             }
 
-            const response = await api.post<AiActionDraftResponse>(`/v1/ai/drafts/${variables.draftId}/reject`, {
-                thread_id: threadId,
-                reason: variables.reason,
-            });
+            const response = await api.post<AiActionDraftResponse>(
+                `/v1/ai/drafts/${variables.draftId}/reject`,
+                {
+                    thread_id: threadId,
+                    reason: variables.reason,
+                },
+            );
 
             return unwrap(response);
         },
-        onSuccess: (_data, _variables) => {
+        onSuccess: (_, variables) => {
             if (!threadId) {
                 return;
             }
-
+            emitCopilotDraftRejected({ draftId: variables.draftId });
             invalidateChatQueries(queryClient, threadId);
         },
     });

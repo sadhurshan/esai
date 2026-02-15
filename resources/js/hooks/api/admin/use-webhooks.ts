@@ -3,7 +3,11 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { AdminConsoleApi } from '@/sdk';
-import type { CursorPaginatedResponse, ListWebhooksParams, WebhookSubscriptionItem } from '@/types/admin';
+import type {
+    CursorPaginatedResponse,
+    ListWebhooksParams,
+    WebhookSubscriptionItem,
+} from '@/types/admin';
 
 export function useWebhooks(
     params: ListWebhooksParams = {},

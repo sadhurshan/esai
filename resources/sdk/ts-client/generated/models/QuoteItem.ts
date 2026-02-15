@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,119 +12,116 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { QuoteItemTaxesInner } from './QuoteItemTaxesInner';
 import {
     QuoteItemTaxesInnerFromJSON,
-    QuoteItemTaxesInnerFromJSONTyped,
     QuoteItemTaxesInnerToJSON,
-    QuoteItemTaxesInnerToJSONTyped,
 } from './QuoteItemTaxesInner';
 
 /**
- * 
+ *
  * @export
  * @interface QuoteItem
  */
 export interface QuoteItem {
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItem
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItem
      */
     quoteId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItem
      */
     rfqItemId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItem
      */
     currency?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     quantity?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     unitPriceMinor: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     lineSubtotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     lineSubtotalMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     taxTotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     taxTotalMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     lineTotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     lineTotalMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItem
      */
     leadTimeDays?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItem
      */
     note?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItem
      */
     status?: string;
     /**
-     * 
+     *
      * @type {Array<QuoteItemTaxesInner>}
      * @memberof QuoteItem
      */
@@ -137,8 +134,10 @@ export interface QuoteItem {
 export function instanceOfQuoteItem(value: object): value is QuoteItem {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('quoteId' in value) || value['quoteId'] === undefined) return false;
-    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined) return false;
-    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined) return false;
+    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined)
+        return false;
+    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined)
+        return false;
     return true;
 }
 
@@ -146,29 +145,47 @@ export function QuoteItemFromJSON(json: any): QuoteItem {
     return QuoteItemFromJSONTyped(json, false);
 }
 
-export function QuoteItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteItem {
+export function QuoteItemFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): QuoteItem {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'quoteId': json['quote_id'],
-        'rfqItemId': json['rfq_item_id'],
-        'currency': json['currency'] == null ? undefined : json['currency'],
-        'quantity': json['quantity'] == null ? undefined : json['quantity'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'unitPriceMinor': json['unit_price_minor'],
-        'lineSubtotal': json['line_subtotal'] == null ? undefined : json['line_subtotal'],
-        'lineSubtotalMinor': json['line_subtotal_minor'] == null ? undefined : json['line_subtotal_minor'],
-        'taxTotal': json['tax_total'] == null ? undefined : json['tax_total'],
-        'taxTotalMinor': json['tax_total_minor'] == null ? undefined : json['tax_total_minor'],
-        'lineTotal': json['line_total'] == null ? undefined : json['line_total'],
-        'lineTotalMinor': json['line_total_minor'] == null ? undefined : json['line_total_minor'],
-        'leadTimeDays': json['lead_time_days'] == null ? undefined : json['lead_time_days'],
-        'note': json['note'] == null ? undefined : json['note'],
-        'status': json['status'] == null ? undefined : json['status'],
-        'taxes': json['taxes'] == null ? undefined : ((json['taxes'] as Array<any>).map(QuoteItemTaxesInnerFromJSON)),
+        id: json['id'],
+        quoteId: json['quote_id'],
+        rfqItemId: json['rfq_item_id'],
+        currency: json['currency'] == null ? undefined : json['currency'],
+        quantity: json['quantity'] == null ? undefined : json['quantity'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        unitPriceMinor: json['unit_price_minor'],
+        lineSubtotal:
+            json['line_subtotal'] == null ? undefined : json['line_subtotal'],
+        lineSubtotalMinor:
+            json['line_subtotal_minor'] == null
+                ? undefined
+                : json['line_subtotal_minor'],
+        taxTotal: json['tax_total'] == null ? undefined : json['tax_total'],
+        taxTotalMinor:
+            json['tax_total_minor'] == null
+                ? undefined
+                : json['tax_total_minor'],
+        lineTotal: json['line_total'] == null ? undefined : json['line_total'],
+        lineTotalMinor:
+            json['line_total_minor'] == null
+                ? undefined
+                : json['line_total_minor'],
+        leadTimeDays:
+            json['lead_time_days'] == null ? undefined : json['lead_time_days'],
+        note: json['note'] == null ? undefined : json['note'],
+        status: json['status'] == null ? undefined : json['status'],
+        taxes:
+            json['taxes'] == null
+                ? undefined
+                : (json['taxes'] as Array<any>).map(
+                      QuoteItemTaxesInnerFromJSON,
+                  ),
     };
 }
 
@@ -176,30 +193,34 @@ export function QuoteItemToJSON(json: any): QuoteItem {
     return QuoteItemToJSONTyped(json, false);
 }
 
-export function QuoteItemToJSONTyped(value?: QuoteItem | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteItemToJSONTyped(
+    value?: QuoteItem | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'quote_id': value['quoteId'],
-        'rfq_item_id': value['rfqItemId'],
-        'currency': value['currency'],
-        'quantity': value['quantity'],
-        'unit_price': value['unitPrice'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'line_subtotal': value['lineSubtotal'],
-        'line_subtotal_minor': value['lineSubtotalMinor'],
-        'tax_total': value['taxTotal'],
-        'tax_total_minor': value['taxTotalMinor'],
-        'line_total': value['lineTotal'],
-        'line_total_minor': value['lineTotalMinor'],
-        'lead_time_days': value['leadTimeDays'],
-        'note': value['note'],
-        'status': value['status'],
-        'taxes': value['taxes'] == null ? undefined : ((value['taxes'] as Array<any>).map(QuoteItemTaxesInnerToJSON)),
+        id: value['id'],
+        quote_id: value['quoteId'],
+        rfq_item_id: value['rfqItemId'],
+        currency: value['currency'],
+        quantity: value['quantity'],
+        unit_price: value['unitPrice'],
+        unit_price_minor: value['unitPriceMinor'],
+        line_subtotal: value['lineSubtotal'],
+        line_subtotal_minor: value['lineSubtotalMinor'],
+        tax_total: value['taxTotal'],
+        tax_total_minor: value['taxTotalMinor'],
+        line_total: value['lineTotal'],
+        line_total_minor: value['lineTotalMinor'],
+        lead_time_days: value['leadTimeDays'],
+        note: value['note'],
+        status: value['status'],
+        taxes:
+            value['taxes'] == null
+                ? undefined
+                : (value['taxes'] as Array<any>).map(QuoteItemTaxesInnerToJSON),
     };
 }
-

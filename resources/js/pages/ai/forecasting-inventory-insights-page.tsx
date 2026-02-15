@@ -1,24 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Activity, ArrowUpRight, CalendarClock, Layers3 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import {
-    Activity,
-    AlertTriangle,
-    ArrowUpRight,
-    CalendarClock,
-    Factory,
-    Layers3,
-    ShieldCheck,
-    TrendingUp,
-} from 'lucide-react';
 
 import { KpiCard } from '@/components/analytics/kpi-card';
 import { MiniChart } from '@/components/analytics/mini-chart';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface PartForecastRow {
     id: string;
@@ -73,7 +76,8 @@ const PART_FORECASTS: PartForecastRow[] = [
         recommendedQty: 900,
         supplierMix: 'NovaForge 70% / LumaSteel 30%',
         risk: 'medium',
-        rationale: 'Lead time spike after Supplier B outage; holding buffer for QA rework windows.',
+        rationale:
+            'Lead time spike after Supplier B outage; holding buffer for QA rework windows.',
     },
     {
         id: 'spindle-44c',
@@ -87,7 +91,8 @@ const PART_FORECASTS: PartForecastRow[] = [
         recommendedQty: 210,
         supplierMix: 'Orion Machining 60% / Backup Pool 40%',
         risk: 'high',
-        rationale: 'Certificate renewal pending; recommend dual sourcing to reduce stop-ship exposure.',
+        rationale:
+            'Certificate renewal pending; recommend dual sourcing to reduce stop-ship exposure.',
     },
     {
         id: 'seal-kit-7f',
@@ -101,7 +106,8 @@ const PART_FORECASTS: PartForecastRow[] = [
         recommendedQty: 500,
         supplierMix: 'FlowSure 100%',
         risk: 'low',
-        rationale: 'Stable demand with low variance; safe to defer order until after holiday shutdown.',
+        rationale:
+            'Stable demand with low variance; safe to defer order until after holiday shutdown.',
     },
 ];
 
@@ -214,29 +220,35 @@ const KPI_DEFINITIONS = [
 ];
 
 export function ForecastingInventoryInsightsPage() {
-    const [selectedPresetId, setSelectedPresetId] = useState<string>(SCENARIO_PRESETS[0]?.id ?? '');
-    const [serviceLevel, setServiceLevel] = useState<number>(SCENARIO_PRESETS[0]?.baseline.serviceLevel ?? 95);
-    const [selectedSupplierId, setSelectedSupplierId] = useState<string>(SCENARIO_PRESETS[0]?.supplierOptions[0]?.id ?? '');
-    const [demandInput, setDemandInput] = useState<string>(String(SCENARIO_PRESETS[0]?.baseline.avgDailyDemand ?? 0));
+    const [selectedPresetId, setSelectedPresetId] = useState<string>(
+        SCENARIO_PRESETS[0]?.id ?? '',
+    );
+    const [serviceLevel, setServiceLevel] = useState<number>(
+        SCENARIO_PRESETS[0]?.baseline.serviceLevel ?? 95,
+    );
+    const [selectedSupplierId, setSelectedSupplierId] = useState<string>(
+        SCENARIO_PRESETS[0]?.supplierOptions[0]?.id ?? '',
+    );
+    const [demandInput, setDemandInput] = useState<string>(
+        String(SCENARIO_PRESETS[0]?.baseline.avgDailyDemand ?? 0),
+    );
 
     const selectedPreset = useMemo(() => {
-        return SCENARIO_PRESETS.find((preset) => preset.id === selectedPresetId) ?? SCENARIO_PRESETS[0];
+        return (
+            SCENARIO_PRESETS.find((preset) => preset.id === selectedPresetId) ??
+            SCENARIO_PRESETS[0]
+        );
     }, [selectedPresetId]);
-
-    useEffect(() => {
-        if (!selectedPreset) {
-            return;
-        }
-        setSelectedSupplierId(selectedPreset.supplierOptions[0]?.id ?? '');
-        setServiceLevel(selectedPreset.baseline.serviceLevel);
-        setDemandInput(String(selectedPreset.baseline.avgDailyDemand));
-    }, [selectedPreset]);
 
     const supplierChoice = useMemo(() => {
         if (!selectedPreset) {
             return undefined;
         }
-        return selectedPreset.supplierOptions.find((option) => option.id === selectedSupplierId) ?? selectedPreset.supplierOptions[0];
+        return (
+            selectedPreset.supplierOptions.find(
+                (option) => option.id === selectedSupplierId,
+            ) ?? selectedPreset.supplierOptions[0]
+        );
     }, [selectedPreset, selectedSupplierId]);
 
     const scenarioResult = useMemo(() => {
@@ -244,21 +256,47 @@ export function ForecastingInventoryInsightsPage() {
             return null;
         }
 
-        const parsedDemand = Number(demandInput) > 0 ? Number(demandInput) : selectedPreset.baseline.avgDailyDemand;
-        const serviceDelta = serviceLevel - selectedPreset.baseline.serviceLevel;
-        const demandRatio = parsedDemand / selectedPreset.baseline.avgDailyDemand;
+        const parsedDemand =
+            Number(demandInput) > 0
+                ? Number(demandInput)
+                : selectedPreset.baseline.avgDailyDemand;
+        const serviceDelta =
+            serviceLevel - selectedPreset.baseline.serviceLevel;
+        const demandRatio =
+            parsedDemand / selectedPreset.baseline.avgDailyDemand;
         const variabilityMultiplier = supplierChoice.variabilityMultiplier;
         const adjustedSafetyStock = Math.round(
-            selectedPreset.baseline.safetyStock * (1 + serviceDelta * 0.015) * variabilityMultiplier,
+            selectedPreset.baseline.safetyStock *
+                (1 + serviceDelta * 0.015) *
+                variabilityMultiplier,
         );
         const adjustedReorderQty = Math.round(
-            selectedPreset.baseline.reorderQty * demandRatio * (1 + serviceDelta * 0.01) * variabilityMultiplier,
+            selectedPreset.baseline.reorderQty *
+                demandRatio *
+                (1 + serviceDelta * 0.01) *
+                variabilityMultiplier,
         );
-        const adjustedLeadTime = Math.max(1, Math.round(selectedPreset.baseline.leadTimeDays + supplierChoice.leadTimeDelta));
-        const projectedRunOutDays = Math.max(1, Math.round((adjustedSafetyStock + adjustedReorderQty) / parsedDemand));
-        const cashImpact = adjustedReorderQty * selectedPreset.baseline.unitCost;
-        const orderByShiftDays = Math.round(serviceDelta * 0.2) - supplierChoice.leadTimeDelta;
-        const plannedOrderDate = shiftDateString(selectedPreset.baseline.orderByDate, -orderByShiftDays);
+        const adjustedLeadTime = Math.max(
+            1,
+            Math.round(
+                selectedPreset.baseline.leadTimeDays +
+                    supplierChoice.leadTimeDelta,
+            ),
+        );
+        const projectedRunOutDays = Math.max(
+            1,
+            Math.round(
+                (adjustedSafetyStock + adjustedReorderQty) / parsedDemand,
+            ),
+        );
+        const cashImpact =
+            adjustedReorderQty * selectedPreset.baseline.unitCost;
+        const orderByShiftDays =
+            Math.round(serviceDelta * 0.2) - supplierChoice.leadTimeDelta;
+        const plannedOrderDate = shiftDateString(
+            selectedPreset.baseline.orderByDate,
+            -orderByShiftDays,
+        );
 
         return {
             adjustedSafetyStock,
@@ -280,25 +318,39 @@ export function ForecastingInventoryInsightsPage() {
             <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 text-slate-50 shadow-2xl">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="space-y-3">
-                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">AI forecasting cockpit</p>
-                        <h1 className="text-3xl font-semibold leading-tight">
+                        <p className="text-xs tracking-[0.3em] text-slate-400 uppercase">
+                            AI forecasting cockpit
+                        </p>
+                        <h1 className="text-3xl leading-tight font-semibold">
                             Lead time-aware recommendations, ready for approval.
                         </h1>
                         <p className="max-w-2xl text-sm text-slate-300">
-                            Blend demand history, supplier reliability, and digital twin context to see precisely when stocks dip below safety levels.
-                            Every card shows why the AI picked a move so buyers can approve with confidence.
+                            Blend demand history, supplier reliability, and
+                            digital twin context to see precisely when stocks
+                            dip below safety levels. Every card shows why the AI
+                            picked a move so buyers can approve with confidence.
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-200">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Service level</p>
+                            <p className="text-[11px] tracking-[0.2em] text-slate-400 uppercase">
+                                Service level
+                            </p>
                             <p className="text-2xl font-semibold">95%</p>
-                            <p className="text-xs text-slate-300">Auto-adjusted for supplier variance</p>
+                            <p className="text-xs text-slate-300">
+                                Auto-adjusted for supplier variance
+                            </p>
                         </div>
                         <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-200">
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Stockout risk</p>
-                            <p className="text-2xl font-semibold text-amber-300">Low \u2193</p>
-                            <p className="text-xs text-slate-300">Scenario modeling enabled</p>
+                            <p className="text-[11px] tracking-[0.2em] text-slate-400 uppercase">
+                                Stockout risk
+                            </p>
+                            <p className="text-2xl font-semibold text-amber-300">
+                                Low \u2193
+                            </p>
+                            <p className="text-xs text-slate-300">
+                                Scenario modeling enabled
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -323,36 +375,62 @@ export function ForecastingInventoryInsightsPage() {
                     description="Simulated coverage window using supplier variance + PdM signals."
                     data={INVENTORY_TRAJECTORY}
                     series={[
-                        { key: 'inventory', label: 'Projected inventory', color: '#38bdf8' },
-                        { key: 'threshold', label: 'Safety stock floor', color: '#fbbf24' },
+                        {
+                            key: 'inventory',
+                            label: 'Projected inventory',
+                            color: '#38bdf8',
+                        },
+                        {
+                            key: 'threshold',
+                            label: 'Safety stock floor',
+                            color: '#fbbf24',
+                        },
                     ]}
                     valueFormatter={(value, key) =>
-                        key === 'inventory' ? `${value.toLocaleString()} units` : `${value.toLocaleString()} units`
+                        key === 'inventory'
+                            ? `${value.toLocaleString()} units`
+                            : `${value.toLocaleString()} units`
                     }
                 />
                 <Card className="h-full">
                     <CardHeader>
-                        <CardTitle className="text-base font-semibold">Recommended interventions</CardTitle>
+                        <CardTitle className="text-base font-semibold">
+                            Recommended interventions
+                        </CardTitle>
                         <CardDescription className="text-sm">
-                            AI highlights the clearest moves with rationale pulled from deliveries, QA notes, and ERP reservations.
+                            AI highlights the clearest moves with rationale
+                            pulled from deliveries, QA notes, and ERP
+                            reservations.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {RECOMMENDATIONS.map((item) => (
-                            <div key={item.title} className="rounded-2xl border bg-card/30 p-4">
+                            <div
+                                key={item.title}
+                                className="rounded-2xl border bg-card/30 p-4"
+                            >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
-                                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                                        <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+                                        <p className="text-sm font-semibold text-foreground">
+                                            {item.title}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {item.subtitle}
+                                        </p>
                                     </div>
-                                    <Badge variant={item.badgeVariant}>{item.badgeLabel}</Badge>
+                                    <Badge variant={item.badgeVariant}>
+                                        {item.badgeLabel}
+                                    </Badge>
                                 </div>
-                                <p className="mt-3 text-sm text-muted-foreground">{item.rationale}</p>
+                                <p className="mt-3 text-sm text-muted-foreground">
+                                    {item.rationale}
+                                </p>
                                 <button
                                     type="button"
                                     className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                                 >
-                                    Queue action <ArrowUpRight className="h-3.5 w-3.5" />
+                                    Queue action{' '}
+                                    <ArrowUpRight className="h-3.5 w-3.5" />
                                 </button>
                             </div>
                         ))}
@@ -363,20 +441,35 @@ export function ForecastingInventoryInsightsPage() {
             <div className="grid gap-4 xl:grid-cols-3">
                 <Card className="xl:col-span-2">
                     <CardHeader>
-                        <CardTitle className="text-base font-semibold">Critical parts watchlist</CardTitle>
-                        <CardDescription className="text-sm">Lead time aware reorder recommendations with transparent reasoning.</CardDescription>
+                        <CardTitle className="text-base font-semibold">
+                            Critical parts watchlist
+                        </CardTitle>
+                        <CardDescription className="text-sm">
+                            Lead time aware reorder recommendations with
+                            transparent reasoning.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
                         <table className="w-full min-w-[720px] text-sm">
-                            <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                            <thead className="text-left text-xs tracking-wide text-muted-foreground uppercase">
                                 <tr>
                                     <th className="pb-3 font-medium">Part</th>
                                     <th className="pb-3 font-medium">Usage</th>
-                                    <th className="pb-3 font-medium">Safety stock</th>
-                                    <th className="pb-3 font-medium">Reorder point</th>
-                                    <th className="pb-3 font-medium">Lead time</th>
-                                    <th className="pb-3 font-medium">Order by</th>
-                                    <th className="pb-3 font-medium">Supplier mix</th>
+                                    <th className="pb-3 font-medium">
+                                        Safety stock
+                                    </th>
+                                    <th className="pb-3 font-medium">
+                                        Reorder point
+                                    </th>
+                                    <th className="pb-3 font-medium">
+                                        Lead time
+                                    </th>
+                                    <th className="pb-3 font-medium">
+                                        Order by
+                                    </th>
+                                    <th className="pb-3 font-medium">
+                                        Supplier mix
+                                    </th>
                                     <th className="pb-3 font-medium">Risk</th>
                                 </tr>
                             </thead>
@@ -384,17 +477,34 @@ export function ForecastingInventoryInsightsPage() {
                                 {PART_FORECASTS.map((part) => (
                                     <tr key={part.id}>
                                         <td className="py-3">
-                                            <p className="font-medium text-foreground">{part.name}</p>
-                                            <p className="text-xs text-muted-foreground">{part.rationale}</p>
+                                            <p className="font-medium text-foreground">
+                                                {part.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {part.rationale}
+                                            </p>
                                         </td>
-                                        <td className="py-3 text-muted-foreground">{part.usageSummary}</td>
-                                        <td className="py-3 text-muted-foreground">{part.safetyStock.toLocaleString()} units</td>
-                                        <td className="py-3 text-muted-foreground">{part.reorderPoint.toLocaleString()} units</td>
                                         <td className="py-3 text-muted-foreground">
-                                            {part.leadTime}d \u00B1 {part.leadTimeVariance.toFixed(1)}d
+                                            {part.usageSummary}
                                         </td>
-                                        <td className="py-3 text-muted-foreground">{formatDate(part.orderBy)}</td>
-                                        <td className="py-3 text-muted-foreground">{part.supplierMix}</td>
+                                        <td className="py-3 text-muted-foreground">
+                                            {part.safetyStock.toLocaleString()}{' '}
+                                            units
+                                        </td>
+                                        <td className="py-3 text-muted-foreground">
+                                            {part.reorderPoint.toLocaleString()}{' '}
+                                            units
+                                        </td>
+                                        <td className="py-3 text-muted-foreground">
+                                            {part.leadTime}d \u00B1{' '}
+                                            {part.leadTimeVariance.toFixed(1)}d
+                                        </td>
+                                        <td className="py-3 text-muted-foreground">
+                                            {formatDate(part.orderBy)}
+                                        </td>
+                                        <td className="py-3 text-muted-foreground">
+                                            {part.supplierMix}
+                                        </td>
                                         <td className="py-3">
                                             <RiskBadge level={part.risk} />
                                         </td>
@@ -407,21 +517,54 @@ export function ForecastingInventoryInsightsPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base font-semibold">Scenario sandbox</CardTitle>
+                        <CardTitle className="text-base font-semibold">
+                            Scenario sandbox
+                        </CardTitle>
                         <CardDescription className="text-sm">
-                            Run what-if checks by tweaking demand, service level, and supplier mix before handing off to procurement.
+                            Run what-if checks by tweaking demand, service
+                            level, and supplier mix before handing off to
+                            procurement.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="scenario-part">Part / assembly</Label>
-                            <Select value={selectedPreset.id} onValueChange={setSelectedPresetId}>
+                            <Label htmlFor="scenario-part">
+                                Part / assembly
+                            </Label>
+                            <Select
+                                value={selectedPreset.id}
+                                onValueChange={(value) => {
+                                    const nextPreset =
+                                        SCENARIO_PRESETS.find(
+                                            (preset) => preset.id === value,
+                                        ) ?? SCENARIO_PRESETS[0];
+                                    setSelectedPresetId(value);
+                                    if (nextPreset) {
+                                        setSelectedSupplierId(
+                                            nextPreset.supplierOptions[0]?.id ??
+                                                '',
+                                        );
+                                        setServiceLevel(
+                                            nextPreset.baseline.serviceLevel,
+                                        );
+                                        setDemandInput(
+                                            String(
+                                                nextPreset.baseline
+                                                    .avgDailyDemand,
+                                            ),
+                                        );
+                                    }
+                                }}
+                            >
                                 <SelectTrigger id="scenario-part">
                                     <SelectValue placeholder="Select part" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {SCENARIO_PRESETS.map((preset) => (
-                                        <SelectItem key={preset.id} value={preset.id}>
+                                        <SelectItem
+                                            key={preset.id}
+                                            value={preset.id}
+                                        >
                                             {preset.label}
                                         </SelectItem>
                                     ))}
@@ -430,19 +573,29 @@ export function ForecastingInventoryInsightsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="scenario-demand">Avg daily demand</Label>
+                            <Label htmlFor="scenario-demand">
+                                Avg daily demand
+                            </Label>
                             <Input
                                 id="scenario-demand"
                                 value={demandInput}
-                                onChange={(event) => setDemandInput(event.target.value)}
+                                onChange={(event) =>
+                                    setDemandInput(event.target.value)
+                                }
                                 inputMode="decimal"
                                 placeholder="e.g. 45"
                             />
-                            <p className="text-xs text-muted-foreground">Baseline: {selectedPreset?.baseline.avgDailyDemand} units/day.</p>
+                            <p className="text-xs text-muted-foreground">
+                                Baseline:{' '}
+                                {selectedPreset?.baseline.avgDailyDemand}{' '}
+                                units/day.
+                            </p>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="scenario-service">Target service level ({serviceLevel}%)</Label>
+                            <Label htmlFor="scenario-service">
+                                Target service level ({serviceLevel}%)
+                            </Label>
                             <input
                                 id="scenario-service"
                                 type="range"
@@ -450,28 +603,43 @@ export function ForecastingInventoryInsightsPage() {
                                 max={99}
                                 step={1}
                                 value={serviceLevel}
-                                onChange={(event) => setServiceLevel(Number(event.target.value))}
+                                onChange={(event) =>
+                                    setServiceLevel(Number(event.target.value))
+                                }
                                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-muted"
                             />
-                            <p className="text-xs text-muted-foreground">Increasing service level grows safety stock non-linearly.</p>
+                            <p className="text-xs text-muted-foreground">
+                                Increasing service level grows safety stock
+                                non-linearly.
+                            </p>
                         </div>
 
                         <div className="space-y-2">
                             <Label>Supplier mix</Label>
-                            <Select value={supplierChoice?.id} onValueChange={setSelectedSupplierId}>
+                            <Select
+                                value={supplierChoice?.id}
+                                onValueChange={setSelectedSupplierId}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select supplier mix" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {selectedPreset?.supplierOptions.map((option) => (
-                                        <SelectItem key={option.id} value={option.id}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
+                                    {selectedPreset?.supplierOptions.map(
+                                        (option) => (
+                                            <SelectItem
+                                                key={option.id}
+                                                value={option.id}
+                                            >
+                                                {option.label}
+                                            </SelectItem>
+                                        ),
+                                    )}
                                 </SelectContent>
                             </Select>
                             {supplierChoice ? (
-                                <p className="text-xs text-muted-foreground">{supplierChoice.notes}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {supplierChoice.notes}
+                                </p>
                             ) : null}
                         </div>
 
@@ -479,38 +647,60 @@ export function ForecastingInventoryInsightsPage() {
                             <div className="rounded-2xl border bg-muted/40 p-4 text-sm">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Recommended order</p>
+                                        <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
+                                            Recommended order
+                                        </p>
                                         <p className="text-2xl font-semibold text-foreground">
-                                            {scenarioResult.adjustedReorderQty.toLocaleString()} units
+                                            {scenarioResult.adjustedReorderQty.toLocaleString()}{' '}
+                                            units
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                            Order by {formatDate(scenarioResult.orderByDate)} to keep {scenarioResult.projectedRunOutDays} days of coverage.
+                                            Order by{' '}
+                                            {formatDate(
+                                                scenarioResult.orderByDate,
+                                            )}{' '}
+                                            to keep{' '}
+                                            {scenarioResult.projectedRunOutDays}{' '}
+                                            days of coverage.
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Cash impact</p>
-                                        <p className="text-lg font-semibold text-emerald-600">
-                                            {formatCurrency(scenarioResult.cashImpact)}
+                                        <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
+                                            Cash impact
                                         </p>
-                                        <p className="text-xs text-muted-foreground">Includes supplier premium deltas.</p>
+                                        <p className="text-lg font-semibold text-emerald-600">
+                                            {formatCurrency(
+                                                scenarioResult.cashImpact,
+                                            )}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Includes supplier premium deltas.
+                                        </p>
                                     </div>
                                 </div>
                                 <dl className="mt-4 grid grid-cols-2 gap-4 text-xs text-muted-foreground">
                                     <div>
                                         <dt>Safety stock</dt>
                                         <dd className="text-sm font-semibold text-foreground">
-                                            {scenarioResult.adjustedSafetyStock.toLocaleString()} units
+                                            {scenarioResult.adjustedSafetyStock.toLocaleString()}{' '}
+                                            units
                                         </dd>
                                     </div>
                                     <div>
                                         <dt>Lead time</dt>
                                         <dd className="text-sm font-semibold text-foreground">
-                                            {scenarioResult.adjustedLeadTime} days
+                                            {scenarioResult.adjustedLeadTime}{' '}
+                                            days
                                         </dd>
                                     </div>
                                 </dl>
-                                <p className="mt-4 text-xs text-muted-foreground">{scenarioResult.explanation}</p>
-                                <Button className="mt-4 w-full" variant="default">
+                                <p className="mt-4 text-xs text-muted-foreground">
+                                    {scenarioResult.explanation}
+                                </p>
+                                <Button
+                                    className="mt-4 w-full"
+                                    variant="default"
+                                >
                                     Draft replenishment task
                                 </Button>
                             </div>
@@ -528,29 +718,40 @@ const RECOMMENDATIONS = [
         subtitle: 'Supplier variance up 12% week-over-week',
         badgeLabel: 'Time sensitive',
         badgeVariant: 'destructive' as const,
-        rationale: 'Supplier B ran a furnace calibration that added 3.2 days to actual lead time. Pull the PO window forward to maintain 95% service.',
+        rationale:
+            'Supplier B ran a furnace calibration that added 3.2 days to actual lead time. Pull the PO window forward to maintain 95% service.',
     },
     {
         title: 'Split Spindle 44C to Hyperion 40%',
         subtitle: 'QA backlog still unresolved for Orion',
         badgeLabel: 'Dual source',
         badgeVariant: 'default' as const,
-        rationale: 'Hyperion can absorb the expedite at +6% cost but trims variance from 6.1d to 3.2d, avoiding a maintenance shutdown.',
+        rationale:
+            'Hyperion can absorb the expedite at +6% cost but trims variance from 6.1d to 3.2d, avoiding a maintenance shutdown.',
     },
     {
         title: 'Hold Seal kit 7F order until Jan 08',
         subtitle: 'Demand compression expected post campaign',
         badgeLabel: 'Defer spend',
         badgeVariant: 'secondary' as const,
-        rationale: 'Telematics show failure rate dropping 18%; deferring frees $18k cash while staying 2.4 weeks above safety stock.',
+        rationale:
+            'Telematics show failure rate dropping 18%; deferring frees $18k cash while staying 2.4 weeks above safety stock.',
     },
 ];
 
 function RiskBadge({ level }: { level: PartForecastRow['risk'] }) {
     const intent =
-        level === 'high' ? 'bg-rose-100 text-rose-700' : level === 'medium' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700';
+        level === 'high'
+            ? 'bg-rose-100 text-rose-700'
+            : level === 'medium'
+              ? 'bg-amber-100 text-amber-800'
+              : 'bg-emerald-100 text-emerald-700';
 
-    return <Badge className={`${intent} font-medium capitalize`}>{level} risk</Badge>;
+    return (
+        <Badge className={`${intent} font-medium capitalize`}>
+            {level} risk
+        </Badge>
+    );
 }
 
 function shiftDateString(input: string, deltaDays: number) {
@@ -570,9 +771,17 @@ function formatDate(input: string | null | undefined) {
     if (Number.isNaN(date.getTime())) {
         return input;
     }
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(date);
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+    }).format(date);
 }
 
 function formatCurrency(value: number) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+    }).format(value);
 }

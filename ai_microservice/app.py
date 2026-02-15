@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import contextvars
 import copy
+import hmac
 import hashlib
 import json
 import logging
@@ -28,6 +29,7 @@ import re
 import threading
 import time
 import uuid
+import httpx
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,7 +43,7 @@ except ImportError:  # pragma: no cover - fallback handled later
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from jsonschema import Draft202012Validator, ValidationError
 from pydantic import BaseModel, Field, field_validator
 
@@ -106,9 +108,21 @@ LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Elements Supply AI Microservice", version="0.1.0")
+
+
+def _parse_cors_origins() -> list[str]:
+    raw = os.getenv("AI_CORS_ALLOW_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+    parts = [origin.strip() for origin in raw.split(",")]
+    return [origin for origin in parts if origin]
+
+
+ALLOWED_CORS_ORIGINS = _parse_cors_origins()
+AI_SHARED_SECRET = (os.getenv("AI_SHARED_SECRET") or "").strip()
+PUBLIC_PROBE_PATHS = {"/healthz", "/readyz"}
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -140,6 +154,21 @@ async def correlation_id_middleware(request: Request, call_next):
     incoming_id = request.headers.get(REQUEST_ID_HEADER)
     request_id = incoming_id or str(uuid.uuid4())
     token = REQUEST_ID_CTX.set(request_id)
+
+    if AI_SHARED_SECRET and request.url.path not in PUBLIC_PROBE_PATHS:
+        provided_secret = request.headers.get("X-AI-Secret", "")
+        if not hmac.compare_digest(provided_secret, AI_SHARED_SECRET):
+            REQUEST_ID_CTX.reset(token)
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "status": "error",
+                    "message": "Unauthorized AI request.",
+                    "errors": {"service": ["Invalid AI shared secret."]},
+                },
+                headers={REQUEST_ID_HEADER: request_id},
+            )
+
     started_at = time.perf_counter()
     try:
         response = await call_next(request)
@@ -215,6 +244,11 @@ TRAINING_JOBS_STATE_PATH = os.getenv(
     str(Path(os.getcwd()) / "storage" / "ai_training_jobs.json"),
 )
 DEFAULT_FORECAST_TRAINING_HORIZON = int(os.getenv("AI_TRAINING_FORECAST_HORIZON_DAYS", "30"))
+CHAT_FINE_TUNE_BASE_MODEL = os.getenv("AI_CHAT_FINE_TUNE_BASE_MODEL") or os.getenv("AI_LLM_MODEL", "gpt-4.1-mini")
+CHAT_TRAINING_DATASET_DIR = os.getenv(
+    "AI_CHAT_TRAINING_DATASET_DIR",
+    str(Path(os.getcwd()) / "storage" / "ai_chat_datasets"),
+)
 
 
 class TrainingJobStore:
@@ -268,6 +302,8 @@ class TrainingJobStore:
             finished_at=timestamp,
         )
 
+    def update_job(self, job_id: str, **fields: Any) -> Optional[Dict[str, Any]]:
+        return self._update_job(job_id, **fields)
     def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
             job = self._jobs.get(job_id)
@@ -634,7 +670,12 @@ def build_forecast_cache_key(payload: "ForecastRequest") -> str:
     last_date = extract_last_history_date(payload.history)
     history_hash = hash_history_descriptor(len(payload.history), last_date)
     company_token = str(payload.company_id) if payload.company_id is not None else "none"
-    return f"forecast:{company_token}:{payload.part_id}:{payload.horizon}:{history_hash}"
+    lead_time_token = payload.lead_time_days or 0
+    lead_time_variance_token = payload.lead_time_variance_days or 0
+    return (
+        f"forecast:{company_token}:{payload.part_id}:{payload.horizon}:{lead_time_token}:"
+        f"{lead_time_variance_token}:{history_hash}"
+    )
 
 
 def build_supplier_risk_cache_key(payload: "SupplierRiskRequest") -> str:
@@ -674,6 +715,8 @@ class ForecastRequest(BaseModel):
     history: list[Dict[str, Any]] = Field(..., description="List of {date, quantity} records")
     horizon: int = Field(..., gt=0, le=90)
     company_id: Optional[int] = Field(default=None, ge=1)
+    lead_time_days: Optional[int] = Field(default=None, ge=1)
+    lead_time_variance_days: Optional[float] = Field(default=None, ge=0)
 
     @field_validator("history")
     @classmethod
@@ -861,6 +904,23 @@ class RagTrainingRequest(BaseModel):
 
 class DeterministicTrainingRequest(BaseModel):
     company_id: Optional[int] = Field(default=None, ge=1)
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("parameters", mode="before")
+    @classmethod
+    def ensure_parameters(cls, value: Any) -> Dict[str, Any]:  # noqa: D417
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("parameters must be an object")
+        return value
+
+
+class ChatTrainingRequest(BaseModel):
+    company_id: Optional[int] = Field(default=None, ge=1)
+    start_date: Optional[str] = Field(default=None)
+    end_date: Optional[str] = Field(default=None)
+    dataset_upload_id: Optional[str] = Field(default=None, max_length=191)
     parameters: Dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("parameters", mode="before")
@@ -1191,6 +1251,21 @@ def _summarize_forecast_training(results: Dict[int, Dict[str, Any]], horizon: in
     }
 
 
+def _extract_dataset_window(dataset: Any) -> tuple[Optional[str], Optional[str]]:
+    if dataset is None or not hasattr(dataset, "empty") or dataset.empty:
+        return None, None
+    if "date" not in dataset.columns:
+        return None, None
+
+    series = pd.to_datetime(dataset["date"], errors="coerce").dropna()
+    if series.empty:
+        return None, None
+
+    start = series.min().date().isoformat()
+    end = series.max().date().isoformat()
+    return start, end
+
+
 def _simulate_rag_reindex(parameters: Dict[str, Any]) -> Dict[str, Any]:
     company_id = parameters.get("company_id")
     reindex_all = bool(parameters.get("reindex_all", False))
@@ -1239,6 +1314,9 @@ def _run_forecast_training(job_id: str, parameters: Dict[str, Any]) -> None:
         )
         results = service.train_forecasting_models(dataset, horizon)
         summary = _summarize_forecast_training(results, horizon)
+        window_start, window_end = _extract_dataset_window(dataset)
+        summary["data_window_start"] = window_start
+        summary["data_window_end"] = window_end
         summary["rows_processed"] = int(len(dataset)) if hasattr(dataset, "__len__") else 0
         summary["duration_ms"] = round((time.perf_counter() - started_at) * 1000, 2)
         training_job_store.mark_completed(job_id, summary)
@@ -1262,13 +1340,26 @@ def _run_risk_training(job_id: str, parameters: Dict[str, Any]) -> None:
         )
         sample_count = int(len(supplier_df)) if hasattr(supplier_df, "__len__") else 0
         if sample_count == 0:
-            raise ValueError("No supplier data available for risk training")
+            summary = {
+                "feature": "risk",
+                "samples": 0,
+                "metrics": {},
+                "status": "no_data",
+                "data_window_start": parameters.get("start_date"),
+                "data_window_end": parameters.get("end_date"),
+                "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
+            }
+            training_job_store.mark_completed(job_id, summary)
+            LOGGER.info("training_risk_no_data", extra=log_extra(job_id=job_id))
+            return
 
         _, metrics = service.train_risk_model(supplier_df)
         summary = {
             "feature": "risk",
             "samples": sample_count,
             "metrics": metrics,
+            "data_window_start": parameters.get("start_date"),
+            "data_window_end": parameters.get("end_date"),
             "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
         }
         training_job_store.mark_completed(job_id, summary)
@@ -1318,6 +1409,134 @@ def _run_actions_training(job_id: str, parameters: Dict[str, Any]) -> None:
 
 def _run_workflows_training(job_id: str, parameters: Dict[str, Any]) -> None:
     _run_future_training(job_id, "workflows", parameters)
+
+
+def _openai_api_key() -> str:
+    api_key = os.getenv("AI_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OpenAI API key is not configured for chat training")
+    return api_key.strip()
+
+
+def _openai_base_url() -> str:
+    return os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+
+
+def _resolve_chat_dataset_path(dataset_upload_id: str) -> Path:
+    dataset_id = dataset_upload_id.strip()
+    if not dataset_id:
+        raise ValueError("dataset_upload_id cannot be empty")
+    # TODO: clarify dataset upload storage contract in spec.
+    path = Path(dataset_id)
+    if not path.is_absolute():
+        path = Path(CHAT_TRAINING_DATASET_DIR) / dataset_id
+    return path
+
+
+def _openai_upload_fine_tune_file(dataset_path: Path) -> Dict[str, Any]:
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Training dataset not found: {dataset_path}")
+    headers = {"Authorization": f"Bearer {_openai_api_key()}"}
+    url = f"{_openai_base_url()}/files"
+    with dataset_path.open("rb") as handle:
+        files = {"file": (dataset_path.name, handle, "application/jsonl")}
+        data = {"purpose": "fine-tune"}
+        response = httpx.post(url, headers=headers, files=files, data=data, timeout=60.0)
+    if response.status_code >= 400:
+        raise ValueError(f"OpenAI file upload failed: {response.text[:256]}")
+    return response.json()
+
+
+def _openai_create_fine_tune_job(training_file_id: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    headers = {
+        "Authorization": f"Bearer {_openai_api_key()}",
+        "Content-Type": "application/json",
+    }
+    base_model = str(parameters.get("base_model") or CHAT_FINE_TUNE_BASE_MODEL).strip()
+    suffix = parameters.get("suffix")
+    payload: Dict[str, Any] = {
+        "training_file": training_file_id,
+        "model": base_model,
+    }
+    if isinstance(suffix, str) and suffix.strip():
+        payload["suffix"] = suffix.strip()[:40]
+    hyperparameters = parameters.get("hyperparameters")
+    if isinstance(hyperparameters, dict) and hyperparameters:
+        payload["hyperparameters"] = hyperparameters
+
+    url = f"{_openai_base_url()}/fine_tuning/jobs"
+    response = httpx.post(url, headers=headers, json=payload, timeout=60.0)
+    if response.status_code >= 400:
+        raise ValueError(f"OpenAI fine-tune start failed: {response.text[:256]}")
+    return response.json()
+
+
+def _openai_fetch_fine_tune_job(job_id: str) -> Dict[str, Any]:
+    headers = {"Authorization": f"Bearer {_openai_api_key()}"}
+    url = f"{_openai_base_url()}/fine_tuning/jobs/{job_id}"
+    response = httpx.get(url, headers=headers, timeout=30.0)
+    if response.status_code >= 400:
+        raise ValueError(f"OpenAI fine-tune status failed: {response.text[:256]}")
+    return response.json()
+
+
+def _run_chat_training(job_id: str, parameters: Dict[str, Any]) -> None:
+    training_job_store.mark_running(job_id)
+    started_at = time.perf_counter()
+    try:
+        dataset_upload_id = parameters.get("dataset_upload_id")
+        if not isinstance(dataset_upload_id, str) or not dataset_upload_id.strip():
+            summary = {
+                "feature": "chat",
+                "status": "no_data",
+                "dataset_upload_id": None,
+                "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
+            }
+            training_job_store.mark_completed(job_id, summary)
+            LOGGER.info("training_chat_no_data", extra=log_extra(job_id=job_id))
+            return
+
+        dataset_path = _resolve_chat_dataset_path(dataset_upload_id)
+        if not dataset_path.exists() or dataset_path.stat().st_size == 0:
+            summary = {
+                "feature": "chat",
+                "status": "no_data",
+                "dataset_upload_id": dataset_upload_id,
+                "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
+            }
+            training_job_store.mark_completed(job_id, summary)
+            LOGGER.info("training_chat_no_data", extra=log_extra(job_id=job_id))
+            return
+        upload_response = _openai_upload_fine_tune_file(dataset_path)
+        training_file_id = str(upload_response.get("id") or "").strip()
+        if not training_file_id:
+            raise ValueError("OpenAI did not return a training file id")
+
+        fine_tune_job = _openai_create_fine_tune_job(training_file_id, parameters)
+        fine_tune_job_id = str(fine_tune_job.get("id") or "").strip()
+        if not fine_tune_job_id:
+            raise ValueError("OpenAI did not return a fine-tune job id")
+
+        summary = {
+            "feature": "chat",
+            "status": fine_tune_job.get("status"),
+            "dataset_upload_id": dataset_upload_id,
+            "training_file_id": training_file_id,
+            "fine_tune_job_id": fine_tune_job_id,
+            "base_model": fine_tune_job.get("model"),
+            "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
+        }
+        training_job_store.update_job(
+            job_id,
+            result=summary,
+            error_message=None,
+            openai_job_id=fine_tune_job_id,
+            openai_training_file_id=training_file_id,
+        )
+        LOGGER.info("training_chat_submitted", extra=log_extra(job_id=job_id, openai_job_id=fine_tune_job_id))
+    except Exception as exc:  # pragma: no cover
+        training_job_store.mark_failed(job_id, str(exc))
+        LOGGER.exception("training_chat_failed", extra=log_extra(job_id=job_id))
 
 
 
@@ -1395,12 +1614,51 @@ async def train_workflows_job(payload: DeterministicTrainingRequest, background_
     return {"status": "accepted", "job_id": job["id"], "job": job}
 
 
+@app.post("/train/chat", status_code=202)
+async def train_chat_job(payload: ChatTrainingRequest, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+    parameters = payload.model_dump(exclude_none=True)
+    job = _start_training_job("chat", parameters, background_tasks, _run_chat_training)
+    return {"status": "accepted", "job_id": job["id"], "job": job}
+
+
 @app.get("/train/{job_id}/status")
 async def training_job_status(job_id: str) -> Dict[str, Any]:
     job = training_job_store.get_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    return {"status": "ok", "job": job}
+    if job.get("feature") == "chat" and job.get("status") in {"pending", "running"}:
+        openai_job_id = job.get("openai_job_id")
+        if isinstance(openai_job_id, str) and openai_job_id.strip():
+            try:
+                remote = _openai_fetch_fine_tune_job(openai_job_id)
+                status = str(remote.get("status") or "").lower()
+                result_payload = {
+                    "feature": "chat",
+                    "status": remote.get("status"),
+                    "fine_tune_job_id": openai_job_id,
+                    "training_file_id": job.get("openai_training_file_id"),
+                    "fine_tuned_model": remote.get("fine_tuned_model"),
+                    "finished_at": remote.get("finished_at"),
+                }
+                if status in {"succeeded", "failed", "cancelled"}:
+                    if status == "succeeded":
+                        training_job_store.mark_completed(job_id, result_payload)
+                        fine_tuned_model = remote.get("fine_tuned_model")
+                        if fine_tuned_model:
+                            service.record_chat_fine_tune({
+                                "fine_tuned_model": fine_tuned_model,
+                                "job_id": openai_job_id,
+                                "trained_at": datetime.now(timezone.utc).isoformat(),
+                            })
+                            service.save_models(service._model_store_path)
+                    else:
+                        training_job_store.mark_failed(job_id, remote.get("error") or "Chat training failed")
+                else:
+                    training_job_store.update_job(job_id, result=result_payload)
+            except Exception as exc:  # pragma: no cover
+                LOGGER.exception("training_chat_status_failed", extra=log_extra(job_id=job_id))
+    refreshed_job = training_job_store.get_job(job_id) or job
+    return {"status": "ok", "job": refreshed_job}
 
 
 @app.post("/scrape/suppliers", status_code=202)
@@ -1465,7 +1723,13 @@ async def forecast(payload: ForecastRequest, request: Request) -> Dict[str, Any]
     started_at = time.perf_counter()
     history_series = {entry["date"]: entry["quantity"] for entry in payload.history}
     try:
-        response = service.predict_demand(payload.part_id, history_series, payload.horizon)
+        response = service.predict_demand(
+            payload.part_id,
+            history_series,
+            payload.horizon,
+            lead_time_days=payload.lead_time_days,
+            lead_time_variance_days=payload.lead_time_variance_days,
+        )
         duration_ms = (time.perf_counter() - started_at) * 1000
         LOGGER.info(
             "forecast_success",
@@ -2959,7 +3223,7 @@ async def _chat_build_action_response(
     context_payload: Dict[str, Any],
     safety_identifier: Optional[str],
 ) -> Dict[str, Any]:
-    inputs = _chat_coerce_action_inputs(context_payload)
+    inputs = _chat_coerce_action_inputs(context_payload, query=query)
     user_context = _chat_get_user_context(context_payload)
     action_request = ActionPlanRequest(
         company_id=company_id,
@@ -2984,9 +3248,12 @@ async def _chat_build_action_response(
     }
 
 
-def _chat_coerce_action_inputs(context_payload: Dict[str, Any]) -> Dict[str, Any]:
+def _chat_coerce_action_inputs(context_payload: Dict[str, Any], *, query: Optional[str] = None) -> Dict[str, Any]:
     candidate = context_payload.get("context") or context_payload.get("inputs") or {}
-    return candidate if isinstance(candidate, dict) else {}
+    inputs = candidate if isinstance(candidate, dict) else {}
+    if query and isinstance(query, str) and query.strip() and "query" not in inputs:
+        inputs = {**inputs, "query": query.strip()}
+    return inputs
 
 
 def _chat_get_user_context(context_payload: Dict[str, Any]) -> Dict[str, Any]:

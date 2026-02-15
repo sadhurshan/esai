@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,55 +12,53 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface NumberingRule
  */
 export interface NumberingRule {
     /**
-     * 
+     *
      * @type {string}
      * @memberof NumberingRule
      */
     prefix: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof NumberingRule
      */
     seqLen: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof NumberingRule
      */
     next: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof NumberingRule
      */
     reset: NumberingRuleResetEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof NumberingRule
      */
     sample?: string;
 }
 
-
 /**
  * @export
  */
 export const NumberingRuleResetEnum = {
     Never: 'never',
-    Yearly: 'yearly'
+    Yearly: 'yearly',
 } as const;
-export type NumberingRuleResetEnum = typeof NumberingRuleResetEnum[keyof typeof NumberingRuleResetEnum];
-
+export type NumberingRuleResetEnum =
+    (typeof NumberingRuleResetEnum)[keyof typeof NumberingRuleResetEnum];
 
 /**
  * Check if a given object implements the NumberingRule interface.
@@ -77,17 +75,19 @@ export function NumberingRuleFromJSON(json: any): NumberingRule {
     return NumberingRuleFromJSONTyped(json, false);
 }
 
-export function NumberingRuleFromJSONTyped(json: any, ignoreDiscriminator: boolean): NumberingRule {
+export function NumberingRuleFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): NumberingRule {
     if (json == null) {
         return json;
     }
     return {
-        
-        'prefix': json['prefix'],
-        'seqLen': json['seq_len'],
-        'next': json['next'],
-        'reset': json['reset'],
-        'sample': json['sample'] == null ? undefined : json['sample'],
+        prefix: json['prefix'],
+        seqLen: json['seq_len'],
+        next: json['next'],
+        reset: json['reset'],
+        sample: json['sample'] == null ? undefined : json['sample'],
     };
 }
 
@@ -95,18 +95,19 @@ export function NumberingRuleToJSON(json: any): NumberingRule {
     return NumberingRuleToJSONTyped(json, false);
 }
 
-export function NumberingRuleToJSONTyped(value?: NumberingRule | null, ignoreDiscriminator: boolean = false): any {
+export function NumberingRuleToJSONTyped(
+    value?: NumberingRule | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'prefix': value['prefix'],
-        'seq_len': value['seqLen'],
-        'next': value['next'],
-        'reset': value['reset'],
-        'sample': value['sample'],
+        prefix: value['prefix'],
+        seq_len: value['seqLen'],
+        next: value['next'],
+        reset: value['reset'],
+        sample: value['sample'],
     };
 }
-

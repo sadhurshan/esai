@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InvoiceSupplier
  */
 export interface InvoiceSupplier {
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceSupplier
      */
     id?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceSupplier
      */
@@ -36,7 +35,9 @@ export interface InvoiceSupplier {
 /**
  * Check if a given object implements the InvoiceSupplier interface.
  */
-export function instanceOfInvoiceSupplier(value: object): value is InvoiceSupplier {
+export function instanceOfInvoiceSupplier(
+    value: object,
+): value is InvoiceSupplier {
     return true;
 }
 
@@ -44,14 +45,16 @@ export function InvoiceSupplierFromJSON(json: any): InvoiceSupplier {
     return InvoiceSupplierFromJSONTyped(json, false);
 }
 
-export function InvoiceSupplierFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceSupplier {
+export function InvoiceSupplierFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceSupplier {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
+        id: json['id'] == null ? undefined : json['id'],
+        name: json['name'] == null ? undefined : json['name'],
     };
 }
 
@@ -59,15 +62,16 @@ export function InvoiceSupplierToJSON(json: any): InvoiceSupplier {
     return InvoiceSupplierToJSONTyped(json, false);
 }
 
-export function InvoiceSupplierToJSONTyped(value?: InvoiceSupplier | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceSupplierToJSONTyped(
+    value?: InvoiceSupplier | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
+        id: value['id'],
+        name: value['name'],
     };
 }
-

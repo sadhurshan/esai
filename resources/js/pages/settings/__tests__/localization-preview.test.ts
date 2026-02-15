@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildLocalizationPreview, type LocalizationFormValues } from '../localization-settings-page';
+import {
+    buildLocalizationPreview,
+    type LocalizationFormValues,
+} from '../localization-settings-page';
 
-function createValues(overrides: Partial<LocalizationFormValues> = {}): LocalizationFormValues {
+function createValues(
+    overrides: Partial<LocalizationFormValues> = {},
+): LocalizationFormValues {
     return {
         timezone: 'UTC',
         locale: 'en-US',

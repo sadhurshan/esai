@@ -1,9 +1,13 @@
-import { CheckCircle2, Clock9, Factory, XCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { CheckCircle2, Clock9, Factory, XCircle } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 import { cn } from '@/lib/utils';
-import type { GoodsReceiptNoteSummary, InvoiceDetail, PurchaseOrderEvent } from '@/types/sourcing';
+import type {
+    GoodsReceiptNoteSummary,
+    InvoiceDetail,
+    PurchaseOrderEvent,
+} from '@/types/sourcing';
 
 export type TimelineAccent = 'muted' | 'warning' | 'success' | 'danger';
 
@@ -23,7 +27,10 @@ const TIMELINE_ACCENTS: Record<TimelineAccent, string> = {
     danger: 'border-rose-300 bg-rose-50 text-rose-700',
 };
 
-const TIMELINE_ICONS: Record<TimelineAccent, ComponentType<{ className?: string }>> = {
+const TIMELINE_ICONS: Record<
+    TimelineAccent,
+    ComponentType<{ className?: string }>
+> = {
     muted: Clock9,
     warning: Factory,
     success: CheckCircle2,
@@ -35,7 +42,10 @@ interface TimelineProps {
     emptyLabel?: string;
 }
 
-export function InvoiceReviewTimeline({ entries, emptyLabel = 'No review events recorded yet.' }: TimelineProps) {
+export function InvoiceReviewTimeline({
+    entries,
+    emptyLabel = 'No review events recorded yet.',
+}: TimelineProps) {
     if (!entries || entries.length === 0) {
         return <p className="text-sm text-muted-foreground">{emptyLabel}</p>;
     }
@@ -50,18 +60,31 @@ export function InvoiceReviewTimeline({ entries, emptyLabel = 'No review events 
                         <span
                             className={cn(
                                 'absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full border bg-background',
-                                TIMELINE_ACCENTS[entry.accent] ?? TIMELINE_ACCENTS.muted,
+                                TIMELINE_ACCENTS[entry.accent] ??
+                                    TIMELINE_ACCENTS.muted,
                             )}
                         >
                             <Icon className="h-3.5 w-3.5" />
                         </span>
-                        <div className="text-sm font-semibold text-foreground">{entry.title}</div>
-                        {entry.description ? <p className="text-sm text-muted-foreground">{entry.description}</p> : null}
-                        {entry.actor ? <p className="text-xs text-muted-foreground">By {entry.actor}</p> : null}
+                        <div className="text-sm font-semibold text-foreground">
+                            {entry.title}
+                        </div>
+                        {entry.description ? (
+                            <p className="text-sm text-muted-foreground">
+                                {entry.description}
+                            </p>
+                        ) : null}
+                        {entry.actor ? (
+                            <p className="text-xs text-muted-foreground">
+                                By {entry.actor}
+                            </p>
+                        ) : null}
                         {timestamp ? (
                             <p className="text-xs text-muted-foreground">
                                 {timestamp.relative}
-                                {timestamp.absolute ? ` • ${timestamp.absolute}` : null}
+                                {timestamp.absolute
+                                    ? ` • ${timestamp.absolute}`
+                                    : null}
                             </p>
                         ) : null}
                     </li>
@@ -71,9 +94,19 @@ export function InvoiceReviewTimeline({ entries, emptyLabel = 'No review events 
     );
 }
 
-type TimelineStage = 'created' | 'submitted' | 'buyer_review' | 'approved' | 'rejected' | 'paid' | 'attachment';
+type TimelineStage =
+    | 'created'
+    | 'submitted'
+    | 'buyer_review'
+    | 'approved'
+    | 'rejected'
+    | 'paid'
+    | 'attachment';
 
-const PO_EVENT_STAGE_MAP: Record<string, { stage: TimelineStage; accent: TimelineAccent }> = {
+const PO_EVENT_STAGE_MAP: Record<
+    string,
+    { stage: TimelineStage; accent: TimelineAccent }
+> = {
     invoice_created: { stage: 'created', accent: 'muted' },
     invoice_submitted: { stage: 'submitted', accent: 'warning' },
     invoice_review_feedback: { stage: 'buyer_review', accent: 'warning' },
@@ -111,7 +144,14 @@ export function buildInvoiceReviewTimeline(
 
     const eventEntries = filterEventsForInvoice(invoice, options.events ?? [])
         .map((event) => mapEventToTimelineEntry(event))
-        .filter((value): value is { stage: TimelineStage; entry: InvoiceReviewTimelineEntry } => value !== null);
+        .filter(
+            (
+                value,
+            ): value is {
+                stage: TimelineStage;
+                entry: InvoiceReviewTimelineEntry;
+            } => value !== null,
+        );
 
     eventEntries.forEach(({ stage, entry }) => {
         coveredStages.add(stage);
@@ -120,7 +160,9 @@ export function buildInvoiceReviewTimeline(
 
     const pushIfMissing = (
         stage: TimelineStage,
-        build: () => (InvoiceReviewTimelineEntry & { description?: string | null }) | null,
+        build: () =>
+            | (InvoiceReviewTimelineEntry & { description?: string | null })
+            | null,
     ) => {
         if (coveredStages.has(stage)) {
             return;
@@ -134,11 +176,17 @@ export function buildInvoiceReviewTimeline(
 
     pushIfMissing('created', () => ({
         id: 'created',
-        title: invoice.createdByType === 'supplier' ? 'Draft created by supplier' : 'Invoice created by buyer',
+        title:
+            invoice.createdByType === 'supplier'
+                ? 'Draft created by supplier'
+                : 'Invoice created by buyer',
         description: formatDate(invoice.createdAt),
         timestamp: invoice.createdAt,
         accent: 'muted',
-        actor: invoice.createdByType === 'supplier' ? invoice.supplier?.name ?? undefined : undefined,
+        actor:
+            invoice.createdByType === 'supplier'
+                ? (invoice.supplier?.name ?? undefined)
+                : undefined,
     }));
 
     pushIfMissing('submitted', () => {
@@ -232,7 +280,9 @@ export function buildInvoiceReviewTimeline(
     });
 }
 
-function formatTimelineTimestamp(value?: string | null): { relative: string | null; absolute: string | null } | null {
+function formatTimelineTimestamp(
+    value?: string | null,
+): { relative: string | null; absolute: string | null } | null {
     if (!value) {
         return null;
     }
@@ -250,7 +300,10 @@ function formatTimelineTimestamp(value?: string | null): { relative: string | nu
     };
 }
 
-function filterEventsForInvoice(invoice: InvoiceDetail, events: PurchaseOrderEvent[]): PurchaseOrderEvent[] {
+function filterEventsForInvoice(
+    invoice: InvoiceDetail,
+    events: PurchaseOrderEvent[],
+): PurchaseOrderEvent[] {
     if (!events || events.length === 0) {
         return [];
     }
@@ -267,7 +320,8 @@ function filterEventsForInvoice(invoice: InvoiceDetail, events: PurchaseOrderEve
         }
 
         if (invoiceNumber) {
-            const metaNumber = (metadata['invoice_number'] ?? metadata['invoiceNumber']) as string | undefined;
+            const metaNumber = (metadata['invoice_number'] ??
+                metadata['invoiceNumber']) as string | undefined;
             if (metaNumber && metaNumber === invoiceNumber) {
                 return true;
             }
@@ -277,7 +331,9 @@ function filterEventsForInvoice(invoice: InvoiceDetail, events: PurchaseOrderEve
     });
 }
 
-function extractInvoiceIdFromMetadata(metadata: Record<string, unknown>): number | null {
+function extractInvoiceIdFromMetadata(
+    metadata: Record<string, unknown>,
+): number | null {
     const keys = ['invoice_id', 'invoiceId', 'invoiceID'];
 
     for (const key of keys) {
@@ -342,7 +398,9 @@ function formatEventType(type?: string | null): string {
         .join(' ');
 }
 
-function mapReceivingToEntry(grn: GoodsReceiptNoteSummary): InvoiceReviewTimelineEntry | null {
+function mapReceivingToEntry(
+    grn: GoodsReceiptNoteSummary,
+): InvoiceReviewTimelineEntry | null {
     if (!grn) {
         return null;
     }
@@ -355,11 +413,15 @@ function mapReceivingToEntry(grn: GoodsReceiptNoteSummary): InvoiceReviewTimelin
     }
 
     if (typeof grn.linesCount === 'number') {
-        details.push(`${grn.linesCount} line${grn.linesCount === 1 ? '' : 's'}`);
+        details.push(
+            `${grn.linesCount} line${grn.linesCount === 1 ? '' : 's'}`,
+        );
     }
 
     if (typeof grn.attachmentsCount === 'number' && grn.attachmentsCount > 0) {
-        details.push(`${grn.attachmentsCount} attachment${grn.attachmentsCount === 1 ? '' : 's'}`);
+        details.push(
+            `${grn.attachmentsCount} attachment${grn.attachmentsCount === 1 ? '' : 's'}`,
+        );
     }
 
     return {

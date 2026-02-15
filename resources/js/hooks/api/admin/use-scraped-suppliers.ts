@@ -1,9 +1,16 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { AdminConsoleApi } from '@/sdk';
-import type { ScrapedSupplierFilters, ScrapedSupplierListResponse } from '@/types/admin';
+import type {
+    ScrapedSupplierFilters,
+    ScrapedSupplierListResponse,
+} from '@/types/admin';
 
 export interface UseScrapedSuppliersOptions {
     enabled?: boolean;

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SearchResult
  */
 export interface SearchResult {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchResult
      */
@@ -32,25 +31,25 @@ export interface SearchResult {
      */
     type: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchResult
      */
     title: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchResult
      */
     subtitle?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchResult
      */
     snippet?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchResult
      */
@@ -72,18 +71,20 @@ export function SearchResultFromJSON(json: any): SearchResult {
     return SearchResultFromJSONTyped(json, false);
 }
 
-export function SearchResultFromJSONTyped(json: any, ignoreDiscriminator: boolean): SearchResult {
+export function SearchResultFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SearchResult {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'type': json['type'],
-        'title': json['title'],
-        'subtitle': json['subtitle'] == null ? undefined : json['subtitle'],
-        'snippet': json['snippet'] == null ? undefined : json['snippet'],
-        'url': json['url'],
+        id: json['id'],
+        type: json['type'],
+        title: json['title'],
+        subtitle: json['subtitle'] == null ? undefined : json['subtitle'],
+        snippet: json['snippet'] == null ? undefined : json['snippet'],
+        url: json['url'],
     };
 }
 
@@ -91,19 +92,20 @@ export function SearchResultToJSON(json: any): SearchResult {
     return SearchResultToJSONTyped(json, false);
 }
 
-export function SearchResultToJSONTyped(value?: SearchResult | null, ignoreDiscriminator: boolean = false): any {
+export function SearchResultToJSONTyped(
+    value?: SearchResult | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'type': value['type'],
-        'title': value['title'],
-        'subtitle': value['subtitle'],
-        'snippet': value['snippet'],
-        'url': value['url'],
+        id: value['id'],
+        type: value['type'],
+        title: value['title'],
+        subtitle: value['subtitle'],
+        snippet: value['snippet'],
+        url: value['url'],
     };
 }
-

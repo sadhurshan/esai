@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { SupplierApplication } from './SupplierApplication';
 import {
     SupplierApplicationFromJSON,
-    SupplierApplicationFromJSONTyped,
     SupplierApplicationToJSON,
-    SupplierApplicationToJSONTyped,
 } from './SupplierApplication';
 
 /**
- * 
+ *
  * @export
  * @interface ListSupplierApplications200ResponseAllOfData
  */
 export interface ListSupplierApplications200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<SupplierApplication>}
      * @memberof ListSupplierApplications200ResponseAllOfData
      */
@@ -38,36 +35,56 @@ export interface ListSupplierApplications200ResponseAllOfData {
 /**
  * Check if a given object implements the ListSupplierApplications200ResponseAllOfData interface.
  */
-export function instanceOfListSupplierApplications200ResponseAllOfData(value: object): value is ListSupplierApplications200ResponseAllOfData {
+export function instanceOfListSupplierApplications200ResponseAllOfData(
+    value: object,
+): value is ListSupplierApplications200ResponseAllOfData {
     return true;
 }
 
-export function ListSupplierApplications200ResponseAllOfDataFromJSON(json: any): ListSupplierApplications200ResponseAllOfData {
-    return ListSupplierApplications200ResponseAllOfDataFromJSONTyped(json, false);
+export function ListSupplierApplications200ResponseAllOfDataFromJSON(
+    json: any,
+): ListSupplierApplications200ResponseAllOfData {
+    return ListSupplierApplications200ResponseAllOfDataFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListSupplierApplications200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListSupplierApplications200ResponseAllOfData {
+export function ListSupplierApplications200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListSupplierApplications200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(SupplierApplicationFromJSON)),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(
+                      SupplierApplicationFromJSON,
+                  ),
     };
 }
 
-export function ListSupplierApplications200ResponseAllOfDataToJSON(json: any): ListSupplierApplications200ResponseAllOfData {
+export function ListSupplierApplications200ResponseAllOfDataToJSON(
+    json: any,
+): ListSupplierApplications200ResponseAllOfData {
     return ListSupplierApplications200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListSupplierApplications200ResponseAllOfDataToJSONTyped(value?: ListSupplierApplications200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListSupplierApplications200ResponseAllOfDataToJSONTyped(
+    value?: ListSupplierApplications200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(SupplierApplicationToJSON)),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(SupplierApplicationToJSON),
     };
 }
-

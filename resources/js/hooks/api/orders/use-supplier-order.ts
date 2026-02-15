@@ -2,8 +2,8 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { SalesOrderDetail } from '@/types/orders';
 import { HttpError, OrdersAppApi } from '@/sdk';
+import type { SalesOrderDetail } from '@/types/orders';
 
 export interface UseSupplierOrderOptions {
     enabled?: boolean;
@@ -21,7 +21,9 @@ export function useSupplierOrder(
         enabled,
         queryFn: async () => {
             if (salesOrderId === null || salesOrderId === undefined) {
-                throw new Error('salesOrderId is required to fetch supplier order details');
+                throw new Error(
+                    'salesOrderId is required to fetch supplier order details',
+                );
             }
 
             return ordersApi.showSupplierOrder(String(salesOrderId));

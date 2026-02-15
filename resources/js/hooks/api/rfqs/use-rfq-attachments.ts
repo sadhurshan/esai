@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
@@ -7,7 +7,10 @@ import { RFQsApi, type RfqAttachment } from '@/sdk';
 
 type RfqIdentifier = string | number | null | undefined;
 
-async function fetchRfqAttachments(rfqsApi: RFQsApi, rfqId: string | number): Promise<RfqAttachment[]> {
+async function fetchRfqAttachments(
+    rfqsApi: RFQsApi,
+    rfqId: string | number,
+): Promise<RfqAttachment[]> {
     const response = await rfqsApi.listRfqAttachments({
         rfqId: String(rfqId),
     });
@@ -19,7 +22,9 @@ export type UseRfqAttachmentsResult = UseQueryResult<RfqAttachment[]> & {
     items: RfqAttachment[];
 };
 
-export function useRfqAttachments(rfqId: RfqIdentifier): UseRfqAttachmentsResult {
+export function useRfqAttachments(
+    rfqId: RfqIdentifier,
+): UseRfqAttachmentsResult {
     const rfqsApi = useSdkClient(RFQsApi);
     const enabled = rfqId !== null && rfqId !== undefined;
 

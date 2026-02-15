@@ -1,12 +1,18 @@
-import { useId, useMemo, useState } from 'react';
 import { ExternalLink, Filter, Search, Sparkles, Tag, X } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
 
 import { EmptyState } from '@/components/empty-state';
 import { errorToast } from '@/components/toasts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -46,7 +52,10 @@ interface CopilotSearchPanelProps {
     defaultSourceType?: string;
 }
 
-export function CopilotSearchPanel({ className, defaultSourceType = '' }: CopilotSearchPanelProps) {
+export function CopilotSearchPanel({
+    className,
+    defaultSourceType = '',
+}: CopilotSearchPanelProps) {
     const queryFieldId = useId();
     const tagFieldId = useId();
 
@@ -62,7 +71,9 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
     const [openingDocId, setOpeningDocId] = useState<string | null>(null);
 
     const tagInputPlaceholder = useMemo(() => {
-        return tags.length === 0 ? 'Add tags to narrow by metadata (press Enter)' : 'Press Enter to add tag';
+        return tags.length === 0
+            ? 'Add tags to narrow by metadata (press Enter)'
+            : 'Press Enter to add tag';
     }, [tags.length]);
 
     const handleAddTag = () => {
@@ -91,7 +102,10 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
         event?.preventDefault();
 
         if (!query.trim()) {
-            errorToast('Enter a search query', 'Type a question or keyword to run semantic search.');
+            errorToast(
+                'Enter a search query',
+                'Type a question or keyword to run semantic search.',
+            );
             return;
         }
 
@@ -112,14 +126,18 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                 };
             }
 
-            const response = await semanticSearch<SemanticSearchResponse>(payload);
+            const response =
+                await semanticSearch<SemanticSearchResponse>(payload);
             const data = response.data ?? { hits: [] };
             const nextHits = Array.isArray(data.hits) ? data.hits : [];
 
             setHits(nextHits);
             setExpandedHits(new Set());
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Semantic search failed. Please retry.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Semantic search failed. Please retry.';
             setErrorMessage(message);
             errorToast('Unable to complete search', message);
         } finally {
@@ -142,7 +160,10 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
 
     const handleOpenDocument = async (docId: string) => {
         if (!docId) {
-            errorToast('Missing document id', 'This search hit did not include a document id.');
+            errorToast(
+                'Missing document id',
+                'This search hit did not include a document id.',
+            );
             return;
         }
 
@@ -158,9 +179,9 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
         try {
             // Use the existing DocumentController route to fetch a signed download URL when opening a source.
             // Axios response interceptor unwraps the payload, so assert the concrete document type for TS.
-            const document = (await api.get<DocumentResourcePayload>(`/documents/${numericId}`)) as unknown as
-                | DocumentResourcePayload
-                | null;
+            const document = (await api.get<DocumentResourcePayload>(
+                `/documents/${numericId}`,
+            )) as unknown as DocumentResourcePayload | null;
             const downloadUrl = document?.download_url;
 
             if (!downloadUrl) {
@@ -169,7 +190,10 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
 
             window.open(downloadUrl, '_blank', 'noopener');
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unable to open the selected document.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unable to open the selected document.';
             errorToast('Document not available', message);
         } finally {
             setOpeningDocId(null);
@@ -189,7 +213,8 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                     icon={<Sparkles className="size-6" />}
                     ctaLabel="Try a sample query"
                     ctaProps={{
-                        onClick: () => setQuery('Show me torque specs for assembly CR-45'),
+                        onClick: () =>
+                            setQuery('Show me torque specs for assembly CR-45'),
                     }}
                 />
             );
@@ -224,7 +249,10 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                             aria-expanded={isExpanded}
                             onClick={() => toggleExpanded(key)}
                             onKeyDown={(event) => {
-                                if (event.key === 'Enter' || event.key === ' ') {
+                                if (
+                                    event.key === 'Enter' ||
+                                    event.key === ' '
+                                ) {
                                     event.preventDefault();
                                     toggleExpanded(key);
                                 }
@@ -233,28 +261,46 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                 <div className="space-y-2">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant="outline" className="text-xs uppercase tracking-wide">
+                                        <Badge
+                                            variant="outline"
+                                            className="text-xs tracking-wide uppercase"
+                                        >
                                             {formattedScore}
                                         </Badge>
-                                        <p className="text-base font-semibold text-foreground">{title}</p>
+                                        <p className="text-base font-semibold text-foreground">
+                                            {title}
+                                        </p>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">{hit.snippet}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {hit.snippet}
+                                    </p>
                                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                        <Badge variant="secondary">Doc #{hit.doc_id}</Badge>
+                                        <Badge variant="secondary">
+                                            Doc #{hit.doc_id}
+                                        </Badge>
                                         {hit.doc_version ? (
-                                            <Badge variant="secondary">v{hit.doc_version}</Badge>
+                                            <Badge variant="secondary">
+                                                v{hit.doc_version}
+                                            </Badge>
                                         ) : null}
                                         {hit.chunk_id ? (
-                                            <Badge variant="secondary">Chunk {hit.chunk_id}</Badge>
+                                            <Badge variant="secondary">
+                                                Chunk {hit.chunk_id}
+                                            </Badge>
                                         ) : null}
                                         {sourceLabel(hit) ? (
-                                            <Badge variant="outline" className="uppercase">
+                                            <Badge
+                                                variant="outline"
+                                                className="uppercase"
+                                            >
                                                 {sourceLabel(hit)}
                                             </Badge>
                                         ) : null}
                                     </div>
                                     <p className="text-xs font-medium text-primary">
-                                        {isExpanded ? 'Hide metadata' : 'Click to view metadata & filters'}
+                                        {isExpanded
+                                            ? 'Hide metadata'
+                                            : 'Click to view metadata & filters'}
                                     </p>
                                 </div>
                                 <Button
@@ -270,11 +316,13 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                                 >
                                     {openingDocId === hit.doc_id ? (
                                         <>
-                                            <Spinner className="mr-2 size-4" /> Opening…
+                                            <Spinner className="mr-2 size-4" />{' '}
+                                            Opening…
                                         </>
                                     ) : (
                                         <>
-                                            <ExternalLink className="mr-2 size-4" /> Open document
+                                            <ExternalLink className="mr-2 size-4" />{' '}
+                                            Open document
                                         </>
                                     )}
                                 </Button>
@@ -282,8 +330,11 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                             {isExpanded && metadataEntries.length > 0 ? (
                                 <dl className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
                                     {metadataEntries.map(([key, value]) => (
-                                        <div key={`${key}-${String(value)}`} className="rounded-lg border bg-background/80 p-3">
-                                            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                                        <div
+                                            key={`${key}-${String(value)}`}
+                                            className="rounded-lg border bg-background/80 p-3"
+                                        >
+                                            <dt className="text-xs font-semibold tracking-wide text-muted-foreground/80 uppercase">
                                                 {formatMetadataKey(key)}
                                             </dt>
                                             <dd className="mt-1 text-sm text-foreground">
@@ -305,24 +356,30 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
             <CardHeader>
                 <CardTitle>Copilot Search</CardTitle>
                 <CardDescription>
-                    Semantic search across Document Control Hub, maintenance manuals, and RFQ text. Review the cited
-                    snippets before taking action.
+                    Semantic search across Document Control Hub, maintenance
+                    manuals, and RFQ text. Review the cited snippets before
+                    taking action.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <form className="space-y-4" onSubmit={handleSearch}>
                     <div className="flex flex-col gap-3 md:flex-row md:items-end">
                         <div className="flex-1">
-                            <label htmlFor={queryFieldId} className="text-sm font-medium text-foreground">
+                            <label
+                                htmlFor={queryFieldId}
+                                className="text-sm font-medium text-foreground"
+                            >
                                 Search query
                             </label>
                             <div className="relative mt-1">
-                                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     id={queryFieldId}
                                     placeholder="e.g. torque spec for CR-45 assembly"
                                     value={query}
-                                    onChange={(event) => setQuery(event.target.value)}
+                                    onChange={(event) =>
+                                        setQuery(event.target.value)
+                                    }
                                     className="pl-10"
                                 />
                             </div>
@@ -331,13 +388,19 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                             <Button type="submit" disabled={isSearching}>
                                 {isSearching ? (
                                     <>
-                                        <Spinner className="mr-2 size-4" /> Searching…
+                                        <Spinner className="mr-2 size-4" />{' '}
+                                        Searching…
                                     </>
                                 ) : (
                                     'Search'
                                 )}
                             </Button>
-                            <Button type="button" variant="outline" onClick={handleResetFilters} disabled={isSearching}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleResetFilters}
+                                disabled={isSearching}
+                            >
                                 Reset filters
                             </Button>
                         </div>
@@ -349,14 +412,22 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                         </div>
                         <div className="mt-4 grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">Source type</label>
-                                <Select value={sourceType} onValueChange={setSourceType}>
+                                <label className="text-sm font-medium text-foreground">
+                                    Source type
+                                </label>
+                                <Select
+                                    value={sourceType}
+                                    onValueChange={setSourceType}
+                                >
                                     <SelectTrigger aria-label="Document source">
                                         <SelectValue placeholder="All sources" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {SOURCE_TYPE_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value || 'all'} value={option.value}>
+                                            <SelectItem
+                                                key={option.value || 'all'}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         ))}
@@ -366,7 +437,10 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
-                                    <label htmlFor={tagFieldId} className="text-sm font-medium text-foreground">
+                                    <label
+                                        htmlFor={tagFieldId}
+                                        className="text-sm font-medium text-foreground"
+                                    >
                                         Document tags
                                     </label>
                                     {tags.length > 0 ? (
@@ -381,11 +455,13 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
-                                        <Tag className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Tag className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id={tagFieldId}
                                             value={tagInput}
-                                            onChange={(event) => setTagInput(event.target.value)}
+                                            onChange={(event) =>
+                                                setTagInput(event.target.value)
+                                            }
                                             onKeyDown={(event) => {
                                                 if (event.key === 'Enter') {
                                                     event.preventDefault();
@@ -396,18 +472,28 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                                             className="pl-10"
                                         />
                                     </div>
-                                    <Button type="button" variant="outline" onClick={handleAddTag}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleAddTag}
+                                    >
                                         Add
                                     </Button>
                                 </div>
                                 {tags.length > 0 ? (
                                     <div className="flex flex-wrap gap-2">
                                         {tags.map((tag) => (
-                                            <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                            <Badge
+                                                key={tag}
+                                                variant="secondary"
+                                                className="flex items-center gap-1"
+                                            >
                                                 {tag}
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleRemoveTag(tag)}
+                                                    onClick={() =>
+                                                        handleRemoveTag(tag)
+                                                    }
                                                     className="rounded-full p-0.5 text-muted-foreground hover:text-foreground"
                                                     aria-label={`Remove tag ${tag}`}
                                                 >
@@ -431,8 +517,9 @@ export function CopilotSearchPanel({ className, defaultSourceType = '' }: Copilo
                 {renderResults()}
 
                 <p className="text-xs text-muted-foreground">
-                    AI suggestions list citations only. Always open the referenced source document to validate the
-                    snippet before changing RFQs, maintenance plans, or orders.
+                    AI suggestions list citations only. Always open the
+                    referenced source document to validate the snippet before
+                    changing RFQs, maintenance plans, or orders.
                 </p>
             </CardContent>
         </Card>

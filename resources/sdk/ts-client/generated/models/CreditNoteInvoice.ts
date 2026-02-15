@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreditNoteInvoice
  */
 export interface CreditNoteInvoice {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNoteInvoice
      */
     id?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNoteInvoice
      */
@@ -36,7 +35,9 @@ export interface CreditNoteInvoice {
 /**
  * Check if a given object implements the CreditNoteInvoice interface.
  */
-export function instanceOfCreditNoteInvoice(value: object): value is CreditNoteInvoice {
+export function instanceOfCreditNoteInvoice(
+    value: object,
+): value is CreditNoteInvoice {
     return true;
 }
 
@@ -44,14 +45,17 @@ export function CreditNoteInvoiceFromJSON(json: any): CreditNoteInvoice {
     return CreditNoteInvoiceFromJSONTyped(json, false);
 }
 
-export function CreditNoteInvoiceFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreditNoteInvoice {
+export function CreditNoteInvoiceFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreditNoteInvoice {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'invoiceNumber': json['invoice_number'] == null ? undefined : json['invoice_number'],
+        id: json['id'] == null ? undefined : json['id'],
+        invoiceNumber:
+            json['invoice_number'] == null ? undefined : json['invoice_number'],
     };
 }
 
@@ -59,15 +63,16 @@ export function CreditNoteInvoiceToJSON(json: any): CreditNoteInvoice {
     return CreditNoteInvoiceToJSONTyped(json, false);
 }
 
-export function CreditNoteInvoiceToJSONTyped(value?: CreditNoteInvoice | null, ignoreDiscriminator: boolean = false): any {
+export function CreditNoteInvoiceToJSONTyped(
+    value?: CreditNoteInvoice | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'invoice_number': value['invoiceNumber'],
+        id: value['id'],
+        invoice_number: value['invoiceNumber'],
     };
 }
-

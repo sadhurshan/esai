@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ConvertQuantity200ResponseAllOfData
  */
 export interface ConvertQuantity200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ConvertQuantity200ResponseAllOfData
      */
@@ -30,37 +29,47 @@ export interface ConvertQuantity200ResponseAllOfData {
 /**
  * Check if a given object implements the ConvertQuantity200ResponseAllOfData interface.
  */
-export function instanceOfConvertQuantity200ResponseAllOfData(value: object): value is ConvertQuantity200ResponseAllOfData {
-    if (!('qtyConverted' in value) || value['qtyConverted'] === undefined) return false;
+export function instanceOfConvertQuantity200ResponseAllOfData(
+    value: object,
+): value is ConvertQuantity200ResponseAllOfData {
+    if (!('qtyConverted' in value) || value['qtyConverted'] === undefined)
+        return false;
     return true;
 }
 
-export function ConvertQuantity200ResponseAllOfDataFromJSON(json: any): ConvertQuantity200ResponseAllOfData {
+export function ConvertQuantity200ResponseAllOfDataFromJSON(
+    json: any,
+): ConvertQuantity200ResponseAllOfData {
     return ConvertQuantity200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ConvertQuantity200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ConvertQuantity200ResponseAllOfData {
+export function ConvertQuantity200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ConvertQuantity200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'qtyConverted': json['qty_converted'],
+        qtyConverted: json['qty_converted'],
     };
 }
 
-export function ConvertQuantity200ResponseAllOfDataToJSON(json: any): ConvertQuantity200ResponseAllOfData {
+export function ConvertQuantity200ResponseAllOfDataToJSON(
+    json: any,
+): ConvertQuantity200ResponseAllOfData {
     return ConvertQuantity200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ConvertQuantity200ResponseAllOfDataToJSONTyped(value?: ConvertQuantity200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ConvertQuantity200ResponseAllOfDataToJSONTyped(
+    value?: ConvertQuantity200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'qty_converted': value['qtyConverted'],
+        qty_converted: value['qtyConverted'],
     };
 }
-

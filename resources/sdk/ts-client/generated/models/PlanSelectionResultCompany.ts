@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface PlanSelectionResultCompany
  */
 export interface PlanSelectionResultCompany {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PlanSelectionResultCompany
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PlanSelectionResultCompany
      */
     plan: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PlanSelectionResultCompany
      */
     billingStatus: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof PlanSelectionResultCompany
      */
@@ -48,46 +47,60 @@ export interface PlanSelectionResultCompany {
 /**
  * Check if a given object implements the PlanSelectionResultCompany interface.
  */
-export function instanceOfPlanSelectionResultCompany(value: object): value is PlanSelectionResultCompany {
+export function instanceOfPlanSelectionResultCompany(
+    value: object,
+): value is PlanSelectionResultCompany {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('plan' in value) || value['plan'] === undefined) return false;
-    if (!('billingStatus' in value) || value['billingStatus'] === undefined) return false;
-    if (!('requiresPlanSelection' in value) || value['requiresPlanSelection'] === undefined) return false;
+    if (!('billingStatus' in value) || value['billingStatus'] === undefined)
+        return false;
+    if (
+        !('requiresPlanSelection' in value) ||
+        value['requiresPlanSelection'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function PlanSelectionResultCompanyFromJSON(json: any): PlanSelectionResultCompany {
+export function PlanSelectionResultCompanyFromJSON(
+    json: any,
+): PlanSelectionResultCompany {
     return PlanSelectionResultCompanyFromJSONTyped(json, false);
 }
 
-export function PlanSelectionResultCompanyFromJSONTyped(json: any, ignoreDiscriminator: boolean): PlanSelectionResultCompany {
+export function PlanSelectionResultCompanyFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PlanSelectionResultCompany {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'plan': json['plan'],
-        'billingStatus': json['billing_status'],
-        'requiresPlanSelection': json['requires_plan_selection'],
+        id: json['id'],
+        plan: json['plan'],
+        billingStatus: json['billing_status'],
+        requiresPlanSelection: json['requires_plan_selection'],
     };
 }
 
-export function PlanSelectionResultCompanyToJSON(json: any): PlanSelectionResultCompany {
+export function PlanSelectionResultCompanyToJSON(
+    json: any,
+): PlanSelectionResultCompany {
     return PlanSelectionResultCompanyToJSONTyped(json, false);
 }
 
-export function PlanSelectionResultCompanyToJSONTyped(value?: PlanSelectionResultCompany | null, ignoreDiscriminator: boolean = false): any {
+export function PlanSelectionResultCompanyToJSONTyped(
+    value?: PlanSelectionResultCompany | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'plan': value['plan'],
-        'billing_status': value['billingStatus'],
-        'requires_plan_selection': value['requiresPlanSelection'],
+        id: value['id'],
+        plan: value['plan'],
+        billing_status: value['billingStatus'],
+        requires_plan_selection: value['requiresPlanSelection'],
     };
 }
-

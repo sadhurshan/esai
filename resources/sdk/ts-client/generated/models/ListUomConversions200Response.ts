@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListUomConversions200ResponseAllOfData } from './ListUomConversions200ResponseAllOfData';
 import {
     ListUomConversions200ResponseAllOfDataFromJSON,
-    ListUomConversions200ResponseAllOfDataFromJSONTyped,
     ListUomConversions200ResponseAllOfDataToJSON,
-    ListUomConversions200ResponseAllOfDataToJSONTyped,
 } from './ListUomConversions200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListUomConversions200Response
  */
 export interface ListUomConversions200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListUomConversions200Response
      */
     status: ListUomConversions200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListUomConversions200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListUomConversions200ResponseAllOfData}
      * @memberof ListUomConversions200Response
      */
     data: ListUomConversions200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListUomConversions200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListUomConversions200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListUomConversions200ResponseStatusEnum = typeof ListUomConversions200ResponseStatusEnum[keyof typeof ListUomConversions200ResponseStatusEnum];
-
+export type ListUomConversions200ResponseStatusEnum =
+    (typeof ListUomConversions200ResponseStatusEnum)[keyof typeof ListUomConversions200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListUomConversions200Response interface.
  */
-export function instanceOfListUomConversions200Response(value: object): value is ListUomConversions200Response {
+export function instanceOfListUomConversions200Response(
+    value: object,
+): value is ListUomConversions200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListUomConversions200ResponseFromJSON(json: any): ListUomConversions200Response {
+export function ListUomConversions200ResponseFromJSON(
+    json: any,
+): ListUomConversions200Response {
     return ListUomConversions200ResponseFromJSONTyped(json, false);
 }
 
-export function ListUomConversions200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListUomConversions200Response {
+export function ListUomConversions200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListUomConversions200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListUomConversions200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListUomConversions200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListUomConversions200ResponseToJSON(json: any): ListUomConversions200Response {
+export function ListUomConversions200ResponseToJSON(
+    json: any,
+): ListUomConversions200Response {
     return ListUomConversions200ResponseToJSONTyped(json, false);
 }
 
-export function ListUomConversions200ResponseToJSONTyped(value?: ListUomConversions200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListUomConversions200ResponseToJSONTyped(
+    value?: ListUomConversions200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListUomConversions200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListUomConversions200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

@@ -8,9 +8,16 @@ const FALLBACK_MINOR_UNIT = 2;
 export function useMoneyFormatter() {
     const { data: settings } = useMoneySettings();
 
-    const currencyCode = settings?.pricingCurrency?.code ?? settings?.baseCurrency?.code ?? FALLBACK_CURRENCY;
-    const minorUnit = settings?.pricingCurrency?.minorUnit ?? settings?.baseCurrency?.minorUnit ?? FALLBACK_MINOR_UNIT;
-    const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    const currencyCode =
+        settings?.pricingCurrency?.code ??
+        settings?.baseCurrency?.code ??
+        FALLBACK_CURRENCY;
+    const minorUnit =
+        settings?.pricingCurrency?.minorUnit ??
+        settings?.baseCurrency?.minorUnit ??
+        FALLBACK_MINOR_UNIT;
+    const locale =
+        typeof navigator !== 'undefined' ? navigator.language : 'en-US';
 
     const formatter = useMemo(() => {
         return new Intl.NumberFormat(locale, {

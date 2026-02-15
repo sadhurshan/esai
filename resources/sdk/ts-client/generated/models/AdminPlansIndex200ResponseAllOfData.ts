@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { Plan } from './Plan';
-import {
-    PlanFromJSON,
-    PlanFromJSONTyped,
-    PlanToJSON,
-    PlanToJSONTyped,
-} from './Plan';
+import { PlanFromJSON, PlanToJSON } from './Plan';
 
 /**
- * 
+ *
  * @export
  * @interface AdminPlansIndex200ResponseAllOfData
  */
 export interface AdminPlansIndex200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<Plan>}
      * @memberof AdminPlansIndex200ResponseAllOfData
      */
     items?: Array<Plan>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof AdminPlansIndex200ResponseAllOfData
      */
@@ -51,38 +40,53 @@ export interface AdminPlansIndex200ResponseAllOfData {
 /**
  * Check if a given object implements the AdminPlansIndex200ResponseAllOfData interface.
  */
-export function instanceOfAdminPlansIndex200ResponseAllOfData(value: object): value is AdminPlansIndex200ResponseAllOfData {
+export function instanceOfAdminPlansIndex200ResponseAllOfData(
+    value: object,
+): value is AdminPlansIndex200ResponseAllOfData {
     return true;
 }
 
-export function AdminPlansIndex200ResponseAllOfDataFromJSON(json: any): AdminPlansIndex200ResponseAllOfData {
+export function AdminPlansIndex200ResponseAllOfDataFromJSON(
+    json: any,
+): AdminPlansIndex200ResponseAllOfData {
     return AdminPlansIndex200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AdminPlansIndex200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminPlansIndex200ResponseAllOfData {
+export function AdminPlansIndex200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminPlansIndex200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PlanFromJSON)),
-        'meta': json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(PlanFromJSON),
+        meta: json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminPlansIndex200ResponseAllOfDataToJSON(json: any): AdminPlansIndex200ResponseAllOfData {
+export function AdminPlansIndex200ResponseAllOfDataToJSON(
+    json: any,
+): AdminPlansIndex200ResponseAllOfData {
     return AdminPlansIndex200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AdminPlansIndex200ResponseAllOfDataToJSONTyped(value?: AdminPlansIndex200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminPlansIndex200ResponseAllOfDataToJSONTyped(
+    value?: AdminPlansIndex200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(PlanToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(PlanToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

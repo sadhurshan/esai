@@ -1,4 +1,11 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -23,17 +30,25 @@ interface UseAiChatThreadsResult {
 const STATUS_SENTINEL = '__all__';
 
 const unwrap = <T>(payload: T | { data: T }): T => {
-    if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
+    if (
+        payload &&
+        typeof payload === 'object' &&
+        'data' in (payload as Record<string, unknown>)
+    ) {
         return (payload as { data: T }).data;
     }
 
     return payload as T;
 };
 
-const normalizeStatuses = (value?: string | string[] | null): string[] | undefined => {
+const normalizeStatuses = (
+    value?: string | string[] | null,
+): string[] | undefined => {
     if (Array.isArray(value)) {
         return value
-            .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry)))
+            .map((entry) =>
+                typeof entry === 'string' ? entry.trim() : String(entry),
+            )
             .filter((entry) => entry.length > 0)
             .sort();
     }
@@ -69,20 +84,24 @@ export function useAiChatThreads(
 ): UseQueryResult<UseAiChatThreadsResult, ApiError> {
     const { keyPayload, queryPayload } = normalizeParams(params);
 
-    return useQuery<AiChatThreadListResponse, ApiError, UseAiChatThreadsResult>({
-        queryKey: queryKeys.ai.chat.threads(keyPayload),
-        queryFn: async () => {
-            const query = buildQuery(queryPayload);
-            const response = await api.get<AiChatThreadListResponse>(`/v1/ai/chat/threads${query}`);
-            return unwrap(response);
+    return useQuery<AiChatThreadListResponse, ApiError, UseAiChatThreadsResult>(
+        {
+            queryKey: queryKeys.ai.chat.threads(keyPayload),
+            queryFn: async () => {
+                const query = buildQuery(queryPayload);
+                const response = await api.get<AiChatThreadListResponse>(
+                    `/v1/ai/chat/threads${query}`,
+                );
+                return unwrap(response);
+            },
+            select: (response) => ({
+                items: response.items ?? [],
+                meta: response.meta,
+            }),
+            placeholderData: keepPreviousData,
+            staleTime: 5_000,
         },
-        select: (response) => ({
-            items: response.items ?? [],
-            meta: response.meta,
-        }),
-        placeholderData: keepPreviousData,
-        staleTime: 5_000,
-    });
+    );
 }
 
 export interface CreateAiChatThreadPayload {
@@ -99,17 +118,31 @@ interface CreateThreadResponse {
 
 export function useCreateAiChatThread(
     options: UseCreateAiChatThreadOptions = {},
-): UseMutationResult<AiChatThread, ApiError, CreateAiChatThreadPayload | undefined> {
+): UseMutationResult<
+    AiChatThread,
+    ApiError,
+    CreateAiChatThreadPayload | undefined
+> {
     const queryClient = useQueryClient();
 
-    return useMutation<AiChatThread, ApiError, CreateAiChatThreadPayload | undefined>({
+    return useMutation<
+        AiChatThread,
+        ApiError,
+        CreateAiChatThreadPayload | undefined
+    >({
         mutationFn: async (payload) => {
-            const response = await api.post<CreateThreadResponse>('/v1/ai/chat/threads', payload ?? {});
+            const response = await api.post<CreateThreadResponse>(
+                '/v1/ai/chat/threads',
+                payload ?? {},
+            );
             const data = unwrap(response);
             return data.thread;
         },
         onSuccess: (thread) => {
-            queryClient.invalidateQueries({ queryKey: queryKeys.ai.chat.root(), exact: false });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.ai.chat.root(),
+                exact: false,
+            });
 
             if (options.onSuccess) {
                 options.onSuccess(thread);

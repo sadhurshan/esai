@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,23 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  CompanySettings,
-  LocalizationSettings,
-  NumberingSettings,
-  ShowCompanySettings200Response,
-  ShowLocalizationSettings200Response,
-  ShowNumberingSettings200Response,
+    CompanySettings,
+    LocalizationSettings,
+    NumberingSettings,
+    ShowCompanySettings200Response,
+    ShowLocalizationSettings200Response,
+    ShowNumberingSettings200Response,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
-    CompanySettingsFromJSON,
     CompanySettingsToJSON,
-    LocalizationSettingsFromJSON,
     LocalizationSettingsToJSON,
-    NumberingSettingsFromJSON,
     NumberingSettingsToJSON,
     ShowCompanySettings200ResponseFromJSON,
-    ShowCompanySettings200ResponseToJSON,
     ShowLocalizationSettings200ResponseFromJSON,
-    ShowLocalizationSettings200ResponseToJSON,
     ShowNumberingSettings200ResponseFromJSON,
-    ShowNumberingSettings200ResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface UpdateCompanySettingsRequest {
     companySettings: CompanySettings;
@@ -54,142 +44,183 @@ export interface UpdateNumberingSettingsRequest {
 
 /**
  * SettingsApi - interface
- * 
+ *
  * @export
  * @interface SettingsApiInterface
  */
 export interface SettingsApiInterface {
     /**
-     * 
+     *
      * @summary Retrieve company profile settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SettingsApiInterface
      */
-    showCompanySettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowCompanySettings200Response>>;
+    showCompanySettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowCompanySettings200Response>>;
 
     /**
      * Retrieve company profile settings
      */
-    showCompanySettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCompanySettings200Response>;
+    showCompanySettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowCompanySettings200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve localization settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SettingsApiInterface
      */
-    showLocalizationSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
+    showLocalizationSettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
 
     /**
      * Retrieve localization settings
      */
-    showLocalizationSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response>;
+    showLocalizationSettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve document numbering rules
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SettingsApiInterface
      */
-    showNumberingSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>>;
+    showNumberingSettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>>;
 
     /**
      * Retrieve document numbering rules
      */
-    showNumberingSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowNumberingSettings200Response>;
+    showNumberingSettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowNumberingSettings200Response>;
 
     /**
-     * 
+     *
      * @summary Update company profile settings
-     * @param {CompanySettings} companySettings 
+     * @param {CompanySettings} companySettings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SettingsApiInterface
      */
-    updateCompanySettingsRaw(requestParameters: UpdateCompanySettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowCompanySettings200Response>>;
+    updateCompanySettingsRaw(
+        requestParameters: UpdateCompanySettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowCompanySettings200Response>>;
 
     /**
      * Update company profile settings
      */
-    updateCompanySettings(requestParameters: UpdateCompanySettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCompanySettings200Response>;
+    updateCompanySettings(
+        requestParameters: UpdateCompanySettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowCompanySettings200Response>;
 
     /**
-     * 
+     *
      * @summary Update localization settings
-     * @param {LocalizationSettings} localizationSettings 
+     * @param {LocalizationSettings} localizationSettings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SettingsApiInterface
      */
-    updateLocalizationSettingsRaw(requestParameters: UpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
+    updateLocalizationSettingsRaw(
+        requestParameters: UpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
 
     /**
      * Update localization settings
      */
-    updateLocalizationSettings(requestParameters: UpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response>;
+    updateLocalizationSettings(
+        requestParameters: UpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response>;
 
     /**
-     * 
+     *
      * @summary Update document numbering rules
-     * @param {NumberingSettings} numberingSettings 
+     * @param {NumberingSettings} numberingSettings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SettingsApiInterface
      */
-    updateNumberingSettingsRaw(requestParameters: UpdateNumberingSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>>;
+    updateNumberingSettingsRaw(
+        requestParameters: UpdateNumberingSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>>;
 
     /**
      * Update document numbering rules
      */
-    updateNumberingSettings(requestParameters: UpdateNumberingSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowNumberingSettings200Response>;
-
+    updateNumberingSettings(
+        requestParameters: UpdateNumberingSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowNumberingSettings200Response>;
 }
 
 /**
- * 
+ *
  */
-export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface {
-
+export class SettingsApi
+    extends runtime.BaseAPI
+    implements SettingsApiInterface
+{
     /**
      * Retrieve company profile settings
      */
-    async showCompanySettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowCompanySettings200Response>> {
+    async showCompanySettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowCompanySettings200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/company`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowCompanySettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowCompanySettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve company profile settings
      */
-    async showCompanySettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCompanySettings200Response> {
+    async showCompanySettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowCompanySettings200Response> {
         const response = await this.showCompanySettingsRaw(initOverrides);
         return await response.value();
     }
@@ -197,40 +228,50 @@ export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface
     /**
      * Retrieve localization settings
      */
-    async showLocalizationSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
+    async showLocalizationSettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/localization`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocalizationSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowLocalizationSettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve localization settings
      */
-    async showLocalizationSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response> {
+    async showLocalizationSettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response> {
         const response = await this.showLocalizationSettingsRaw(initOverrides);
         return await response.value();
     }
@@ -238,40 +279,50 @@ export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface
     /**
      * Retrieve document numbering rules
      */
-    async showNumberingSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>> {
+    async showNumberingSettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/numbering`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowNumberingSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowNumberingSettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve document numbering rules
      */
-    async showNumberingSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowNumberingSettings200Response> {
+    async showNumberingSettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowNumberingSettings200Response> {
         const response = await this.showNumberingSettingsRaw(initOverrides);
         return await response.value();
     }
@@ -279,11 +330,14 @@ export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface
     /**
      * Update company profile settings
      */
-    async updateCompanySettingsRaw(requestParameters: UpdateCompanySettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowCompanySettings200Response>> {
+    async updateCompanySettingsRaw(
+        requestParameters: UpdateCompanySettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowCompanySettings200Response>> {
         if (requestParameters['companySettings'] == null) {
             throw new runtime.RequiredError(
                 'companySettings',
-                'Required parameter "companySettings" was null or undefined when calling updateCompanySettings().'
+                'Required parameter "companySettings" was null or undefined when calling updateCompanySettings().',
             );
         }
 
@@ -294,47 +348,64 @@ export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/company`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CompanySettingsToJSON(requestParameters['companySettings']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CompanySettingsToJSON(
+                    requestParameters['companySettings'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowCompanySettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowCompanySettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update company profile settings
      */
-    async updateCompanySettings(requestParameters: UpdateCompanySettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowCompanySettings200Response> {
-        const response = await this.updateCompanySettingsRaw(requestParameters, initOverrides);
+    async updateCompanySettings(
+        requestParameters: UpdateCompanySettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowCompanySettings200Response> {
+        const response = await this.updateCompanySettingsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update localization settings
      */
-    async updateLocalizationSettingsRaw(requestParameters: UpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
+    async updateLocalizationSettingsRaw(
+        requestParameters: UpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
         if (requestParameters['localizationSettings'] == null) {
             throw new runtime.RequiredError(
                 'localizationSettings',
-                'Required parameter "localizationSettings" was null or undefined when calling updateLocalizationSettings().'
+                'Required parameter "localizationSettings" was null or undefined when calling updateLocalizationSettings().',
             );
         }
 
@@ -345,47 +416,64 @@ export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/localization`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: LocalizationSettingsToJSON(requestParameters['localizationSettings']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: LocalizationSettingsToJSON(
+                    requestParameters['localizationSettings'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocalizationSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowLocalizationSettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update localization settings
      */
-    async updateLocalizationSettings(requestParameters: UpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response> {
-        const response = await this.updateLocalizationSettingsRaw(requestParameters, initOverrides);
+    async updateLocalizationSettings(
+        requestParameters: UpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response> {
+        const response = await this.updateLocalizationSettingsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update document numbering rules
      */
-    async updateNumberingSettingsRaw(requestParameters: UpdateNumberingSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>> {
+    async updateNumberingSettingsRaw(
+        requestParameters: UpdateNumberingSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowNumberingSettings200Response>> {
         if (requestParameters['numberingSettings'] == null) {
             throw new runtime.RequiredError(
                 'numberingSettings',
-                'Required parameter "numberingSettings" was null or undefined when calling updateNumberingSettings().'
+                'Required parameter "numberingSettings" was null or undefined when calling updateNumberingSettings().',
             );
         }
 
@@ -396,37 +484,50 @@ export class SettingsApi extends runtime.BaseAPI implements SettingsApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/numbering`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: NumberingSettingsToJSON(requestParameters['numberingSettings']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: NumberingSettingsToJSON(
+                    requestParameters['numberingSettings'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowNumberingSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowNumberingSettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update document numbering rules
      */
-    async updateNumberingSettings(requestParameters: UpdateNumberingSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowNumberingSettings200Response> {
-        const response = await this.updateNumberingSettingsRaw(requestParameters, initOverrides);
+    async updateNumberingSettings(
+        requestParameters: UpdateNumberingSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowNumberingSettings200Response> {
+        const response = await this.updateNumberingSettingsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

@@ -1,13 +1,22 @@
+import { MiniChart } from '@/components/analytics/mini-chart';
 import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { useDashboardMetrics, type DashboardMetrics } from '@/hooks/api/use-dashboard-metrics';
-import { publishToast } from '@/components/ui/use-toast';
+import {
+    useDashboardMetrics,
+    type DashboardMetrics,
+} from '@/hooks/api/use-dashboard-metrics';
 import { HttpError } from '@/sdk';
-import { MiniChart } from '@/components/analytics/mini-chart';
 import {
     BatteryWarning,
     ClipboardCheck,
@@ -17,9 +26,9 @@ import {
     TriangleAlert,
     WalletMinimal,
 } from 'lucide-react';
+import { useEffect, useMemo, useRef, type ComponentType } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useRef, type ComponentType } from 'react';
 
 interface MetricConfig {
     key: keyof DashboardMetrics;
@@ -65,14 +74,17 @@ const CHART_LABELS = ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6'];
 
 function buildTrendSeries(value: number) {
     const multipliers = [0.55, 0.65, 0.75, 0.85, 0.95, 1];
-    return multipliers.map((multiplier) => Math.max(0, Math.round(value * multiplier)));
+    return multipliers.map((multiplier) =>
+        Math.max(0, Math.round(value * multiplier)),
+    );
 }
 
 export function DashboardPage() {
     const { state, notifyPlanLimit, clearPlanLimit, hasFeature } = useAuth();
     const { formatNumber } = useFormatting();
     const planCode = state.plan?.toLowerCase();
-    const analyticsEnabled = hasFeature('analytics_enabled') || planCode === 'community';
+    const analyticsEnabled =
+        hasFeature('analytics_enabled') || planCode === 'community';
     const navigate = useNavigate();
     const metricsQuery = useDashboardMetrics(analyticsEnabled);
     const errorToastRef = useRef(false);
@@ -82,7 +94,8 @@ export function DashboardPage() {
             if (state.planLimit?.featureKey !== 'analytics_enabled') {
                 notifyPlanLimit({
                     featureKey: 'analytics_enabled',
-                    message: 'Upgrade your plan to unlock analytics dashboards and sourcing insights.',
+                    message:
+                        'Upgrade your plan to unlock analytics dashboards and sourcing insights.',
                 });
             }
 
@@ -98,11 +111,15 @@ export function DashboardPage() {
 
     useEffect(() => {
         if (metricsQuery.isError && !metricsQuery.isFetching) {
-            if (!errorToastRef.current && !(metricsQuery.error instanceof HttpError)) {
+            if (
+                !errorToastRef.current &&
+                !(metricsQuery.error instanceof HttpError)
+            ) {
                 publishToast({
                     variant: 'destructive',
                     title: 'Unable to load metrics',
-                    description: 'We could not fetch the latest dashboard insights. Please retry.',
+                    description:
+                        'We could not fetch the latest dashboard insights. Please retry.',
                 });
                 errorToastRef.current = true;
             }
@@ -127,7 +144,9 @@ export function DashboardPage() {
                                 <Icon className="h-4 w-4 text-muted-foreground" />
                             </span>
                         </CardTitle>
-                        <CardDescription>{definition.description}</CardDescription>
+                        <CardDescription>
+                            {definition.description}
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-3xl font-semibold tracking-tight">
@@ -145,10 +164,18 @@ export function DashboardPage() {
         }
 
         const rfqs = buildTrendSeries(metricsQuery.data.openRfqCount ?? 0);
-        const quotes = buildTrendSeries(metricsQuery.data.quotesAwaitingReviewCount ?? 0);
-        const pos = buildTrendSeries(metricsQuery.data.posAwaitingAcknowledgementCount ?? 0);
-        const invoices = buildTrendSeries(metricsQuery.data.unpaidInvoiceCount ?? 0);
-        const lowStock = buildTrendSeries(metricsQuery.data.lowStockPartCount ?? 0);
+        const quotes = buildTrendSeries(
+            metricsQuery.data.quotesAwaitingReviewCount ?? 0,
+        );
+        const pos = buildTrendSeries(
+            metricsQuery.data.posAwaitingAcknowledgementCount ?? 0,
+        );
+        const invoices = buildTrendSeries(
+            metricsQuery.data.unpaidInvoiceCount ?? 0,
+        );
+        const lowStock = buildTrendSeries(
+            metricsQuery.data.lowStockPartCount ?? 0,
+        );
 
         return CHART_LABELS.map((label, index) => ({
             label,
@@ -167,10 +194,13 @@ export function DashboardPage() {
             </Helmet>
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-foreground">Operations dashboard</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Operations dashboard
+                    </h1>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        Track sourcing throughput, keep tabs on downstream purchase order execution, and surface any
-                        blockers before they impact fulfillment.
+                        Track sourcing throughput, keep tabs on downstream
+                        purchase order execution, and surface any blockers
+                        before they impact fulfillment.
                     </p>
                 </div>
                 <Button
@@ -188,7 +218,10 @@ export function DashboardPage() {
                 metricsQuery.isLoading || metricsQuery.isPlaceholderData ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {METRIC_DEFINITIONS.map((definition) => (
-                            <Card key={definition.key} className="relative overflow-hidden">
+                            <Card
+                                key={definition.key}
+                                className="relative overflow-hidden"
+                            >
                                 <CardHeader className="pb-2">
                                     <Skeleton className="h-4 w-32" />
                                     <Skeleton className="mt-2 h-3 w-48" />
@@ -205,34 +238,70 @@ export function DashboardPage() {
                         description="Something went wrong while fetching dashboard data."
                         icon={<TriangleAlert className="h-6 w-6" />}
                         ctaLabel="Retry"
-                        ctaProps={{ onClick: () => metricsQuery.refetch(), variant: 'outline' }}
+                        ctaProps={{
+                            onClick: () => metricsQuery.refetch(),
+                            variant: 'outline',
+                        }}
                     />
                 ) : (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{metricCards}</div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {metricCards}
+                        </div>
                         <div className="grid gap-4 lg:grid-cols-2">
                             <MiniChart
                                 title="RFQ to quote flow"
                                 description="Recent sourcing activity and review throughput."
                                 data={chartData}
                                 series={[
-                                    { key: 'rfqs', label: 'RFQs', color: '#2563eb' },
-                                    { key: 'quotes', label: 'Quotes awaiting review', color: '#16a34a' },
+                                    {
+                                        key: 'rfqs',
+                                        label: 'RFQs',
+                                        color: '#2563eb',
+                                    },
+                                    {
+                                        key: 'quotes',
+                                        label: 'Quotes awaiting review',
+                                        color: '#16a34a',
+                                    },
                                 ]}
                                 isLoading={metricsQuery.isLoading}
-                                valueFormatter={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+                                valueFormatter={(value) =>
+                                    formatNumber(value, {
+                                        maximumFractionDigits: 0,
+                                    })
+                                }
                             />
                             <MiniChart
                                 title="POs & invoices at risk"
                                 description="Outstanding downstream execution blockers."
                                 data={chartData}
                                 series={[
-                                    { key: 'pos', label: 'POs awaiting acknowledgement', color: '#f97316', type: 'bar' },
-                                    { key: 'invoices', label: 'Unpaid invoices', color: '#a855f7', type: 'bar' },
-                                    { key: 'lowStock', label: 'Low-stock parts', color: '#ef4444', type: 'bar' },
+                                    {
+                                        key: 'pos',
+                                        label: 'POs awaiting acknowledgement',
+                                        color: '#f97316',
+                                        type: 'bar',
+                                    },
+                                    {
+                                        key: 'invoices',
+                                        label: 'Unpaid invoices',
+                                        color: '#a855f7',
+                                        type: 'bar',
+                                    },
+                                    {
+                                        key: 'lowStock',
+                                        label: 'Low-stock parts',
+                                        color: '#ef4444',
+                                        type: 'bar',
+                                    },
                                 ]}
                                 isLoading={metricsQuery.isLoading}
-                                valueFormatter={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+                                valueFormatter={(value) =>
+                                    formatNumber(value, {
+                                        maximumFractionDigits: 0,
+                                    })
+                                }
                             />
                         </div>
                     </div>
@@ -245,7 +314,10 @@ export function DashboardPage() {
                     description="Your current plan does not include the analytics dashboard. Upgrade to unlock sourcing insights."
                     icon={<TriangleAlert className="h-6 w-6" />}
                     ctaLabel="View plans"
-                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        variant: 'outline',
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             ) : null}
         </div>

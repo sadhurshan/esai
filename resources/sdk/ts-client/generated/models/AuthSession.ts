@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,24 +12,19 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { AuthSessionCompany } from './AuthSessionCompany';
 import {
     AuthSessionCompanyFromJSON,
-    AuthSessionCompanyFromJSONTyped,
     AuthSessionCompanyToJSON,
-    AuthSessionCompanyToJSONTyped,
 } from './AuthSessionCompany';
 import type { AuthSessionUser } from './AuthSessionUser';
 import {
     AuthSessionUserFromJSON,
-    AuthSessionUserFromJSONTyped,
     AuthSessionUserToJSON,
-    AuthSessionUserToJSONTyped,
 } from './AuthSessionUser';
 
 /**
- * 
+ *
  * @export
  * @interface AuthSession
  */
@@ -41,13 +36,13 @@ export interface AuthSession {
      */
     token: string;
     /**
-     * 
+     *
      * @type {AuthSessionUser}
      * @memberof AuthSession
      */
     user: AuthSessionUser;
     /**
-     * 
+     *
      * @type {AuthSessionCompany}
      * @memberof AuthSession
      */
@@ -57,7 +52,7 @@ export interface AuthSession {
      * @type {{ [key: string]: boolean; }}
      * @memberof AuthSession
      */
-    featureFlags: { [key: string]: boolean; };
+    featureFlags: { [key: string]: boolean };
     /**
      * Active plan code assigned to the company, if any.
      * @type {string}
@@ -72,7 +67,8 @@ export interface AuthSession {
 export function instanceOfAuthSession(value: object): value is AuthSession {
     if (!('token' in value) || value['token'] === undefined) return false;
     if (!('user' in value) || value['user'] === undefined) return false;
-    if (!('featureFlags' in value) || value['featureFlags'] === undefined) return false;
+    if (!('featureFlags' in value) || value['featureFlags'] === undefined)
+        return false;
     return true;
 }
 
@@ -80,17 +76,22 @@ export function AuthSessionFromJSON(json: any): AuthSession {
     return AuthSessionFromJSONTyped(json, false);
 }
 
-export function AuthSessionFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthSession {
+export function AuthSessionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthSession {
     if (json == null) {
         return json;
     }
     return {
-        
-        'token': json['token'],
-        'user': AuthSessionUserFromJSON(json['user']),
-        'company': json['company'] == null ? undefined : AuthSessionCompanyFromJSON(json['company']),
-        'featureFlags': json['feature_flags'],
-        'plan': json['plan'] == null ? undefined : json['plan'],
+        token: json['token'],
+        user: AuthSessionUserFromJSON(json['user']),
+        company:
+            json['company'] == null
+                ? undefined
+                : AuthSessionCompanyFromJSON(json['company']),
+        featureFlags: json['feature_flags'],
+        plan: json['plan'] == null ? undefined : json['plan'],
     };
 }
 
@@ -98,18 +99,19 @@ export function AuthSessionToJSON(json: any): AuthSession {
     return AuthSessionToJSONTyped(json, false);
 }
 
-export function AuthSessionToJSONTyped(value?: AuthSession | null, ignoreDiscriminator: boolean = false): any {
+export function AuthSessionToJSONTyped(
+    value?: AuthSession | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'token': value['token'],
-        'user': AuthSessionUserToJSON(value['user']),
-        'company': AuthSessionCompanyToJSON(value['company']),
-        'feature_flags': value['featureFlags'],
-        'plan': value['plan'],
+        token: value['token'],
+        user: AuthSessionUserToJSON(value['user']),
+        company: AuthSessionCompanyToJSON(value['company']),
+        feature_flags: value['featureFlags'],
+        plan: value['plan'],
     };
 }
-

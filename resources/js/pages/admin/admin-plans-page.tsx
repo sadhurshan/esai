@@ -14,7 +14,10 @@ interface PendingPlanUpdate {
     payload: AdminPlansUpdateRequest;
 }
 
-const LIMIT_KEYS: Array<keyof Pick<Plan, 'rfqsPerMonth' | 'usersMax'>> = ['rfqsPerMonth', 'usersMax'];
+const LIMIT_KEYS: Array<keyof Pick<Plan, 'rfqsPerMonth' | 'usersMax'>> = [
+    'rfqsPerMonth',
+    'usersMax',
+];
 const EMPTY_PLANS: Plan[] = [];
 
 export function AdminPlansPage() {
@@ -25,7 +28,9 @@ export function AdminPlansPage() {
 
     const plans = data?.items ?? EMPTY_PLANS;
     const planSignature = useMemo(() => JSON.stringify(plans), [plans]);
-    const savingPlanId = updatePlan.isPending ? updatePlan.variables?.planId ?? null : null;
+    const savingPlanId = updatePlan.isPending
+        ? (updatePlan.variables?.planId ?? null)
+        : null;
 
     const confirmCopy = useMemo(() => {
         if (!pending) {
@@ -38,7 +43,10 @@ export function AdminPlansPage() {
         return <AccessDeniedPage />;
     }
 
-    const handleSavePlan = async (planId: number, payload: AdminPlansUpdateRequest) => {
+    const handleSavePlan = async (
+        planId: number,
+        payload: AdminPlansUpdateRequest,
+    ) => {
         const targetPlan = plans.find((plan) => plan.id === planId);
         if (!targetPlan || Object.keys(payload).length === 0) {
             return;
@@ -56,7 +64,10 @@ export function AdminPlansPage() {
         if (!pending) {
             return;
         }
-        await updatePlan.mutateAsync({ planId: pending.plan.id, payload: pending.payload });
+        await updatePlan.mutateAsync({
+            planId: pending.plan.id,
+            payload: pending.payload,
+        });
         setPending(null);
     };
 

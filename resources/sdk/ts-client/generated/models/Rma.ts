@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,55 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface Rma
  */
 export interface Rma {
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rma
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rma
      */
     status: RmaStatusEnum;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Rma
      */
     purchaseOrderId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rma
      */
     reason?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rma
      */
     resolution?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Rma
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Rma
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -73,10 +71,9 @@ export const RmaStatusEnum = {
     Reviewing: 'reviewing',
     Approved: 'approved',
     Rejected: 'rejected',
-    Closed: 'closed'
+    Closed: 'closed',
 } as const;
-export type RmaStatusEnum = typeof RmaStatusEnum[keyof typeof RmaStatusEnum];
-
+export type RmaStatusEnum = (typeof RmaStatusEnum)[keyof typeof RmaStatusEnum];
 
 /**
  * Check if a given object implements the Rma interface.
@@ -84,7 +81,8 @@ export type RmaStatusEnum = typeof RmaStatusEnum[keyof typeof RmaStatusEnum];
 export function instanceOfRma(value: object): value is Rma {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
-    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined) return false;
+    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined)
+        return false;
     return true;
 }
 
@@ -97,14 +95,19 @@ export function RmaFromJSONTyped(json: any, ignoreDiscriminator: boolean): Rma {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'status': json['status'],
-        'purchaseOrderId': json['purchase_order_id'],
-        'reason': json['reason'] == null ? undefined : json['reason'],
-        'resolution': json['resolution'] == null ? undefined : json['resolution'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        status: json['status'],
+        purchaseOrderId: json['purchase_order_id'],
+        reason: json['reason'] == null ? undefined : json['reason'],
+        resolution: json['resolution'] == null ? undefined : json['resolution'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -112,20 +115,27 @@ export function RmaToJSON(json: any): Rma {
     return RmaToJSONTyped(json, false);
 }
 
-export function RmaToJSONTyped(value?: Rma | null, ignoreDiscriminator: boolean = false): any {
+export function RmaToJSONTyped(
+    value?: Rma | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'status': value['status'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'reason': value['reason'],
-        'resolution': value['resolution'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        status: value['status'],
+        purchase_order_id: value['purchaseOrderId'],
+        reason: value['reason'],
+        resolution: value['resolution'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

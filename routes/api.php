@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\SupplierRiskController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EventDeliveryController;
 use App\Http\Controllers\Api\SupplierEsgController;
+use App\Http\Controllers\Api\CadExtractionController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HealthController;
@@ -370,6 +371,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('start', [AdminAiTrainingController::class, 'start']);
         Route::get('jobs/{model_training_job}', [AdminAiTrainingController::class, 'show']);
         Route::post('jobs/{model_training_job}/refresh', [AdminAiTrainingController::class, 'refresh']);
+        Route::post('datasets', [\App\Http\Controllers\Admin\AiTrainingDatasetController::class, 'store']);
     });
 
     Route::middleware([
@@ -700,6 +702,8 @@ Route::prefix('inventory')
 Route::post('documents', [DocumentController::class, 'store'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 Route::get('documents/{document}', [DocumentController::class, 'show'])
+    ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
+Route::get('documents/{document}/cad-extraction', [CadExtractionController::class, 'show'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);
 Route::delete('documents/{document}', [DocumentController::class, 'destroy'])
     ->middleware(['ensure.company.onboarded', 'ensure.subscribed']);

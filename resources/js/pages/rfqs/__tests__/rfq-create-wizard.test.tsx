@@ -1,9 +1,17 @@
-import { render } from '@testing-library/react';
 import { screen, waitFor, within } from '@testing-library/dom';
+import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import {
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 
 import { RfqCreateWizard } from '../rfq-create-wizard';
 
@@ -172,7 +180,10 @@ describe('RfqCreateWizard', () => {
         renderWizard();
 
         await user.type(screen.getByLabelText('Title'), 'Bracket RFQ');
-        await user.type(screen.getByLabelText('Delivery location'), 'Elements Supply · Austin, TX');
+        await user.type(
+            screen.getByLabelText('Delivery location'),
+            'Elements Supply · Austin, TX',
+        );
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
@@ -180,9 +191,15 @@ describe('RfqCreateWizard', () => {
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        expect(await screen.findByText('Part name is required.')).toBeInTheDocument();
-        expect(await screen.findByText('Manufacturing method is required.')).toBeInTheDocument();
-        expect(await screen.findByText('Material is required.')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Part name is required.'),
+        ).toBeInTheDocument();
+        expect(
+            await screen.findByText('Manufacturing method is required.'),
+        ).toBeInTheDocument();
+        expect(
+            await screen.findByText('Material is required.'),
+        ).toBeInTheDocument();
         expect(createRfqMock).not.toHaveBeenCalled();
     });
 
@@ -196,22 +213,37 @@ describe('RfqCreateWizard', () => {
         const { container } = renderWizard();
 
         await user.type(screen.getByLabelText('Title'), 'Bracket RFQ');
-        await user.type(screen.getByLabelText('Delivery location'), 'Elements Supply · Austin, TX');
+        await user.type(
+            screen.getByLabelText('Delivery location'),
+            'Elements Supply · Austin, TX',
+        );
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        await user.type(screen.getByLabelText(/Part \/ description/i), 'Bracket 001');
-        await user.type(screen.getByLabelText('Manufacturing method'), 'CNC machining');
+        await user.type(
+            screen.getByLabelText(/Part \/ description/i),
+            'Bracket 001',
+        );
+        await user.type(
+            screen.getByLabelText('Manufacturing method'),
+            'CNC machining',
+        );
         await user.type(screen.getByLabelText('Material'), '6061-T6 Aluminum');
         await user.type(screen.getByLabelText('Required date'), '2100-01-05');
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        const browseButton = screen.getByRole('button', { name: /browse directory/i });
+        const browseButton = screen.getByRole('button', {
+            name: /browse directory/i,
+        });
         await user.click(browseButton);
 
-        const directoryDialog = await screen.findByRole('dialog', { name: /browse supplier directory/i });
-        const addButton = within(directoryDialog).getByRole('button', { name: /^add$/i });
+        const directoryDialog = await screen.findByRole('dialog', {
+            name: /browse supplier directory/i,
+        });
+        const addButton = within(directoryDialog).getByRole('button', {
+            name: /^add$/i,
+        });
         await user.click(addButton);
 
         await waitFor(() => {
@@ -220,27 +252,50 @@ describe('RfqCreateWizard', () => {
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        await user.type(screen.getByLabelText('Publish date'), '2100-01-01T10:00');
-        await user.type(screen.getByLabelText('Quote submission deadline'), '2100-01-10T10:00');
-        await user.type(screen.getByLabelText('Payment terms (optional)'), 'Net 45');
-        await user.type(screen.getByLabelText('Estimated tax rate (optional)'), '8.75');
+        await user.type(
+            screen.getByLabelText('Publish date'),
+            '2100-01-01T10:00',
+        );
+        await user.type(
+            screen.getByLabelText('Quote submission deadline'),
+            '2100-01-10T10:00',
+        );
+        await user.type(
+            screen.getByLabelText('Payment terms (optional)'),
+            'Net 45',
+        );
+        await user.type(
+            screen.getByLabelText('Estimated tax rate (optional)'),
+            '8.75',
+        );
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-        const file = new File(['spec'], 'spec.pdf', { type: 'application/pdf' });
+        const fileInput = container.querySelector(
+            'input[type="file"]',
+        ) as HTMLInputElement;
+        const file = new File(['spec'], 'spec.pdf', {
+            type: 'application/pdf',
+        });
         await user.upload(fileInput, file);
 
         await user.click(screen.getByRole('button', { name: /next/i }));
 
-        const publishCheckbox = screen.getByLabelText('Publish immediately after creation') as HTMLInputElement;
+        const publishCheckbox = screen.getByLabelText(
+            'Publish immediately after creation',
+        ) as HTMLInputElement;
         expect(publishCheckbox).not.toBeDisabled();
         await user.click(publishCheckbox);
         expect(publishCheckbox).toBeChecked();
 
-        const removeItemSpy = vi.spyOn(Object.getPrototypeOf(window.localStorage), 'removeItem');
+        const removeItemSpy = vi.spyOn(
+            Object.getPrototypeOf(window.localStorage),
+            'removeItem',
+        );
 
-        await user.click(screen.getByRole('button', { name: /Finish & create RFQ/i }));
+        await user.click(
+            screen.getByRole('button', { name: /Finish & create RFQ/i }),
+        );
 
         await waitFor(() => {
             expect(createRfqMock).toHaveBeenCalled();
@@ -277,8 +332,12 @@ describe('RfqCreateWizard', () => {
             }),
         );
         const publishArgs = publishRfqMock.mock.calls[0]?.[0];
-        expect(publishArgs?.dueAt?.toISOString()).toBe(new Date('2100-01-10T10:00').toISOString());
-        expect(publishArgs?.publishAt?.toISOString()).toBe(new Date('2100-01-01T10:00').toISOString());
+        expect(publishArgs?.dueAt?.toISOString()).toBe(
+            new Date('2100-01-10T10:00').toISOString(),
+        );
+        expect(publishArgs?.publishAt?.toISOString()).toBe(
+            new Date('2100-01-01T10:00').toISOString(),
+        );
         expect(removeItemSpy).toHaveBeenCalledWith('esai.rfq-wizard-state');
 
         removeItemSpy.mockRestore();

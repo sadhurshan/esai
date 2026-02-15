@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,69 +12,68 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqItemAwardSummary
  */
 export interface RfqItemAwardSummary {
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     rfqItemId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     supplierId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItemAwardSummary
      */
     supplierName?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     quoteId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     quoteItemId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     poId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItemAwardSummary
      */
     awardedQty?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItemAwardSummary
      */
     status: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RfqItemAwardSummary
      */
@@ -84,12 +83,17 @@ export interface RfqItemAwardSummary {
 /**
  * Check if a given object implements the RfqItemAwardSummary interface.
  */
-export function instanceOfRfqItemAwardSummary(value: object): value is RfqItemAwardSummary {
+export function instanceOfRfqItemAwardSummary(
+    value: object,
+): value is RfqItemAwardSummary {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined) return false;
-    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined)
+        return false;
+    if (!('supplierId' in value) || value['supplierId'] === undefined)
+        return false;
     if (!('quoteId' in value) || value['quoteId'] === undefined) return false;
-    if (!('quoteItemId' in value) || value['quoteItemId'] === undefined) return false;
+    if (!('quoteItemId' in value) || value['quoteItemId'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -98,22 +102,29 @@ export function RfqItemAwardSummaryFromJSON(json: any): RfqItemAwardSummary {
     return RfqItemAwardSummaryFromJSONTyped(json, false);
 }
 
-export function RfqItemAwardSummaryFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqItemAwardSummary {
+export function RfqItemAwardSummaryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqItemAwardSummary {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'rfqItemId': json['rfq_item_id'],
-        'supplierId': json['supplier_id'],
-        'supplierName': json['supplier_name'] == null ? undefined : json['supplier_name'],
-        'quoteId': json['quote_id'],
-        'quoteItemId': json['quote_item_id'],
-        'poId': json['po_id'] == null ? undefined : json['po_id'],
-        'awardedQty': json['awarded_qty'] == null ? undefined : json['awarded_qty'],
-        'status': json['status'],
-        'awardedAt': json['awarded_at'] == null ? undefined : (new Date(json['awarded_at'])),
+        id: json['id'],
+        rfqItemId: json['rfq_item_id'],
+        supplierId: json['supplier_id'],
+        supplierName:
+            json['supplier_name'] == null ? undefined : json['supplier_name'],
+        quoteId: json['quote_id'],
+        quoteItemId: json['quote_item_id'],
+        poId: json['po_id'] == null ? undefined : json['po_id'],
+        awardedQty:
+            json['awarded_qty'] == null ? undefined : json['awarded_qty'],
+        status: json['status'],
+        awardedAt:
+            json['awarded_at'] == null
+                ? undefined
+                : new Date(json['awarded_at']),
     };
 }
 
@@ -121,23 +132,27 @@ export function RfqItemAwardSummaryToJSON(json: any): RfqItemAwardSummary {
     return RfqItemAwardSummaryToJSONTyped(json, false);
 }
 
-export function RfqItemAwardSummaryToJSONTyped(value?: RfqItemAwardSummary | null, ignoreDiscriminator: boolean = false): any {
+export function RfqItemAwardSummaryToJSONTyped(
+    value?: RfqItemAwardSummary | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'rfq_item_id': value['rfqItemId'],
-        'supplier_id': value['supplierId'],
-        'supplier_name': value['supplierName'],
-        'quote_id': value['quoteId'],
-        'quote_item_id': value['quoteItemId'],
-        'po_id': value['poId'],
-        'awarded_qty': value['awardedQty'],
-        'status': value['status'],
-        'awarded_at': value['awardedAt'] == null ? value['awardedAt'] : value['awardedAt'].toISOString(),
+        id: value['id'],
+        rfq_item_id: value['rfqItemId'],
+        supplier_id: value['supplierId'],
+        supplier_name: value['supplierName'],
+        quote_id: value['quoteId'],
+        quote_item_id: value['quoteItemId'],
+        po_id: value['poId'],
+        awarded_qty: value['awardedQty'],
+        status: value['status'],
+        awarded_at:
+            value['awardedAt'] == null
+                ? value['awardedAt']
+                : value['awardedAt'].toISOString(),
     };
 }
-

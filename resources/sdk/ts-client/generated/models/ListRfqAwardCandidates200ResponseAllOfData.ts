@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,68 +12,59 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RfqItemAwardSummary } from './RfqItemAwardSummary';
-import {
-    RfqItemAwardSummaryFromJSON,
-    RfqItemAwardSummaryFromJSONTyped,
-    RfqItemAwardSummaryToJSON,
-    RfqItemAwardSummaryToJSONTyped,
-} from './RfqItemAwardSummary';
-import type { RfqAwardCandidateLine } from './RfqAwardCandidateLine';
-import {
-    RfqAwardCandidateLineFromJSON,
-    RfqAwardCandidateLineFromJSONTyped,
-    RfqAwardCandidateLineToJSON,
-    RfqAwardCandidateLineToJSONTyped,
-} from './RfqAwardCandidateLine';
 import type { ListRfqAwardCandidates200ResponseAllOfDataMeta } from './ListRfqAwardCandidates200ResponseAllOfDataMeta';
 import {
     ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSON,
-    ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSONTyped,
     ListRfqAwardCandidates200ResponseAllOfDataMetaToJSON,
-    ListRfqAwardCandidates200ResponseAllOfDataMetaToJSONTyped,
 } from './ListRfqAwardCandidates200ResponseAllOfDataMeta';
 import type { ListRfqAwardCandidates200ResponseAllOfDataRfq } from './ListRfqAwardCandidates200ResponseAllOfDataRfq';
 import {
     ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSON,
-    ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSONTyped,
     ListRfqAwardCandidates200ResponseAllOfDataRfqToJSON,
-    ListRfqAwardCandidates200ResponseAllOfDataRfqToJSONTyped,
 } from './ListRfqAwardCandidates200ResponseAllOfDataRfq';
+import type { RfqAwardCandidateLine } from './RfqAwardCandidateLine';
+import {
+    RfqAwardCandidateLineFromJSON,
+    RfqAwardCandidateLineToJSON,
+} from './RfqAwardCandidateLine';
+import type { RfqItemAwardSummary } from './RfqItemAwardSummary';
+import {
+    RfqItemAwardSummaryFromJSON,
+    RfqItemAwardSummaryToJSON,
+} from './RfqItemAwardSummary';
 
 /**
- * 
+ *
  * @export
  * @interface ListRfqAwardCandidates200ResponseAllOfData
  */
 export interface ListRfqAwardCandidates200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {ListRfqAwardCandidates200ResponseAllOfDataRfq}
      * @memberof ListRfqAwardCandidates200ResponseAllOfData
      */
     rfq: ListRfqAwardCandidates200ResponseAllOfDataRfq;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRfqAwardCandidates200ResponseAllOfData
      */
     companyCurrency: string;
     /**
-     * 
+     *
      * @type {Array<RfqAwardCandidateLine>}
      * @memberof ListRfqAwardCandidates200ResponseAllOfData
      */
     lines: Array<RfqAwardCandidateLine>;
     /**
-     * 
+     *
      * @type {Array<RfqItemAwardSummary>}
      * @memberof ListRfqAwardCandidates200ResponseAllOfData
      */
     awards: Array<RfqItemAwardSummary>;
     /**
-     * 
+     *
      * @type {ListRfqAwardCandidates200ResponseAllOfDataMeta}
      * @memberof ListRfqAwardCandidates200ResponseAllOfData
      */
@@ -83,49 +74,63 @@ export interface ListRfqAwardCandidates200ResponseAllOfData {
 /**
  * Check if a given object implements the ListRfqAwardCandidates200ResponseAllOfData interface.
  */
-export function instanceOfListRfqAwardCandidates200ResponseAllOfData(value: object): value is ListRfqAwardCandidates200ResponseAllOfData {
+export function instanceOfListRfqAwardCandidates200ResponseAllOfData(
+    value: object,
+): value is ListRfqAwardCandidates200ResponseAllOfData {
     if (!('rfq' in value) || value['rfq'] === undefined) return false;
-    if (!('companyCurrency' in value) || value['companyCurrency'] === undefined) return false;
+    if (!('companyCurrency' in value) || value['companyCurrency'] === undefined)
+        return false;
     if (!('lines' in value) || value['lines'] === undefined) return false;
     if (!('awards' in value) || value['awards'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataFromJSON(json: any): ListRfqAwardCandidates200ResponseAllOfData {
+export function ListRfqAwardCandidates200ResponseAllOfDataFromJSON(
+    json: any,
+): ListRfqAwardCandidates200ResponseAllOfData {
     return ListRfqAwardCandidates200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRfqAwardCandidates200ResponseAllOfData {
+export function ListRfqAwardCandidates200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRfqAwardCandidates200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfq': ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSON(json['rfq']),
-        'companyCurrency': json['company_currency'],
-        'lines': ((json['lines'] as Array<any>).map(RfqAwardCandidateLineFromJSON)),
-        'awards': ((json['awards'] as Array<any>).map(RfqItemAwardSummaryFromJSON)),
-        'meta': ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSON(json['meta']),
+        rfq: ListRfqAwardCandidates200ResponseAllOfDataRfqFromJSON(json['rfq']),
+        companyCurrency: json['company_currency'],
+        lines: (json['lines'] as Array<any>).map(RfqAwardCandidateLineFromJSON),
+        awards: (json['awards'] as Array<any>).map(RfqItemAwardSummaryFromJSON),
+        meta: ListRfqAwardCandidates200ResponseAllOfDataMetaFromJSON(
+            json['meta'],
+        ),
     };
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataToJSON(json: any): ListRfqAwardCandidates200ResponseAllOfData {
+export function ListRfqAwardCandidates200ResponseAllOfDataToJSON(
+    json: any,
+): ListRfqAwardCandidates200ResponseAllOfData {
     return ListRfqAwardCandidates200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListRfqAwardCandidates200ResponseAllOfDataToJSONTyped(value?: ListRfqAwardCandidates200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListRfqAwardCandidates200ResponseAllOfDataToJSONTyped(
+    value?: ListRfqAwardCandidates200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq': ListRfqAwardCandidates200ResponseAllOfDataRfqToJSON(value['rfq']),
-        'company_currency': value['companyCurrency'],
-        'lines': ((value['lines'] as Array<any>).map(RfqAwardCandidateLineToJSON)),
-        'awards': ((value['awards'] as Array<any>).map(RfqItemAwardSummaryToJSON)),
-        'meta': ListRfqAwardCandidates200ResponseAllOfDataMetaToJSON(value['meta']),
+        rfq: ListRfqAwardCandidates200ResponseAllOfDataRfqToJSON(value['rfq']),
+        company_currency: value['companyCurrency'],
+        lines: (value['lines'] as Array<any>).map(RfqAwardCandidateLineToJSON),
+        awards: (value['awards'] as Array<any>).map(RfqItemAwardSummaryToJSON),
+        meta: ListRfqAwardCandidates200ResponseAllOfDataMetaToJSON(
+            value['meta'],
+        ),
     };
 }
-

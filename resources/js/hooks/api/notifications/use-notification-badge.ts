@@ -23,22 +23,38 @@ export interface NotificationBadgeResult {
     unreadCount: number;
 }
 
-export function useNotificationBadge(): UseQueryResult<NotificationBadgeResult, ApiError> {
-    return useQuery<NotificationBadgeResponse, ApiError, NotificationBadgeResult>({
+export function useNotificationBadge(): UseQueryResult<
+    NotificationBadgeResult,
+    ApiError
+> {
+    return useQuery<
+        NotificationBadgeResponse,
+        ApiError,
+        NotificationBadgeResult
+    >({
         queryKey: queryKeys.notifications.badge(),
         queryFn: async () => {
             const query = buildQuery(DEFAULT_PARAMS);
-            return (await api.get<NotificationBadgeResponse>(`/notifications${query}`)) as unknown as NotificationBadgeResponse;
+            return (await api.get<NotificationBadgeResponse>(
+                `/notifications${query}`,
+            )) as unknown as NotificationBadgeResponse;
         },
         select: (response) => {
             const meta = response.meta ?? undefined;
-            const envelope = meta && meta.envelope && typeof meta.envelope === 'object' ? meta.envelope : undefined;
+            const envelope =
+                meta && meta.envelope && typeof meta.envelope === 'object'
+                    ? meta.envelope
+                    : undefined;
 
             const unreadCount =
                 meta?.unread_count ??
                 meta?.unreadCount ??
-                (envelope && typeof envelope.unread_count === 'number' ? envelope.unread_count : undefined) ??
-                (envelope && typeof envelope.unreadCount === 'number' ? envelope.unreadCount : undefined) ??
+                (envelope && typeof envelope.unread_count === 'number'
+                    ? envelope.unread_count
+                    : undefined) ??
+                (envelope && typeof envelope.unreadCount === 'number'
+                    ? envelope.unreadCount
+                    : undefined) ??
                 0;
 
             return { unreadCount };

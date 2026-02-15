@@ -20,15 +20,28 @@ interface ReorderEditorProps {
     className?: string;
 }
 
-export function ReorderEditor({ value, onChange, disabled, errors, className }: ReorderEditorProps) {
-    const handleChange = (field: keyof ReorderEditorValue) => (event: ChangeEvent<HTMLInputElement>) => {
-        const nextValue = event.target.value;
-        const numericValue = Number(nextValue);
-        onChange({
-            ...value,
-            [field]: nextValue === '' ? null : Number.isFinite(numericValue) ? numericValue : value[field] ?? null,
-        });
-    };
+export function ReorderEditor({
+    value,
+    onChange,
+    disabled,
+    errors,
+    className,
+}: ReorderEditorProps) {
+    const handleChange =
+        (field: keyof ReorderEditorValue) =>
+        (event: ChangeEvent<HTMLInputElement>) => {
+            const nextValue = event.target.value;
+            const numericValue = Number(nextValue);
+            onChange({
+                ...value,
+                [field]:
+                    nextValue === ''
+                        ? null
+                        : Number.isFinite(numericValue)
+                          ? numericValue
+                          : (value[field] ?? null),
+            });
+        };
 
     return (
         <Card className={cn('border-border/70', className)}>
@@ -36,8 +49,8 @@ export function ReorderEditor({ value, onChange, disabled, errors, className }: 
                 <div className="flex items-start gap-3 text-sm text-muted-foreground">
                     <Info className="h-4 w-4 shrink-0 text-primary" />
                     <p>
-                        Define minimum stock, reorder quantity, and lead time to unlock low-stock alerts and purchasing
-                        recommendations.
+                        Define minimum stock, reorder quantity, and lead time to
+                        unlock low-stock alerts and purchasing recommendations.
                     </p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
@@ -53,7 +66,11 @@ export function ReorderEditor({ value, onChange, disabled, errors, className }: 
                             onChange={handleChange('minStock')}
                             disabled={disabled}
                         />
-                        {errors?.minStock ? <p className="text-xs text-destructive">{errors.minStock}</p> : null}
+                        {errors?.minStock ? (
+                            <p className="text-xs text-destructive">
+                                {errors.minStock}
+                            </p>
+                        ) : null}
                         <p className="text-xs text-muted-foreground">
                             Alerts trigger when on-hand falls below this value.
                         </p>
@@ -70,7 +87,11 @@ export function ReorderEditor({ value, onChange, disabled, errors, className }: 
                             onChange={handleChange('reorderQty')}
                             disabled={disabled}
                         />
-                        {errors?.reorderQty ? <p className="text-xs text-destructive">{errors.reorderQty}</p> : null}
+                        {errors?.reorderQty ? (
+                            <p className="text-xs text-destructive">
+                                {errors.reorderQty}
+                            </p>
+                        ) : null}
                         <p className="text-xs text-muted-foreground">
                             Suggested quantity when raising RFQs or POs.
                         </p>
@@ -87,7 +108,11 @@ export function ReorderEditor({ value, onChange, disabled, errors, className }: 
                             onChange={handleChange('leadTimeDays')}
                             disabled={disabled}
                         />
-                        {errors?.leadTimeDays ? <p className="text-xs text-destructive">{errors.leadTimeDays}</p> : null}
+                        {errors?.leadTimeDays ? (
+                            <p className="text-xs text-destructive">
+                                {errors.leadTimeDays}
+                            </p>
+                        ) : null}
                         <p className="text-xs text-muted-foreground">
                             Used to suggest reorder dates when stock is low.
                         </p>

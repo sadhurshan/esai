@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * Pagination metadata for cursor endpoints.
  * @export
@@ -20,25 +19,25 @@ import { mapValues } from '../runtime';
  */
 export interface CursorMeta {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CursorMeta
      */
     nextCursor: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CursorMeta
      */
     prevCursor?: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof CursorMeta
      */
     hasNext?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof CursorMeta
      */
@@ -49,7 +48,8 @@ export interface CursorMeta {
  * Check if a given object implements the CursorMeta interface.
  */
 export function instanceOfCursorMeta(value: object): value is CursorMeta {
-    if (!('nextCursor' in value) || value['nextCursor'] === undefined) return false;
+    if (!('nextCursor' in value) || value['nextCursor'] === undefined)
+        return false;
     return true;
 }
 
@@ -57,16 +57,19 @@ export function CursorMetaFromJSON(json: any): CursorMeta {
     return CursorMetaFromJSONTyped(json, false);
 }
 
-export function CursorMetaFromJSONTyped(json: any, ignoreDiscriminator: boolean): CursorMeta {
+export function CursorMetaFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CursorMeta {
     if (json == null) {
         return json;
     }
     return {
-        
-        'nextCursor': json['next_cursor'],
-        'prevCursor': json['prev_cursor'] == null ? undefined : json['prev_cursor'],
-        'hasNext': json['has_next'] == null ? undefined : json['has_next'],
-        'hasPrev': json['has_prev'] == null ? undefined : json['has_prev'],
+        nextCursor: json['next_cursor'],
+        prevCursor:
+            json['prev_cursor'] == null ? undefined : json['prev_cursor'],
+        hasNext: json['has_next'] == null ? undefined : json['has_next'],
+        hasPrev: json['has_prev'] == null ? undefined : json['has_prev'],
     };
 }
 
@@ -74,17 +77,18 @@ export function CursorMetaToJSON(json: any): CursorMeta {
     return CursorMetaToJSONTyped(json, false);
 }
 
-export function CursorMetaToJSONTyped(value?: CursorMeta | null, ignoreDiscriminator: boolean = false): any {
+export function CursorMetaToJSONTyped(
+    value?: CursorMeta | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'next_cursor': value['nextCursor'],
-        'prev_cursor': value['prevCursor'],
-        'has_next': value['hasNext'],
-        'has_prev': value['hasPrev'],
+        next_cursor: value['nextCursor'],
+        prev_cursor: value['prevCursor'],
+        has_next: value['hasNext'],
+        has_prev: value['hasPrev'],
     };
 }
-

@@ -1,40 +1,36 @@
-
 # PlanSelectionResultCompany
-
 
 ## Properties
 
-Name | Type
------------- | -------------
-`id` | number
-`plan` | string
-`billingStatus` | string
-`requiresPlanSelection` | boolean
+| Name                    | Type    |
+| ----------------------- | ------- |
+| `id`                    | number  |
+| `plan`                  | string  |
+| `billingStatus`         | string  |
+| `requiresPlanSelection` | boolean |
 
 ## Example
 
 ```typescript
-import type { PlanSelectionResultCompany } from ''
+import type { PlanSelectionResultCompany } from '';
 
 // TODO: Update the object below with actual values
 const example = {
-  "id": null,
-  "plan": null,
-  "billingStatus": null,
-  "requiresPlanSelection": null,
-} satisfies PlanSelectionResultCompany
+    id: null,
+    plan: null,
+    billingStatus: null,
+    requiresPlanSelection: null,
+} satisfies PlanSelectionResultCompany;
 
-console.log(example)
+console.log(example);
 
 // Convert the instance to a JSON string
-const exampleJSON: string = JSON.stringify(example)
-console.log(exampleJSON)
+const exampleJSON: string = JSON.stringify(example);
+console.log(exampleJSON);
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as PlanSelectionResultCompany
-console.log(exampleParsed)
+const exampleParsed = JSON.parse(exampleJSON) as PlanSelectionResultCompany;
+console.log(exampleParsed);
 ```
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-

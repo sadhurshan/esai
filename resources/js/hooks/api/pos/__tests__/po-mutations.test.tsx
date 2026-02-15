@@ -1,18 +1,18 @@
-import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useCreatePo } from '../use-create-po';
-import { useRecalcPo } from '../use-recalc-po';
-import { useSendPo } from '../use-send-po';
-import { useAckPo } from '../use-ack-po';
-import { useCancelPo } from '../use-cancel-po';
-import { useExportPo } from '../use-export-po';
 import { useSdkClient } from '@/contexts/api-client-context';
+import type { PurchaseOrderResponse } from '@/hooks/api/usePurchaseOrder';
 import { queryKeys } from '@/lib/queryKeys';
 import type { PurchaseOrder } from '@/sdk';
-import type { PurchaseOrderResponse } from '@/hooks/api/usePurchaseOrder';
+import { useAckPo } from '../use-ack-po';
+import { useCancelPo } from '../use-cancel-po';
+import { useCreatePo } from '../use-create-po';
+import { useExportPo } from '../use-export-po';
+import { useRecalcPo } from '../use-recalc-po';
+import { useSendPo } from '../use-send-po';
 
 const apiPostMock = vi.fn();
 vi.mock('@/lib/api', () => ({
@@ -51,7 +51,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -97,9 +101,14 @@ describe('purchase order mutation hooks', () => {
         useSdkClientMock.mockReturnValue({ createPurchaseOrdersFromAwards });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useCreatePo(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreatePo(), {
+            wrapper: Wrapper,
+        });
 
-        const response = await result.current.mutateAsync({ awardIds: [1, 2], rfqId: 44 });
+        const response = await result.current.mutateAsync({
+            awardIds: [1, 2],
+            rfqId: 44,
+        });
 
         expect(createPurchaseOrdersFromAwards).toHaveBeenCalledWith({
             createPurchaseOrdersFromAwardsRequest: {
@@ -110,7 +119,10 @@ describe('purchase order mutation hooks', () => {
         expect(response).toHaveLength(1);
         expect(response[0]?.id).toBe(sdkPurchaseOrder.id);
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Purchase order draft ready', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Purchase order draft ready',
+                variant: 'success',
+            }),
         );
 
         const expectedKeys = [
@@ -125,27 +137,44 @@ describe('purchase order mutation hooks', () => {
         ];
 
         for (const key of expectedKeys) {
-            expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: key }));
+            expect(invalidateSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ queryKey: key }),
+            );
         }
     });
 
     it('recalculates purchase order totals and refreshes relevant caches', async () => {
-        const recalcPurchaseOrderTotals = vi.fn().mockResolvedValue({ status: 'success' });
+        const recalcPurchaseOrderTotals = vi
+            .fn()
+            .mockResolvedValue({ status: 'success' });
         useSdkClientMock.mockReturnValue({ recalcPurchaseOrderTotals });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useRecalcPo(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useRecalcPo(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync({ poId: 555 });
 
-        expect(recalcPurchaseOrderTotals).toHaveBeenCalledWith({ purchaseOrderId: '555' });
+        expect(recalcPurchaseOrderTotals).toHaveBeenCalledWith({
+            purchaseOrderId: '555',
+        });
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Totals recalculated', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Totals recalculated',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.purchaseOrders.detail(555) }),
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.detail(555),
+            }),
         );
-        expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: queryKeys.purchaseOrders.root() }));
+        expect(invalidateSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.root(),
+            }),
+        );
     });
 
     it('sends purchase orders and invalidates caches', async () => {
@@ -153,20 +182,40 @@ describe('purchase order mutation hooks', () => {
         const { Wrapper, invalidateSpy } = createWrapper();
         const { result } = renderHook(() => useSendPo(), { wrapper: Wrapper });
 
-        await result.current.mutateAsync({ poId: 777, message: 'Please confirm receipt', overrideEmail: 'ops@example.com' });
+        await result.current.mutateAsync({
+            poId: 777,
+            message: 'Please confirm receipt',
+            overrideEmail: 'ops@example.com',
+        });
 
         expect(apiPostMock).toHaveBeenCalledWith(
             '/purchase-orders/777/send',
-            expect.objectContaining({ message: 'Please confirm receipt', override_email: 'ops@example.com' }),
+            expect.objectContaining({
+                message: 'Please confirm receipt',
+                override_email: 'ops@example.com',
+            }),
         );
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Purchase order sent', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Purchase order sent',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.purchaseOrders.detail(777) }),
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.detail(777),
+            }),
         );
-        expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: queryKeys.purchaseOrders.root() }));
-        expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: queryKeys.purchaseOrders.events(777) }));
+        expect(invalidateSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.root(),
+            }),
+        );
+        expect(invalidateSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.events(777),
+            }),
+        );
     });
 
     it('records supplier acknowledgement decisions and invalidates caches', async () => {
@@ -187,39 +236,69 @@ describe('purchase order mutation hooks', () => {
             change_orders: [],
         };
 
-        apiPostMock.mockResolvedValue({ purchase_order: purchaseOrderResponse });
+        apiPostMock.mockResolvedValue({
+            purchase_order: purchaseOrderResponse,
+        });
 
         const { Wrapper, invalidateSpy } = createWrapper();
         const { result } = renderHook(() => useAckPo(), { wrapper: Wrapper });
 
-        await result.current.mutateAsync({ poId: 42, decision: 'acknowledged' });
-
-        expect(apiPostMock).toHaveBeenCalledWith('/purchase-orders/42/acknowledge', {
+        await result.current.mutateAsync({
+            poId: 42,
             decision: 'acknowledged',
-            reason: undefined,
         });
+
+        expect(apiPostMock).toHaveBeenCalledWith(
+            '/purchase-orders/42/acknowledge',
+            {
+                decision: 'acknowledged',
+                reason: undefined,
+            },
+        );
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Purchase order acknowledged', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Purchase order acknowledged',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.purchaseOrders.detail(42) }),
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.detail(42),
+            }),
         );
-        expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: queryKeys.purchaseOrders.root() }));
-        expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: queryKeys.purchaseOrders.events(42) }));
+        expect(invalidateSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.root(),
+            }),
+        );
+        expect(invalidateSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.events(42),
+            }),
+        );
     });
 
     it('cancels purchase orders and refreshes cached data', async () => {
-        const cancelPurchaseOrder = vi.fn().mockResolvedValue({ status: 'success' });
+        const cancelPurchaseOrder = vi
+            .fn()
+            .mockResolvedValue({ status: 'success' });
         useSdkClientMock.mockReturnValue({ cancelPurchaseOrder });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useCancelPo(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCancelPo(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync({ poId: 889, rfqId: 44 });
 
-        expect(cancelPurchaseOrder).toHaveBeenCalledWith({ purchaseOrderId: 889 });
+        expect(cancelPurchaseOrder).toHaveBeenCalledWith({
+            purchaseOrderId: 889,
+        });
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Purchase order cancelled', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Purchase order cancelled',
+                variant: 'success',
+            }),
         );
 
         const expectedKeys = [
@@ -235,7 +314,9 @@ describe('purchase order mutation hooks', () => {
         ];
 
         for (const key of expectedKeys) {
-            expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: key }));
+            expect(invalidateSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ queryKey: key }),
+            );
         }
     });
 
@@ -256,17 +337,26 @@ describe('purchase order mutation hooks', () => {
         useSdkClientMock.mockReturnValue({ exportPurchaseOrder });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useExportPo(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useExportPo(), {
+            wrapper: Wrapper,
+        });
 
         const response = await result.current.mutateAsync({ poId: 990 });
 
-        expect(exportPurchaseOrder).toHaveBeenCalledWith({ purchaseOrderId: 990 });
+        expect(exportPurchaseOrder).toHaveBeenCalledWith({
+            purchaseOrderId: 990,
+        });
         expect(response.downloadUrl).toBe('https://example.com');
         expect(publishToastMock).toHaveBeenCalledWith(
-            expect.objectContaining({ title: 'Purchase order PDF ready', variant: 'success' }),
+            expect.objectContaining({
+                title: 'Purchase order PDF ready',
+                variant: 'success',
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.purchaseOrders.detail(990) }),
+            expect.objectContaining({
+                queryKey: queryKeys.purchaseOrders.detail(990),
+            }),
         );
     });
 });

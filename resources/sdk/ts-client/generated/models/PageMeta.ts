@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * Page/offset pagination metadata.
  * @export
@@ -20,25 +19,25 @@ import { mapValues } from '../runtime';
  */
 export interface PageMeta {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PageMeta
      */
     total: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PageMeta
      */
     perPage: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PageMeta
      */
     currentPage: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PageMeta
      */
@@ -57,7 +56,8 @@ export interface PageMeta {
 export function instanceOfPageMeta(value: object): value is PageMeta {
     if (!('total' in value) || value['total'] === undefined) return false;
     if (!('perPage' in value) || value['perPage'] === undefined) return false;
-    if (!('currentPage' in value) || value['currentPage'] === undefined) return false;
+    if (!('currentPage' in value) || value['currentPage'] === undefined)
+        return false;
     if (!('lastPage' in value) || value['lastPage'] === undefined) return false;
     return true;
 }
@@ -66,17 +66,19 @@ export function PageMetaFromJSON(json: any): PageMeta {
     return PageMetaFromJSONTyped(json, false);
 }
 
-export function PageMetaFromJSONTyped(json: any, ignoreDiscriminator: boolean): PageMeta {
+export function PageMetaFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PageMeta {
     if (json == null) {
         return json;
     }
     return {
-        
-        'total': json['total'],
-        'perPage': json['per_page'],
-        'currentPage': json['current_page'],
-        'lastPage': json['last_page'],
-        'page': json['page'] == null ? undefined : json['page'],
+        total: json['total'],
+        perPage: json['per_page'],
+        currentPage: json['current_page'],
+        lastPage: json['last_page'],
+        page: json['page'] == null ? undefined : json['page'],
     };
 }
 
@@ -84,17 +86,18 @@ export function PageMetaToJSON(json: any): PageMeta {
     return PageMetaToJSONTyped(json, false);
 }
 
-export function PageMetaToJSONTyped(value?: Omit<PageMeta, 'page'> | null, ignoreDiscriminator: boolean = false): any {
+export function PageMetaToJSONTyped(
+    value?: Omit<PageMeta, 'page'> | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'total': value['total'],
-        'per_page': value['perPage'],
-        'current_page': value['currentPage'],
-        'last_page': value['lastPage'],
+        total: value['total'],
+        per_page: value['perPage'],
+        current_page: value['currentPage'],
+        last_page: value['lastPage'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UomConversion
  */
 export interface UomConversion {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UomConversion
      */
     fromCode: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UomConversion
      */
     toCode: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UomConversion
      */
     factor: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UomConversion
      */
@@ -59,16 +58,18 @@ export function UomConversionFromJSON(json: any): UomConversion {
     return UomConversionFromJSONTyped(json, false);
 }
 
-export function UomConversionFromJSONTyped(json: any, ignoreDiscriminator: boolean): UomConversion {
+export function UomConversionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UomConversion {
     if (json == null) {
         return json;
     }
     return {
-        
-        'fromCode': json['from_code'],
-        'toCode': json['to_code'],
-        'factor': json['factor'],
-        'offset': json['offset'] == null ? undefined : json['offset'],
+        fromCode: json['from_code'],
+        toCode: json['to_code'],
+        factor: json['factor'],
+        offset: json['offset'] == null ? undefined : json['offset'],
     };
 }
 
@@ -76,17 +77,18 @@ export function UomConversionToJSON(json: any): UomConversion {
     return UomConversionToJSONTyped(json, false);
 }
 
-export function UomConversionToJSONTyped(value?: UomConversion | null, ignoreDiscriminator: boolean = false): any {
+export function UomConversionToJSONTyped(
+    value?: UomConversion | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'from_code': value['fromCode'],
-        'to_code': value['toCode'],
-        'factor': value['factor'],
-        'offset': value['offset'],
+        from_code: value['fromCode'],
+        to_code: value['toCode'],
+        factor: value['factor'],
+        offset: value['offset'],
     };
 }
-

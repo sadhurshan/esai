@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { Supplier } from './Supplier';
-import {
-    SupplierFromJSON,
-    SupplierFromJSONTyped,
-    SupplierToJSON,
-    SupplierToJSONTyped,
-} from './Supplier';
+import { SupplierFromJSON, SupplierToJSON } from './Supplier';
 
 /**
- * 
+ *
  * @export
  * @interface ListSuppliers200ResponseAllOfData
  */
 export interface ListSuppliers200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<Supplier>}
      * @memberof ListSuppliers200ResponseAllOfData
      */
@@ -38,36 +32,51 @@ export interface ListSuppliers200ResponseAllOfData {
 /**
  * Check if a given object implements the ListSuppliers200ResponseAllOfData interface.
  */
-export function instanceOfListSuppliers200ResponseAllOfData(value: object): value is ListSuppliers200ResponseAllOfData {
+export function instanceOfListSuppliers200ResponseAllOfData(
+    value: object,
+): value is ListSuppliers200ResponseAllOfData {
     return true;
 }
 
-export function ListSuppliers200ResponseAllOfDataFromJSON(json: any): ListSuppliers200ResponseAllOfData {
+export function ListSuppliers200ResponseAllOfDataFromJSON(
+    json: any,
+): ListSuppliers200ResponseAllOfData {
     return ListSuppliers200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListSuppliers200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListSuppliers200ResponseAllOfData {
+export function ListSuppliers200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListSuppliers200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(SupplierFromJSON)),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(SupplierFromJSON),
     };
 }
 
-export function ListSuppliers200ResponseAllOfDataToJSON(json: any): ListSuppliers200ResponseAllOfData {
+export function ListSuppliers200ResponseAllOfDataToJSON(
+    json: any,
+): ListSuppliers200ResponseAllOfData {
     return ListSuppliers200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListSuppliers200ResponseAllOfDataToJSONTyped(value?: ListSuppliers200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListSuppliers200ResponseAllOfDataToJSONTyped(
+    value?: ListSuppliers200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(SupplierToJSON)),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(SupplierToJSON),
     };
 }
-

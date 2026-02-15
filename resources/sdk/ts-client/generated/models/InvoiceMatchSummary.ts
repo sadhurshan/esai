@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InvoiceMatchSummary
  */
 export interface InvoiceMatchSummary {
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatchSummary
      */
     matched?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatchSummary
      */
     qtyMismatch?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatchSummary
      */
     priceMismatch?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatchSummary
      */
@@ -48,7 +47,9 @@ export interface InvoiceMatchSummary {
 /**
  * Check if a given object implements the InvoiceMatchSummary interface.
  */
-export function instanceOfInvoiceMatchSummary(value: object): value is InvoiceMatchSummary {
+export function instanceOfInvoiceMatchSummary(
+    value: object,
+): value is InvoiceMatchSummary {
     return true;
 }
 
@@ -56,16 +57,20 @@ export function InvoiceMatchSummaryFromJSON(json: any): InvoiceMatchSummary {
     return InvoiceMatchSummaryFromJSONTyped(json, false);
 }
 
-export function InvoiceMatchSummaryFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceMatchSummary {
+export function InvoiceMatchSummaryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceMatchSummary {
     if (json == null) {
         return json;
     }
     return {
-        
-        'matched': json['matched'] == null ? undefined : json['matched'],
-        'qtyMismatch': json['qty_mismatch'] == null ? undefined : json['qty_mismatch'],
-        'priceMismatch': json['price_mismatch'] == null ? undefined : json['price_mismatch'],
-        'unmatched': json['unmatched'] == null ? undefined : json['unmatched'],
+        matched: json['matched'] == null ? undefined : json['matched'],
+        qtyMismatch:
+            json['qty_mismatch'] == null ? undefined : json['qty_mismatch'],
+        priceMismatch:
+            json['price_mismatch'] == null ? undefined : json['price_mismatch'],
+        unmatched: json['unmatched'] == null ? undefined : json['unmatched'],
     };
 }
 
@@ -73,17 +78,18 @@ export function InvoiceMatchSummaryToJSON(json: any): InvoiceMatchSummary {
     return InvoiceMatchSummaryToJSONTyped(json, false);
 }
 
-export function InvoiceMatchSummaryToJSONTyped(value?: InvoiceMatchSummary | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceMatchSummaryToJSONTyped(
+    value?: InvoiceMatchSummary | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'matched': value['matched'],
-        'qty_mismatch': value['qtyMismatch'],
-        'price_mismatch': value['priceMismatch'],
-        'unmatched': value['unmatched'],
+        matched: value['matched'],
+        qty_mismatch: value['qtyMismatch'],
+        price_mismatch: value['priceMismatch'],
+        unmatched: value['unmatched'],
     };
 }
-

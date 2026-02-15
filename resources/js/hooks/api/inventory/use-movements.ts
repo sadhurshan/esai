@@ -1,9 +1,13 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { StockMovementSummary } from '@/types/inventory';
 import { HttpError, InventoryModuleApi, type MovementType } from '@/sdk';
+import type { StockMovementSummary } from '@/types/inventory';
 
 import { mapStockMovementSummary } from './mappers';
 
@@ -33,7 +37,11 @@ export function useMovements(
 ): UseQueryResult<UseMovementsResult, HttpError | Error> {
     const inventoryApi = useSdkClient(InventoryModuleApi);
 
-    return useQuery<MovementCollectionResponse, HttpError | Error, UseMovementsResult>({
+    return useQuery<
+        MovementCollectionResponse,
+        HttpError | Error,
+        UseMovementsResult
+    >({
         queryKey: queryKeys.inventory.movementsList({
             cursor: params.cursor,
             perPage: params.perPage,
@@ -60,13 +68,20 @@ export function useMovements(
                 ? response.items
                 : Array.isArray(response.data)
                   ? (response.data as unknown[])
-                  : Array.isArray((response.data as Record<string, unknown> | undefined)?.items)
-                    ? (((response.data as Record<string, unknown>).items as unknown[]) ?? [])
+                  : Array.isArray(
+                          (response.data as Record<string, unknown> | undefined)
+                              ?.items,
+                      )
+                    ? (((response.data as Record<string, unknown>)
+                          .items as unknown[]) ?? [])
                     : [];
 
             return {
                 items: rawItems
-                    .filter((entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null)
+                    .filter(
+                        (entry): entry is Record<string, unknown> =>
+                            typeof entry === 'object' && entry !== null,
+                    )
                     .map((entry) => mapStockMovementSummary(entry)),
                 meta: response.meta ?? null,
             };

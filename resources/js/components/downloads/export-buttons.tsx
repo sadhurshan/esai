@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { FileText, Loader2, Table } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { publishToast } from '@/components/ui/use-toast';
@@ -29,7 +29,9 @@ export function ExportButtons({
     disabled = false,
 }: ExportButtonsProps) {
     const requestExport = useRequestExport();
-    const [pendingFormat, setPendingFormat] = useState<DownloadFormat | null>(null);
+    const [pendingFormat, setPendingFormat] = useState<DownloadFormat | null>(
+        null,
+    );
 
     const handleExport = (format: DownloadFormat) => {
         if (documentId === null || documentId === undefined || disabled) {
@@ -50,13 +52,16 @@ export function ExportButtons({
                     publishToast({
                         variant: 'success',
                         title: 'Export requested',
-                        description: 'Track its progress in the Download Center.',
+                        description:
+                            'Track its progress in the Download Center.',
                         actionLabel: 'Open downloads',
                         actionHref: DOWNLOADS_ROUTE,
                     });
                 },
                 onError: (error) => {
-                    const message = error?.message ?? 'Unable to start the export right now.';
+                    const message =
+                        error?.message ??
+                        'Unable to start the export right now.';
                     publishToast({
                         variant: 'destructive',
                         title: 'Export failed',

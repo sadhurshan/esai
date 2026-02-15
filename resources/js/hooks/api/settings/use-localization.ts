@@ -1,12 +1,17 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import { SettingsApi, type LocalizationSettings as ApiLocalizationSettings } from '@/sdk';
 import type { ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+    SettingsApi,
+    type LocalizationSettings as ApiLocalizationSettings,
+} from '@/sdk';
 import type { LocalizationSettings } from '@/types/settings';
 
-export function mapLocalizationSettings(payload: ApiLocalizationSettings): LocalizationSettings {
+export function mapLocalizationSettings(
+    payload: ApiLocalizationSettings,
+): LocalizationSettings {
     return {
         timezone: payload.timezone,
         locale: payload.locale,
@@ -27,7 +32,9 @@ export interface UseLocalizationSettingsOptions {
     enabled?: boolean;
 }
 
-export function useLocalizationSettings(options?: UseLocalizationSettingsOptions): UseQueryResult<LocalizationSettings, ApiError> {
+export function useLocalizationSettings(
+    options?: UseLocalizationSettingsOptions,
+): UseQueryResult<LocalizationSettings, ApiError> {
     const settingsApi = useSdkClient(SettingsApi);
 
     return useQuery<LocalizationSettings, ApiError>({

@@ -1,13 +1,19 @@
 import { FormEvent, useMemo, useState } from 'react';
 
-import Heading from '@/components/heading';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import { useAiEvents } from '@/hooks/api/admin/use-ai-events';
@@ -26,7 +32,9 @@ const STATUS_OPTIONS = [
 export function AdminAiActivityLogPage() {
     const { isAdmin } = useAuth();
     const { formatDate } = useFormatting();
-    const [filters, setFilters] = useState<AiEventFilters>({ perPage: DEFAULT_PAGE_SIZE });
+    const [filters, setFilters] = useState<AiEventFilters>({
+        perPage: DEFAULT_PAGE_SIZE,
+    });
     const [formValues, setFormValues] = useState({
         feature: '',
         status: STATUS_ANY_VALUE,
@@ -36,10 +44,6 @@ export function AdminAiActivityLogPage() {
     });
 
     const { data, isLoading } = useAiEvents(filters, { enabled: isAdmin });
-
-    if (!isAdmin) {
-        return <AccessDeniedPage />;
-    }
 
     const entries = data?.items ?? [];
     const meta = data?.meta;
@@ -55,10 +59,16 @@ export function AdminAiActivityLogPage() {
                 render: (row) => (
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold text-foreground">
-                            {formatDate(row.timestamp, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
+                            {formatDate(row.timestamp, {
+                                dateStyle: 'medium',
+                                timeStyle: 'short',
+                            }) ?? '—'}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                            {formatDate(row.timestamp, { dateStyle: 'full', timeStyle: 'medium' }) ?? ''}
+                            {formatDate(row.timestamp, {
+                                dateStyle: 'full',
+                                timeStyle: 'medium',
+                            }) ?? ''}
                         </span>
                     </div>
                 ),
@@ -75,8 +85,12 @@ export function AdminAiActivityLogPage() {
                           : '—';
                     return (
                         <div className="flex flex-col">
-                            <span className="font-medium text-foreground">{actorName}</span>
-                            <span className="text-xs text-muted-foreground">{actorDetail}</span>
+                            <span className="font-medium text-foreground">
+                                {actorName}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                                {actorDetail}
+                            </span>
                         </div>
                     );
                 },
@@ -86,9 +100,13 @@ export function AdminAiActivityLogPage() {
                 title: 'Feature',
                 render: (row) => (
                     <div className="flex flex-col text-sm">
-                        <span className="font-medium text-foreground">{row.feature ?? '—'}</span>
+                        <span className="font-medium text-foreground">
+                            {row.feature ?? '—'}
+                        </span>
                         {row.error_message ? (
-                            <span className="text-xs text-destructive">{row.error_message}</span>
+                            <span className="text-xs text-destructive">
+                                {row.error_message}
+                            </span>
                         ) : null}
                     </div>
                 ),
@@ -100,13 +118,18 @@ export function AdminAiActivityLogPage() {
                     if (!row.entity) {
                         return '—';
                     }
-                    const label = row.entity.label ?? `${row.entity.type ?? ''} #${row.entity.id ?? '—'}`;
+                    const label =
+                        row.entity.label ??
+                        `${row.entity.type ?? ''} #${row.entity.id ?? '—'}`;
                     return (
                         <div className="flex flex-col text-sm">
                             <span className="font-medium text-foreground">
-                                {row.entity.type ?? 'Entity'} #{row.entity.id ?? '—'}
+                                {row.entity.type ?? 'Entity'} #
+                                {row.entity.id ?? '—'}
                             </span>
-                            <span className="text-xs text-muted-foreground">{label}</span>
+                            <span className="text-xs text-muted-foreground">
+                                {label}
+                            </span>
                         </div>
                     );
                 },
@@ -115,7 +138,13 @@ export function AdminAiActivityLogPage() {
                 key: 'status',
                 title: 'Status',
                 render: (row) => (
-                    <Badge variant="outline" className={cn('uppercase tracking-wide', statusBadgeVariant(row.status))}>
+                    <Badge
+                        variant="outline"
+                        className={cn(
+                            'tracking-wide uppercase',
+                            statusBadgeVariant(row.status),
+                        )}
+                    >
                         {row.status ?? 'unknown'}
                     </Badge>
                 ),
@@ -137,13 +166,21 @@ export function AdminAiActivityLogPage() {
         return `Export ${entries.length} rows`;
     }, [entries.length, exportDisabled]);
 
-    const handleInputChange = (field: keyof typeof formValues, value: string) => {
+    if (!isAdmin) {
+        return <AccessDeniedPage />;
+    }
+
+    const handleInputChange = (
+        field: keyof typeof formValues,
+        value: string,
+    ) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
     };
 
     const applyFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const normalizedStatus = formValues.status === STATUS_ANY_VALUE ? '' : formValues.status;
+        const normalizedStatus =
+            formValues.status === STATUS_ANY_VALUE ? '' : formValues.status;
 
         setFilters((prev) => ({
             ...prev,
@@ -157,7 +194,13 @@ export function AdminAiActivityLogPage() {
     };
 
     const clearFilters = () => {
-        setFormValues({ feature: '', status: STATUS_ANY_VALUE, entity: '', from: '', to: '' });
+        setFormValues({
+            feature: '',
+            status: STATUS_ANY_VALUE,
+            entity: '',
+            from: '',
+            to: '',
+        });
         setFilters({ perPage: DEFAULT_PAGE_SIZE });
     };
 
@@ -170,13 +213,24 @@ export function AdminAiActivityLogPage() {
             return;
         }
 
-        const header = ['timestamp', 'user_name', 'user_email', 'feature', 'entity', 'status', 'latency_ms'];
+        const header = [
+            'timestamp',
+            'user_name',
+            'user_email',
+            'feature',
+            'entity',
+            'status',
+            'latency_ms',
+        ];
         const rows = entries.map((entry) => {
-            const entityLabel = entry.entity ? `${entry.entity.type ?? 'Entity'}#${entry.entity.id ?? '—'}` : '';
+            const entityLabel = entry.entity
+                ? `${entry.entity.type ?? 'Entity'}#${entry.entity.id ?? '—'}`
+                : '';
             return [
                 entry.timestamp ?? '',
                 entry.user?.name ?? 'System event',
-                entry.user?.email ?? (entry.user?.id ? `User #${entry.user.id}` : ''),
+                entry.user?.email ??
+                    (entry.user?.id ? `User #${entry.user.id}` : ''),
                 entry.feature ?? '',
                 entityLabel,
                 entry.status ?? '',
@@ -185,7 +239,14 @@ export function AdminAiActivityLogPage() {
         });
 
         const csv = [header, ...rows]
-            .map((row) => row.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+            .map((row) =>
+                row
+                    .map(
+                        (value) =>
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
+                    )
+                    .join(','),
+            )
             .join('\n');
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -204,7 +265,12 @@ export function AdminAiActivityLogPage() {
                     title="AI activity log"
                     description="Track every AI request across tenants, including latency, entity context, and status."
                 />
-                <Button type="button" variant="outline" disabled={exportDisabled} onClick={handleExport}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    disabled={exportDisabled}
+                    onClick={handleExport}
+                >
                     {exportDisabled ? 'Export CSV' : exportLabel}
                 </Button>
             </div>
@@ -214,25 +280,41 @@ export function AdminAiActivityLogPage() {
                     <CardTitle>Filters</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" onSubmit={applyFilters}>
+                    <form
+                        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+                        onSubmit={applyFilters}
+                    >
                         <div className="space-y-2">
                             <Label htmlFor="ai-feature">Feature</Label>
                             <Input
                                 id="ai-feature"
                                 placeholder="supplier_risk"
                                 value={formValues.feature}
-                                onChange={(event) => handleInputChange('feature', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'feature',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="ai-status">Status</Label>
-                            <Select value={formValues.status} onValueChange={(value) => handleInputChange('status', value)}>
+                            <Select
+                                value={formValues.status}
+                                onValueChange={(value) =>
+                                    handleInputChange('status', value)
+                                }
+                            >
                                 <SelectTrigger id="ai-status">
                                     <SelectValue placeholder="Any status" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {STATUS_OPTIONS.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
                                             {option.label}
                                         </SelectItem>
                                     ))}
@@ -245,7 +327,12 @@ export function AdminAiActivityLogPage() {
                                 id="ai-entity"
                                 placeholder="RFQ:123"
                                 value={formValues.entity}
-                                onChange={(event) => handleInputChange('entity', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'entity',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
@@ -254,7 +341,12 @@ export function AdminAiActivityLogPage() {
                                 id="ai-from"
                                 type="datetime-local"
                                 value={formValues.from}
-                                onChange={(event) => handleInputChange('from', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'from',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
@@ -263,11 +355,17 @@ export function AdminAiActivityLogPage() {
                                 id="ai-to"
                                 type="datetime-local"
                                 value={formValues.to}
-                                onChange={(event) => handleInputChange('to', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange('to', event.target.value)
+                                }
                             />
                         </div>
                         <div className="flex items-end gap-2">
-                            <Button type="button" variant="outline" onClick={clearFilters}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={clearFilters}
+                            >
                                 Clear
                             </Button>
                             <Button type="submit">Apply</Button>
@@ -282,19 +380,34 @@ export function AdminAiActivityLogPage() {
                 isLoading={isLoading}
                 emptyState={
                     <div className="text-sm text-muted-foreground">
-                        No AI events match your filters. Trigger an AI action or adjust filters to populate the log.
+                        No AI events match your filters. Trigger an AI action or
+                        adjust filters to populate the log.
                     </div>
                 }
             />
 
             {entries.length > 0 ? (
                 <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-                    <span>{entries.length} result{entries.length === 1 ? '' : 's'}</span>
+                    <span>
+                        {entries.length} result{entries.length === 1 ? '' : 's'}
+                    </span>
                     <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" disabled={!prevCursor} onClick={() => handleCursorChange(prevCursor)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!prevCursor}
+                            onClick={() => handleCursorChange(prevCursor)}
+                        >
                             Previous
                         </Button>
-                        <Button type="button" variant="outline" size="sm" disabled={!nextCursor} onClick={() => handleCursorChange(nextCursor)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!nextCursor}
+                            onClick={() => handleCursorChange(nextCursor)}
+                        >
                             Next
                         </Button>
                     </div>

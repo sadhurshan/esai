@@ -1,13 +1,13 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useCreateMovement } from '../use-create-movement';
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
+import { useCreateMovement } from '../use-create-movement';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -32,7 +32,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -76,7 +80,9 @@ describe('useCreateMovement', () => {
         createMovement.mockResolvedValue(apiResponse);
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useCreateMovement(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateMovement(), {
+            wrapper: Wrapper,
+        });
 
         const movedAt = new Date('2024-01-01T12:00:00Z').toISOString();
 
@@ -115,15 +121,25 @@ describe('useCreateMovement', () => {
             title: 'Movement posted',
         });
 
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.movementsList({}) });
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.movement('move-101') });
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.items({}) });
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: queryKeys.inventory.lowStock({}) });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.movementsList({}),
+        });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.movement('move-101'),
+        });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.items({}),
+        });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.inventory.lowStock({}),
+        });
     });
 
     it('enforces transfer location rules before calling the API', async () => {
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useCreateMovement(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateMovement(), {
+            wrapper: Wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({

@@ -1,31 +1,40 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { Helmet } from 'react-helmet-async';
 import { FileText, Loader2, ShieldAlert } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
+import { FileDropzone } from '@/components/file-dropzone';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FileDropzone } from '@/components/file-dropzone';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { useMoneySettings } from '@/hooks/api/use-money-settings';
 import { useRfp } from '@/hooks/api/rfps/use-rfp';
 import {
-    useSubmitRfpProposal,
     MAX_RFP_PROPOSAL_ATTACHMENT_BYTES,
+    useSubmitRfpProposal,
 } from '@/hooks/api/rfps/use-submit-rfp-proposal';
+import { useMoneySettings } from '@/hooks/api/use-money-settings';
 import type { MoneySettings } from '@/sdk';
-import { supplierRfpProposalSchema, type SupplierRfpProposalFormValues } from './supplier-rfp-proposal-schema';
+import {
+    supplierRfpProposalSchema,
+    type SupplierRfpProposalFormValues,
+} from './supplier-rfp-proposal-schema';
 
 const MIN_MINOR_UNIT = 2;
 
@@ -36,19 +45,34 @@ export function SupplierRfpProposalPage() {
     const { hasFeature, state, activePersona } = useAuth();
     const isSupplierPersona = activePersona?.type === 'supplier';
     const supplierRole =
-        state.user?.role === 'supplier' || state.user?.role?.startsWith('supplier_') || isSupplierPersona;
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
-    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole || isSupplierPersona;
+        state.user?.role === 'supplier' ||
+        state.user?.role?.startsWith('supplier_') ||
+        isSupplierPersona;
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
+    const supplierPortalEnabled =
+        hasFeature('supplier_portal_enabled') ||
+        supplierRole ||
+        isSupplierPersona;
     const rfpModuleEnabled =
-        isSupplierPersona || hasFeature('rfps_enabled') || hasFeature('projects_enabled') || supplierPortalEnabled;
-    const canAccessRfps = !featureFlagsLoaded || (supplierPortalEnabled && rfpModuleEnabled);
+        isSupplierPersona ||
+        hasFeature('rfps_enabled') ||
+        hasFeature('projects_enabled') ||
+        supplierPortalEnabled;
+    const canAccessRfps =
+        !featureFlagsLoaded || (supplierPortalEnabled && rfpModuleEnabled);
 
     const rfpId = params.rfpId ?? '';
-    const rfpQuery = useRfp(rfpId, { enabled: Boolean(rfpId) && canAccessRfps });
+    const rfpQuery = useRfp(rfpId, {
+        enabled: Boolean(rfpId) && canAccessRfps,
+    });
     const moneySettingsQuery = useMoneySettings();
     const submitProposal = useSubmitRfpProposal();
 
-    const currencyOptions = useMemo(() => inferCurrencyOptions(moneySettingsQuery.data), [moneySettingsQuery.data]);
+    const currencyOptions = useMemo(
+        () => inferCurrencyOptions(moneySettingsQuery.data),
+        [moneySettingsQuery.data],
+    );
     const defaultCurrency = currencyOptions[0]?.value ?? 'USD';
     const minorUnit = inferMinorUnit(moneySettingsQuery.data) ?? MIN_MINOR_UNIT;
 
@@ -64,7 +88,10 @@ export function SupplierRfpProposalPage() {
         },
     });
 
-    const watchedCurrency = useWatch({ control: form.control, name: 'currency' });
+    const watchedCurrency = useWatch({
+        control: form.control,
+        name: 'currency',
+    });
 
     useEffect(() => {
         if (defaultCurrency && form.getValues('currency') !== defaultCurrency) {
@@ -81,7 +108,10 @@ export function SupplierRfpProposalPage() {
         setAttachments((current) => {
             const deduped = [...current];
             files.forEach((file) => {
-                const exists = deduped.some((item) => item.name === file.name && item.size === file.size);
+                const exists = deduped.some(
+                    (item) =>
+                        item.name === file.name && item.size === file.size,
+                );
                 if (!exists) {
                     deduped.push(file);
                 }
@@ -105,11 +135,16 @@ export function SupplierRfpProposalPage() {
             supplierCompanyId: state.company?.id,
             currency: values.currency,
             priceTotal: priceMajor,
-            priceTotalMinor: typeof priceMajor === 'number' ? toMinorUnits(priceMajor, minorUnit) : undefined,
+            priceTotalMinor:
+                typeof priceMajor === 'number'
+                    ? toMinorUnits(priceMajor, minorUnit)
+                    : undefined,
             leadTimeDays: values.leadTimeDays,
             approachSummary: values.approachSummary.trim(),
             scheduleSummary: values.scheduleSummary.trim(),
-            valueAddSummary: values.valueAddSummary?.trim() ? values.valueAddSummary.trim() : undefined,
+            valueAddSummary: values.valueAddSummary?.trim()
+                ? values.valueAddSummary.trim()
+                : undefined,
             attachments,
         };
 
@@ -139,7 +174,9 @@ export function SupplierRfpProposalPage() {
                 <EmptyState
                     title="Supplier workspace not enabled"
                     description="Ask the buyer to enable supplier portal access to submit proposals online."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                 />
             </div>
         );
@@ -155,7 +192,9 @@ export function SupplierRfpProposalPage() {
                 <EmptyState
                     title="RFP portal unavailable"
                     description="Upgrade your plan or contact the buyer to enable project RFP submissions."
-                    icon={<ShieldAlert className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <ShieldAlert className="h-10 w-10 text-muted-foreground" />
+                    }
                 />
             </div>
         );
@@ -171,7 +210,9 @@ export function SupplierRfpProposalPage() {
                 <EmptyState
                     title="Select an RFP"
                     description="Open this page from an RFP invitation to respond."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="Back to dashboard"
                     ctaProps={{ onClick: () => navigate('/app') }}
                 />
@@ -192,8 +233,13 @@ export function SupplierRfpProposalPage() {
                 <PlanUpgradeBanner />
                 <EmptyState
                     title="Unable to load RFP"
-                    description={rfpQuery.error?.message ?? 'This project is unavailable or access was revoked.'}
-                    icon={<ShieldAlert className="h-10 w-10 text-destructive" />}
+                    description={
+                        rfpQuery.error?.message ??
+                        'This project is unavailable or access was revoked.'
+                    }
+                    icon={
+                        <ShieldAlert className="h-10 w-10 text-destructive" />
+                    }
                     ctaLabel="Back to dashboard"
                     ctaProps={{ onClick: () => navigate('/app') }}
                 />
@@ -202,8 +248,11 @@ export function SupplierRfpProposalPage() {
     }
 
     const rfp = rfpQuery.data;
-    const submissionDisabled = submitProposal.isPending || rfp.status !== 'published';
-    const attachmentLimitMb = Math.round(MAX_RFP_PROPOSAL_ATTACHMENT_BYTES / (1024 * 1024));
+    const submissionDisabled =
+        submitProposal.isPending || rfp.status !== 'published';
+    const attachmentLimitMb = Math.round(
+        MAX_RFP_PROPOSAL_ATTACHMENT_BYTES / (1024 * 1024),
+    );
 
     return (
         <div className="flex flex-1 flex-col gap-6">
@@ -215,15 +264,31 @@ export function SupplierRfpProposalPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Project RFP</p>
-                    <h1 className="text-3xl font-semibold text-foreground">{rfp.title}</h1>
-                    <p className="text-sm text-muted-foreground">Share pricing, schedule, and approach for the buyer to review.</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Project RFP
+                    </p>
+                    <h1 className="text-3xl font-semibold text-foreground">
+                        {rfp.title}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Share pricing, schedule, and approach for the buyer to
+                        review.
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Badge variant={rfp.status === 'published' ? 'default' : 'secondary'} className="h-9 rounded-full px-4 text-base capitalize">
+                    <Badge
+                        variant={
+                            rfp.status === 'published' ? 'default' : 'secondary'
+                        }
+                        className="h-9 rounded-full px-4 text-base capitalize"
+                    >
                         {humanizeStatus(rfp.status)}
                     </Badge>
-                    <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(-1)}
+                    >
                         Back
                     </Button>
                 </div>
@@ -233,8 +298,10 @@ export function SupplierRfpProposalPage() {
                 <Alert>
                     <AlertTitle>Proposal window closed</AlertTitle>
                     <AlertDescription>
-                        This RFP is currently in the “{humanizeStatus(rfp.status)}” state. You can prepare your response, but
-                        submission is disabled until the buyer publishes the project again.
+                        This RFP is currently in the “
+                        {humanizeStatus(rfp.status)}” state. You can prepare
+                        your response, but submission is disabled until the
+                        buyer publishes the project again.
                     </AlertDescription>
                 </Alert>
             ) : null}
@@ -246,14 +313,29 @@ export function SupplierRfpProposalPage() {
                             <CardTitle>Buyer context</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
-                            <DetailItem label="Problem & objectives" value={rfp.problemObjectives} />
+                            <DetailItem
+                                label="Problem & objectives"
+                                value={rfp.problemObjectives}
+                            />
                             <DetailItem label="Scope" value={rfp.scope} />
                             <DetailItem label="Timeline" value={rfp.timeline} />
-                            <DetailItem label="Evaluation criteria" value={rfp.evaluationCriteria} />
-                            <DetailItem label="Proposal format" value={rfp.proposalFormat} />
+                            <DetailItem
+                                label="Evaluation criteria"
+                                value={rfp.evaluationCriteria}
+                            />
+                            <DetailItem
+                                label="Proposal format"
+                                value={rfp.proposalFormat}
+                            />
                             <div className="grid gap-3 sm:grid-cols-2">
-                                <DetailItem label="Published" value={formatDate(rfp.publishedAt)} />
-                                <DetailItem label="Last updated" value={formatDate(rfp.updatedAt)} />
+                                <DetailItem
+                                    label="Published"
+                                    value={formatDate(rfp.publishedAt)}
+                                />
+                                <DetailItem
+                                    label="Last updated"
+                                    value={formatDate(rfp.updatedAt)}
+                                />
                             </div>
                         </CardContent>
                     </Card>
@@ -269,12 +351,18 @@ export function SupplierRfpProposalPage() {
                                 onFilesSelected={handleFilesSelected}
                                 disabled={submitProposal.isPending}
                             />
-                            <AttachmentList attachments={attachments} onRemove={handleAttachmentRemove} />
+                            <AttachmentList
+                                attachments={attachments}
+                                onRemove={handleAttachmentRemove}
+                            />
                         </CardContent>
                     </Card>
                 </div>
 
-                <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+                <form
+                    className="space-y-6"
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                >
                     <Card className="border-border/70">
                         <CardHeader>
                             <CardTitle>Proposal summary</CardTitle>
@@ -282,28 +370,44 @@ export function SupplierRfpProposalPage() {
                         <CardContent className="space-y-4">
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="proposal-currency">Currency</Label>
+                                    <Label htmlFor="proposal-currency">
+                                        Currency
+                                    </Label>
                                     <Select
                                         value={watchedCurrency}
-                                        onValueChange={(value) => form.setValue('currency', value, { shouldDirty: true })}
+                                        onValueChange={(value) =>
+                                            form.setValue('currency', value, {
+                                                shouldDirty: true,
+                                            })
+                                        }
                                     >
                                         <SelectTrigger id="proposal-currency">
                                             <SelectValue placeholder="Select currency" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {currencyOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                     {form.formState.errors.currency ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.currency.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors.currency
+                                                    .message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="proposal-price">Total price (optional)</Label>
+                                    <Label htmlFor="proposal-price">
+                                        Total price (optional)
+                                    </Label>
                                     <Input
                                         id="proposal-price"
                                         type="number"
@@ -313,11 +417,18 @@ export function SupplierRfpProposalPage() {
                                         {...form.register('priceTotal')}
                                     />
                                     {form.formState.errors.priceTotal ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.priceTotal.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors.priceTotal
+                                                    .message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="proposal-lead">Lead time (days)</Label>
+                                    <Label htmlFor="proposal-lead">
+                                        Lead time (days)
+                                    </Label>
                                     <Input
                                         id="proposal-lead"
                                         type="number"
@@ -326,12 +437,19 @@ export function SupplierRfpProposalPage() {
                                         {...form.register('leadTimeDays')}
                                     />
                                     {form.formState.errors.leadTimeDays ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.leadTimeDays.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors
+                                                    .leadTimeDays.message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="proposal-approach">Approach summary</Label>
+                                <Label htmlFor="proposal-approach">
+                                    Approach summary
+                                </Label>
                                 <Textarea
                                     id="proposal-approach"
                                     rows={4}
@@ -339,11 +457,18 @@ export function SupplierRfpProposalPage() {
                                     {...form.register('approachSummary')}
                                 />
                                 {form.formState.errors.approachSummary ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.approachSummary.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {
+                                            form.formState.errors
+                                                .approachSummary.message
+                                        }
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="proposal-schedule">Schedule summary</Label>
+                                <Label htmlFor="proposal-schedule">
+                                    Schedule summary
+                                </Label>
                                 <Textarea
                                     id="proposal-schedule"
                                     rows={3}
@@ -351,11 +476,18 @@ export function SupplierRfpProposalPage() {
                                     {...form.register('scheduleSummary')}
                                 />
                                 {form.formState.errors.scheduleSummary ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.scheduleSummary.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {
+                                            form.formState.errors
+                                                .scheduleSummary.message
+                                        }
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="proposal-value-add">Value-add / differentiators (optional)</Label>
+                                <Label htmlFor="proposal-value-add">
+                                    Value-add / differentiators (optional)
+                                </Label>
                                 <Textarea
                                     id="proposal-value-add"
                                     rows={3}
@@ -363,7 +495,12 @@ export function SupplierRfpProposalPage() {
                                     {...form.register('valueAddSummary')}
                                 />
                                 {form.formState.errors.valueAddSummary ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.valueAddSummary.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {
+                                            form.formState.errors
+                                                .valueAddSummary.message
+                                        }
+                                    </p>
                                 ) : null}
                             </div>
                         </CardContent>
@@ -373,17 +510,23 @@ export function SupplierRfpProposalPage() {
                             <CardTitle>Submit</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Button type="submit" className="w-full" disabled={submissionDisabled}>
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={submissionDisabled}
+                            >
                                 {submitProposal.isPending ? (
                                     <span className="inline-flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" /> Submitting…
+                                        <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                                        Submitting…
                                     </span>
                                 ) : (
                                     'Submit proposal'
                                 )}
                             </Button>
                             <p className="text-xs text-muted-foreground">
-                                We will email the buyer and add this proposal to the comparison workspace.
+                                We will email the buyer and add this proposal to
+                                the comparison workspace.
                             </p>
                         </CardContent>
                     </Card>
@@ -421,7 +564,10 @@ function SupplierRfpProposalSkeleton() {
                 <Card className="border-border/70">
                     <CardContent className="space-y-4 p-8">
                         {Array.from({ length: 3 }).map((_, index) => (
-                            <div key={index} className="h-5 w-full animate-pulse rounded bg-muted" />
+                            <div
+                                key={index}
+                                className="h-5 w-full animate-pulse rounded bg-muted"
+                            />
                         ))}
                     </CardContent>
                 </Card>
@@ -430,29 +576,59 @@ function SupplierRfpProposalSkeleton() {
     );
 }
 
-function DetailItem({ label, value }: { label: string; value?: string | null }) {
+function DetailItem({
+    label,
+    value,
+}: {
+    label: string;
+    value?: string | null;
+}) {
     return (
         <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-            <p className="text-sm font-medium text-foreground whitespace-pre-line">{value && value.length ? value : '—'}</p>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                {label}
+            </p>
+            <p className="text-sm font-medium whitespace-pre-line text-foreground">
+                {value && value.length ? value : '—'}
+            </p>
         </div>
     );
 }
 
-function AttachmentList({ attachments, onRemove }: { attachments: File[]; onRemove: (index: number) => void }) {
+function AttachmentList({
+    attachments,
+    onRemove,
+}: {
+    attachments: File[];
+    onRemove: (index: number) => void;
+}) {
     if (attachments.length === 0) {
-        return <p className="text-sm text-muted-foreground">No files added yet.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">No files added yet.</p>
+        );
     }
 
     return (
         <ul className="space-y-2">
             {attachments.map((file, index) => (
-                <li key={`${file.name}-${index}`} className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm">
+                <li
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
+                >
                     <div>
-                        <p className="font-medium text-foreground">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                        <p className="font-medium text-foreground">
+                            {file.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {formatFileSize(file.size)}
+                        </p>
                     </div>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => onRemove(index)}>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemove(index)}
+                    >
                         Remove
                     </Button>
                 </li>
@@ -467,18 +643,27 @@ function inferCurrencyOptions(settings?: MoneySettings) {
     const base = settings?.baseCurrency;
 
     if (pricing?.code) {
-        options.set(pricing.code, `${pricing.code} · ${pricing.name ?? 'Pricing currency'}`);
+        options.set(
+            pricing.code,
+            `${pricing.code} · ${pricing.name ?? 'Pricing currency'}`,
+        );
     }
 
     if (base?.code) {
-        options.set(base.code, `${base.code} · ${base.name ?? 'Base currency'}`);
+        options.set(
+            base.code,
+            `${base.code} · ${base.name ?? 'Base currency'}`,
+        );
     }
 
     if (options.size === 0) {
         options.set('USD', 'USD · United States Dollar');
     }
 
-    return Array.from(options.entries()).map(([value, label]) => ({ value, label }));
+    return Array.from(options.entries()).map(([value, label]) => ({
+        value,
+        label,
+    }));
 }
 
 function inferMinorUnit(settings?: MoneySettings) {

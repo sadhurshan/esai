@@ -3,20 +3,47 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormatting } from '@/contexts/formatting-context';
-import type { MatchCandidate, MatchDiscrepancy, MatchResolutionInput } from '@/types/sourcing';
+import type {
+    MatchCandidate,
+    MatchDiscrepancy,
+    MatchResolutionInput,
+} from '@/types/sourcing';
 
 import { DiscrepancyBadge } from './discrepancy-badge';
 
-const STATUS_OPTIONS: MatchResolutionInput['decisions'][number]['status'][] = ['accept', 'reject', 'credit', 'pending'];
+const STATUS_OPTIONS: MatchResolutionInput['decisions'][number]['status'][] = [
+    'accept',
+    'reject',
+    'credit',
+    'pending',
+];
 
-type DecisionState = Record<string, { status: MatchResolutionInput['decisions'][number]['status']; notes?: string }>;
+type DecisionState = Record<
+    string,
+    {
+        status: MatchResolutionInput['decisions'][number]['status'];
+        notes?: string;
+    }
+>;
 
 interface MatchSummaryCardProps {
     candidate?: MatchCandidate | null;
@@ -24,7 +51,9 @@ interface MatchSummaryCardProps {
     onSubmit?: (payload: MatchResolutionInput) => void;
 }
 
-const getInitialDecisions = (candidate?: MatchCandidate | null): DecisionState => {
+const getInitialDecisions = (
+    candidate?: MatchCandidate | null,
+): DecisionState => {
     if (!candidate) {
         return {};
     }
@@ -41,10 +70,17 @@ const getInitialDecisions = (candidate?: MatchCandidate | null): DecisionState =
     return next;
 };
 
-const ensureInvoiceId = (candidate?: MatchCandidate | null) => candidate?.invoices?.[0]?.id ?? '';
+const ensureInvoiceId = (candidate?: MatchCandidate | null) =>
+    candidate?.invoices?.[0]?.id ?? '';
 
-export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSummaryCardProps) => {
-    const [decisions, setDecisions] = useState<DecisionState>(() => getInitialDecisions(candidate));
+export const MatchSummaryCard = ({
+    candidate,
+    isSubmitting,
+    onSubmit,
+}: MatchSummaryCardProps) => {
+    const [decisions, setDecisions] = useState<DecisionState>(() =>
+        getInitialDecisions(candidate),
+    );
     const { formatMoney, formatNumber, formatDate } = useFormatting();
 
     useEffect(() => {
@@ -59,18 +95,38 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
         }
 
         return {
-            po: formatMoney(typeof candidate.poTotalMinor === 'number' ? candidate.poTotalMinor / 100 : null, {
-                currency: candidate.currency ?? undefined,
-            }),
-            received: formatMoney(typeof candidate.receivedTotalMinor === 'number' ? candidate.receivedTotalMinor / 100 : null, {
-                currency: candidate.currency ?? undefined,
-            }),
-            invoiced: formatMoney(typeof candidate.invoicedTotalMinor === 'number' ? candidate.invoicedTotalMinor / 100 : null, {
-                currency: candidate.currency ?? undefined,
-            }),
-            variance: formatMoney(typeof candidate.varianceMinor === 'number' ? candidate.varianceMinor / 100 : null, {
-                currency: candidate.currency ?? undefined,
-            }),
+            po: formatMoney(
+                typeof candidate.poTotalMinor === 'number'
+                    ? candidate.poTotalMinor / 100
+                    : null,
+                {
+                    currency: candidate.currency ?? undefined,
+                },
+            ),
+            received: formatMoney(
+                typeof candidate.receivedTotalMinor === 'number'
+                    ? candidate.receivedTotalMinor / 100
+                    : null,
+                {
+                    currency: candidate.currency ?? undefined,
+                },
+            ),
+            invoiced: formatMoney(
+                typeof candidate.invoicedTotalMinor === 'number'
+                    ? candidate.invoicedTotalMinor / 100
+                    : null,
+                {
+                    currency: candidate.currency ?? undefined,
+                },
+            ),
+            variance: formatMoney(
+                typeof candidate.varianceMinor === 'number'
+                    ? candidate.varianceMinor / 100
+                    : null,
+                {
+                    currency: candidate.currency ?? undefined,
+                },
+            ),
         };
     }, [candidate, formatMoney]);
 
@@ -82,17 +138,25 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
         setDecisions((prev) => ({
             ...prev,
             [`${lineId}-${discrepancy.id}`]: {
-                ...(prev[`${lineId}-${discrepancy.id}`] ?? { status: 'pending' }),
+                ...(prev[`${lineId}-${discrepancy.id}`] ?? {
+                    status: 'pending',
+                }),
                 status,
             },
         }));
     };
 
-    const handleNotesChange = (lineId: string, discrepancy: MatchDiscrepancy, notes: string) => {
+    const handleNotesChange = (
+        lineId: string,
+        discrepancy: MatchDiscrepancy,
+        notes: string,
+    ) => {
         setDecisions((prev) => ({
             ...prev,
             [`${lineId}-${discrepancy.id}`]: {
-                ...(prev[`${lineId}-${discrepancy.id}`] ?? { status: 'pending' }),
+                ...(prev[`${lineId}-${discrepancy.id}`] ?? {
+                    status: 'pending',
+                }),
                 notes: notes.trim().length ? notes : undefined,
             },
         }));
@@ -104,7 +168,11 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
         }
 
         return candidate.lines.some((line) =>
-            line.discrepancies.some((disc) => (decisions[`${line.id}-${disc.id}`]?.status ?? 'pending') === 'pending'),
+            line.discrepancies.some(
+                (disc) =>
+                    (decisions[`${line.id}-${disc.id}`]?.status ??
+                        'pending') === 'pending',
+            ),
         );
     }, [candidate, decisions]);
 
@@ -121,12 +189,16 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
         const payload: MatchResolutionInput = {
             invoiceId,
             purchaseOrderId: candidate.purchaseOrderId,
-            grnIds: candidate.grns?.map((grn) => grn.id).filter((id): id is number => typeof id === 'number') ?? [],
+            grnIds:
+                candidate.grns
+                    ?.map((grn) => grn.id)
+                    .filter((id): id is number => typeof id === 'number') ?? [],
             decisions: candidate.lines.flatMap((line) =>
                 line.discrepancies.map((disc) => ({
                     lineId: line.id,
                     type: disc.type,
-                    status: decisions[`${line.id}-${disc.id}`]?.status ?? 'pending',
+                    status:
+                        decisions[`${line.id}-${disc.id}`]?.status ?? 'pending',
                     notes: decisions[`${line.id}-${disc.id}`]?.notes,
                 })),
             ),
@@ -151,24 +223,40 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
     return (
         <Card className="h-full">
             <CardHeader className="space-y-2">
-                <CardTitle className="text-base">{candidate.purchaseOrderNumber ?? `PO #${candidate.purchaseOrderId}`}</CardTitle>
+                <CardTitle className="text-base">
+                    {candidate.purchaseOrderNumber ??
+                        `PO #${candidate.purchaseOrderId}`}
+                </CardTitle>
                 <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                                Last activity {formatDate(candidate.lastActivityAt, { dateStyle: 'medium', timeStyle: 'short' })}
+                        Last activity{' '}
+                        {formatDate(candidate.lastActivityAt, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                        })}
                     </span>
                     <span className="inline-flex items-center gap-1">
                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                {formatNumber(
-                                    candidate.lines.reduce((acc, line) => acc + line.discrepancies.length, 0),
-                                    { maximumFractionDigits: 0 },
-                                )}{' '}
-                                variances
+                        {formatNumber(
+                            candidate.lines.reduce(
+                                (acc, line) => acc + line.discrepancies.length,
+                                0,
+                            ),
+                            { maximumFractionDigits: 0 },
+                        )}{' '}
+                        variances
                     </span>
                     <span className="inline-flex items-center gap-1">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                {formatNumber(candidate.grns?.length ?? 0, { maximumFractionDigits: 0 })} GRNs ∙{' '}
-                                {formatNumber(candidate.invoices?.length ?? 0, { maximumFractionDigits: 0 })} invoices
+                        {formatNumber(candidate.grns?.length ?? 0, {
+                            maximumFractionDigits: 0,
+                        })}{' '}
+                        GRNs ∙{' '}
+                        {formatNumber(candidate.invoices?.length ?? 0, {
+                            maximumFractionDigits: 0,
+                        })}{' '}
+                        invoices
                     </span>
                 </div>
             </CardHeader>
@@ -180,16 +268,24 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                             <p className="font-medium">{varianceStats.po}</p>
                         </div>
                         <div>
-                            <p className="text-muted-foreground">Received total</p>
-                            <p className="font-medium">{varianceStats.received}</p>
+                            <p className="text-muted-foreground">
+                                Received total
+                            </p>
+                            <p className="font-medium">
+                                {varianceStats.received}
+                            </p>
                         </div>
                         <div>
                             <p className="text-muted-foreground">Invoiced</p>
-                            <p className="font-medium">{varianceStats.invoiced}</p>
+                            <p className="font-medium">
+                                {varianceStats.invoiced}
+                            </p>
                         </div>
                         <div>
                             <p className="text-muted-foreground">Variance</p>
-                            <p className="font-medium">{varianceStats.variance}</p>
+                            <p className="font-medium">
+                                {varianceStats.variance}
+                            </p>
                         </div>
                     </div>
                 )}
@@ -198,34 +294,59 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
 
                 <div className="space-y-4">
                     {candidate.lines.map((line) => (
-                        <div key={line.id} className="rounded-lg border border-border p-4">
+                        <div
+                            key={line.id}
+                            className="rounded-lg border border-border p-4"
+                        >
                             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <p className="text-sm font-medium">Line {line.lineNo ?? line.poLineId}</p>
-                                    <p className="text-sm text-muted-foreground">{line.itemDescription ?? 'Line item'}</p>
+                                    <p className="text-sm font-medium">
+                                        Line {line.lineNo ?? line.poLineId}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {line.itemDescription ?? 'Line item'}
+                                    </p>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                    Ordered {formatNumber(line.orderedQty ?? 0)} {line.uom ?? ''} ∙ Received{' '}
-                                    {formatNumber(line.receivedQty ?? 0)} ∙ Invoiced {formatNumber(line.invoicedQty ?? 0)}
+                                    Ordered {formatNumber(line.orderedQty ?? 0)}{' '}
+                                    {line.uom ?? ''} ∙ Received{' '}
+                                    {formatNumber(line.receivedQty ?? 0)} ∙
+                                    Invoiced{' '}
+                                    {formatNumber(line.invoicedQty ?? 0)}
                                 </div>
                             </div>
                             <div className="mt-4 space-y-4">
                                 {line.discrepancies.map((disc) => (
-                                    <div key={disc.id} className="space-y-2 rounded-md border border-dashed border-border p-3">
+                                    <div
+                                        key={disc.id}
+                                        className="space-y-2 rounded-md border border-dashed border-border p-3"
+                                    >
                                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                                            <DiscrepancyBadge discrepancy={disc} />
+                                            <DiscrepancyBadge
+                                                discrepancy={disc}
+                                            />
                                             <div className="text-xs text-muted-foreground">
-                                                {(disc.difference ?? disc.amountMinor) && (
+                                                {(disc.difference ??
+                                                    disc.amountMinor) && (
                                                     <span>
-                                                        {disc.difference !== undefined && disc.difference !== null
+                                                        {disc.difference !==
+                                                            undefined &&
+                                                        disc.difference !== null
                                                             ? `Δ ${formatNumber(disc.difference)}`
                                                             : ''}
                                                         {disc.amountMinor
                                                             ? ` / ${formatMoney(
-                                                                  typeof disc.amountMinor === 'number'
-                                                                      ? disc.amountMinor / 100
+                                                                  typeof disc.amountMinor ===
+                                                                      'number'
+                                                                      ? disc.amountMinor /
+                                                                            100
                                                                       : null,
-                                                                  { currency: disc.currency ?? candidate.currency ?? undefined },
+                                                                  {
+                                                                      currency:
+                                                                          disc.currency ??
+                                                                          candidate.currency ??
+                                                                          undefined,
+                                                                  },
                                                               )}`
                                                             : ''}
                                                     </span>
@@ -234,9 +355,15 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                                         </div>
                                         <div className="grid gap-3 md:grid-cols-[200px_minmax(0,1fr)]">
                                             <div className="space-y-1">
-                                                <Label className="text-xs text-muted-foreground">Resolution</Label>
+                                                <Label className="text-xs text-muted-foreground">
+                                                    Resolution
+                                                </Label>
                                                 <Select
-                                                    value={decisions[`${line.id}-${disc.id}`]?.status ?? 'pending'}
+                                                    value={
+                                                        decisions[
+                                                            `${line.id}-${disc.id}`
+                                                        ]?.status ?? 'pending'
+                                                    }
                                                     onValueChange={(value) =>
                                                         handleDecisionChange(
                                                             line.id,
@@ -249,23 +376,42 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                                                         <SelectValue placeholder="Choose" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {STATUS_OPTIONS.map((option) => (
-                                                            <SelectItem key={option} value={option} className="text-sm capitalize">
-                                                                {option}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {STATUS_OPTIONS.map(
+                                                            (option) => (
+                                                                <SelectItem
+                                                                    key={option}
+                                                                    value={
+                                                                        option
+                                                                    }
+                                                                    className="text-sm capitalize"
+                                                                >
+                                                                    {option}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                             <div className="space-y-1">
-                                                <Label className="text-xs text-muted-foreground">Notes</Label>
+                                                <Label className="text-xs text-muted-foreground">
+                                                    Notes
+                                                </Label>
                                                 <Textarea
                                                     rows={2}
                                                     placeholder="Add context for finance reviewers"
                                                     className="text-sm"
-                                                    value={decisions[`${line.id}-${disc.id}`]?.notes ?? ''}
+                                                    value={
+                                                        decisions[
+                                                            `${line.id}-${disc.id}`
+                                                        ]?.notes ?? ''
+                                                    }
                                                     onChange={(event) =>
-                                                        handleNotesChange(line.id, disc, event.currentTarget.value)
+                                                        handleNotesChange(
+                                                            line.id,
+                                                            disc,
+                                                            event.currentTarget
+                                                                .value,
+                                                        )
                                                     }
                                                 />
                                             </div>
@@ -275,15 +421,24 @@ export const MatchSummaryCard = ({ candidate, isSubmitting, onSubmit }: MatchSum
                             </div>
                         </div>
                     ))}
-                    {!candidate.lines.length && <Skeleton className="h-24 w-full" />}
+                    {!candidate.lines.length && (
+                        <Skeleton className="h-24 w-full" />
+                    )}
                 </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-2 border-t border-border pt-4 md:flex-row md:items-center md:justify-between">
                 <p className="text-sm text-muted-foreground">
-                    Decisions sync back to PO change orders and invoice notes automatically.
+                    Decisions sync back to PO change orders and invoice notes
+                    automatically.
                 </p>
-                <Button onClick={handleSubmit} disabled={!isReady || pendingDecisions || isSubmitting} aria-busy={isSubmitting}>
-                    {pendingDecisions ? 'Resolve all discrepancies first' : 'Submit resolutions'}
+                <Button
+                    onClick={handleSubmit}
+                    disabled={!isReady || pendingDecisions || isSubmitting}
+                    aria-busy={isSubmitting}
+                >
+                    {pendingDecisions
+                        ? 'Resolve all discrepancies first'
+                        : 'Submit resolutions'}
                 </Button>
             </CardFooter>
         </Card>

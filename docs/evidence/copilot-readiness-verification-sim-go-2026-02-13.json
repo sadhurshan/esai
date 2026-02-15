@@ -1,0 +1,43 @@
+{
+    "generated_at": "2026-02-13T12:49:32+00:00",
+    "artifact": "docs/evidence/copilot-launch-readiness-sim-go-2026-02-13.json",
+    "summary": {
+        "total": 4,
+        "failed": 0,
+        "result": "pass"
+    },
+    "checks": [
+        {
+            "evidence": "runtime_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-runtime-gates-2026-02-13.json",
+            "expected_sha256": "7be733913c9408f262b6597d5f6d091cfd30462979a83fe94402f560f0821e3d",
+            "actual_sha256": "7be733913c9408f262b6597d5f6d091cfd30462979a83fe94402f560f0821e3d",
+            "message": "Hash matches artifact."
+        },
+        {
+            "evidence": "latency_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-latency-2026-02-13.json",
+            "expected_sha256": "43533165e33fa4201fddef49bcc75d521e130726ec770f63244518d90822001c",
+            "actual_sha256": "43533165e33fa4201fddef49bcc75d521e130726ec770f63244518d90822001c",
+            "message": "Hash matches artifact."
+        },
+        {
+            "evidence": "trace_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-latency-trace-attribution-2026-02-13.json",
+            "expected_sha256": "05f782f70353a376e17e988ccd2cfde0269dbb8d967ee2d02e4f1f643a1c3720",
+            "actual_sha256": "05f782f70353a376e17e988ccd2cfde0269dbb8d967ee2d02e4f1f643a1c3720",
+            "message": "Hash matches artifact."
+        },
+        {
+            "evidence": "signoff_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-signoffs-sim-2026-02-13.json",
+            "expected_sha256": "d334ff19c03ae3ebb2933c9dc02a1bbb0c3f64dc2d34064a2546d61c89c936cc",
+            "actual_sha256": "d334ff19c03ae3ebb2933c9dc02a1bbb0c3f64dc2d34064a2546d61c89c936cc",
+            "message": "Hash matches artifact."
+        }
+    ]
+}

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateSavedSearchRequest
  */
 export interface CreateSavedSearchRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateSavedSearchRequest
      */
     name: string;
     /**
-     * 
+     *
      * @type {{ [key: string]: any; }}
      * @memberof CreateSavedSearchRequest
      */
-    query: { [key: string]: any; };
+    query: { [key: string]: any };
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof CreateSavedSearchRequest
      */
@@ -42,42 +41,51 @@ export interface CreateSavedSearchRequest {
 /**
  * Check if a given object implements the CreateSavedSearchRequest interface.
  */
-export function instanceOfCreateSavedSearchRequest(value: object): value is CreateSavedSearchRequest {
+export function instanceOfCreateSavedSearchRequest(
+    value: object,
+): value is CreateSavedSearchRequest {
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('query' in value) || value['query'] === undefined) return false;
     return true;
 }
 
-export function CreateSavedSearchRequestFromJSON(json: any): CreateSavedSearchRequest {
+export function CreateSavedSearchRequestFromJSON(
+    json: any,
+): CreateSavedSearchRequest {
     return CreateSavedSearchRequestFromJSONTyped(json, false);
 }
 
-export function CreateSavedSearchRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateSavedSearchRequest {
+export function CreateSavedSearchRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateSavedSearchRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'name': json['name'],
-        'query': json['query'],
-        'shared': json['shared'] == null ? undefined : json['shared'],
+        name: json['name'],
+        query: json['query'],
+        shared: json['shared'] == null ? undefined : json['shared'],
     };
 }
 
-export function CreateSavedSearchRequestToJSON(json: any): CreateSavedSearchRequest {
+export function CreateSavedSearchRequestToJSON(
+    json: any,
+): CreateSavedSearchRequest {
     return CreateSavedSearchRequestToJSONTyped(json, false);
 }
 
-export function CreateSavedSearchRequestToJSONTyped(value?: CreateSavedSearchRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreateSavedSearchRequestToJSONTyped(
+    value?: CreateSavedSearchRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'name': value['name'],
-        'query': value['query'],
-        'shared': value['shared'],
+        name: value['name'],
+        query: value['query'],
+        shared: value['shared'],
     };
 }
-

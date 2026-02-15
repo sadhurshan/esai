@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { DashboardMetrics } from './DashboardMetrics';
 import {
     DashboardMetricsFromJSON,
-    DashboardMetricsFromJSONTyped,
     DashboardMetricsToJSON,
-    DashboardMetricsToJSONTyped,
 } from './DashboardMetrics';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface GetDashboardMetrics200Response
  */
 export interface GetDashboardMetrics200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof GetDashboardMetrics200Response
      */
     status: GetDashboardMetrics200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GetDashboardMetrics200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {DashboardMetrics}
      * @memberof GetDashboardMetrics200Response
      */
     data: DashboardMetrics;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof GetDashboardMetrics200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const GetDashboardMetrics200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type GetDashboardMetrics200ResponseStatusEnum = typeof GetDashboardMetrics200ResponseStatusEnum[keyof typeof GetDashboardMetrics200ResponseStatusEnum];
-
+export type GetDashboardMetrics200ResponseStatusEnum =
+    (typeof GetDashboardMetrics200ResponseStatusEnum)[keyof typeof GetDashboardMetrics200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the GetDashboardMetrics200Response interface.
  */
-export function instanceOfGetDashboardMetrics200Response(value: object): value is GetDashboardMetrics200Response {
+export function instanceOfGetDashboardMetrics200Response(
+    value: object,
+): value is GetDashboardMetrics200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function GetDashboardMetrics200ResponseFromJSON(json: any): GetDashboardMetrics200Response {
+export function GetDashboardMetrics200ResponseFromJSON(
+    json: any,
+): GetDashboardMetrics200Response {
     return GetDashboardMetrics200ResponseFromJSONTyped(json, false);
 }
 
-export function GetDashboardMetrics200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): GetDashboardMetrics200Response {
+export function GetDashboardMetrics200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): GetDashboardMetrics200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': DashboardMetricsFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: DashboardMetricsFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function GetDashboardMetrics200ResponseToJSON(json: any): GetDashboardMetrics200Response {
+export function GetDashboardMetrics200ResponseToJSON(
+    json: any,
+): GetDashboardMetrics200Response {
     return GetDashboardMetrics200ResponseToJSONTyped(json, false);
 }
 
-export function GetDashboardMetrics200ResponseToJSONTyped(value?: GetDashboardMetrics200Response | null, ignoreDiscriminator: boolean = false): any {
+export function GetDashboardMetrics200ResponseToJSONTyped(
+    value?: GetDashboardMetrics200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': DashboardMetricsToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: DashboardMetricsToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

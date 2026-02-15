@@ -1,8 +1,15 @@
-import { useEffect } from 'react';
 import { XIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { CopilotChatPanel } from '@/components/ai/CopilotChatPanel';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { useCopilotWidget } from '@/contexts/copilot-widget-context';
 import { cn } from '@/lib/utils';
 
@@ -28,17 +35,24 @@ export function CopilotChatDock() {
             <SheetContent
                 side="right"
                 className={cn(
-                    'h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-hidden border-l bg-background/95 p-0 text-left shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:w-[480px] lg:w-[520px] sm:max-w-lg',
+                    'h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-hidden border-l bg-background/95 p-0 text-left shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:w-[480px] sm:max-w-lg lg:w-[520px]',
                     '[&_[data-slot=sheet-close]]:hidden',
                 )}
             >
                 <div className="flex h-full flex-col">
                     <SheetHeader className="flex flex-row items-center justify-between border-b px-4 py-3 sm:px-6">
-                        <SheetTitle className="text-lg font-semibold">AI Copilot</SheetTitle>
+                        <div>
+                            <SheetTitle className="text-lg font-semibold">
+                                AI Copilot
+                            </SheetTitle>
+                            <SheetDescription className="sr-only">
+                                Chat with Copilot to draft, review, and guide procurement workflows.
+                            </SheetDescription>
+                        </div>
                         <SheetClose asChild>
                             <button
                                 type="button"
-                                className="inline-flex items-center rounded-full p-2 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                className="inline-flex items-center rounded-full p-2 text-muted-foreground transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                                 aria-label="Close Copilot"
                             >
                                 <XIcon className="size-4" />

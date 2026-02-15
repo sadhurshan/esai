@@ -2,16 +2,14 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**createSavedSearch**](SearchApi.md#createsavedsearchoperation) | **POST** /api/saved-searches | Create saved search |
-| [**deleteSavedSearch**](SearchApi.md#deletesavedsearch) | **DELETE** /api/saved-searches/{savedSearchId} | Delete saved search |
-| [**listSavedSearches**](SearchApi.md#listsavedsearches) | **GET** /api/saved-searches | List saved searches |
-| [**searchGlobal**](SearchApi.md#searchglobal) | **GET** /api/search | Perform global search across tenant resources |
-| [**showSavedSearch**](SearchApi.md#showsavedsearch) | **GET** /api/saved-searches/{savedSearchId} | Show saved search |
-| [**updateSavedSearch**](SearchApi.md#updatesavedsearchoperation) | **PUT** /api/saved-searches/{savedSearchId} | Update saved search |
-
-
+| Method                                                           | HTTP request                                   | Description                                   |
+| ---------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------- |
+| [**createSavedSearch**](SearchApi.md#createsavedsearchoperation) | **POST** /api/saved-searches                   | Create saved search                           |
+| [**deleteSavedSearch**](SearchApi.md#deletesavedsearch)          | **DELETE** /api/saved-searches/{savedSearchId} | Delete saved search                           |
+| [**listSavedSearches**](SearchApi.md#listsavedsearches)          | **GET** /api/saved-searches                    | List saved searches                           |
+| [**searchGlobal**](SearchApi.md#searchglobal)                    | **GET** /api/search                            | Perform global search across tenant resources |
+| [**showSavedSearch**](SearchApi.md#showsavedsearch)              | **GET** /api/saved-searches/{savedSearchId}    | Show saved search                             |
+| [**updateSavedSearch**](SearchApi.md#updatesavedsearchoperation) | **PUT** /api/saved-searches/{savedSearchId}    | Update saved search                           |
 
 ## createSavedSearch
 
@@ -30,7 +28,7 @@ import type { CreateSavedSearchOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -57,10 +55,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **createSavedSearchRequest** | [CreateSavedSearchRequest](CreateSavedSearchRequest.md) |  | |
+| Name                         | Type                                                    | Description | Notes |
+| ---------------------------- | ------------------------------------------------------- | ----------- | ----- |
+| **createSavedSearchRequest** | [CreateSavedSearchRequest](CreateSavedSearchRequest.md) |             |       |
 
 ### Return type
 
@@ -75,14 +72,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Saved search created. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **201**     | Saved search created. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## deleteSavedSearch
 
@@ -93,33 +89,30 @@ Delete saved search
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SearchApi,
-} from '';
+import { Configuration, SearchApi } from '';
 import type { DeleteSavedSearchRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SearchApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SearchApi(config);
 
-  const body = {
-    // number
-    savedSearchId: 56,
-  } satisfies DeleteSavedSearchRequest;
+    const body = {
+        // number
+        savedSearchId: 56,
+    } satisfies DeleteSavedSearchRequest;
 
-  try {
-    const data = await api.deleteSavedSearch(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.deleteSavedSearch(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -128,10 +121,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **savedSearchId** | `number` |  | [Defaults to `undefined`] |
+| Name              | Type     | Description | Notes                     |
+| ----------------- | -------- | ----------- | ------------------------- |
+| **savedSearchId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -146,14 +138,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Saved search removed. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **200**     | Saved search removed. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listSavedSearches
 
@@ -164,28 +155,25 @@ List saved searches
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SearchApi,
-} from '';
+import { Configuration, SearchApi } from '';
 import type { ListSavedSearchesRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SearchApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SearchApi(config);
 
-  try {
-    const data = await api.listSavedSearches();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.listSavedSearches();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -209,14 +197,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Saved searches for the authenticated user. |  -  |
+
+| Status code | Description                                | Response headers |
+| ----------- | ------------------------------------------ | ---------------- |
+| **200**     | Saved searches for the authenticated user. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## searchGlobal
 
@@ -235,7 +222,7 @@ import type { SearchGlobalRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -268,13 +255,12 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **q** | `string` |  | [Defaults to `undefined`] |
-| **types** | `Array<string>` | Optional filters limiting domain (comma separated). | [Optional] |
-| **dateFrom** | `Date` |  | [Optional] [Defaults to `undefined`] |
-| **dateTo** | `Date` |  | [Optional] [Defaults to `undefined`] |
+| Name         | Type            | Description                                         | Notes                                |
+| ------------ | --------------- | --------------------------------------------------- | ------------------------------------ |
+| **q**        | `string`        |                                                     | [Defaults to `undefined`]            |
+| **types**    | `Array<string>` | Optional filters limiting domain (comma separated). | [Optional]                           |
+| **dateFrom** | `Date`          |                                                     | [Optional] [Defaults to `undefined`] |
+| **dateTo**   | `Date`          |                                                     | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -289,14 +275,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Aggregated search results ordered by relevance. |  -  |
+
+| Status code | Description                                     | Response headers |
+| ----------- | ----------------------------------------------- | ---------------- |
+| **200**     | Aggregated search results ordered by relevance. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showSavedSearch
 
@@ -307,33 +292,30 @@ Show saved search
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SearchApi,
-} from '';
+import { Configuration, SearchApi } from '';
 import type { ShowSavedSearchRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SearchApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SearchApi(config);
 
-  const body = {
-    // number
-    savedSearchId: 56,
-  } satisfies ShowSavedSearchRequest;
+    const body = {
+        // number
+        savedSearchId: 56,
+    } satisfies ShowSavedSearchRequest;
 
-  try {
-    const data = await api.showSavedSearch(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showSavedSearch(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -342,10 +324,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **savedSearchId** | `number` |  | [Defaults to `undefined`] |
+| Name              | Type     | Description | Notes                     |
+| ----------------- | -------- | ----------- | ------------------------- |
+| **savedSearchId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -360,14 +341,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Saved search detail. |  -  |
+
+| Status code | Description          | Response headers |
+| ----------- | -------------------- | ---------------- |
+| **200**     | Saved search detail. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateSavedSearch
 
@@ -386,7 +366,7 @@ import type { UpdateSavedSearchOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -415,11 +395,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **savedSearchId** | `number` |  | [Defaults to `undefined`] |
-| **updateSavedSearchRequest** | [UpdateSavedSearchRequest](UpdateSavedSearchRequest.md) |  | |
+| Name                         | Type                                                    | Description | Notes                     |
+| ---------------------------- | ------------------------------------------------------- | ----------- | ------------------------- |
+| **savedSearchId**            | `number`                                                |             | [Defaults to `undefined`] |
+| **updateSavedSearchRequest** | [UpdateSavedSearchRequest](UpdateSavedSearchRequest.md) |             |                           |
 
 ### Return type
 
@@ -434,11 +413,10 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Saved search updated. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **200**     | Saved search updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

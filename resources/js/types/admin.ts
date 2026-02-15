@@ -1,5 +1,13 @@
-import type { CursorPaginationMeta, OffsetPaginationMeta } from '@/lib/pagination';
-import type { ApiKey, RateLimitRule, WebhookDelivery, WebhookSubscription } from '@/sdk';
+import type {
+    CursorPaginationMeta,
+    OffsetPaginationMeta,
+} from '@/lib/pagination';
+import type {
+    ApiKey,
+    RateLimitRule,
+    WebhookDelivery,
+    WebhookSubscription,
+} from '@/sdk';
 import type { SupplierDocumentType } from '@/types/sourcing';
 
 export type PermissionLevel = 'read' | 'write' | 'admin';
@@ -158,7 +166,13 @@ export interface AiModelMetricResponse {
     meta?: CursorPaginationMeta;
 }
 
-export type AiTrainingFeature = 'forecast' | 'risk' | 'rag' | 'actions' | 'workflows' | 'chat';
+export type AiTrainingFeature =
+    | 'forecast'
+    | 'risk'
+    | 'rag'
+    | 'actions'
+    | 'workflows'
+    | 'chat';
 
 export type AiTrainingStatus = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -206,7 +220,23 @@ export interface StartAiTrainingPayload {
     parameters?: Record<string, unknown>;
 }
 
-export type SupplierScrapeJobStatus = 'pending' | 'running' | 'completed' | 'failed';
+export interface UploadAiTrainingDatasetPayload {
+    companyId: number;
+    dataset: File;
+}
+
+export interface UploadAiTrainingDatasetResponse {
+    datasetUploadId: string;
+    filename: string;
+    sizeBytes: number | null;
+    storedPath?: string;
+}
+
+export type SupplierScrapeJobStatus =
+    | 'pending'
+    | 'running'
+    | 'completed'
+    | 'failed';
 
 export interface SupplierScrapeJob {
     id: string;
@@ -489,7 +519,10 @@ export interface CompaniesHouseLookupResponse {
     profile?: CompaniesHouseProfile | null;
 }
 
-export type SupplierApplicationStatusValue = 'pending' | 'approved' | 'rejected';
+export type SupplierApplicationStatusValue =
+    | 'pending'
+    | 'approved'
+    | 'rejected';
 
 export interface SupplierApplicationFilters extends Record<string, unknown> {
     status?: SupplierApplicationStatusValue | 'all' | string;

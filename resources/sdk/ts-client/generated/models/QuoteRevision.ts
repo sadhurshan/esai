@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface QuoteRevision
  */
 export interface QuoteRevision {
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteRevision
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteRevision
      */
     quoteId: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteRevision
      */
     revisionNo: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteRevision
      */
     status: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof QuoteRevision
      */
     submittedAt?: Date;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteRevision
      */
@@ -63,7 +62,8 @@ export interface QuoteRevision {
 export function instanceOfQuoteRevision(value: object): value is QuoteRevision {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('quoteId' in value) || value['quoteId'] === undefined) return false;
-    if (!('revisionNo' in value) || value['revisionNo'] === undefined) return false;
+    if (!('revisionNo' in value) || value['revisionNo'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -72,18 +72,23 @@ export function QuoteRevisionFromJSON(json: any): QuoteRevision {
     return QuoteRevisionFromJSONTyped(json, false);
 }
 
-export function QuoteRevisionFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteRevision {
+export function QuoteRevisionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): QuoteRevision {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'quoteId': json['quote_id'],
-        'revisionNo': json['revision_no'],
-        'status': json['status'],
-        'submittedAt': json['submitted_at'] == null ? undefined : (new Date(json['submitted_at'])),
-        'note': json['note'] == null ? undefined : json['note'],
+        id: json['id'],
+        quoteId: json['quote_id'],
+        revisionNo: json['revision_no'],
+        status: json['status'],
+        submittedAt:
+            json['submitted_at'] == null
+                ? undefined
+                : new Date(json['submitted_at']),
+        note: json['note'] == null ? undefined : json['note'],
     };
 }
 
@@ -91,19 +96,23 @@ export function QuoteRevisionToJSON(json: any): QuoteRevision {
     return QuoteRevisionToJSONTyped(json, false);
 }
 
-export function QuoteRevisionToJSONTyped(value?: QuoteRevision | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteRevisionToJSONTyped(
+    value?: QuoteRevision | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'quote_id': value['quoteId'],
-        'revision_no': value['revisionNo'],
-        'status': value['status'],
-        'submitted_at': value['submittedAt'] == null ? value['submittedAt'] : value['submittedAt'].toISOString(),
-        'note': value['note'],
+        id: value['id'],
+        quote_id: value['quoteId'],
+        revision_no: value['revisionNo'],
+        status: value['status'],
+        submitted_at:
+            value['submittedAt'] == null
+                ? value['submittedAt']
+                : value['submittedAt'].toISOString(),
+        note: value['note'],
     };
 }
-

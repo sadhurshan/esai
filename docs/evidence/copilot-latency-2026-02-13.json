@@ -1,0 +1,29 @@
+{
+    "generated_at": "2026-02-13T19:14:44+00:00",
+    "window": {
+        "hours": 1,
+        "from": "2026-02-13T18:14:44+00:00",
+        "to": "2026-02-13T19:14:44+00:00"
+    },
+    "patterns": [
+        "*"
+    ],
+    "overall": {
+        "count": 2,
+        "min_ms": 420,
+        "max_ms": 420,
+        "avg_ms": 420,
+        "p50_ms": 420,
+        "p95_ms": 420
+    },
+    "features": {
+        "copilot.answer": {
+            "count": 2,
+            "min_ms": 420,
+            "max_ms": 420,
+            "avg_ms": 420,
+            "p50_ms": 420,
+            "p95_ms": 420
+        }
+    }
+}

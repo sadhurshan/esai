@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface WithdrawQuoteRequest
  */
 export interface WithdrawQuoteRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof WithdrawQuoteRequest
      */
@@ -30,7 +29,9 @@ export interface WithdrawQuoteRequest {
 /**
  * Check if a given object implements the WithdrawQuoteRequest interface.
  */
-export function instanceOfWithdrawQuoteRequest(value: object): value is WithdrawQuoteRequest {
+export function instanceOfWithdrawQuoteRequest(
+    value: object,
+): value is WithdrawQuoteRequest {
     if (!('reason' in value) || value['reason'] === undefined) return false;
     return true;
 }
@@ -39,13 +40,15 @@ export function WithdrawQuoteRequestFromJSON(json: any): WithdrawQuoteRequest {
     return WithdrawQuoteRequestFromJSONTyped(json, false);
 }
 
-export function WithdrawQuoteRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): WithdrawQuoteRequest {
+export function WithdrawQuoteRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): WithdrawQuoteRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'reason': json['reason'],
+        reason: json['reason'],
     };
 }
 
@@ -53,14 +56,15 @@ export function WithdrawQuoteRequestToJSON(json: any): WithdrawQuoteRequest {
     return WithdrawQuoteRequestToJSONTyped(json, false);
 }
 
-export function WithdrawQuoteRequestToJSONTyped(value?: WithdrawQuoteRequest | null, ignoreDiscriminator: boolean = false): any {
+export function WithdrawQuoteRequestToJSONTyped(
+    value?: WithdrawQuoteRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'reason': value['reason'],
+        reason: value['reason'],
     };
 }
-

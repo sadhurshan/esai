@@ -200,8 +200,15 @@ class AuthResponseFactory
 
         $planFlags = $this->planFeatureFlags($company);
         $customFlags = $this->transformFeatureFlags($company->featureFlags);
+        $flags = array_merge($planFlags, $customFlags);
 
-        return array_merge($planFlags, $customFlags);
+        if (config('ai.enabled', false)) {
+            $flags['ai.enabled'] = true;
+            $flags['ai.copilot'] = true;
+            $flags['ai_copilot'] = true;
+        }
+
+        return $flags;
     }
 
     /**

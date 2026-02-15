@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateGrnRequestLinesInner
  */
 export interface CreateGrnRequestLinesInner {
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateGrnRequestLinesInner
      */
     purchaseOrderLineId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateGrnRequestLinesInner
      */
     quantityReceived: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateGrnRequestLinesInner
      */
     quantityAccepted?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreateGrnRequestLinesInner
      */
     quantityRejected?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateGrnRequestLinesInner
      */
@@ -54,46 +53,72 @@ export interface CreateGrnRequestLinesInner {
 /**
  * Check if a given object implements the CreateGrnRequestLinesInner interface.
  */
-export function instanceOfCreateGrnRequestLinesInner(value: object): value is CreateGrnRequestLinesInner {
-    if (!('purchaseOrderLineId' in value) || value['purchaseOrderLineId'] === undefined) return false;
-    if (!('quantityReceived' in value) || value['quantityReceived'] === undefined) return false;
+export function instanceOfCreateGrnRequestLinesInner(
+    value: object,
+): value is CreateGrnRequestLinesInner {
+    if (
+        !('purchaseOrderLineId' in value) ||
+        value['purchaseOrderLineId'] === undefined
+    )
+        return false;
+    if (
+        !('quantityReceived' in value) ||
+        value['quantityReceived'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function CreateGrnRequestLinesInnerFromJSON(json: any): CreateGrnRequestLinesInner {
+export function CreateGrnRequestLinesInnerFromJSON(
+    json: any,
+): CreateGrnRequestLinesInner {
     return CreateGrnRequestLinesInnerFromJSONTyped(json, false);
 }
 
-export function CreateGrnRequestLinesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateGrnRequestLinesInner {
+export function CreateGrnRequestLinesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateGrnRequestLinesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'purchaseOrderLineId': json['purchase_order_line_id'],
-        'quantityReceived': json['quantity_received'],
-        'quantityAccepted': json['quantity_accepted'] == null ? undefined : json['quantity_accepted'],
-        'quantityRejected': json['quantity_rejected'] == null ? undefined : json['quantity_rejected'],
-        'rejectionReason': json['rejection_reason'] == null ? undefined : json['rejection_reason'],
+        purchaseOrderLineId: json['purchase_order_line_id'],
+        quantityReceived: json['quantity_received'],
+        quantityAccepted:
+            json['quantity_accepted'] == null
+                ? undefined
+                : json['quantity_accepted'],
+        quantityRejected:
+            json['quantity_rejected'] == null
+                ? undefined
+                : json['quantity_rejected'],
+        rejectionReason:
+            json['rejection_reason'] == null
+                ? undefined
+                : json['rejection_reason'],
     };
 }
 
-export function CreateGrnRequestLinesInnerToJSON(json: any): CreateGrnRequestLinesInner {
+export function CreateGrnRequestLinesInnerToJSON(
+    json: any,
+): CreateGrnRequestLinesInner {
     return CreateGrnRequestLinesInnerToJSONTyped(json, false);
 }
 
-export function CreateGrnRequestLinesInnerToJSONTyped(value?: CreateGrnRequestLinesInner | null, ignoreDiscriminator: boolean = false): any {
+export function CreateGrnRequestLinesInnerToJSONTyped(
+    value?: CreateGrnRequestLinesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'purchase_order_line_id': value['purchaseOrderLineId'],
-        'quantity_received': value['quantityReceived'],
-        'quantity_accepted': value['quantityAccepted'],
-        'quantity_rejected': value['quantityRejected'],
-        'rejection_reason': value['rejectionReason'],
+        purchase_order_line_id: value['purchaseOrderLineId'],
+        quantity_received: value['quantityReceived'],
+        quantity_accepted: value['quantityAccepted'],
+        quantity_rejected: value['quantityRejected'],
+        rejection_reason: value['rejectionReason'],
     };
 }
-

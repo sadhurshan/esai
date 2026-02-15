@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ConvertQuantityRequest
  */
 export interface ConvertQuantityRequest {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ConvertQuantityRequest
      */
     qty: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ConvertQuantityRequest
      */
     fromCode: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ConvertQuantityRequest
      */
@@ -42,43 +41,52 @@ export interface ConvertQuantityRequest {
 /**
  * Check if a given object implements the ConvertQuantityRequest interface.
  */
-export function instanceOfConvertQuantityRequest(value: object): value is ConvertQuantityRequest {
+export function instanceOfConvertQuantityRequest(
+    value: object,
+): value is ConvertQuantityRequest {
     if (!('qty' in value) || value['qty'] === undefined) return false;
     if (!('fromCode' in value) || value['fromCode'] === undefined) return false;
     if (!('toCode' in value) || value['toCode'] === undefined) return false;
     return true;
 }
 
-export function ConvertQuantityRequestFromJSON(json: any): ConvertQuantityRequest {
+export function ConvertQuantityRequestFromJSON(
+    json: any,
+): ConvertQuantityRequest {
     return ConvertQuantityRequestFromJSONTyped(json, false);
 }
 
-export function ConvertQuantityRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): ConvertQuantityRequest {
+export function ConvertQuantityRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ConvertQuantityRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'qty': json['qty'],
-        'fromCode': json['from_code'],
-        'toCode': json['to_code'],
+        qty: json['qty'],
+        fromCode: json['from_code'],
+        toCode: json['to_code'],
     };
 }
 
-export function ConvertQuantityRequestToJSON(json: any): ConvertQuantityRequest {
+export function ConvertQuantityRequestToJSON(
+    json: any,
+): ConvertQuantityRequest {
     return ConvertQuantityRequestToJSONTyped(json, false);
 }
 
-export function ConvertQuantityRequestToJSONTyped(value?: ConvertQuantityRequest | null, ignoreDiscriminator: boolean = false): any {
+export function ConvertQuantityRequestToJSONTyped(
+    value?: ConvertQuantityRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'qty': value['qty'],
-        'from_code': value['fromCode'],
-        'to_code': value['toCode'],
+        qty: value['qty'],
+        from_code: value['fromCode'],
+        to_code: value['toCode'],
     };
 }
-

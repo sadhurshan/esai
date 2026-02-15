@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
+import type { PurchaseOrder } from './PurchaseOrder';
+import { PurchaseOrderFromJSON, PurchaseOrderToJSON } from './PurchaseOrder';
 import type { PurchaseOrderDelivery } from './PurchaseOrderDelivery';
 import {
     PurchaseOrderDeliveryFromJSON,
-    PurchaseOrderDeliveryFromJSONTyped,
     PurchaseOrderDeliveryToJSON,
-    PurchaseOrderDeliveryToJSONTyped,
 } from './PurchaseOrderDelivery';
-import type { PurchaseOrder } from './PurchaseOrder';
-import {
-    PurchaseOrderFromJSON,
-    PurchaseOrderFromJSONTyped,
-    PurchaseOrderToJSON,
-    PurchaseOrderToJSONTyped,
-} from './PurchaseOrder';
 
 /**
- * 
+ *
  * @export
  * @interface SendPurchaseOrder200ResponseAllOfData
  */
 export interface SendPurchaseOrder200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {PurchaseOrder}
      * @memberof SendPurchaseOrder200ResponseAllOfData
      */
     purchaseOrder?: PurchaseOrder;
     /**
-     * 
+     *
      * @type {PurchaseOrderDelivery}
      * @memberof SendPurchaseOrder200ResponseAllOfData
      */
@@ -51,38 +43,53 @@ export interface SendPurchaseOrder200ResponseAllOfData {
 /**
  * Check if a given object implements the SendPurchaseOrder200ResponseAllOfData interface.
  */
-export function instanceOfSendPurchaseOrder200ResponseAllOfData(value: object): value is SendPurchaseOrder200ResponseAllOfData {
+export function instanceOfSendPurchaseOrder200ResponseAllOfData(
+    value: object,
+): value is SendPurchaseOrder200ResponseAllOfData {
     return true;
 }
 
-export function SendPurchaseOrder200ResponseAllOfDataFromJSON(json: any): SendPurchaseOrder200ResponseAllOfData {
+export function SendPurchaseOrder200ResponseAllOfDataFromJSON(
+    json: any,
+): SendPurchaseOrder200ResponseAllOfData {
     return SendPurchaseOrder200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function SendPurchaseOrder200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): SendPurchaseOrder200ResponseAllOfData {
+export function SendPurchaseOrder200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SendPurchaseOrder200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'purchaseOrder': json['purchase_order'] == null ? undefined : PurchaseOrderFromJSON(json['purchase_order']),
-        'delivery': json['delivery'] == null ? undefined : PurchaseOrderDeliveryFromJSON(json['delivery']),
+        purchaseOrder:
+            json['purchase_order'] == null
+                ? undefined
+                : PurchaseOrderFromJSON(json['purchase_order']),
+        delivery:
+            json['delivery'] == null
+                ? undefined
+                : PurchaseOrderDeliveryFromJSON(json['delivery']),
     };
 }
 
-export function SendPurchaseOrder200ResponseAllOfDataToJSON(json: any): SendPurchaseOrder200ResponseAllOfData {
+export function SendPurchaseOrder200ResponseAllOfDataToJSON(
+    json: any,
+): SendPurchaseOrder200ResponseAllOfData {
     return SendPurchaseOrder200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function SendPurchaseOrder200ResponseAllOfDataToJSONTyped(value?: SendPurchaseOrder200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function SendPurchaseOrder200ResponseAllOfDataToJSONTyped(
+    value?: SendPurchaseOrder200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'purchase_order': PurchaseOrderToJSON(value['purchaseOrder']),
-        'delivery': PurchaseOrderDeliveryToJSON(value['delivery']),
+        purchase_order: PurchaseOrderToJSON(value['purchaseOrder']),
+        delivery: PurchaseOrderDeliveryToJSON(value['delivery']),
     };
 }
-

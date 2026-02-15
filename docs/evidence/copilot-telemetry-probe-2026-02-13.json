@@ -1,0 +1,25 @@
+{
+    "generated_at": "2026-02-13T12:22:15+00:00",
+    "probe": {
+        "user_id": 1,
+        "company_id": 3,
+        "thread_id": 22,
+        "send_status": "error",
+        "send_error": "AI temporarily unavailable. Please retry shortly."
+    },
+    "result": {
+        "event_found": true,
+        "event_id": 1005,
+        "event_status": "error",
+        "latency_ms": 2,
+        "telemetry_present": true,
+        "latency_breakdown_ms": {
+            "operation": "ai_chat_message_send",
+            "mode": "sync",
+            "total_ms": 2,
+            "provider_ms": 2,
+            "app_ms": 0
+        },
+        "created_at": "2026-02-13T12:22:15+00:00"
+    }
+}

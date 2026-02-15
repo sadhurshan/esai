@@ -7,6 +7,10 @@ Tenant‑scoped by `company_id`.
 
 **Analytics Aggregates:** UsageSnapshot (company_id, date, rfqs_count, quotes_count, pos_count, storage_used_mb, soft deletes) populated nightly via `ComputeTenantUsageJob` so admin usage cards and plan enforcement rely on consistent historical data.
 
+**Pricing Signals:** PricingObservation (company_id, supplier_id, rfq_id, rfq_item_id, quote_id, quote_item_id, revision_no, process, material, finish, region, quantity, unit_price_minor, currency, observed_at, source_type, meta, soft deletes).
+
+**Document Intelligence:** AiDocumentExtraction (company_id, document_id, document_version, status, extracted_json, gdt_flags_json, similar_parts_json, extracted_at, last_error, soft deletes).
+
 **Enums (examples):** user.role, supplier.status, rfq.status, purchase_order.status, order.status, invoice.status, invoice_match.result.
 
 **Indexes:** FULLTEXT suppliers(name,capabilities), rfqs(title); composite per table; always index FKs. Soft delete business entities.

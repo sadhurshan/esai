@@ -12,12 +12,18 @@ interface LazySupplierRiskBadgeProps extends SupplierRiskBadgeProps {
     fallback?: ReactNode;
 }
 
-export function LazySupplierRiskBadge({ fallback, ...props }: LazySupplierRiskBadgeProps) {
+export function LazySupplierRiskBadge({
+    fallback,
+    ...props
+}: LazySupplierRiskBadgeProps) {
     return (
         <Suspense
             fallback={
                 fallback ?? (
-                    <Badge variant="outline" className="text-[11px] text-muted-foreground">
+                    <Badge
+                        variant="outline"
+                        className="text-[11px] text-muted-foreground"
+                    >
                         AI risk
                     </Badge>
                 )

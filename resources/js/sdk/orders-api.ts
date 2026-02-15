@@ -1,19 +1,22 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
-import { parseEnvelope, sanitizeQuery } from './api-helpers';
 import { toCursorMeta } from '@/lib/pagination';
 import type {
     AckOrderPayload,
     BuyerOrderFilters,
-    CursorPaginated,
     CreateShipmentPayload,
+    CursorPaginated,
     SalesOrderDetail,
     SalesOrderSummary,
     SupplierOrderFilters,
     UpdateShipmentStatusPayload,
 } from '@/types/orders';
+import { parseEnvelope, sanitizeQuery } from './api-helpers';
 
 interface PaginatedEnvelope<T> {
     items?: T[];
@@ -49,7 +52,8 @@ export class OrdersAppApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<SalesOrderSummary>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<SalesOrderSummary>>(response);
 
         return {
             items: data.items ?? data.data ?? [],
@@ -80,7 +84,8 @@ export class OrdersAppApi extends BaseAPI {
             initOverrides,
         );
 
-        const data = await parseEnvelope<PaginatedEnvelope<SalesOrderSummary>>(response);
+        const data =
+            await parseEnvelope<PaginatedEnvelope<SalesOrderSummary>>(response);
 
         return {
             items: data.items ?? data.data ?? [],

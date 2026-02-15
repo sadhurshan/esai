@@ -1,10 +1,18 @@
-import axios, { AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
+import axios, {
+    AxiosError,
+    type AxiosRequestConfig,
+    type InternalAxiosRequestConfig,
+} from 'axios';
 
 export class ApiError extends Error {
     status?: number;
     errors?: Record<string, string[]>;
 
-    constructor(message: string, status?: number, errors?: Record<string, string[]>) {
+    constructor(
+        message: string,
+        status?: number,
+        errors?: Record<string, string[]>,
+    ) {
         super(message);
         this.name = 'ApiError';
         this.status = status;
@@ -34,7 +42,9 @@ const mergeMeta = (
     payloadMeta: unknown,
     envelopeMeta: Record<string, unknown> | null | undefined,
 ): Record<string, unknown> | undefined => {
-    const base: Record<string, unknown> = isRecord(payloadMeta) ? { ...payloadMeta } : {};
+    const base: Record<string, unknown> = isRecord(payloadMeta)
+        ? { ...payloadMeta }
+        : {};
 
     if (envelopeMeta && typeof envelopeMeta === 'object') {
         const cursor = envelopeMeta.cursor;
@@ -62,7 +72,9 @@ const mergeMeta = (
             }
         }
 
-        const existingEnvelope = isRecord(base.envelope) ? base.envelope : undefined;
+        const existingEnvelope = isRecord(base.envelope)
+            ? base.envelope
+            : undefined;
 
         base.envelope = {
             ...(existingEnvelope ?? {}),
@@ -85,10 +97,14 @@ const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
 const CSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 let csrfCookiePromise: Promise<void> | null = null;
 
-const escapeCookieName = (name: string): string => name.replace(/([.$?*|{}()\[\]\/+^])/g, '\\$1');
+const escapeCookieName = (name: string): string =>
+    name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const readCookie = (name: string): string | undefined => {
-    if (typeof document === 'undefined' || typeof document.cookie !== 'string') {
+    if (
+        typeof document === 'undefined' ||
+        typeof document.cookie !== 'string'
+    ) {
         return undefined;
     }
 
@@ -133,7 +149,9 @@ const ensureCsrfCookie = async (): Promise<void> => {
     await csrfCookiePromise;
 };
 
-const attachCsrfHeader = <TConfig extends AxiosRequestConfig>(config: TConfig): TConfig => {
+const attachCsrfHeader = <TConfig extends AxiosRequestConfig>(
+    config: TConfig,
+): TConfig => {
     const token = readCookie(CSRF_COOKIE_NAME);
 
     if (!token) {
@@ -153,7 +171,9 @@ const attachCsrfHeader = <TConfig extends AxiosRequestConfig>(config: TConfig): 
     return config;
 };
 
-const attachActivePersonaHeader = <TConfig extends AxiosRequestConfig>(config: TConfig): TConfig => {
+const attachActivePersonaHeader = <TConfig extends AxiosRequestConfig>(
+    config: TConfig,
+): TConfig => {
     const personaKey = readStoredActivePersonaKey();
 
     if (!personaKey) {
@@ -171,7 +191,10 @@ const attachActivePersonaHeader = <TConfig extends AxiosRequestConfig>(config: T
 };
 
 function readStoredActivePersonaKey(): string | null {
-    if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+    if (
+        typeof window === 'undefined' ||
+        typeof window.localStorage === 'undefined'
+    ) {
         return null;
     }
 
@@ -229,7 +252,11 @@ api.interceptors.response.use(
                 return payload;
             }
 
-            if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+            if (
+                payload &&
+                typeof payload === 'object' &&
+                !Array.isArray(payload)
+            ) {
                 const payloadRecord = payload as Record<string, unknown>;
                 const mergedMeta = mergeMeta(payloadRecord.meta, envelope.meta);
 
@@ -255,7 +282,11 @@ api.interceptors.response.use(
             return payload;
         }
 
-        throw new ApiError(envelope.message ?? 'Request failed', response.status, envelope.errors ?? undefined);
+        throw new ApiError(
+            envelope.message ?? 'Request failed',
+            response.status,
+            envelope.errors ?? undefined,
+        );
     },
     (error: AxiosError<Envelope<unknown>>) => {
         if (error.response) {
@@ -288,11 +319,16 @@ export function buildQuery(params: Record<string, unknown> = {}): string {
         }
 
         if (typeof value === 'object') {
-            Object.entries(value as Record<string, unknown>).forEach(([nestedKey, nestedValue]) => {
-                if (nestedValue !== undefined && nestedValue !== null) {
-                    searchParams.append(`${key}[${nestedKey}]`, String(nestedValue));
-                }
-            });
+            Object.entries(value as Record<string, unknown>).forEach(
+                ([nestedKey, nestedValue]) => {
+                    if (nestedValue !== undefined && nestedValue !== null) {
+                        searchParams.append(
+                            `${key}[${nestedKey}]`,
+                            String(nestedValue),
+                        );
+                    }
+                },
+            );
             return;
         }
 
@@ -317,14 +353,20 @@ export function extractErrorCode(error?: ApiError | null): string | null {
     }
 
     if (Array.isArray(candidate)) {
-        const match = candidate.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+        const match = candidate.find(
+            (entry): entry is string =>
+                typeof entry === 'string' && entry.trim().length > 0,
+        );
         return match ?? null;
     }
 
     return null;
 }
 
-export function isForbiddenError(error?: ApiError | null, expectedCode?: string): boolean {
+export function isForbiddenError(
+    error?: ApiError | null,
+    expectedCode?: string,
+): boolean {
     if (!error || error.status !== 403) {
         return false;
     }

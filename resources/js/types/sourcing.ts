@@ -5,8 +5,25 @@ export type Paged<T> = {
         per_page: number;
         current_page: number;
         last_page: number;
+        costBandEstimate?: CostBandEstimate | null;
     };
 };
+
+export interface CostBandEstimate {
+    status: 'estimated' | 'insufficient_data';
+    minMinor?: number | null;
+    maxMinor?: number | null;
+    currency?: string | null;
+    sampleSize: number;
+    periodMonths: number;
+    matchedOn: {
+        process?: string | null;
+        material?: string | null;
+        finish?: string | null;
+        region?: string | null;
+    };
+    explanation: string;
+}
 
 export interface Supplier {
     id: number;
@@ -489,7 +506,11 @@ export interface MatchCandidate {
     invoicedTotalMinor?: number;
     varianceMinor?: number;
     status: 'clean' | 'variance' | 'pending' | 'resolved';
-    invoices?: Array<{ id: string; invoiceNumber?: string | null; totalMinor?: number }>;
+    invoices?: Array<{
+        id: string;
+        invoiceNumber?: string | null;
+        totalMinor?: number;
+    }>;
     grns?: GoodsReceiptNoteSummary[];
     lines: MatchCandidateLine[];
     lastActivityAt?: string | null;
@@ -523,7 +544,13 @@ export interface CreditNoteLine {
 export interface CreditNoteSummary {
     id: string;
     creditNumber: string;
-    status: 'draft' | 'pending_review' | 'issued' | 'approved' | 'rejected' | string;
+    status:
+        | 'draft'
+        | 'pending_review'
+        | 'issued'
+        | 'approved'
+        | 'rejected'
+        | string;
     supplierName?: string | null;
     supplierId?: number | null;
     invoiceId?: number;

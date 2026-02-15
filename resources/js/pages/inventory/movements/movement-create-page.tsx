@@ -1,38 +1,52 @@
-import { useEffect, useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
-import { Controller, useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarClock, Loader2, ShieldAlert } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
+import { EmptyState } from '@/components/empty-state';
+import type { MovementItemOption } from '@/components/inventory/movement-line-editor';
+import { MovementLineEditor } from '@/components/inventory/movement-line-editor';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { MovementLineEditor } from '@/components/inventory/movement-line-editor';
+import { useCreateMovement } from '@/hooks/api/inventory/use-create-movement';
 import { useItems } from '@/hooks/api/inventory/use-items';
 import { useLocations } from '@/hooks/api/inventory/use-locations';
-import { useCreateMovement } from '@/hooks/api/inventory/use-create-movement';
-import type { MovementItemOption } from '@/components/inventory/movement-line-editor';
-import type { MovementType } from '@/sdk';
-import { EmptyState } from '@/components/empty-state';
-import { Boxes } from 'lucide-react';
-import { publishToast } from '@/components/ui/use-toast';
 import { validateMovementStock } from '@/lib/inventory-stock-validations';
+import type { MovementType } from '@/sdk';
 import type { InventoryItemSummary } from '@/types/inventory';
+import { Boxes } from 'lucide-react';
 
 const movementSchema = z.object({
     type: z.enum(['RECEIPT', 'ISSUE', 'TRANSFER', 'ADJUST']),
     movedAt: z.string().min(1, 'Movement date is required'),
-    referenceSource: z.enum(['PO', 'SO', 'MANUAL']).optional().or(z.literal('')).nullable(),
+    referenceSource: z
+        .enum(['PO', 'SO', 'MANUAL'])
+        .optional()
+        .or(z.literal(''))
+        .nullable(),
     referenceId: z.string().optional().nullable(),
-    notes: z.string().max(500, 'Notes must be 500 characters or fewer').optional().nullable(),
+    notes: z
+        .string()
+        .max(500, 'Notes must be 500 characters or fewer')
+        .optional()
+        .nullable(),
     lines: z
         .array(
             z.object({
@@ -66,7 +80,8 @@ function defaultDateTimeLocal(): string {
 export function MovementCreatePage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const inventoryEnabled = hasFeature('inventory_enabled');
 
     const form = useForm<MovementFormValues>({
@@ -113,10 +128,19 @@ export function MovementCreatePage() {
         return entries;
     }, [itemsQuery.data?.items]);
 
-    const locationOptions = useMemo(() => locationsQuery.data?.items ?? [], [locationsQuery.data?.items]);
-    const locationMap = useMemo(() => new Map(locationOptions.map((location) => [location.id, location])), [locationOptions]);
+    const locationOptions = useMemo(
+        () => locationsQuery.data?.items ?? [],
+        [locationsQuery.data?.items],
+    );
+    const locationMap = useMemo(
+        () =>
+            new Map(locationOptions.map((location) => [location.id, location])),
+        [locationOptions],
+    );
     const defaultReceivingLocationId = useMemo(
-        () => locationOptions.find((location) => location.isDefaultReceiving)?.id ?? null,
+        () =>
+            locationOptions.find((location) => location.isDefaultReceiving)
+                ?.id ?? null,
         [locationOptions],
     );
     const itemSummaryLookup = useMemo<Record<string, InventoryItemSummary>>(
@@ -140,7 +164,11 @@ export function MovementCreatePage() {
 
         currentLines.forEach((line, index) => {
             if (!line?.toLocationId) {
-                form.setValue(`lines.${index}.toLocationId`, defaultReceivingLocationId, { shouldDirty: false });
+                form.setValue(
+                    `lines.${index}.toLocationId`,
+                    defaultReceivingLocationId,
+                    { shouldDirty: false },
+                );
             }
         });
     }, [defaultReceivingLocationId, movementType, form]);
@@ -153,7 +181,8 @@ export function MovementCreatePage() {
                 (line) => !line.fromLocationId && !line.toLocationId,
             );
             if (missingLocationIndex >= 0) {
-                const errorPath = `lines.${missingLocationIndex}.fromLocationId` as const;
+                const errorPath =
+                    `lines.${missingLocationIndex}.fromLocationId` as const;
                 form.setError(errorPath, {
                     type: 'manual',
                     message: 'Select at least one location for an adjustment.',
@@ -161,7 +190,8 @@ export function MovementCreatePage() {
                 publishToast({
                     variant: 'destructive',
                     title: 'Location required',
-                    description: 'Adjustments must reference the location being increased or decreased.',
+                    description:
+                        'Adjustments must reference the location being increased or decreased.',
                 });
                 return;
             }
@@ -185,7 +215,8 @@ export function MovementCreatePage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Insufficient stock',
-                description: 'One or more lines exceed the available on-hand quantity.',
+                description:
+                    'One or more lines exceed the available on-hand quantity.',
             });
             return;
         }
@@ -230,7 +261,9 @@ export function MovementCreatePage() {
                     description="Upgrade your plan to post stock receipts, issues, transfers, and adjustments."
                     icon={<Boxes className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -256,30 +289,51 @@ export function MovementCreatePage() {
                                 name="type"
                                 control={form.control}
                                 render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="RECEIPT">Receipt</SelectItem>
-                                            <SelectItem value="ISSUE">Issue</SelectItem>
-                                            <SelectItem value="TRANSFER">Transfer</SelectItem>
-                                            <SelectItem value="ADJUST">Adjust</SelectItem>
+                                            <SelectItem value="RECEIPT">
+                                                Receipt
+                                            </SelectItem>
+                                            <SelectItem value="ISSUE">
+                                                Issue
+                                            </SelectItem>
+                                            <SelectItem value="TRANSFER">
+                                                Transfer
+                                            </SelectItem>
+                                            <SelectItem value="ADJUST">
+                                                Adjust
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
                             {form.formState.errors.type ? (
-                                <p className="text-xs text-destructive">{form.formState.errors.type.message}</p>
+                                <p className="text-xs text-destructive">
+                                    {form.formState.errors.type.message}
+                                </p>
                             ) : null}
                         </div>
                         <div className="space-y-2">
                             <Label>Movement date</Label>
-                            <Input type="datetime-local" {...form.register('movedAt')} />
+                            <Input
+                                type="datetime-local"
+                                {...form.register('movedAt')}
+                            />
                             {form.formState.errors.movedAt ? (
-                                <p className="text-xs text-destructive">{form.formState.errors.movedAt.message}</p>
+                                <p className="text-xs text-destructive">
+                                    {form.formState.errors.movedAt.message}
+                                </p>
                             ) : (
-                                <p className="text-xs text-muted-foreground">Local timezone. Converted to UTC on submission.</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Local timezone. Converted to UTC on
+                                    submission.
+                                </p>
                             )}
                         </div>
                         <div className="space-y-2">
@@ -289,16 +343,31 @@ export function MovementCreatePage() {
                                 control={form.control}
                                 render={({ field }) => (
                                     <Select
-                                        value={field.value ?? NO_REFERENCE_VALUE}
-                                        onValueChange={(next) => field.onChange(next === NO_REFERENCE_VALUE ? null : next)}
+                                        value={
+                                            field.value ?? NO_REFERENCE_VALUE
+                                        }
+                                        onValueChange={(next) =>
+                                            field.onChange(
+                                                next === NO_REFERENCE_VALUE
+                                                    ? null
+                                                    : next,
+                                            )
+                                        }
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Optional" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value={NO_REFERENCE_VALUE}>None</SelectItem>
+                                            <SelectItem
+                                                value={NO_REFERENCE_VALUE}
+                                            >
+                                                None
+                                            </SelectItem>
                                             {REFERENCES.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
@@ -309,13 +378,22 @@ export function MovementCreatePage() {
                         </div>
                         <div className="space-y-2">
                             <Label>Reference ID</Label>
-                            <Input placeholder="PO-1001" {...form.register('referenceId')} />
+                            <Input
+                                placeholder="PO-1001"
+                                {...form.register('referenceId')}
+                            />
                         </div>
-                        <div className="md:col-span-2 space-y-2">
+                        <div className="space-y-2 md:col-span-2">
                             <Label>Notes</Label>
-                            <Textarea rows={3} placeholder="Optional context" {...form.register('notes')} />
+                            <Textarea
+                                rows={3}
+                                placeholder="Optional context"
+                                {...form.register('notes')}
+                            />
                             {form.formState.errors.notes ? (
-                                <p className="text-xs text-destructive">{form.formState.errors.notes.message}</p>
+                                <p className="text-xs text-destructive">
+                                    {form.formState.errors.notes.message}
+                                </p>
                             ) : null}
                         </div>
                     </CardContent>
@@ -336,11 +414,15 @@ export function MovementCreatePage() {
                             defaultDestinationId={defaultReceivingLocationId}
                         />
                         {form.formState.errors.lines ? (
-                            <p className="text-sm text-destructive">{form.formState.errors.lines.message as string}</p>
+                            <p className="text-sm text-destructive">
+                                {form.formState.errors.lines.message as string}
+                            </p>
                         ) : null}
                         <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
                             <div className="flex items-center gap-2 font-medium">
-                                <ShieldAlert className="h-4 w-4" /> Posting adjustments may bypass negative-stock protections.
+                                <ShieldAlert className="h-4 w-4" /> Posting
+                                adjustments may bypass negative-stock
+                                protections.
                             </div>
                             <p>Verify all quantities before submitting.</p>
                         </div>
@@ -348,7 +430,11 @@ export function MovementCreatePage() {
                 </Card>
 
                 <div className="flex flex-wrap items-center justify-end gap-3">
-                    <Button type="button" variant="ghost" onClick={() => navigate('/app/inventory/movements')}>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => navigate('/app/inventory/movements')}
+                    >
                         Cancel
                     </Button>
                     <Button type="submit" disabled={createMovement.isPending}>
@@ -357,7 +443,9 @@ export function MovementCreatePage() {
                         ) : (
                             <CalendarClock className="mr-2 h-4 w-4" />
                         )}
-                        {createMovement.isPending ? 'Posting…' : 'Post movement'}
+                        {createMovement.isPending
+                            ? 'Posting…'
+                            : 'Post movement'}
                     </Button>
                 </div>
             </form>

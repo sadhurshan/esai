@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -12,7 +16,11 @@ interface UseAiChatMessagesOptions {
 const DISABLED_THREAD_KEY = '__no_thread__';
 
 const unwrap = <T>(payload: T | { data: T }): T => {
-    if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
+    if (
+        payload &&
+        typeof payload === 'object' &&
+        'data' in (payload as Record<string, unknown>)
+    ) {
         return (payload as { data: T }).data;
     }
 
@@ -36,7 +44,9 @@ export function useAiChatMessages(
             }
 
             const query = buildQuery({ limit });
-            const response = await api.get<AiChatThreadResponse>(`/v1/ai/chat/threads/${threadId}${query}`);
+            const response = await api.get<AiChatThreadResponse>(
+                `/v1/ai/chat/threads/${threadId}${query}`,
+            );
             return unwrap(response);
         },
         select: (response) => response.thread,

@@ -30,9 +30,18 @@ WORKFLOW_INTENTS = {"start_workflow"}
 KEYWORD_RULES: Dict[ChatIntent, List[str]] = {
     "rfq_draft": [
         "draft rfq",
+        "draft a rfq",
+        "draft an rfq",
+        "draft the rfq",
+        "draft request for quote",
+        "draft a request for quote",
         "create rfq",
+        "create a rfq",
+        "create an rfq",
         "new rfq",
         "prepare rfq",
+        "prepare a rfq",
+        "prepare an rfq",
         "start rfq",
         "request for quote draft",
     ],

@@ -1,6 +1,64 @@
 import { defineConfig, devices } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+
+function loadDotEnv() {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (!fs.existsSync(envPath)) {
+        return;
+    }
+
+    const content = fs.readFileSync(envPath, 'utf8');
+    for (const rawLine of content.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (line === '' || line.startsWith('#')) {
+            continue;
+        }
+
+        const separatorIndex = line.indexOf('=');
+        if (separatorIndex <= 0) {
+            continue;
+        }
+
+        const key = line.slice(0, separatorIndex).trim();
+        let value = line.slice(separatorIndex + 1).trim();
+
+        if (
+            (value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))
+        ) {
+            value = value.slice(1, -1);
+        }
+
+        if (process.env[key] === undefined) {
+            process.env[key] = value;
+        }
+    }
+}
+
+loadDotEnv();
+
+function normalizeViteHotFile() {
+    const hotPath = path.resolve(process.cwd(), 'public', 'hot');
+    if (!fs.existsSync(hotPath)) {
+        return;
+    }
+
+    const current = fs.readFileSync(hotPath, 'utf8').trim();
+    const normalized = current.replace('http://[::1]:5173', 'http://127.0.0.1:5173');
+    if (normalized !== current) {
+        fs.writeFileSync(hotPath, `${normalized}\n`, 'utf8');
+    }
+}
+
+normalizeViteHotFile();
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8000';
+process.env.VITE_API_BASE_URL = process.env.VITE_API_BASE_URL ?? baseURL;
+const reuseExistingServer =
+    process.env.PLAYWRIGHT_REUSE_SERVER === 'false'
+        ? false
+        : !process.env.CI;
 
 export default defineConfig({
     testDir: 'tests/e2e',
@@ -34,7 +92,7 @@ export default defineConfig({
     webServer: {
         command: process.env.PLAYWRIGHT_WEB_SERVER ?? 'npm run dev:e2e',
         url: baseURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer,
         timeout: 120000,
     },
 });

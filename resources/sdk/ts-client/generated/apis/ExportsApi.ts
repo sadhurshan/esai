@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,24 +12,17 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  CreateExportRequest201Response,
-  CreateExportRequestRequest,
-  ListExportRequests200Response,
+    CreateExportRequest201Response,
+    CreateExportRequestRequest,
+    ListExportRequests200Response,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     CreateExportRequest201ResponseFromJSON,
-    CreateExportRequest201ResponseToJSON,
-    CreateExportRequestRequestFromJSON,
     CreateExportRequestRequestToJSON,
     ListExportRequests200ResponseFromJSON,
-    ListExportRequests200ResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface CreateExportRequestOperationRequest {
     createExportRequestRequest: CreateExportRequestRequest;
@@ -51,88 +44,113 @@ export interface ShowExportRequestRequest {
 
 /**
  * ExportsApi - interface
- * 
+ *
  * @export
  * @interface ExportsApiInterface
  */
 export interface ExportsApiInterface {
     /**
-     * 
+     *
      * @summary Queue export request
-     * @param {CreateExportRequestRequest} createExportRequestRequest 
+     * @param {CreateExportRequestRequest} createExportRequestRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ExportsApiInterface
      */
-    createExportRequestRaw(requestParameters: CreateExportRequestOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateExportRequest201Response>>;
+    createExportRequestRaw(
+        requestParameters: CreateExportRequestOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateExportRequest201Response>>;
 
     /**
      * Queue export request
      */
-    createExportRequest(requestParameters: CreateExportRequestOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateExportRequest201Response>;
+    createExportRequest(
+        requestParameters: CreateExportRequestOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateExportRequest201Response>;
 
     /**
-     * 
+     *
      * @summary Download export artifact
-     * @param {string} signature 
-     * @param {number} exportRequestId 
+     * @param {string} signature
+     * @param {number} exportRequestId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ExportsApiInterface
      */
-    downloadExportRaw(requestParameters: DownloadExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>>;
+    downloadExportRaw(
+        requestParameters: DownloadExportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>>;
 
     /**
      * Download export artifact
      */
-    downloadExport(requestParameters: DownloadExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob>;
+    downloadExport(
+        requestParameters: DownloadExportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob>;
 
     /**
-     * 
+     *
      * @summary List export requests
-     * @param {number} [page] 
-     * @param {number} [perPage] 
+     * @param {number} [page]
+     * @param {number} [perPage]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ExportsApiInterface
      */
-    listExportRequestsRaw(requestParameters: ListExportRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListExportRequests200Response>>;
+    listExportRequestsRaw(
+        requestParameters: ListExportRequestsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListExportRequests200Response>>;
 
     /**
      * List export requests
      */
-    listExportRequests(requestParameters: ListExportRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListExportRequests200Response>;
+    listExportRequests(
+        requestParameters: ListExportRequestsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListExportRequests200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve export request
-     * @param {number} exportRequestId 
+     * @param {number} exportRequestId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ExportsApiInterface
      */
-    showExportRequestRaw(requestParameters: ShowExportRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateExportRequest201Response>>;
+    showExportRequestRaw(
+        requestParameters: ShowExportRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateExportRequest201Response>>;
 
     /**
      * Retrieve export request
      */
-    showExportRequest(requestParameters: ShowExportRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateExportRequest201Response>;
-
+    showExportRequest(
+        requestParameters: ShowExportRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateExportRequest201Response>;
 }
 
 /**
- * 
+ *
  */
 export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
-
     /**
      * Queue export request
      */
-    async createExportRequestRaw(requestParameters: CreateExportRequestOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateExportRequest201Response>> {
+    async createExportRequestRaw(
+        requestParameters: CreateExportRequestOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateExportRequest201Response>> {
         if (requestParameters['createExportRequestRequest'] == null) {
             throw new runtime.RequiredError(
                 'createExportRequestRequest',
-                'Required parameter "createExportRequestRequest" was null or undefined when calling createExportRequest().'
+                'Required parameter "createExportRequestRequest" was null or undefined when calling createExportRequest().',
             );
         }
 
@@ -143,54 +161,71 @@ export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/exports`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateExportRequestRequestToJSON(requestParameters['createExportRequestRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreateExportRequestRequestToJSON(
+                    requestParameters['createExportRequestRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateExportRequest201ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateExportRequest201ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Queue export request
      */
-    async createExportRequest(requestParameters: CreateExportRequestOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateExportRequest201Response> {
-        const response = await this.createExportRequestRaw(requestParameters, initOverrides);
+    async createExportRequest(
+        requestParameters: CreateExportRequestOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateExportRequest201Response> {
+        const response = await this.createExportRequestRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Download export artifact
      */
-    async downloadExportRaw(requestParameters: DownloadExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+    async downloadExportRaw(
+        requestParameters: DownloadExportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters['signature'] == null) {
             throw new runtime.RequiredError(
                 'signature',
-                'Required parameter "signature" was null or undefined when calling downloadExport().'
+                'Required parameter "signature" was null or undefined when calling downloadExport().',
             );
         }
 
         if (requestParameters['exportRequestId'] == null) {
             throw new runtime.RequiredError(
                 'exportRequestId',
-                'Required parameter "exportRequestId" was null or undefined when calling downloadExport().'
+                'Required parameter "exportRequestId" was null or undefined when calling downloadExport().',
             );
         }
 
@@ -203,27 +238,34 @@ export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/exports/{exportRequestId}/download`;
-        urlPath = urlPath.replace(`{${"exportRequestId"}}`, encodeURIComponent(String(requestParameters['exportRequestId'])));
+        urlPath = urlPath.replace(
+            `{${'exportRequestId'}}`,
+            encodeURIComponent(String(requestParameters['exportRequestId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
         return new runtime.BlobApiResponse(response);
     }
@@ -231,15 +273,24 @@ export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
     /**
      * Download export artifact
      */
-    async downloadExport(requestParameters: DownloadExportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.downloadExportRaw(requestParameters, initOverrides);
+    async downloadExport(
+        requestParameters: DownloadExportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob> {
+        const response = await this.downloadExportRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List export requests
      */
-    async listExportRequestsRaw(requestParameters: ListExportRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListExportRequests200Response>> {
+    async listExportRequestsRaw(
+        requestParameters: ListExportRequestsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListExportRequests200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['page'] != null) {
@@ -253,46 +304,61 @@ export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/exports`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListExportRequests200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListExportRequests200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List export requests
      */
-    async listExportRequests(requestParameters: ListExportRequestsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListExportRequests200Response> {
-        const response = await this.listExportRequestsRaw(requestParameters, initOverrides);
+    async listExportRequests(
+        requestParameters: ListExportRequestsRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListExportRequests200Response> {
+        const response = await this.listExportRequestsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve export request
      */
-    async showExportRequestRaw(requestParameters: ShowExportRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateExportRequest201Response>> {
+    async showExportRequestRaw(
+        requestParameters: ShowExportRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateExportRequest201Response>> {
         if (requestParameters['exportRequestId'] == null) {
             throw new runtime.RequiredError(
                 'exportRequestId',
-                'Required parameter "exportRequestId" was null or undefined when calling showExportRequest().'
+                'Required parameter "exportRequestId" was null or undefined when calling showExportRequest().',
             );
         }
 
@@ -301,37 +367,51 @@ export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/exports/{exportRequestId}`;
-        urlPath = urlPath.replace(`{${"exportRequestId"}}`, encodeURIComponent(String(requestParameters['exportRequestId'])));
+        urlPath = urlPath.replace(
+            `{${'exportRequestId'}}`,
+            encodeURIComponent(String(requestParameters['exportRequestId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateExportRequest201ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateExportRequest201ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve export request
      */
-    async showExportRequest(requestParameters: ShowExportRequestRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateExportRequest201Response> {
-        const response = await this.showExportRequestRaw(requestParameters, initOverrides);
+    async showExportRequest(
+        requestParameters: ShowExportRequestRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateExportRequest201Response> {
+        const response = await this.showExportRequestRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

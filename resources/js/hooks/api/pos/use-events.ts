@@ -10,7 +10,9 @@ interface PurchaseOrderEventsEnvelope {
     events?: PurchaseOrderEvent[];
 }
 
-function extractEvents(payload: PurchaseOrderEventsEnvelope | PurchaseOrderEvent[]): PurchaseOrderEvent[] {
+function extractEvents(
+    payload: PurchaseOrderEventsEnvelope | PurchaseOrderEvent[],
+): PurchaseOrderEvent[] {
     if (Array.isArray(payload)) {
         return payload;
     }
@@ -30,14 +32,18 @@ function extractEvents(payload: PurchaseOrderEventsEnvelope | PurchaseOrderEvent
     return [];
 }
 
-export function usePoEvents(poId: number): UseQueryResult<PurchaseOrderEvent[], unknown> {
+export function usePoEvents(
+    poId: number,
+): UseQueryResult<PurchaseOrderEvent[], unknown> {
     return useQuery<PurchaseOrderEvent[]>({
         queryKey: queryKeys.purchaseOrders.events(poId),
         enabled: Number.isFinite(poId) && poId > 0,
         queryFn: async () => {
-            const response = (await api.get<PurchaseOrderEventsEnvelope | PurchaseOrderEvent[]>(
-                `/purchase-orders/${poId}/events`,
-            )) as unknown as PurchaseOrderEventsEnvelope | PurchaseOrderEvent[];
+            const response = (await api.get<
+                PurchaseOrderEventsEnvelope | PurchaseOrderEvent[]
+            >(`/purchase-orders/${poId}/events`)) as unknown as
+                | PurchaseOrderEventsEnvelope
+                | PurchaseOrderEvent[];
 
             return extractEvents(response);
         },

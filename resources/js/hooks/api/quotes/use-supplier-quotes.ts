@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useSdkClient } from '@/contexts/api-client-context';
@@ -49,7 +53,11 @@ export function useSupplierQuotes(
         } satisfies UseSupplierQuotesFilters;
     }, [page, perPage, rfqId, rfqNumber, sort, status]);
 
-    return useQuery<ListSupplierQuotes200Response, HttpError, SupplierQuoteListResult>({
+    return useQuery<
+        ListSupplierQuotes200Response,
+        HttpError,
+        SupplierQuoteListResult
+    >({
         queryKey: queryKeys.quotes.supplierList(normalizedFilters),
         enabled: options?.enabled ?? true,
         placeholderData: keepPreviousData,

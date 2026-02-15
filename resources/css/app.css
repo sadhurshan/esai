@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -148,7 +148,7 @@
     }
 
     .copilot-analytics-card__badge {
-        @apply inline-flex items-center rounded-full border border-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/70;
+        @apply inline-flex items-center rounded-full border border-white/20 px-3 py-1 text-[11px] font-semibold tracking-wide text-white/70 uppercase;
     }
 
     .copilot-analytics-card__chart {

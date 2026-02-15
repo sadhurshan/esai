@@ -1,8 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { formatDistanceToNow } from 'date-fns';
 import {
     Archive,
     Download,
@@ -14,10 +11,12 @@ import {
     Upload,
     X,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import Heading from '@/components/heading';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
@@ -42,7 +47,13 @@ import {
     useUpdateAdminDigitalTwin,
     useUploadAdminDigitalTwinAsset,
 } from '@/hooks/api/digital-twins';
-import type { AdminDigitalTwinAsset, AdminDigitalTwinListItem, AdminDigitalTwinAuditEvent } from '@/sdk';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import type {
+    AdminDigitalTwinAsset,
+    AdminDigitalTwinAuditEvent,
+    AdminDigitalTwinListItem,
+} from '@/sdk';
+import type { AdminDigitalTwinFormValues } from './digital-twin-form-utils';
 import {
     ADMIN_DIGITAL_TWIN_FORM_DEFAULTS,
     adminDigitalTwinFormSchema,
@@ -50,7 +61,6 @@ import {
     mapDigitalTwinToFormValues,
     resolveDigitalTwinErrorMessage,
 } from './digital-twin-form-utils';
-import type { AdminDigitalTwinFormValues } from './digital-twin-form-utils';
 
 const ASSET_TYPE_OPTIONS = [
     { value: 'CAD', label: 'CAD' },
@@ -70,12 +80,17 @@ export function AdminDigitalTwinDetailPage() {
     const params = useParams<{ id: string }>();
     const digitalTwinId = params.id;
 
-    const { digitalTwin, isLoading, isFetching, error, refetch } = useAdminDigitalTwin(digitalTwinId);
+    const { digitalTwin, isLoading, isFetching, error, refetch } =
+        useAdminDigitalTwin(digitalTwinId);
     const categoriesQuery = useAdminDigitalTwinCategories();
-    const categoryOptions = useMemo(() => flattenDigitalTwinCategories(categoriesQuery.categories), [categoriesQuery.categories]);
+    const categoryOptions = useMemo(
+        () => flattenDigitalTwinCategories(categoriesQuery.categories),
+        [categoriesQuery.categories],
+    );
     const [tagDraft, setTagDraft] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [assetPendingDelete, setAssetPendingDelete] = useState<AdminDigitalTwinAsset | null>(null);
+    const [assetPendingDelete, setAssetPendingDelete] =
+        useState<AdminDigitalTwinAsset | null>(null);
     const [assetType, setAssetType] = useState<AssetTypeValue>('CAD');
     const [assetIsPrimary, setAssetIsPrimary] = useState(false);
     const [assetFile, setAssetFile] = useState<File | null>(null);
@@ -85,17 +100,32 @@ export function AdminDigitalTwinDetailPage() {
         resolver: zodResolver(adminDigitalTwinFormSchema),
         defaultValues: ADMIN_DIGITAL_TWIN_FORM_DEFAULTS,
     });
-    const { fields: specFields, append, remove } = useFieldArray({ control: form.control, name: 'specs' });
+    const {
+        fields: specFields,
+        append,
+        remove,
+    } = useFieldArray({ control: form.control, name: 'specs' });
     const tags = useWatch({ control: form.control, name: 'tags' });
-    const specErrors = Array.isArray(form.formState.errors.specs) ? form.formState.errors.specs : [];
+    const specErrors = Array.isArray(form.formState.errors.specs)
+        ? form.formState.errors.specs
+        : [];
     const currentCategoryId = digitalTwin?.category?.id ?? null;
     const currentCategoryName = digitalTwin?.category?.name ?? null;
     const detailCategoryOptions = useMemo(() => {
-        if (!currentCategoryId || categoryOptions.some((option) => option.value === currentCategoryId)) {
+        if (
+            !currentCategoryId ||
+            categoryOptions.some((option) => option.value === currentCategoryId)
+        ) {
             return categoryOptions;
         }
 
-        return [{ value: currentCategoryId, label: currentCategoryName ?? 'Current category' }, ...categoryOptions];
+        return [
+            {
+                value: currentCategoryId,
+                label: currentCategoryName ?? 'Current category',
+            },
+            ...categoryOptions,
+        ];
     }, [categoryOptions, currentCategoryId, currentCategoryName]);
 
     useEffect(() => {
@@ -130,10 +160,15 @@ export function AdminDigitalTwinDetailPage() {
                 <Helmet>
                     <title>Admin · Digital twin</title>
                 </Helmet>
-                <Heading title="Digital twin" description="Manage specs and assets for published content." />
+                <Heading
+                    title="Digital twin"
+                    description="Manage specs and assets for published content."
+                />
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load digital twin</AlertTitle>
-                    <AlertDescription>{resolveDigitalTwinErrorMessage(error)}</AlertDescription>
+                    <AlertDescription>
+                        {resolveDigitalTwinErrorMessage(error)}
+                    </AlertDescription>
                 </Alert>
             </section>
         );
@@ -145,12 +180,21 @@ export function AdminDigitalTwinDetailPage() {
                 <Helmet>
                     <title>Admin · Digital twin</title>
                 </Helmet>
-                <Heading title="Digital twin" description="Manage specs and assets for published content." />
+                <Heading
+                    title="Digital twin"
+                    description="Manage specs and assets for published content."
+                />
                 <Alert>
                     <AlertTitle>Digital twin not found</AlertTitle>
-                    <AlertDescription>The requested digital twin was not found or may have been deleted.</AlertDescription>
+                    <AlertDescription>
+                        The requested digital twin was not found or may have
+                        been deleted.
+                    </AlertDescription>
                 </Alert>
-                <Button onClick={() => navigate('/app/admin/digital-twins')} variant="secondary">
+                <Button
+                    onClick={() => navigate('/app/admin/digital-twins')}
+                    variant="secondary"
+                >
                     Back to list
                 </Button>
             </section>
@@ -168,7 +212,10 @@ export function AdminDigitalTwinDetailPage() {
         const normalized = cleanValue.toLowerCase();
         const exists = tags.some((tag) => tag.toLowerCase() === normalized);
         if (exists) {
-            publishToast({ title: 'Tag already added', description: `${cleanValue} is already in the list.` });
+            publishToast({
+                title: 'Tag already added',
+                description: `${cleanValue} is already in the list.`,
+            });
             return;
         }
 
@@ -180,13 +227,19 @@ export function AdminDigitalTwinDetailPage() {
             return;
         }
 
-        form.setValue('tags', [...tags, cleanValue], { shouldDirty: true, shouldValidate: true });
+        form.setValue('tags', [...tags, cleanValue], {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
         setTagDraft('');
     };
 
     const handleRemoveTag = (tagToRemove: string) => {
         const nextTags = tags.filter((tag) => tag !== tagToRemove);
-        form.setValue('tags', nextTags, { shouldDirty: true, shouldValidate: true });
+        form.setValue('tags', nextTags, {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
     };
 
     const handleSubmit = form.handleSubmit(async (values) => {
@@ -259,7 +312,10 @@ export function AdminDigitalTwinDetailPage() {
     const handleDeleteTwin = async () => {
         try {
             await deleteTwin.mutateAsync({ digitalTwinId: digitalTwin.id });
-            publishToast({ title: 'Digital twin deleted', description: `${digitalTwin.title} has been removed.` });
+            publishToast({
+                title: 'Digital twin deleted',
+                description: `${digitalTwin.title} has been removed.`,
+            });
             navigate('/app/admin/digital-twins');
         } catch (err) {
             publishToast({
@@ -275,7 +331,10 @@ export function AdminDigitalTwinDetailPage() {
     const handleAssetFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!assetFile) {
-            publishToast({ title: 'Select a file', description: 'Choose a file to upload before submitting.' });
+            publishToast({
+                title: 'Select a file',
+                description: 'Choose a file to upload before submitting.',
+            });
             return;
         }
 
@@ -311,7 +370,10 @@ export function AdminDigitalTwinDetailPage() {
         }
 
         try {
-            await deleteAsset.mutateAsync({ digitalTwinId: digitalTwin.id, assetId: assetPendingDelete.id });
+            await deleteAsset.mutateAsync({
+                digitalTwinId: digitalTwin.id,
+                assetId: assetPendingDelete.id,
+            });
             publishToast({
                 title: 'Asset deleted',
                 description: `${assetPendingDelete.filename} has been removed.`,
@@ -341,10 +403,19 @@ export function AdminDigitalTwinDetailPage() {
                 description="Update metadata, specs, and assets before publishing to the buyer library."
                 action={
                     <div className="flex flex-wrap gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => navigate('/app/admin/digital-twins')}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate('/app/admin/digital-twins')}
+                        >
                             Back to list
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefreshing}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => refetch()}
+                            disabled={isRefreshing}
+                        >
                             <RefreshCcw className="mr-2 h-4 w-4" /> Refresh
                         </Button>
                     </div>
@@ -354,7 +425,9 @@ export function AdminDigitalTwinDetailPage() {
             {categoryError ? (
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load categories</AlertTitle>
-                    <AlertDescription>{resolveDigitalTwinErrorMessage(categoryError)}</AlertDescription>
+                    <AlertDescription>
+                        {resolveDigitalTwinErrorMessage(categoryError)}
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -362,7 +435,9 @@ export function AdminDigitalTwinDetailPage() {
                 <Alert>
                     <AlertTitle>No categories available</AlertTitle>
                     <AlertDescription>
-                        Create at least one digital twin category before publishing content. Manage categories from the admin dashboard.
+                        Create at least one digital twin category before
+                        publishing content. Manage categories from the admin
+                        dashboard.
                     </AlertDescription>
                 </Alert>
             ) : null}
@@ -370,7 +445,9 @@ export function AdminDigitalTwinDetailPage() {
             {error ? (
                 <Alert variant="destructive">
                     <AlertTitle>Unable to sync latest data</AlertTitle>
-                    <AlertDescription>{resolveDigitalTwinErrorMessage(error)}</AlertDescription>
+                    <AlertDescription>
+                        {resolveDigitalTwinErrorMessage(error)}
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -387,65 +464,133 @@ export function AdminDigitalTwinDetailPage() {
                                     name="categoryId"
                                     control={form.control}
                                     render={({ field }) => (
-                                        <Select value={field.value} onValueChange={field.onChange} disabled={categoriesQuery.isLoading || detailCategoryOptions.length === 0}>
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                            disabled={
+                                                categoriesQuery.isLoading ||
+                                                detailCategoryOptions.length ===
+                                                    0
+                                            }
+                                        >
                                             <SelectTrigger id="category">
                                                 <SelectValue placeholder="Select a category" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {detailCategoryOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={String(option.value)}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
+                                                {detailCategoryOptions.map(
+                                                    (option) => (
+                                                        <SelectItem
+                                                            key={option.value}
+                                                            value={String(
+                                                                option.value,
+                                                            )}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
                                 {form.formState.errors.categoryId ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.categoryId.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {
+                                            form.formState.errors.categoryId
+                                                .message
+                                        }
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="code">Internal code</Label>
-                                <Input id="code" placeholder="Optional sku or reference" {...form.register('code')} />
+                                <Input
+                                    id="code"
+                                    placeholder="Optional sku or reference"
+                                    {...form.register('code')}
+                                />
                                 {form.formState.errors.code ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.code.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.code.message}
+                                    </p>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground">Appears in admin tools, hidden from buyers.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Appears in admin tools, hidden from
+                                        buyers.
+                                    </p>
                                 )}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="title">Title</Label>
-                                <Input id="title" placeholder="e.g. EV Battery Enclosure" {...form.register('title')} />
+                                <Input
+                                    id="title"
+                                    placeholder="e.g. EV Battery Enclosure"
+                                    {...form.register('title')}
+                                />
                                 {form.formState.errors.title ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.title.message}
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="version">Version</Label>
-                                <Input id="version" placeholder="1.0.0" {...form.register('version')} />
+                                <Input
+                                    id="version"
+                                    placeholder="1.0.0"
+                                    {...form.register('version')}
+                                />
                                 {form.formState.errors.version ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.version.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.version.message}
+                                    </p>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground">Use semantic versioning where possible.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Use semantic versioning where possible.
+                                    </p>
                                 )}
                             </div>
-                            <div className="md:col-span-2 space-y-2">
+                            <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor="summary">Summary</Label>
-                                <Textarea id="summary" rows={4} placeholder="What does this digital twin represent?" {...form.register('summary')} />
+                                <Textarea
+                                    id="summary"
+                                    rows={4}
+                                    placeholder="What does this digital twin represent?"
+                                    {...form.register('summary')}
+                                />
                                 {form.formState.errors.summary ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.summary.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {form.formState.errors.summary.message}
+                                    </p>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground">Buyers see this description in the library.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Buyers see this description in the
+                                        library.
+                                    </p>
                                 )}
                             </div>
-                            <div className="md:col-span-2 space-y-2">
-                                <Label htmlFor="revisionNotes">Revision notes</Label>
-                                <Textarea id="revisionNotes" rows={3} placeholder="Explain what changed in this version" {...form.register('revisionNotes')} />
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="revisionNotes">
+                                    Revision notes
+                                </Label>
+                                <Textarea
+                                    id="revisionNotes"
+                                    rows={3}
+                                    placeholder="Explain what changed in this version"
+                                    {...form.register('revisionNotes')}
+                                />
                                 {form.formState.errors.revisionNotes ? (
-                                    <p className="text-xs text-destructive">{form.formState.errors.revisionNotes.message}</p>
+                                    <p className="text-xs text-destructive">
+                                        {
+                                            form.formState.errors.revisionNotes
+                                                .message
+                                        }
+                                    </p>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground">Helps buyers understand the delta from prior releases.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Helps buyers understand the delta from
+                                        prior releases.
+                                    </p>
                                 )}
                             </div>
                         </CardContent>
@@ -458,7 +603,11 @@ export function AdminDigitalTwinDetailPage() {
                         <CardContent className="space-y-4">
                             <div className="flex flex-wrap gap-2">
                                 {tags.map((tag) => (
-                                    <Badge key={tag} variant="secondary" className="flex items-center gap-2">
+                                    <Badge
+                                        key={tag}
+                                        variant="secondary"
+                                        className="flex items-center gap-2"
+                                    >
                                         {tag}
                                         <Button
                                             type="button"
@@ -472,13 +621,18 @@ export function AdminDigitalTwinDetailPage() {
                                     </Badge>
                                 ))}
                                 {tags.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground">Add discoverability tags like materials or processes.</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Add discoverability tags like materials
+                                        or processes.
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="flex flex-col gap-2 md:flex-row md:items-center">
                                 <Input
                                     value={tagDraft}
-                                    onChange={(event) => setTagDraft(event.currentTarget.value)}
+                                    onChange={(event) =>
+                                        setTagDraft(event.currentTarget.value)
+                                    }
                                     placeholder="Add tag"
                                     onKeyDown={(event) => {
                                         if (event.key === 'Enter') {
@@ -487,12 +641,20 @@ export function AdminDigitalTwinDetailPage() {
                                         }
                                     }}
                                 />
-                                <Button type="button" onClick={handleAddTag} variant="outline" disabled={!tagDraft.trim()}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Add tag
+                                <Button
+                                    type="button"
+                                    onClick={handleAddTag}
+                                    variant="outline"
+                                    disabled={!tagDraft.trim()}
+                                >
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Add
+                                    tag
                                 </Button>
                             </div>
                             {form.formState.errors.tags ? (
-                                <p className="text-xs text-destructive">{form.formState.errors.tags.message}</p>
+                                <p className="text-xs text-destructive">
+                                    {form.formState.errors.tags.message}
+                                </p>
                             ) : null}
                         </CardContent>
                     </Card>
@@ -503,26 +665,72 @@ export function AdminDigitalTwinDetailPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {specFields.map((field, index) => (
-                                <div key={field.id} className="grid gap-3 md:grid-cols-[1fr_1fr_160px_auto]">
+                                <div
+                                    key={field.id}
+                                    className="grid gap-3 md:grid-cols-[1fr_1fr_160px_auto]"
+                                >
                                     <div className="space-y-2">
-                                        <Label htmlFor={`spec-name-${field.id}`}>Name</Label>
-                                        <Input id={`spec-name-${field.id}`} placeholder="e.g. Material" {...form.register(`specs.${index}.name`)} />
+                                        <Label
+                                            htmlFor={`spec-name-${field.id}`}
+                                        >
+                                            Name
+                                        </Label>
+                                        <Input
+                                            id={`spec-name-${field.id}`}
+                                            placeholder="e.g. Material"
+                                            {...form.register(
+                                                `specs.${index}.name`,
+                                            )}
+                                        />
                                         {specErrors[index]?.name ? (
-                                            <p className="text-xs text-destructive">{specErrors[index]?.name?.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    specErrors[index]?.name
+                                                        ?.message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor={`spec-value-${field.id}`}>Value</Label>
-                                        <Input id={`spec-value-${field.id}`} placeholder="e.g. 6061-T6" {...form.register(`specs.${index}.value`)} />
+                                        <Label
+                                            htmlFor={`spec-value-${field.id}`}
+                                        >
+                                            Value
+                                        </Label>
+                                        <Input
+                                            id={`spec-value-${field.id}`}
+                                            placeholder="e.g. 6061-T6"
+                                            {...form.register(
+                                                `specs.${index}.value`,
+                                            )}
+                                        />
                                         {specErrors[index]?.value ? (
-                                            <p className="text-xs text-destructive">{specErrors[index]?.value?.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    specErrors[index]?.value
+                                                        ?.message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor={`spec-uom-${field.id}`}>UoM</Label>
-                                        <Input id={`spec-uom-${field.id}`} placeholder="Optional" {...form.register(`specs.${index}.uom`)} />
+                                        <Label htmlFor={`spec-uom-${field.id}`}>
+                                            UoM
+                                        </Label>
+                                        <Input
+                                            id={`spec-uom-${field.id}`}
+                                            placeholder="Optional"
+                                            {...form.register(
+                                                `specs.${index}.uom`,
+                                            )}
+                                        />
                                         {specErrors[index]?.uom ? (
-                                            <p className="text-xs text-destructive">{specErrors[index]?.uom?.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    specErrors[index]?.uom
+                                                        ?.message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="flex items-end justify-end">
@@ -539,17 +747,35 @@ export function AdminDigitalTwinDetailPage() {
                                     </div>
                                 </div>
                             ))}
-                            <Button type="button" variant="outline" onClick={() => append({ name: '', value: '', uom: '' })}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Add specification
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    append({ name: '', value: '', uom: '' })
+                                }
+                            >
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                                specification
                             </Button>
-                            {form.formState.errors.specs && !Array.isArray(form.formState.errors.specs) ? (
-                                <p className="text-xs text-destructive">{form.formState.errors.specs.message}</p>
+                            {form.formState.errors.specs &&
+                            !Array.isArray(form.formState.errors.specs) ? (
+                                <p className="text-xs text-destructive">
+                                    {form.formState.errors.specs.message}
+                                </p>
                             ) : null}
                         </CardContent>
                     </Card>
 
                     <div className="flex flex-wrap items-center justify-end gap-3">
-                        <Button type="button" variant="ghost" onClick={() => form.reset(mapDigitalTwinToFormValues(digitalTwin))}>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() =>
+                                form.reset(
+                                    mapDigitalTwinToFormValues(digitalTwin),
+                                )
+                            }
+                        >
                             Reset changes
                         </Button>
                         <Button type="submit" disabled={!canSave}>
@@ -567,22 +793,38 @@ export function AdminDigitalTwinDetailPage() {
                             <div className="flex flex-wrap items-center gap-2">
                                 <StatusBadge status={digitalTwin.status} />
                                 {digitalTwin.visibility ? (
-                                    <Badge variant="secondary">{digitalTwin.visibility === 'public' ? 'Public' : digitalTwin.visibility}</Badge>
+                                    <Badge variant="secondary">
+                                        {digitalTwin.visibility === 'public'
+                                            ? 'Public'
+                                            : digitalTwin.visibility}
+                                    </Badge>
                                 ) : null}
                             </div>
                             <dl className="space-y-2 text-sm text-muted-foreground">
                                 <div className="flex items-center justify-between">
                                     <dt>Category</dt>
-                                    <dd className="text-foreground">{digitalTwin.category?.name ?? 'Uncategorised'}</dd>
+                                    <dd className="text-foreground">
+                                        {digitalTwin.category?.name ??
+                                            'Uncategorised'}
+                                    </dd>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <dt>Version</dt>
-                                    <dd className="text-foreground">{digitalTwin.version ?? '—'}</dd>
+                                    <dd className="text-foreground">
+                                        {digitalTwin.version ?? '—'}
+                                    </dd>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <dt>Updated</dt>
                                     <dd className="text-foreground">
-                                        {digitalTwin.updated_at ? formatDistanceToNow(new Date(digitalTwin.updated_at), { addSuffix: true }) : '—'}
+                                        {digitalTwin.updated_at
+                                            ? formatDistanceToNow(
+                                                  new Date(
+                                                      digitalTwin.updated_at,
+                                                  ),
+                                                  { addSuffix: true },
+                                              )
+                                            : '—'}
                                     </dd>
                                 </div>
                             </dl>
@@ -591,7 +833,9 @@ export function AdminDigitalTwinDetailPage() {
                                     variant="secondary"
                                     className="gap-2"
                                     onClick={handlePublish}
-                                    disabled={isPublished || publishTwin.isPending}
+                                    disabled={
+                                        isPublished || publishTwin.isPending
+                                    }
                                 >
                                     Publish
                                 </Button>
@@ -599,18 +843,28 @@ export function AdminDigitalTwinDetailPage() {
                                     variant="outline"
                                     className="gap-2"
                                     onClick={handleArchive}
-                                    disabled={isArchived || archiveTwin.isPending}
+                                    disabled={
+                                        isArchived || archiveTwin.isPending
+                                    }
                                 >
                                     <Archive className="mr-2 h-4 w-4" /> Archive
                                 </Button>
-                                <Button variant="destructive" className="gap-2" onClick={() => setDeleteDialogOpen(true)}>
+                                <Button
+                                    variant="destructive"
+                                    className="gap-2"
+                                    onClick={() => setDeleteDialogOpen(true)}
+                                >
                                     <Trash2 className="mr-2 h-4 w-4" /> Delete
                                 </Button>
                             </div>
                             <Button
                                 variant="ghost"
                                 className="gap-2"
-                                onClick={() => navigate(`/app/library/digital-twins/${digitalTwin.id}`)}
+                                onClick={() =>
+                                    navigate(
+                                        `/app/library/digital-twins/${digitalTwin.id}`,
+                                    )
+                                }
                             >
                                 View library entry
                             </Button>
@@ -626,22 +880,32 @@ export function AdminDigitalTwinDetailPage() {
                                 <TimelineSkeleton />
                             ) : auditEventsQuery.error ? (
                                 <Alert variant="destructive">
-                                    <AlertTitle>Unable to load audit events</AlertTitle>
+                                    <AlertTitle>
+                                        Unable to load audit events
+                                    </AlertTitle>
                                     <AlertDescription>
-                                        {resolveDigitalTwinErrorMessage(auditEventsQuery.error)}
+                                        {resolveDigitalTwinErrorMessage(
+                                            auditEventsQuery.error,
+                                        )}
                                     </AlertDescription>
                                 </Alert>
                             ) : auditEvents.length === 0 ? (
                                 <Alert>
-                                    <AlertTitle>No audit history yet</AlertTitle>
+                                    <AlertTitle>
+                                        No audit history yet
+                                    </AlertTitle>
                                     <AlertDescription>
-                                        Publish, archive, or update this twin to populate the timeline.
+                                        Publish, archive, or update this twin to
+                                        populate the timeline.
                                     </AlertDescription>
                                 </Alert>
                             ) : (
                                 <ol className="space-y-4">
                                     {auditEvents.map((event) => (
-                                        <AuditEventItem key={event.id} event={event} />
+                                        <AuditEventItem
+                                            key={event.id}
+                                            event={event}
+                                        />
                                     ))}
                                 </ol>
                             )}
@@ -650,13 +914,18 @@ export function AdminDigitalTwinDetailPage() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => auditEventsQuery.fetchNextPage()}
-                                    disabled={auditEventsQuery.isFetchingNextPage}
+                                    onClick={() =>
+                                        auditEventsQuery.fetchNextPage()
+                                    }
+                                    disabled={
+                                        auditEventsQuery.isFetchingNextPage
+                                    }
                                     className="w-full"
                                 >
                                     {auditEventsQuery.isFetchingNextPage ? (
                                         <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading more
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />{' '}
+                                            Loading more
                                         </>
                                     ) : (
                                         'Load more'
@@ -673,50 +942,87 @@ export function AdminDigitalTwinDetailPage() {
                     <CardTitle>Assets</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <form className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]" onSubmit={handleAssetFormSubmit}>
+                    <form
+                        className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]"
+                        onSubmit={handleAssetFormSubmit}
+                    >
                         <Input
                             ref={fileInputRef}
                             type="file"
                             accept=".pdf,.zip,.stl,.step,.igs,.iges,.jpg,.jpeg,.png,.json,.csv,.txt,.dwg,.dxf"
-                            onChange={(event) => setAssetFile(event.currentTarget.files?.[0] ?? null)}
+                            onChange={(event) =>
+                                setAssetFile(
+                                    event.currentTarget.files?.[0] ?? null,
+                                )
+                            }
                         />
                         <div className="flex flex-col gap-2">
-                            <Label className="text-xs text-muted-foreground">Asset type</Label>
-                            <Select value={assetType} onValueChange={(value) => setAssetType(value as AssetTypeValue)}>
+                            <Label className="text-xs text-muted-foreground">
+                                Asset type
+                            </Label>
+                            <Select
+                                value={assetType}
+                                onValueChange={(value) =>
+                                    setAssetType(value as AssetTypeValue)
+                                }
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Choose type" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {ASSET_TYPE_OPTIONS.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
                                             {option.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Checkbox checked={assetIsPrimary} onCheckedChange={(checked) => setAssetIsPrimary(Boolean(checked))} />
+                                <Checkbox
+                                    checked={assetIsPrimary}
+                                    onCheckedChange={(checked) =>
+                                        setAssetIsPrimary(Boolean(checked))
+                                    }
+                                />
                                 Set as primary asset
                             </label>
                         </div>
-                        <Button type="submit" disabled={!assetFile || uploadAsset.isPending}>
-                            <Upload className="mr-2 h-4 w-4" /> {uploadAsset.isPending ? 'Uploading...' : 'Upload asset'}
+                        <Button
+                            type="submit"
+                            disabled={!assetFile || uploadAsset.isPending}
+                        >
+                            <Upload className="mr-2 h-4 w-4" />{' '}
+                            {uploadAsset.isPending
+                                ? 'Uploading...'
+                                : 'Upload asset'}
                         </Button>
                     </form>
                     {assetFile ? (
                         <p className="text-xs text-muted-foreground">
-                            Selected file: <span className="font-medium text-foreground">{assetFile.name}</span> · {formatFileSize(assetFile.size)}
+                            Selected file:{' '}
+                            <span className="font-medium text-foreground">
+                                {assetFile.name}
+                            </span>{' '}
+                            · {formatFileSize(assetFile.size)}
                         </p>
                     ) : (
                         <p className="text-xs text-muted-foreground">
-                            Max file size follows the document policy in config/filesystems. Use descriptive filenames for suppliers.
+                            Max file size follows the document policy in
+                            config/filesystems. Use descriptive filenames for
+                            suppliers.
                         </p>
                     )}
 
                     {digitalTwin.assets.length === 0 ? (
                         <Alert>
                             <AlertTitle>No assets uploaded</AlertTitle>
-                            <AlertDescription>Upload CAD, drawings, or reference PDFs so buyers can reuse this twin.</AlertDescription>
+                            <AlertDescription>
+                                Upload CAD, drawings, or reference PDFs so
+                                buyers can reuse this twin.
+                            </AlertDescription>
                         </Alert>
                     ) : (
                         <div className="overflow-x-auto">
@@ -727,30 +1033,69 @@ export function AdminDigitalTwinDetailPage() {
                                         <th className="px-4 py-3">Type</th>
                                         <th className="px-4 py-3">Size</th>
                                         <th className="px-4 py-3">Uploaded</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3 text-right">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {digitalTwin.assets.map((asset) => (
-                                        <tr key={asset.id} className="border-b last:border-b-0">
+                                        <tr
+                                            key={asset.id}
+                                            className="border-b last:border-b-0"
+                                        >
                                             <td className="px-4 py-4 align-top">
-                                                <div className="font-medium text-foreground">{asset.filename}</div>
-                                                <p className="text-xs text-muted-foreground">{asset.mime ?? 'application/octet-stream'}</p>
-                                                {asset.is_primary ? <Badge className="mt-2">Primary</Badge> : null}
+                                                <div className="font-medium text-foreground">
+                                                    {asset.filename}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {asset.mime ??
+                                                        'application/octet-stream'}
+                                                </p>
+                                                {asset.is_primary ? (
+                                                    <Badge className="mt-2">
+                                                        Primary
+                                                    </Badge>
+                                                ) : null}
                                             </td>
                                             <td className="px-4 py-4 align-top">
-                                                <Badge variant="outline">{asset.type ?? 'Other'}</Badge>
+                                                <Badge variant="outline">
+                                                    {asset.type ?? 'Other'}
+                                                </Badge>
                                             </td>
-                                            <td className="px-4 py-4 align-top text-sm text-muted-foreground">{formatFileSize(asset.size_bytes)}</td>
                                             <td className="px-4 py-4 align-top text-sm text-muted-foreground">
-                                                {asset.created_at ? formatDistanceToNow(new Date(asset.created_at), { addSuffix: true }) : '—'}
+                                                {formatFileSize(
+                                                    asset.size_bytes,
+                                                )}
                                             </td>
-                                            <td className="px-4 py-4 align-top text-right">
+                                            <td className="px-4 py-4 align-top text-sm text-muted-foreground">
+                                                {asset.created_at
+                                                    ? formatDistanceToNow(
+                                                          new Date(
+                                                              asset.created_at,
+                                                          ),
+                                                          { addSuffix: true },
+                                                      )
+                                                    : '—'}
+                                            </td>
+                                            <td className="px-4 py-4 text-right align-top">
                                                 <div className="flex justify-end gap-2">
                                                     {asset.download_url ? (
-                                                        <Button asChild variant="ghost" size="sm" className="gap-2">
-                                                            <a href={asset.download_url} target="_blank" rel="noopener noreferrer">
-                                                                <Download className="h-4 w-4" /> Download
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="gap-2"
+                                                        >
+                                                            <a
+                                                                href={
+                                                                    asset.download_url
+                                                                }
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                <Download className="h-4 w-4" />{' '}
+                                                                Download
                                                             </a>
                                                         </Button>
                                                     ) : null}
@@ -758,9 +1103,14 @@ export function AdminDigitalTwinDetailPage() {
                                                         variant="ghost"
                                                         size="sm"
                                                         className="text-destructive"
-                                                        onClick={() => setAssetPendingDelete(asset)}
+                                                        onClick={() =>
+                                                            setAssetPendingDelete(
+                                                                asset,
+                                                            )
+                                                        }
                                                     >
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Remove
+                                                        <Trash2 className="mr-2 h-4 w-4" />{' '}
+                                                        Remove
                                                     </Button>
                                                 </div>
                                             </td>
@@ -786,7 +1136,9 @@ export function AdminDigitalTwinDetailPage() {
 
             <ConfirmDialog
                 open={Boolean(assetPendingDelete)}
-                onOpenChange={(open) => setAssetPendingDelete(open ? assetPendingDelete : null)}
+                onOpenChange={(open) =>
+                    setAssetPendingDelete(open ? assetPendingDelete : null)
+                }
                 title="Remove asset?"
                 description={`Are you sure you want to delete ${assetPendingDelete?.filename ?? 'this asset'}?`}
                 confirmLabel="Remove"
@@ -798,7 +1150,11 @@ export function AdminDigitalTwinDetailPage() {
     );
 }
 
-function StatusBadge({ status }: { status?: AdminDigitalTwinListItem['status'] | null }) {
+function StatusBadge({
+    status,
+}: {
+    status?: AdminDigitalTwinListItem['status'] | null;
+}) {
     if (!status) {
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -873,13 +1229,22 @@ function AuditEventItem({ event }: { event: AdminDigitalTwinAuditEvent }) {
 
     return (
         <li className="flex gap-3">
-            <span className="mt-1 h-2 w-2 rounded-full bg-primary" aria-hidden />
+            <span
+                className="mt-1 h-2 w-2 rounded-full bg-primary"
+                aria-hidden
+            />
             <div className="flex-1 space-y-1">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-foreground">
                     <span>{getAuditEventLabel(event)}</span>
-                    <time className="text-xs text-muted-foreground">{timestamp}</time>
+                    <time className="text-xs text-muted-foreground">
+                        {timestamp}
+                    </time>
                 </div>
-                {actorLabel ? <p className="text-xs text-muted-foreground">By {actorLabel}</p> : null}
+                {actorLabel ? (
+                    <p className="text-xs text-muted-foreground">
+                        By {actorLabel}
+                    </p>
+                ) : null}
                 {metaLines.length > 0 ? (
                     <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
                         {metaLines.map((line, index) => (
@@ -903,9 +1268,13 @@ function getAuditEventLabel(event: AdminDigitalTwinAuditEvent): string {
         case 'archived':
             return 'Archived';
         case 'asset_added':
-            return event.meta?.filename ? `Asset added: ${event.meta.filename}` : 'Asset added';
+            return event.meta?.filename
+                ? `Asset added: ${event.meta.filename}`
+                : 'Asset added';
         case 'asset_removed':
-            return event.meta?.filename ? `Asset removed: ${event.meta.filename}` : 'Asset removed';
+            return event.meta?.filename
+                ? `Asset removed: ${event.meta.filename}`
+                : 'Asset removed';
         case 'spec_changed':
             return 'Specifications updated';
         default:
@@ -929,7 +1298,11 @@ function getAuditEventMetaLines(event: AdminDigitalTwinAuditEvent): string[] {
         lines.push(`Reason: ${meta.reason}`);
     }
 
-    if (typeof meta.type === 'string' && meta.type.length > 0 && !String(meta.type).startsWith('[')) {
+    if (
+        typeof meta.type === 'string' &&
+        meta.type.length > 0 &&
+        !String(meta.type).startsWith('[')
+    ) {
         lines.push(`Type: ${meta.type}`);
     }
 
@@ -941,7 +1314,11 @@ function getAuditEventMetaLines(event: AdminDigitalTwinAuditEvent): string[] {
         lines.push(`Asset #${meta.asset_id}`);
     }
 
-    if (typeof meta.title === 'string' && meta.title.length > 0 && event.event === 'created') {
+    if (
+        typeof meta.title === 'string' &&
+        meta.title.length > 0 &&
+        event.event === 'created'
+    ) {
         lines.push(`Title: ${meta.title}`);
     }
 
@@ -952,7 +1329,9 @@ function getAuditEventMetaLines(event: AdminDigitalTwinAuditEvent): string[] {
     return lines;
 }
 
-function getAuditEventActorLabel(event: AdminDigitalTwinAuditEvent): string | null {
+function getAuditEventActorLabel(
+    event: AdminDigitalTwinAuditEvent,
+): string | null {
     if (!event.actor) {
         return null;
     }

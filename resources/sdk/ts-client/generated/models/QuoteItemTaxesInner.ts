@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface QuoteItemTaxesInner
  */
 export interface QuoteItemTaxesInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteItemTaxesInner
      */
     id?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItemTaxesInner
      */
     taxCodeId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItemTaxesInner
      */
     ratePercent?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteItemTaxesInner
      */
@@ -48,7 +47,9 @@ export interface QuoteItemTaxesInner {
 /**
  * Check if a given object implements the QuoteItemTaxesInner interface.
  */
-export function instanceOfQuoteItemTaxesInner(value: object): value is QuoteItemTaxesInner {
+export function instanceOfQuoteItemTaxesInner(
+    value: object,
+): value is QuoteItemTaxesInner {
     return true;
 }
 
@@ -56,16 +57,21 @@ export function QuoteItemTaxesInnerFromJSON(json: any): QuoteItemTaxesInner {
     return QuoteItemTaxesInnerFromJSONTyped(json, false);
 }
 
-export function QuoteItemTaxesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteItemTaxesInner {
+export function QuoteItemTaxesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): QuoteItemTaxesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'taxCodeId': json['tax_code_id'] == null ? undefined : json['tax_code_id'],
-        'ratePercent': json['rate_percent'] == null ? undefined : json['rate_percent'],
-        'amountMinor': json['amount_minor'] == null ? undefined : json['amount_minor'],
+        id: json['id'] == null ? undefined : json['id'],
+        taxCodeId:
+            json['tax_code_id'] == null ? undefined : json['tax_code_id'],
+        ratePercent:
+            json['rate_percent'] == null ? undefined : json['rate_percent'],
+        amountMinor:
+            json['amount_minor'] == null ? undefined : json['amount_minor'],
     };
 }
 
@@ -73,17 +79,18 @@ export function QuoteItemTaxesInnerToJSON(json: any): QuoteItemTaxesInner {
     return QuoteItemTaxesInnerToJSONTyped(json, false);
 }
 
-export function QuoteItemTaxesInnerToJSONTyped(value?: QuoteItemTaxesInner | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteItemTaxesInnerToJSONTyped(
+    value?: QuoteItemTaxesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'tax_code_id': value['taxCodeId'],
-        'rate_percent': value['ratePercent'],
-        'amount_minor': value['amountMinor'],
+        id: value['id'],
+        tax_code_id: value['taxCodeId'],
+        rate_percent: value['ratePercent'],
+        amount_minor: value['amountMinor'],
     };
 }
-

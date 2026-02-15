@@ -1,9 +1,15 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
+import { useAuth } from '@/contexts/auth-context';
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { UserCompanySummary } from '@/types/company';
-import { useAuth } from '@/contexts/auth-context';
 
 interface UserCompaniesResponseItem {
     id: number;
@@ -35,32 +41,48 @@ function mapCompany(item: UserCompaniesResponseItem): UserCompanySummary {
     };
 }
 
-export function useUserCompanies(): UseQueryResult<UserCompanySummary[], ApiError> {
+export function useUserCompanies(): UseQueryResult<
+    UserCompanySummary[],
+    ApiError
+> {
     return useQuery<UserCompanySummary[], ApiError>({
         queryKey: queryKeys.me.companies(),
         queryFn: async () => {
-            const response = (await api.get<UserCompaniesResponse>('/me/companies')) as unknown as UserCompaniesResponse | undefined;
+            const response = (await api.get<UserCompaniesResponse>(
+                '/me/companies',
+            )) as unknown as UserCompaniesResponse | undefined;
             return response?.items?.map(mapCompany) ?? [];
         },
         staleTime: 60 * 1000,
     });
 }
 
-export function useSwitchCompany(): UseMutationResult<SwitchCompanyResponse, ApiError, number> {
+export function useSwitchCompany(): UseMutationResult<
+    SwitchCompanyResponse,
+    ApiError,
+    number
+> {
     const queryClient = useQueryClient();
     const { refresh } = useAuth();
 
     return useMutation<SwitchCompanyResponse, ApiError, number>({
         mutationFn: async (companyId) => {
-            const data = (await api.post<SwitchCompanyResponse>('/me/companies/switch', {
-                company_id: companyId,
-            })) as unknown as SwitchCompanyResponse;
+            const data = (await api.post<SwitchCompanyResponse>(
+                '/me/companies/switch',
+                {
+                    company_id: companyId,
+                },
+            )) as unknown as SwitchCompanyResponse;
             return data;
         },
         onSuccess: async () => {
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: queryKeys.me.companies() }),
-                queryClient.invalidateQueries({ queryKey: queryKeys.me.profile() }),
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.me.companies(),
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.me.profile(),
+                }),
                 refresh(),
             ]);
         },

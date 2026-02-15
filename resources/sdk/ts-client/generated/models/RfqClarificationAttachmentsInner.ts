@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqClarificationAttachmentsInner
  */
 export interface RfqClarificationAttachmentsInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqClarificationAttachmentsInner
      */
     id?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqClarificationAttachmentsInner
      */
     filename?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqClarificationAttachmentsInner
      */
@@ -42,40 +41,49 @@ export interface RfqClarificationAttachmentsInner {
 /**
  * Check if a given object implements the RfqClarificationAttachmentsInner interface.
  */
-export function instanceOfRfqClarificationAttachmentsInner(value: object): value is RfqClarificationAttachmentsInner {
+export function instanceOfRfqClarificationAttachmentsInner(
+    value: object,
+): value is RfqClarificationAttachmentsInner {
     return true;
 }
 
-export function RfqClarificationAttachmentsInnerFromJSON(json: any): RfqClarificationAttachmentsInner {
+export function RfqClarificationAttachmentsInnerFromJSON(
+    json: any,
+): RfqClarificationAttachmentsInner {
     return RfqClarificationAttachmentsInnerFromJSONTyped(json, false);
 }
 
-export function RfqClarificationAttachmentsInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqClarificationAttachmentsInner {
+export function RfqClarificationAttachmentsInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqClarificationAttachmentsInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'filename': json['filename'] == null ? undefined : json['filename'],
-        'url': json['url'] == null ? undefined : json['url'],
+        id: json['id'] == null ? undefined : json['id'],
+        filename: json['filename'] == null ? undefined : json['filename'],
+        url: json['url'] == null ? undefined : json['url'],
     };
 }
 
-export function RfqClarificationAttachmentsInnerToJSON(json: any): RfqClarificationAttachmentsInner {
+export function RfqClarificationAttachmentsInnerToJSON(
+    json: any,
+): RfqClarificationAttachmentsInner {
     return RfqClarificationAttachmentsInnerToJSONTyped(json, false);
 }
 
-export function RfqClarificationAttachmentsInnerToJSONTyped(value?: RfqClarificationAttachmentsInner | null, ignoreDiscriminator: boolean = false): any {
+export function RfqClarificationAttachmentsInnerToJSONTyped(
+    value?: RfqClarificationAttachmentsInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'filename': value['filename'],
-        'url': value['url'],
+        id: value['id'],
+        filename: value['filename'],
+        url: value['url'],
     };
 }
-

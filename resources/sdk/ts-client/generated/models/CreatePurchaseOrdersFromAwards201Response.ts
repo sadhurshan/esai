@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,112 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { CreatePurchaseOrdersFromAwards201ResponseAllOfData } from './CreatePurchaseOrdersFromAwards201ResponseAllOfData';
 import {
     CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSON,
-    CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSONTyped,
     CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSON,
-    CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSONTyped,
 } from './CreatePurchaseOrdersFromAwards201ResponseAllOfData';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface CreatePurchaseOrdersFromAwards201Response
  */
 export interface CreatePurchaseOrdersFromAwards201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreatePurchaseOrdersFromAwards201Response
      */
     status: CreatePurchaseOrdersFromAwards201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreatePurchaseOrdersFromAwards201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {CreatePurchaseOrdersFromAwards201ResponseAllOfData}
      * @memberof CreatePurchaseOrdersFromAwards201Response
      */
     data: CreatePurchaseOrdersFromAwards201ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof CreatePurchaseOrdersFromAwards201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const CreatePurchaseOrdersFromAwards201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type CreatePurchaseOrdersFromAwards201ResponseStatusEnum = typeof CreatePurchaseOrdersFromAwards201ResponseStatusEnum[keyof typeof CreatePurchaseOrdersFromAwards201ResponseStatusEnum];
-
+export type CreatePurchaseOrdersFromAwards201ResponseStatusEnum =
+    (typeof CreatePurchaseOrdersFromAwards201ResponseStatusEnum)[keyof typeof CreatePurchaseOrdersFromAwards201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the CreatePurchaseOrdersFromAwards201Response interface.
  */
-export function instanceOfCreatePurchaseOrdersFromAwards201Response(value: object): value is CreatePurchaseOrdersFromAwards201Response {
+export function instanceOfCreatePurchaseOrdersFromAwards201Response(
+    value: object,
+): value is CreatePurchaseOrdersFromAwards201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseFromJSON(json: any): CreatePurchaseOrdersFromAwards201Response {
+export function CreatePurchaseOrdersFromAwards201ResponseFromJSON(
+    json: any,
+): CreatePurchaseOrdersFromAwards201Response {
     return CreatePurchaseOrdersFromAwards201ResponseFromJSONTyped(json, false);
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreatePurchaseOrdersFromAwards201Response {
+export function CreatePurchaseOrdersFromAwards201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreatePurchaseOrdersFromAwards201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: CreatePurchaseOrdersFromAwards201ResponseAllOfDataFromJSON(
+            json['data'],
+        ),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseToJSON(json: any): CreatePurchaseOrdersFromAwards201Response {
+export function CreatePurchaseOrdersFromAwards201ResponseToJSON(
+    json: any,
+): CreatePurchaseOrdersFromAwards201Response {
     return CreatePurchaseOrdersFromAwards201ResponseToJSONTyped(json, false);
 }
 
-export function CreatePurchaseOrdersFromAwards201ResponseToJSONTyped(value?: CreatePurchaseOrdersFromAwards201Response | null, ignoreDiscriminator: boolean = false): any {
+export function CreatePurchaseOrdersFromAwards201ResponseToJSONTyped(
+    value?: CreatePurchaseOrdersFromAwards201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: CreatePurchaseOrdersFromAwards201ResponseAllOfDataToJSON(
+            value['data'],
+        ),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

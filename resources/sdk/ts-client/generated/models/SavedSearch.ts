@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SavedSearch
  */
 export interface SavedSearch {
     /**
-     * 
+     *
      * @type {number}
      * @memberof SavedSearch
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SavedSearch
      */
     name: string;
     /**
-     * 
+     *
      * @type {object}
      * @memberof SavedSearch
      */
     query: object;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof SavedSearch
      */
     shared?: boolean;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof SavedSearch
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof SavedSearch
      */
@@ -71,18 +70,26 @@ export function SavedSearchFromJSON(json: any): SavedSearch {
     return SavedSearchFromJSONTyped(json, false);
 }
 
-export function SavedSearchFromJSONTyped(json: any, ignoreDiscriminator: boolean): SavedSearch {
+export function SavedSearchFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SavedSearch {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'name': json['name'],
-        'query': json['query'],
-        'shared': json['shared'] == null ? undefined : json['shared'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        name: json['name'],
+        query: json['query'],
+        shared: json['shared'] == null ? undefined : json['shared'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -90,19 +97,26 @@ export function SavedSearchToJSON(json: any): SavedSearch {
     return SavedSearchToJSONTyped(json, false);
 }
 
-export function SavedSearchToJSONTyped(value?: SavedSearch | null, ignoreDiscriminator: boolean = false): any {
+export function SavedSearchToJSONTyped(
+    value?: SavedSearch | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
-        'query': value['query'],
-        'shared': value['shared'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        name: value['name'],
+        query: value['query'],
+        shared: value['shared'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

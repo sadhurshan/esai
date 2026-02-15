@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
  * Wrapper for all successful responses. `meta.request_id` always echoes the inbound `X-Request-Id` or an internally generated UUID.
@@ -28,45 +22,46 @@ import {
  */
 export interface SuccessEnvelope {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SuccessEnvelope
      */
     status: SuccessEnvelopeStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SuccessEnvelope
      */
     message?: string;
     /**
-     * 
+     *
      * @type {any}
      * @memberof SuccessEnvelope
      */
     data: any | null;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof SuccessEnvelope
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const SuccessEnvelopeStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type SuccessEnvelopeStatusEnum = typeof SuccessEnvelopeStatusEnum[keyof typeof SuccessEnvelopeStatusEnum];
-
+export type SuccessEnvelopeStatusEnum =
+    (typeof SuccessEnvelopeStatusEnum)[keyof typeof SuccessEnvelopeStatusEnum];
 
 /**
  * Check if a given object implements the SuccessEnvelope interface.
  */
-export function instanceOfSuccessEnvelope(value: object): value is SuccessEnvelope {
+export function instanceOfSuccessEnvelope(
+    value: object,
+): value is SuccessEnvelope {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
@@ -76,16 +71,21 @@ export function SuccessEnvelopeFromJSON(json: any): SuccessEnvelope {
     return SuccessEnvelopeFromJSONTyped(json, false);
 }
 
-export function SuccessEnvelopeFromJSONTyped(json: any, ignoreDiscriminator: boolean): SuccessEnvelope {
+export function SuccessEnvelopeFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SuccessEnvelope {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': json['data'],
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: json['data'],
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
@@ -93,17 +93,18 @@ export function SuccessEnvelopeToJSON(json: any): SuccessEnvelope {
     return SuccessEnvelopeToJSONTyped(json, false);
 }
 
-export function SuccessEnvelopeToJSONTyped(value?: SuccessEnvelope | null, ignoreDiscriminator: boolean = false): any {
+export function SuccessEnvelopeToJSONTyped(
+    value?: SuccessEnvelope | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': value['data'],
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: value['data'],
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

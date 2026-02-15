@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrderRfq
  */
 export interface PurchaseOrderRfq {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderRfq
      */
     id?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderRfq
      */
     number?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderRfq
      */
@@ -42,7 +41,9 @@ export interface PurchaseOrderRfq {
 /**
  * Check if a given object implements the PurchaseOrderRfq interface.
  */
-export function instanceOfPurchaseOrderRfq(value: object): value is PurchaseOrderRfq {
+export function instanceOfPurchaseOrderRfq(
+    value: object,
+): value is PurchaseOrderRfq {
     return true;
 }
 
@@ -50,15 +51,17 @@ export function PurchaseOrderRfqFromJSON(json: any): PurchaseOrderRfq {
     return PurchaseOrderRfqFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderRfqFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrderRfq {
+export function PurchaseOrderRfqFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrderRfq {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'number': json['number'] == null ? undefined : json['number'],
-        'title': json['title'] == null ? undefined : json['title'],
+        id: json['id'] == null ? undefined : json['id'],
+        number: json['number'] == null ? undefined : json['number'],
+        title: json['title'] == null ? undefined : json['title'],
     };
 }
 
@@ -66,16 +69,17 @@ export function PurchaseOrderRfqToJSON(json: any): PurchaseOrderRfq {
     return PurchaseOrderRfqToJSONTyped(json, false);
 }
 
-export function PurchaseOrderRfqToJSONTyped(value?: PurchaseOrderRfq | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderRfqToJSONTyped(
+    value?: PurchaseOrderRfq | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'number': value['number'],
-        'title': value['title'],
+        id: value['id'],
+        number: value['number'],
+        title: value['title'],
     };
 }
-

@@ -57,59 +57,88 @@ export function CompanyApprovalTable({
     return (
         <div className="overflow-hidden rounded-xl border">
             <table className="min-w-full divide-y divide-muted text-sm">
-                <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <thead className="bg-muted/40 text-left text-xs tracking-wide text-muted-foreground uppercase">
                     <tr>
                         <th className="px-4 py-3 font-semibold">Company</th>
-                        <th className="px-4 py-3 font-semibold">Primary contact</th>
+                        <th className="px-4 py-3 font-semibold">
+                            Primary contact
+                        </th>
                         <th className="px-4 py-3 font-semibold">Status</th>
                         <th className="px-4 py-3 font-semibold">Region</th>
                         <th className="px-4 py-3 font-semibold">Submitted</th>
-                        <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                            Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-muted bg-background">
                     {companies.map((company) => {
-                        const eligible = isCompanyModerationEligible(company.status);
+                        const eligible = isCompanyModerationEligible(
+                            company.status,
+                        );
                         const awaitingApproval = approvingId === company.id;
                         const awaitingRejection = rejectingId === company.id;
-                        const onboardingComplete = Boolean(company.has_completed_onboarding);
+                        const onboardingComplete = Boolean(
+                            company.has_completed_onboarding,
+                        );
 
                         return (
                             <tr key={company.id} className="align-top">
                                 <td className="px-4 py-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className="font-semibold text-foreground">{company.name}</span>
-                                        <span className="text-xs text-muted-foreground">Slug: {company.slug}</span>
+                                        <span className="font-semibold text-foreground">
+                                            {company.name}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            Slug: {company.slug}
+                                        </span>
                                         {company.email_domain ? (
-                                            <span className="text-xs text-muted-foreground">Domain: {company.email_domain}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                Domain: {company.email_domain}
+                                            </span>
                                         ) : null}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="flex flex-col gap-1 text-sm">
                                         <span className="font-medium text-foreground">
-                                            {company.primary_contact_name ?? '—'}
+                                            {company.primary_contact_name ??
+                                                '—'}
                                         </span>
                                         <span className="text-xs text-muted-foreground">
-                                            {company.primary_contact_email ?? 'No email on file'}
+                                            {company.primary_contact_email ??
+                                                'No email on file'}
                                         </span>
                                         {company.primary_contact_phone ? (
-                                            <span className="text-xs text-muted-foreground">{company.primary_contact_phone}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                {company.primary_contact_phone}
+                                            </span>
                                         ) : null}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="flex flex-col gap-2">
-                                        <Badge variant={companyStatusVariant(company.status)} className="w-fit">
+                                        <Badge
+                                            variant={companyStatusVariant(
+                                                company.status,
+                                            )}
+                                            className="w-fit"
+                                        >
                                             {companyStatusLabel(company.status)}
                                         </Badge>
                                         {onboardingComplete ? (
-                                            <Badge variant="outline" className="w-fit text-[11px]">
+                                            <Badge
+                                                variant="outline"
+                                                className="w-fit text-[11px]"
+                                            >
                                                 Onboarding complete
                                             </Badge>
                                         ) : null}
                                         {company.rejection_reason ? (
-                                            <p className="text-xs text-muted-foreground">Reason: {company.rejection_reason}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Reason:{' '}
+                                                {company.rejection_reason}
+                                            </p>
                                         ) : null}
                                     </div>
                                 </td>
@@ -124,7 +153,10 @@ export function CompanyApprovalTable({
                                         <span className="font-medium text-foreground">
                                             {formatDate(company.created_at)}
                                         </span>
-                                        <span className="text-xs">Updated {formatDate(company.updated_at)}</span>
+                                        <span className="text-xs">
+                                            Updated{' '}
+                                            {formatDate(company.updated_at)}
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-4 py-4">
@@ -137,26 +169,44 @@ export function CompanyApprovalTable({
                                                 className="gap-1"
                                                 onClick={() => onView(company)}
                                             >
-                                                <Eye className="h-4 w-4" aria-hidden /> View details
+                                                <Eye
+                                                    className="h-4 w-4"
+                                                    aria-hidden
+                                                />{' '}
+                                                View details
                                             </Button>
                                         ) : null}
                                         <Button
                                             type="button"
                                             size="sm"
-                                            disabled={!eligible || awaitingApproval || awaitingRejection}
+                                            disabled={
+                                                !eligible ||
+                                                awaitingApproval ||
+                                                awaitingRejection
+                                            }
                                             onClick={() => onApprove?.(company)}
                                         >
-                                            {awaitingApproval ? 'Approving…' : 'Approve'}
+                                            {awaitingApproval
+                                                ? 'Approving…'
+                                                : 'Approve'}
                                         </Button>
                                         <Button
                                             type="button"
                                             size="sm"
                                             variant="outline"
-                                            disabled={!eligible || awaitingRejection || awaitingApproval}
+                                            disabled={
+                                                !eligible ||
+                                                awaitingRejection ||
+                                                awaitingApproval
+                                            }
                                             onClick={() => onReject?.(company)}
-                                            className={cn('border-destructive/40 text-destructive hover:bg-destructive/10')}
+                                            className={cn(
+                                                'border-destructive/40 text-destructive hover:bg-destructive/10',
+                                            )}
                                         >
-                                            {awaitingRejection ? 'Rejecting…' : 'Reject'}
+                                            {awaitingRejection
+                                                ? 'Rejecting…'
+                                                : 'Reject'}
                                         </Button>
                                     </div>
                                 </td>
@@ -172,10 +222,26 @@ export function CompanyApprovalTable({
                     {typeof total === 'number' ? ` • ${total} companies` : ''}
                 </span>
                 <div className="flex gap-2">
-                    <Button type="button" variant="outline" size="sm" disabled={!hasPrev} onClick={() => hasPrev && onPageChange?.(currentPage - 1)}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!hasPrev}
+                        onClick={() =>
+                            hasPrev && onPageChange?.(currentPage - 1)
+                        }
+                    >
                         Previous
                     </Button>
-                    <Button type="button" variant="outline" size="sm" disabled={!hasNext} onClick={() => hasNext && onPageChange?.(currentPage + 1)}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!hasNext}
+                        onClick={() =>
+                            hasNext && onPageChange?.(currentPage + 1)
+                        }
+                    >
                         Next
                     </Button>
                 </div>
@@ -201,7 +267,9 @@ export function companyStatusLabel(status?: string | null): string {
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-export function companyStatusVariant(status?: string | null): 'default' | 'secondary' | 'outline' {
+export function companyStatusVariant(
+    status?: string | null,
+): 'default' | 'secondary' | 'outline' {
     switch (status) {
         case 'pending':
             return 'outline';
@@ -218,7 +286,10 @@ function CompanyApprovalSkeleton() {
     return (
         <div className="space-y-2 rounded-xl border p-4">
             {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="grid gap-3 rounded-lg border bg-muted/20 p-3 md:grid-cols-6">
+                <div
+                    key={index}
+                    className="grid gap-3 rounded-lg border bg-muted/20 p-3 md:grid-cols-6"
+                >
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-24" />

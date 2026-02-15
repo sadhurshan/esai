@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,31 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  ConvertQuantity200Response,
-  ConvertQuantityForPart200Response,
-  ConvertQuantityRequest,
-  ListUomConversions200Response,
-  ListUoms200Response,
-  LocalizationSettings,
-  ShowLocalizationSettings200Response,
-  Uom,
-  UpsertUomConversionRequest,
+    ApiSuccessResponse,
+    ConvertQuantity200Response,
+    ConvertQuantityForPart200Response,
+    ConvertQuantityRequest,
+    ListUomConversions200Response,
+    ListUoms200Response,
+    LocalizationSettings,
+    ShowLocalizationSettings200Response,
+    Uom,
+    UpsertUomConversionRequest,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
     ConvertQuantity200ResponseFromJSON,
-    ConvertQuantity200ResponseToJSON,
     ConvertQuantityForPart200ResponseFromJSON,
-    ConvertQuantityForPart200ResponseToJSON,
-    ConvertQuantityRequestFromJSON,
     ConvertQuantityRequestToJSON,
     ListUomConversions200ResponseFromJSON,
-    ListUomConversions200ResponseToJSON,
     ListUoms200ResponseFromJSON,
-    ListUoms200ResponseToJSON,
-    LocalizationSettingsFromJSON,
     LocalizationSettingsToJSON,
     ShowLocalizationSettings200ResponseFromJSON,
-    ShowLocalizationSettings200ResponseToJSON,
-    UomFromJSON,
     UomToJSON,
-    UpsertUomConversionRequestFromJSON,
     UpsertUomConversionRequestToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface ConvertQuantityOperationRequest {
     convertQuantityRequest: ConvertQuantityRequest;
@@ -96,181 +82,243 @@ export interface UpsertUomConversionOperationRequest {
 
 /**
  * LocalizationApi - interface
- * 
+ *
  * @export
  * @interface LocalizationApiInterface
  */
 export interface LocalizationApiInterface {
     /**
-     * 
+     *
      * @summary Convert quantity between units
-     * @param {ConvertQuantityRequest} convertQuantityRequest 
+     * @param {ConvertQuantityRequest} convertQuantityRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    convertQuantityRaw(requestParameters: ConvertQuantityOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConvertQuantity200Response>>;
+    convertQuantityRaw(
+        requestParameters: ConvertQuantityOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ConvertQuantity200Response>>;
 
     /**
      * Convert quantity between units
      */
-    convertQuantity(requestParameters: ConvertQuantityOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConvertQuantity200Response>;
+    convertQuantity(
+        requestParameters: ConvertQuantityOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ConvertQuantity200Response>;
 
     /**
-     * 
+     *
      * @summary Convert quantity using part base unit
-     * @param {string} partId 
-     * @param {number} qty 
-     * @param {string} from 
-     * @param {string} to 
+     * @param {string} partId
+     * @param {number} qty
+     * @param {string} from
+     * @param {string} to
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    convertQuantityForPartRaw(requestParameters: ConvertQuantityForPartRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConvertQuantityForPart200Response>>;
+    convertQuantityForPartRaw(
+        requestParameters: ConvertQuantityForPartRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ConvertQuantityForPart200Response>>;
 
     /**
      * Convert quantity using part base unit
      */
-    convertQuantityForPart(requestParameters: ConvertQuantityForPartRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConvertQuantityForPart200Response>;
+    convertQuantityForPart(
+        requestParameters: ConvertQuantityForPartRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ConvertQuantityForPart200Response>;
 
     /**
-     * 
+     *
      * @summary Create unit of measure
-     * @param {Uom} uom 
+     * @param {Uom} uom
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    createUomRaw(requestParameters: CreateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createUomRaw(
+        requestParameters: CreateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create unit of measure
      */
-    createUom(requestParameters: CreateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createUom(
+        requestParameters: CreateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete unit of measure
-     * @param {string} uomCode 
+     * @param {string} uomCode
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    deleteUomRaw(requestParameters: DeleteUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteUomRaw(
+        requestParameters: DeleteUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete unit of measure
      */
-    deleteUom(requestParameters: DeleteUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteUom(
+        requestParameters: DeleteUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List unit conversions
-     * @param {string} [fromCode] 
-     * @param {string} [toCode] 
-     * @param {string} [dimension] 
+     * @param {string} [fromCode]
+     * @param {string} [toCode]
+     * @param {string} [dimension]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    listUomConversionsRaw(requestParameters: ListUomConversionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUomConversions200Response>>;
+    listUomConversionsRaw(
+        requestParameters: ListUomConversionsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListUomConversions200Response>>;
 
     /**
      * List unit conversions
      */
-    listUomConversions(requestParameters: ListUomConversionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUomConversions200Response>;
+    listUomConversions(
+        requestParameters: ListUomConversionsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListUomConversions200Response>;
 
     /**
-     * 
+     *
      * @summary List units of measure
-     * @param {string} [dimension] 
+     * @param {string} [dimension]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    listUomsRaw(requestParameters: ListUomsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUoms200Response>>;
+    listUomsRaw(
+        requestParameters: ListUomsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListUoms200Response>>;
 
     /**
      * List units of measure
      */
-    listUoms(requestParameters: ListUomsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUoms200Response>;
+    listUoms(
+        requestParameters: ListUomsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListUoms200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve localization settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    showLocalizationSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
+    showLocalizationSettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
 
     /**
      * Retrieve localization settings
      */
-    showLocalizationSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response>;
+    showLocalizationSettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response>;
 
     /**
-     * 
+     *
      * @summary Update localization settings
-     * @param {LocalizationSettings} localizationSettings 
+     * @param {LocalizationSettings} localizationSettings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    updateLocalizationSettingsRaw(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
+    updateLocalizationSettingsRaw(
+        requestParameters: LocalizationApiUpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>>;
 
     /**
      * Update localization settings
      */
-    updateLocalizationSettings(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response>;
+    updateLocalizationSettings(
+        requestParameters: LocalizationApiUpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response>;
 
     /**
-     * 
+     *
      * @summary Update unit of measure
-     * @param {string} uomCode 
-     * @param {Uom} uom 
+     * @param {string} uomCode
+     * @param {Uom} uom
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    updateUomRaw(requestParameters: UpdateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateUomRaw(
+        requestParameters: UpdateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update unit of measure
      */
-    updateUom(requestParameters: UpdateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateUom(
+        requestParameters: UpdateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Upsert unit conversion
-     * @param {UpsertUomConversionRequest} upsertUomConversionRequest 
+     * @param {UpsertUomConversionRequest} upsertUomConversionRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LocalizationApiInterface
      */
-    upsertUomConversionRaw(requestParameters: UpsertUomConversionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    upsertUomConversionRaw(
+        requestParameters: UpsertUomConversionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Upsert unit conversion
      */
-    upsertUomConversion(requestParameters: UpsertUomConversionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    upsertUomConversion(
+        requestParameters: UpsertUomConversionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiInterface {
-
+export class LocalizationApi
+    extends runtime.BaseAPI
+    implements LocalizationApiInterface
+{
     /**
      * Convert quantity between units
      */
-    async convertQuantityRaw(requestParameters: ConvertQuantityOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConvertQuantity200Response>> {
+    async convertQuantityRaw(
+        requestParameters: ConvertQuantityOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ConvertQuantity200Response>> {
         if (requestParameters['convertQuantityRequest'] == null) {
             throw new runtime.RequiredError(
                 'convertQuantityRequest',
-                'Required parameter "convertQuantityRequest" was null or undefined when calling convertQuantity().'
+                'Required parameter "convertQuantityRequest" was null or undefined when calling convertQuantity().',
             );
         }
 
@@ -281,68 +329,85 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uom/convert`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ConvertQuantityRequestToJSON(requestParameters['convertQuantityRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: ConvertQuantityRequestToJSON(
+                    requestParameters['convertQuantityRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ConvertQuantity200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ConvertQuantity200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Convert quantity between units
      */
-    async convertQuantity(requestParameters: ConvertQuantityOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConvertQuantity200Response> {
-        const response = await this.convertQuantityRaw(requestParameters, initOverrides);
+    async convertQuantity(
+        requestParameters: ConvertQuantityOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ConvertQuantity200Response> {
+        const response = await this.convertQuantityRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Convert quantity using part base unit
      */
-    async convertQuantityForPartRaw(requestParameters: ConvertQuantityForPartRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConvertQuantityForPart200Response>> {
+    async convertQuantityForPartRaw(
+        requestParameters: ConvertQuantityForPartRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ConvertQuantityForPart200Response>> {
         if (requestParameters['partId'] == null) {
             throw new runtime.RequiredError(
                 'partId',
-                'Required parameter "partId" was null or undefined when calling convertQuantityForPart().'
+                'Required parameter "partId" was null or undefined when calling convertQuantityForPart().',
             );
         }
 
         if (requestParameters['qty'] == null) {
             throw new runtime.RequiredError(
                 'qty',
-                'Required parameter "qty" was null or undefined when calling convertQuantityForPart().'
+                'Required parameter "qty" was null or undefined when calling convertQuantityForPart().',
             );
         }
 
         if (requestParameters['from'] == null) {
             throw new runtime.RequiredError(
                 'from',
-                'Required parameter "from" was null or undefined when calling convertQuantityForPart().'
+                'Required parameter "from" was null or undefined when calling convertQuantityForPart().',
             );
         }
 
         if (requestParameters['to'] == null) {
             throw new runtime.RequiredError(
                 'to',
-                'Required parameter "to" was null or undefined when calling convertQuantityForPart().'
+                'Required parameter "to" was null or undefined when calling convertQuantityForPart().',
             );
         }
 
@@ -363,47 +428,65 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/parts/{partId}/convert`;
-        urlPath = urlPath.replace(`{${"partId"}}`, encodeURIComponent(String(requestParameters['partId'])));
+        urlPath = urlPath.replace(
+            `{${'partId'}}`,
+            encodeURIComponent(String(requestParameters['partId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ConvertQuantityForPart200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ConvertQuantityForPart200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Convert quantity using part base unit
      */
-    async convertQuantityForPart(requestParameters: ConvertQuantityForPartRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConvertQuantityForPart200Response> {
-        const response = await this.convertQuantityForPartRaw(requestParameters, initOverrides);
+    async convertQuantityForPart(
+        requestParameters: ConvertQuantityForPartRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ConvertQuantityForPart200Response> {
+        const response = await this.convertQuantityForPartRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create unit of measure
      */
-    async createUomRaw(requestParameters: CreateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createUomRaw(
+        requestParameters: CreateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['uom'] == null) {
             throw new runtime.RequiredError(
                 'uom',
-                'Required parameter "uom" was null or undefined when calling createUom().'
+                'Required parameter "uom" was null or undefined when calling createUom().',
             );
         }
 
@@ -414,47 +497,62 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uoms`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UomToJSON(requestParameters['uom']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UomToJSON(requestParameters['uom']),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create unit of measure
      */
-    async createUom(requestParameters: CreateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createUomRaw(requestParameters, initOverrides);
+    async createUom(
+        requestParameters: CreateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createUomRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete unit of measure
      */
-    async deleteUomRaw(requestParameters: DeleteUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteUomRaw(
+        requestParameters: DeleteUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['uomCode'] == null) {
             throw new runtime.RequiredError(
                 'uomCode',
-                'Required parameter "uomCode" was null or undefined when calling deleteUom().'
+                'Required parameter "uomCode" was null or undefined when calling deleteUom().',
             );
         }
 
@@ -463,43 +561,61 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uoms/{uomCode}`;
-        urlPath = urlPath.replace(`{${"uomCode"}}`, encodeURIComponent(String(requestParameters['uomCode'])));
+        urlPath = urlPath.replace(
+            `{${'uomCode'}}`,
+            encodeURIComponent(String(requestParameters['uomCode'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete unit of measure
      */
-    async deleteUom(requestParameters: DeleteUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteUomRaw(requestParameters, initOverrides);
+    async deleteUom(
+        requestParameters: DeleteUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteUomRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List unit conversions
      */
-    async listUomConversionsRaw(requestParameters: ListUomConversionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUomConversions200Response>> {
+    async listUomConversionsRaw(
+        requestParameters: ListUomConversionsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListUomConversions200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['fromCode'] != null) {
@@ -517,42 +633,57 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uoms/conversions`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListUomConversions200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListUomConversions200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List unit conversions
      */
-    async listUomConversions(requestParameters: ListUomConversionsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUomConversions200Response> {
-        const response = await this.listUomConversionsRaw(requestParameters, initOverrides);
+    async listUomConversions(
+        requestParameters: ListUomConversionsRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListUomConversions200Response> {
+        const response = await this.listUomConversionsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List units of measure
      */
-    async listUomsRaw(requestParameters: ListUomsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUoms200Response>> {
+    async listUomsRaw(
+        requestParameters: ListUomsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListUoms200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['dimension'] != null) {
@@ -562,75 +693,97 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uoms`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListUoms200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListUoms200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List units of measure
      */
-    async listUoms(requestParameters: ListUomsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUoms200Response> {
-        const response = await this.listUomsRaw(requestParameters, initOverrides);
+    async listUoms(
+        requestParameters: ListUomsRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListUoms200Response> {
+        const response = await this.listUomsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve localization settings
      */
-    async showLocalizationSettingsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
+    async showLocalizationSettingsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/localization`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocalizationSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowLocalizationSettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve localization settings
      */
-    async showLocalizationSettings(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response> {
+    async showLocalizationSettings(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response> {
         const response = await this.showLocalizationSettingsRaw(initOverrides);
         return await response.value();
     }
@@ -638,11 +791,14 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
     /**
      * Update localization settings
      */
-    async updateLocalizationSettingsRaw(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
+    async updateLocalizationSettingsRaw(
+        requestParameters: LocalizationApiUpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowLocalizationSettings200Response>> {
         if (requestParameters['localizationSettings'] == null) {
             throw new runtime.RequiredError(
                 'localizationSettings',
-                'Required parameter "localizationSettings" was null or undefined when calling updateLocalizationSettings().'
+                'Required parameter "localizationSettings" was null or undefined when calling updateLocalizationSettings().',
             );
         }
 
@@ -653,54 +809,71 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/settings/localization`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: LocalizationSettingsToJSON(requestParameters['localizationSettings']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: LocalizationSettingsToJSON(
+                    requestParameters['localizationSettings'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowLocalizationSettings200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowLocalizationSettings200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update localization settings
      */
-    async updateLocalizationSettings(requestParameters: LocalizationApiUpdateLocalizationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowLocalizationSettings200Response> {
-        const response = await this.updateLocalizationSettingsRaw(requestParameters, initOverrides);
+    async updateLocalizationSettings(
+        requestParameters: LocalizationApiUpdateLocalizationSettingsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowLocalizationSettings200Response> {
+        const response = await this.updateLocalizationSettingsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update unit of measure
      */
-    async updateUomRaw(requestParameters: UpdateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateUomRaw(
+        requestParameters: UpdateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['uomCode'] == null) {
             throw new runtime.RequiredError(
                 'uomCode',
-                'Required parameter "uomCode" was null or undefined when calling updateUom().'
+                'Required parameter "uomCode" was null or undefined when calling updateUom().',
             );
         }
 
         if (requestParameters['uom'] == null) {
             throw new runtime.RequiredError(
                 'uom',
-                'Required parameter "uom" was null or undefined when calling updateUom().'
+                'Required parameter "uom" was null or undefined when calling updateUom().',
             );
         }
 
@@ -711,48 +884,66 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uoms/{uomCode}`;
-        urlPath = urlPath.replace(`{${"uomCode"}}`, encodeURIComponent(String(requestParameters['uomCode'])));
+        urlPath = urlPath.replace(
+            `{${'uomCode'}}`,
+            encodeURIComponent(String(requestParameters['uomCode'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UomToJSON(requestParameters['uom']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UomToJSON(requestParameters['uom']),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update unit of measure
      */
-    async updateUom(requestParameters: UpdateUomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateUomRaw(requestParameters, initOverrides);
+    async updateUom(
+        requestParameters: UpdateUomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateUomRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Upsert unit conversion
      */
-    async upsertUomConversionRaw(requestParameters: UpsertUomConversionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async upsertUomConversionRaw(
+        requestParameters: UpsertUomConversionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['upsertUomConversionRequest'] == null) {
             throw new runtime.RequiredError(
                 'upsertUomConversionRequest',
-                'Required parameter "upsertUomConversionRequest" was null or undefined when calling upsertUomConversion().'
+                'Required parameter "upsertUomConversionRequest" was null or undefined when calling upsertUomConversion().',
             );
         }
 
@@ -763,37 +954,50 @@ export class LocalizationApi extends runtime.BaseAPI implements LocalizationApiI
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/localization/uoms/conversions`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpsertUomConversionRequestToJSON(requestParameters['upsertUomConversionRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpsertUomConversionRequestToJSON(
+                    requestParameters['upsertUomConversionRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Upsert unit conversion
      */
-    async upsertUomConversion(requestParameters: UpsertUomConversionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.upsertUomConversionRaw(requestParameters, initOverrides);
+    async upsertUomConversion(
+        requestParameters: UpsertUomConversionOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.upsertUomConversionRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

@@ -3,8 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { GoodsReceiptNoteDetail } from '@/types/sourcing';
 import { HttpError, ReceivingApi } from '@/sdk';
+import type { GoodsReceiptNoteDetail } from '@/types/sourcing';
 
 import { mapGrnDetail } from './utils';
 
@@ -49,16 +49,29 @@ export function useCreateGrn() {
         onSuccess: (data, variables) => {
             publishToast({
                 variant: 'success',
-                title: variables.status === 'posted' ? 'GRN posted' : 'GRN saved',
+                title:
+                    variables.status === 'posted' ? 'GRN posted' : 'GRN saved',
                 description: `Goods receipt ${data.grnNumber ?? ''} has been ${variables.status === 'posted' ? 'posted' : 'saved as draft'}.`,
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.receiving.list() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(variables.purchaseOrderId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.list({}) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.matching.candidates({}) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.receiving.list(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.detail(
+                    variables.purchaseOrderId,
+                ),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.list({}),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.matching.candidates({}),
+            });
             if (data.id) {
-                void queryClient.invalidateQueries({ queryKey: queryKeys.receiving.detail(data.id) });
+                void queryClient.invalidateQueries({
+                    queryKey: queryKeys.receiving.detail(data.id),
+                });
             }
         },
     });

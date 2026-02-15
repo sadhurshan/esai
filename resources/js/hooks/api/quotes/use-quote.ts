@@ -2,7 +2,12 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { HttpError, Quote, RequestMeta, SubmitQuote201Response } from '@/sdk';
+import type {
+    HttpError,
+    Quote,
+    RequestMeta,
+    SubmitQuote201Response,
+} from '@/sdk';
 import { QuotesApi } from '@/sdk';
 
 export interface UseQuoteResult {

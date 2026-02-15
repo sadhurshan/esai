@@ -15,9 +15,12 @@ export function useSupplierApplicationAuditLogs(
     options?: UseSupplierApplicationAuditLogsOptions,
 ): UseQueryResult<AuditLogEntry[]> {
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
-    const queryKey = queryKeys.admin.supplierApplicationAuditLogs(applicationId ?? 'none', {
-        limit: options?.limit,
-    });
+    const queryKey = queryKeys.admin.supplierApplicationAuditLogs(
+        applicationId ?? 'none',
+        {
+            limit: options?.limit,
+        },
+    );
 
     return useQuery<AuditLogEntry[]>({
         queryKey,
@@ -27,9 +30,13 @@ export function useSupplierApplicationAuditLogs(
                 return [];
             }
 
-            const response = await adminConsoleApi.listSupplierApplicationAuditLogs(applicationId, {
-                limit: options?.limit,
-            });
+            const response =
+                await adminConsoleApi.listSupplierApplicationAuditLogs(
+                    applicationId,
+                    {
+                        limit: options?.limit,
+                    },
+                );
 
             return response.items ?? [];
         },

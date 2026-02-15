@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,29 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { CreateGrnRequestLinesInner } from './CreateGrnRequestLinesInner';
 import {
     CreateGrnRequestLinesInnerFromJSON,
-    CreateGrnRequestLinesInnerFromJSONTyped,
     CreateGrnRequestLinesInnerToJSON,
-    CreateGrnRequestLinesInnerToJSONTyped,
 } from './CreateGrnRequestLinesInner';
 
 /**
- * 
+ *
  * @export
  * @interface CreateGrnRequest
  */
 export interface CreateGrnRequest {
     /**
-     * 
+     *
      * @type {Array<CreateGrnRequestLinesInner>}
      * @memberof CreateGrnRequest
      */
     lines: Array<CreateGrnRequestLinesInner>;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof CreateGrnRequest
      */
@@ -44,7 +41,9 @@ export interface CreateGrnRequest {
 /**
  * Check if a given object implements the CreateGrnRequest interface.
  */
-export function instanceOfCreateGrnRequest(value: object): value is CreateGrnRequest {
+export function instanceOfCreateGrnRequest(
+    value: object,
+): value is CreateGrnRequest {
     if (!('lines' in value) || value['lines'] === undefined) return false;
     return true;
 }
@@ -53,14 +52,21 @@ export function CreateGrnRequestFromJSON(json: any): CreateGrnRequest {
     return CreateGrnRequestFromJSONTyped(json, false);
 }
 
-export function CreateGrnRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateGrnRequest {
+export function CreateGrnRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateGrnRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'lines': ((json['lines'] as Array<any>).map(CreateGrnRequestLinesInnerFromJSON)),
-        'inspectedAt': json['inspected_at'] == null ? undefined : (new Date(json['inspected_at'])),
+        lines: (json['lines'] as Array<any>).map(
+            CreateGrnRequestLinesInnerFromJSON,
+        ),
+        inspectedAt:
+            json['inspected_at'] == null
+                ? undefined
+                : new Date(json['inspected_at']),
     };
 }
 
@@ -68,15 +74,21 @@ export function CreateGrnRequestToJSON(json: any): CreateGrnRequest {
     return CreateGrnRequestToJSONTyped(json, false);
 }
 
-export function CreateGrnRequestToJSONTyped(value?: CreateGrnRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreateGrnRequestToJSONTyped(
+    value?: CreateGrnRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'lines': ((value['lines'] as Array<any>).map(CreateGrnRequestLinesInnerToJSON)),
-        'inspected_at': value['inspectedAt'] == null ? value['inspectedAt'] : value['inspectedAt'].toISOString(),
+        lines: (value['lines'] as Array<any>).map(
+            CreateGrnRequestLinesInnerToJSON,
+        ),
+        inspected_at:
+            value['inspectedAt'] == null
+                ? value['inspectedAt']
+                : value['inspectedAt'].toISOString(),
     };
 }
-

@@ -1096,6 +1096,39 @@
                     }
                 }
             },
+            "AiTrainingDatasetUploadData": {
+                "type": "object",
+                "properties": {
+                    "dataset_upload_id": {
+                        "type": "string"
+                    },
+                    "filename": {
+                        "type": "string"
+                    },
+                    "size_bytes": {
+                        "type": "integer"
+                    },
+                    "stored_path": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AiTrainingDatasetUploadRequest": {
+                "type": "object",
+                "required": [
+                    "company_id",
+                    "dataset"
+                ],
+                "properties": {
+                    "company_id": {
+                        "type": "integer"
+                    },
+                    "dataset": {
+                        "type": "string",
+                        "format": "binary"
+                    }
+                }
+            },
             "AiTrainingJob": {
                 "type": "object",
                 "required": [
@@ -12629,6 +12662,124 @@
                 }
             }
         },
+        "/api/auth/companies-house/profile": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Fetch Companies House profile",
+                "description": "Returns a Companies House profile by company number.",
+                "operationId": "companiesHouseProfile",
+                "security": [],
+                "parameters": [
+                    {
+                        "name": "company_number",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Companies House profile payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid profile request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Companies House service unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/companies-house/search": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Search Companies House registry",
+                "description": "Returns Companies House matches for the provided query string.",
+                "operationId": "companiesHouseSearch",
+                "security": [],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 25
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Companies House search results.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid search request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Companies House service unavailable.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/forgot-password": {
             "post": {
                 "tags": [
@@ -16167,6 +16318,107 @@
                                             "properties": {
                                                 "data": {
                                                     "$ref": "#/components/schemas/Document"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Caller is not authorized to view the requested document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found within the tenant scope.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "document",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/documents/{document}/cad-extraction": {
+            "get": {
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Get CAD extraction status",
+                "description": "Returns the extraction status and any parsed CAD metadata for a document.",
+                "operationId": "getCadExtraction",
+                "responses": {
+                    "200": {
+                        "description": "CAD extraction status payload.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "document_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "document_version": {
+                                                            "type": "integer"
+                                                        },
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "extracted": {
+                                                            "type": "object",
+                                                            "nullable": true,
+                                                            "additionalProperties": true
+                                                        },
+                                                        "gdt_flags": {
+                                                            "type": "object",
+                                                            "nullable": true,
+                                                            "additionalProperties": true
+                                                        },
+                                                        "similar_parts": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "additionalProperties": true
+                                                            }
+                                                        },
+                                                        "extracted_at": {
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "nullable": true
+                                                        },
+                                                        "last_error": {
+                                                            "type": "string",
+                                                            "nullable": true
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -26981,6 +27233,49 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiSuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/ai-training/datasets": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Upload an AI training dataset",
+                "operationId": "adminUploadAiTrainingDataset",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiTrainingDatasetUploadRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Training dataset uploaded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiSuccessResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/AiTrainingDatasetUploadData"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,9 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CloseRfqRequest
  */
@@ -36,7 +35,9 @@ export interface CloseRfqRequest {
 /**
  * Check if a given object implements the CloseRfqRequest interface.
  */
-export function instanceOfCloseRfqRequest(value: object): value is CloseRfqRequest {
+export function instanceOfCloseRfqRequest(
+    value: object,
+): value is CloseRfqRequest {
     return true;
 }
 
@@ -44,14 +45,17 @@ export function CloseRfqRequestFromJSON(json: any): CloseRfqRequest {
     return CloseRfqRequestFromJSONTyped(json, false);
 }
 
-export function CloseRfqRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CloseRfqRequest {
+export function CloseRfqRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CloseRfqRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'reason': json['reason'] == null ? undefined : json['reason'],
-        'closedAt': json['closed_at'] == null ? undefined : (new Date(json['closed_at'])),
+        reason: json['reason'] == null ? undefined : json['reason'],
+        closedAt:
+            json['closed_at'] == null ? undefined : new Date(json['closed_at']),
     };
 }
 
@@ -59,15 +63,19 @@ export function CloseRfqRequestToJSON(json: any): CloseRfqRequest {
     return CloseRfqRequestToJSONTyped(json, false);
 }
 
-export function CloseRfqRequestToJSONTyped(value?: CloseRfqRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CloseRfqRequestToJSONTyped(
+    value?: CloseRfqRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'reason': value['reason'],
-        'closed_at': value['closedAt'] == null ? value['closedAt'] : value['closedAt'].toISOString(),
+        reason: value['reason'],
+        closed_at:
+            value['closedAt'] == null
+                ? value['closedAt']
+                : value['closedAt'].toISOString(),
     };
 }
-

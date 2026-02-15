@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface Supplier
  */
 export interface Supplier {
     /**
-     * 
+     *
      * @type {number}
      * @memberof Supplier
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Supplier
      */
     companyId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Supplier
      */
@@ -44,13 +43,13 @@ export interface Supplier {
      */
     status?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Supplier
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Supplier
      */
@@ -70,18 +69,26 @@ export function SupplierFromJSON(json: any): Supplier {
     return SupplierFromJSONTyped(json, false);
 }
 
-export function SupplierFromJSONTyped(json: any, ignoreDiscriminator: boolean): Supplier {
+export function SupplierFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): Supplier {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'] == null ? undefined : json['company_id'],
-        'name': json['name'],
-        'status': json['status'] == null ? undefined : json['status'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'] == null ? undefined : json['company_id'],
+        name: json['name'],
+        status: json['status'] == null ? undefined : json['status'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -89,19 +96,26 @@ export function SupplierToJSON(json: any): Supplier {
     return SupplierToJSONTyped(json, false);
 }
 
-export function SupplierToJSONTyped(value?: Supplier | null, ignoreDiscriminator: boolean = false): any {
+export function SupplierToJSONTyped(
+    value?: Supplier | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'name': value['name'],
-        'status': value['status'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        name: value['name'],
+        status: value['status'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

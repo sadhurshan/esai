@@ -1,15 +1,22 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
 
-import { Branding } from '@/config/branding';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAcceptCompanyInvitation } from '@/hooks/api/useCompanyInvitations';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Branding } from '@/config/branding';
 import { useAuth } from '@/contexts/auth-context';
+import { useAcceptCompanyInvitation } from '@/hooks/api/useCompanyInvitations';
 import { queryKeys } from '@/lib/queryKeys';
 import type { CompanyInvitation, CompanyUserRole } from '@/types/company';
 
@@ -32,7 +39,9 @@ export function AcceptCompanyInvitationPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { refresh } = useAuth();
-    const [invitation, setInvitation] = useState<CompanyInvitation | null>(null);
+    const [invitation, setInvitation] = useState<CompanyInvitation | null>(
+        null,
+    );
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const hasAutoAttempted = useRef(false);
 
@@ -46,15 +55,23 @@ export function AcceptCompanyInvitationPage() {
             setInvitation(data);
             setErrorMessage(null);
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['company-invitations', 'list'] }),
-                queryClient.invalidateQueries({ queryKey: queryKeys.me.companies() }),
-                queryClient.invalidateQueries({ queryKey: queryKeys.me.profile() }),
+                queryClient.invalidateQueries({
+                    queryKey: ['company-invitations', 'list'],
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.me.companies(),
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.me.profile(),
+                }),
                 refresh(),
             ]);
         },
         onError: (apiError) => {
             setInvitation(null);
-            setErrorMessage(apiError.message ?? 'Unable to accept this invitation.');
+            setErrorMessage(
+                apiError.message ?? 'Unable to accept this invitation.',
+            );
         },
     });
 
@@ -96,20 +113,37 @@ export function AcceptCompanyInvitationPage() {
             </Helmet>
             <Card className="w-full max-w-2xl shadow-lg">
                 <CardHeader className="items-center text-center">
-                    <img src={Branding.logo.symbol} alt={Branding.name} className="h-10" />
-                    <CardTitle className="mt-2 text-2xl font-semibold text-foreground">Join your workspace</CardTitle>
-                    <CardDescription>Accept the invitation to access your company&rsquo;s Elements Supply workspace.</CardDescription>
+                    <img
+                        src={Branding.logo.symbol}
+                        alt={Branding.name}
+                        className="h-10"
+                    />
+                    <CardTitle className="mt-2 text-2xl font-semibold text-foreground">
+                        Join your workspace
+                    </CardTitle>
+                    <CardDescription>
+                        Accept the invitation to access your company&rsquo;s
+                        Elements Supply workspace.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {showSuccess ? (
                         <div className="rounded-lg border border-emerald-100 bg-emerald-50/80 p-4">
                             <div className="flex items-start gap-4">
-                                <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden="true" />
+                                <CheckCircle2
+                                    className="h-6 w-6 text-emerald-600"
+                                    aria-hidden="true"
+                                />
                                 <div className="space-y-1">
-                                    <p className="text-base font-medium text-emerald-900">Invitation accepted</p>
+                                    <p className="text-base font-medium text-emerald-900">
+                                        Invitation accepted
+                                    </p>
                                     <p className="text-sm text-emerald-800">
-                                        You now have {roleLabel(invitation!.role)} access to workspace #{invitation!.companyId}. Use
-                                        the organization switcher in the top bar to jump into it at any time.
+                                        You now have{' '}
+                                        {roleLabel(invitation!.role)} access to
+                                        workspace #{invitation!.companyId}. Use
+                                        the organization switcher in the top bar
+                                        to jump into it at any time.
                                     </p>
                                 </div>
                             </div>
@@ -118,17 +152,27 @@ export function AcceptCompanyInvitationPage() {
 
                     {!showSuccess && isPending ? (
                         <div className="flex items-center gap-3 rounded-lg border border-muted bg-background/80 p-4">
-                            <Loader2 className="h-5 w-5 animate-spin text-brand-primary" aria-hidden="true" />
+                            <Loader2
+                                className="text-brand-primary h-5 w-5 animate-spin"
+                                aria-hidden="true"
+                            />
                             <div>
-                                <p className="text-sm font-medium text-foreground">Joining workspace…</p>
-                                <p className="text-sm text-muted-foreground">Hang tight while we confirm your membership.</p>
+                                <p className="text-sm font-medium text-foreground">
+                                    Joining workspace…
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Hang tight while we confirm your membership.
+                                </p>
                             </div>
                         </div>
                     ) : null}
 
                     {!showSuccess && !isPending && finalError ? (
                         <Alert variant="destructive">
-                            <ShieldAlert className="h-4 w-4" aria-hidden="true" />
+                            <ShieldAlert
+                                className="h-4 w-4"
+                                aria-hidden="true"
+                            />
                             <AlertDescription>{finalError}</AlertDescription>
                         </Alert>
                     ) : null}
@@ -136,8 +180,10 @@ export function AcceptCompanyInvitationPage() {
                     {showSuccess ? (
                         <div className="rounded-lg border border-muted bg-background/60 p-4 text-sm text-muted-foreground">
                             <p>
-                                We refreshed your session so your new role and memberships are ready everywhere. If you were invited to
-                                multiple companies, you can manage defaults under Settings → Profile.
+                                We refreshed your session so your new role and
+                                memberships are ready everywhere. If you were
+                                invited to multiple companies, you can manage
+                                defaults under Settings → Profile.
                             </p>
                         </div>
                     ) : null}
@@ -145,8 +191,13 @@ export function AcceptCompanyInvitationPage() {
                 <CardFooter className="flex flex-col gap-3 md:flex-row md:justify-end">
                     {showSuccess ? (
                         <>
-                            <Button onClick={handleGoToApp}>Go to workspace</Button>
-                            <Button variant="outline" onClick={handleManageOrganizations}>
+                            <Button onClick={handleGoToApp}>
+                                Go to workspace
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={handleManageOrganizations}
+                            >
                                 Manage organizations
                             </Button>
                         </>

@@ -2,12 +2,18 @@ import { useMemo, useState } from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { AdminPlansUpdateRequest, Plan } from '@/sdk';
 import { useFormatting } from '@/contexts/formatting-context';
+import type { AdminPlansUpdateRequest, Plan } from '@/sdk';
 
 const EMPTY_PLANS: Plan[] = [];
 
@@ -76,16 +82,27 @@ const featureCatalog = [
 
 type FeatureKey = (typeof featureCatalog)[number]['key'];
 
-type DraftState = Record<number, Partial<Record<FeatureKey, number | boolean | undefined>>>;
+type DraftState = Record<
+    number,
+    Partial<Record<FeatureKey, number | boolean | undefined>>
+>;
 
 export interface FeatureMatrixEditorProps {
     plans?: Plan[];
     isLoading?: boolean;
     savingPlanId?: number | null;
-    onSavePlan: (planId: number, payload: AdminPlansUpdateRequest) => Promise<void> | void;
+    onSavePlan: (
+        planId: number,
+        payload: AdminPlansUpdateRequest,
+    ) => Promise<void> | void;
 }
 
-export function FeatureMatrixEditor({ plans, isLoading = false, savingPlanId, onSavePlan }: FeatureMatrixEditorProps) {
+export function FeatureMatrixEditor({
+    plans,
+    isLoading = false,
+    savingPlanId,
+    onSavePlan,
+}: FeatureMatrixEditorProps) {
     const [drafts, setDrafts] = useState<DraftState>({});
     const { formatDate } = useFormatting();
 
@@ -109,12 +126,18 @@ export function FeatureMatrixEditor({ plans, isLoading = false, savingPlanId, on
     if (!planList.length) {
         return (
             <Alert>
-                <AlertDescription>No plans available. Sync billing plans to continue.</AlertDescription>
+                <AlertDescription>
+                    No plans available. Sync billing plans to continue.
+                </AlertDescription>
             </Alert>
         );
     }
 
-    const handleValueChange = (planId: number, key: FeatureKey, value: number | boolean | undefined) => {
+    const handleValueChange = (
+        planId: number,
+        key: FeatureKey,
+        value: number | boolean | undefined,
+    ) => {
         setDrafts((prev) => ({
             ...prev,
             [planId]: {
@@ -145,13 +168,17 @@ export function FeatureMatrixEditor({ plans, isLoading = false, savingPlanId, on
         <div className="space-y-4">
             <div className="overflow-x-auto rounded-xl border">
                 <table className="min-w-full divide-y divide-muted/60 text-sm">
-                    <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <thead className="bg-muted/40 text-left text-xs tracking-wide text-muted-foreground uppercase">
                         <tr>
                             <th className="px-4 py-3">Feature</th>
                             {planList.map((plan) => (
                                 <th key={plan.id} className="px-4 py-3">
-                                    <div className="font-semibold text-foreground">{plan.name}</div>
-                                    <CardDescription>Code: {plan.code}</CardDescription>
+                                    <div className="font-semibold text-foreground">
+                                        {plan.name}
+                                    </div>
+                                    <CardDescription>
+                                        Code: {plan.code}
+                                    </CardDescription>
                                 </th>
                             ))}
                         </tr>
@@ -160,27 +187,53 @@ export function FeatureMatrixEditor({ plans, isLoading = false, savingPlanId, on
                         {featureCatalog.map((feature) => (
                             <tr key={feature.key}>
                                 <td className="px-4 py-4 align-top">
-                                    <div className="font-medium text-foreground">{feature.label}</div>
-                                    <p className="text-xs text-muted-foreground">{feature.description}</p>
+                                    <div className="font-medium text-foreground">
+                                        {feature.label}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {feature.description}
+                                    </p>
                                 </td>
                                 {planList.map((plan) => {
-                                    const value = getDraftValue(plan, drafts, feature.key);
+                                    const value = getDraftValue(
+                                        plan,
+                                        drafts,
+                                        feature.key,
+                                    );
                                     const saving = savingPlanId === plan.id;
                                     const numericValue =
-                                        typeof value === 'number' && !Number.isNaN(value) ? value : '';
+                                        typeof value === 'number' &&
+                                        !Number.isNaN(value)
+                                            ? value
+                                            : '';
 
                                     return (
-                                        <td key={`${feature.key}-${plan.id}`} className="px-4 py-4">
+                                        <td
+                                            key={`${feature.key}-${plan.id}`}
+                                            className="px-4 py-4"
+                                        >
                                             {feature.type === 'boolean' ? (
                                                 <label className="inline-flex items-center gap-2 text-sm">
                                                     <Checkbox
                                                         checked={!!value}
-                                                        onCheckedChange={(checked) =>
-                                                            handleValueChange(plan.id, feature.key, Boolean(checked))
+                                                        onCheckedChange={(
+                                                            checked,
+                                                        ) =>
+                                                            handleValueChange(
+                                                                plan.id,
+                                                                feature.key,
+                                                                Boolean(
+                                                                    checked,
+                                                                ),
+                                                            )
                                                         }
                                                         disabled={saving}
                                                     />
-                                                    <span>{value ? 'Enabled' : 'Disabled'}</span>
+                                                    <span>
+                                                        {value
+                                                            ? 'Enabled'
+                                                            : 'Disabled'}
+                                                    </span>
                                                 </label>
                                             ) : (
                                                 <Input
@@ -189,15 +242,23 @@ export function FeatureMatrixEditor({ plans, isLoading = false, savingPlanId, on
                                                     step={feature.step}
                                                     value={numericValue}
                                                     onChange={(event) => {
-                                                        const next = event.target.value;
+                                                        const next =
+                                                            event.target.value;
                                                         handleValueChange(
                                                             plan.id,
                                                             feature.key,
-                                                            next === '' ? undefined : Number(next),
+                                                            next === ''
+                                                                ? undefined
+                                                                : Number(next),
                                                         );
                                                     }}
                                                     disabled={saving}
-                                                    placeholder={feature.type === 'currency' ? '0.00' : 'Unlimited'}
+                                                    placeholder={
+                                                        feature.type ===
+                                                        'currency'
+                                                            ? '0.00'
+                                                            : 'Unlimited'
+                                                    }
                                                 />
                                             )}
                                         </td>
@@ -219,16 +280,25 @@ export function FeatureMatrixEditor({ plans, isLoading = false, savingPlanId, on
                                 <CardDescription>
                                     Last updated{' '}
                                     {plan.updatedAt
-                                        ? formatDate(plan.updatedAt, { dateStyle: 'medium', timeStyle: 'short' })
+                                        ? formatDate(plan.updatedAt, {
+                                              dateStyle: 'medium',
+                                              timeStyle: 'short',
+                                          })
                                         : 'recently'}
                                     .
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="text-sm text-muted-foreground">
-                                    {dirty ? 'Unsaved changes' : 'All changes synced'}
+                                    {dirty
+                                        ? 'Unsaved changes'
+                                        : 'All changes synced'}
                                 </div>
-                                <Button type="button" disabled={!dirty || saving} onClick={() => handleSave(plan)}>
+                                <Button
+                                    type="button"
+                                    disabled={!dirty || saving}
+                                    onClick={() => handleSave(plan)}
+                                >
                                     {saving ? 'Saving...' : 'Save plan'}
                                 </Button>
                             </CardContent>
@@ -248,7 +318,9 @@ function getDraftValue(plan: Plan, drafts: DraftState, key: FeatureKey) {
     return plan[key as keyof Plan] as number | boolean | undefined;
 }
 
-function normalizeValue(value: number | boolean | undefined | Plan[keyof Plan]) {
+function normalizeValue(
+    value: number | boolean | undefined | Plan[keyof Plan],
+) {
     if (typeof value === 'number' && Number.isNaN(value)) {
         return undefined;
     }

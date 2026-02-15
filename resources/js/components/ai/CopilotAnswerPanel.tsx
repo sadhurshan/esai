@@ -1,12 +1,28 @@
+import {
+    AlertCircle,
+    Check,
+    Copy,
+    ExternalLink,
+    Filter,
+    HelpCircle,
+    Sparkles,
+    Tag,
+    X,
+} from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
-import { AlertCircle, Check, Copy, ExternalLink, Filter, HelpCircle, Sparkles, Tag, X } from 'lucide-react';
 
 import { EmptyState } from '@/components/empty-state';
 import { errorToast, successToast } from '@/components/toasts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -46,7 +62,10 @@ interface CopilotAnswerPanelProps {
     defaultSourceType?: string;
 }
 
-export function CopilotAnswerPanel({ className, defaultSourceType = '' }: CopilotAnswerPanelProps) {
+export function CopilotAnswerPanel({
+    className,
+    defaultSourceType = '',
+}: CopilotAnswerPanelProps) {
     const questionFieldId = useId();
     const tagFieldId = useId();
 
@@ -66,7 +85,9 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
     const [copied, setCopied] = useState<'answer' | 'citations' | null>(null);
 
     const tagInputPlaceholder = useMemo(() => {
-        return tags.length === 0 ? 'Add tags to limit context (press Enter)' : 'Press Enter to add tag';
+        return tags.length === 0
+            ? 'Add tags to limit context (press Enter)'
+            : 'Press Enter to add tag';
     }, [tags.length]);
 
     const answerLines = useMemo(() => {
@@ -114,7 +135,10 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
         event?.preventDefault();
 
         if (!question.trim()) {
-            errorToast('Enter a question', 'Type a question so Copilot can synthesize an answer.');
+            errorToast(
+                'Enter a question',
+                'Type a question so Copilot can synthesize an answer.',
+            );
             return;
         }
 
@@ -137,30 +161,52 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                 };
             }
 
-            const response = await answerQuestion<AnswerQuestionResponse>(payload);
+            const response =
+                await answerQuestion<AnswerQuestionResponse>(payload);
             const data = response.data ?? null;
 
             if (!data) {
-                throw new ApiError('Copilot returned an empty response. Try again.');
+                throw new ApiError(
+                    'Copilot returned an empty response. Try again.',
+                );
             }
 
-            const markdown = typeof data.answer_markdown === 'string' ? data.answer_markdown.trim() : null;
-            const legacyAnswer = typeof data.answer === 'string' ? data.answer.trim() : null;
-            const normalizedAnswer = markdown && markdown.length > 0 ? markdown : legacyAnswer;
-            setAnswerMarkdown(normalizedAnswer && normalizedAnswer.length > 0 ? normalizedAnswer : null);
+            const markdown =
+                typeof data.answer_markdown === 'string'
+                    ? data.answer_markdown.trim()
+                    : null;
+            const legacyAnswer =
+                typeof data.answer === 'string' ? data.answer.trim() : null;
+            const normalizedAnswer =
+                markdown && markdown.length > 0 ? markdown : legacyAnswer;
+            setAnswerMarkdown(
+                normalizedAnswer && normalizedAnswer.length > 0
+                    ? normalizedAnswer
+                    : null,
+            );
             setCitations(Array.isArray(data.citations) ? data.citations : []);
             setNeedsHumanReview(Boolean(data.needs_human_review));
             setWarnings(
                 Array.isArray(data.warnings)
                     ? data.warnings
-                          .map((warning) => (typeof warning === 'string' ? warning.trim() : ''))
+                          .map((warning) =>
+                              typeof warning === 'string' ? warning.trim() : '',
+                          )
                           .filter((warning) => warning.length > 0)
                     : [],
             );
-            const rawConfidence = typeof data.confidence === 'number' ? data.confidence : null;
-            setConfidence(rawConfidence === null ? null : Math.min(1, Math.max(0, rawConfidence)));
+            const rawConfidence =
+                typeof data.confidence === 'number' ? data.confidence : null;
+            setConfidence(
+                rawConfidence === null
+                    ? null
+                    : Math.min(1, Math.max(0, rawConfidence)),
+            );
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unable to generate an answer right now.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unable to generate an answer right now.';
             setErrorMessage(message);
             errorToast('Copilot failed to respond', message);
         } finally {
@@ -170,7 +216,10 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
 
     const handleOpenDocument = async (docId: string) => {
         if (!docId) {
-            errorToast('Missing document id', 'This citation does not include a valid document id.');
+            errorToast(
+                'Missing document id',
+                'This citation does not include a valid document id.',
+            );
             return;
         }
 
@@ -185,9 +234,9 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
 
         try {
             // Axios response interceptor unwraps the payload, so assert the concrete document type for TS.
-            const document = (await api.get<DocumentResourcePayload>(`/documents/${numericId}`)) as unknown as
-                | DocumentResourcePayload
-                | null;
+            const document = (await api.get<DocumentResourcePayload>(
+                `/documents/${numericId}`,
+            )) as unknown as DocumentResourcePayload | null;
             const downloadUrl = document?.download_url;
 
             if (!downloadUrl) {
@@ -196,7 +245,10 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
 
             window.open(downloadUrl, '_blank', 'noopener');
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unable to open the cited document.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unable to open the cited document.';
             errorToast('Document not available', message);
         } finally {
             setOpeningDocId(null);
@@ -212,24 +264,31 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
         if (!text) {
             errorToast(
                 'Nothing to copy',
-                type === 'answer' ? 'Generate an answer first.' : 'No citations available to copy yet.',
+                type === 'answer'
+                    ? 'Generate an answer first.'
+                    : 'No citations available to copy yet.',
             );
             return;
         }
 
         if (typeof navigator === 'undefined' || !navigator.clipboard) {
-            errorToast('Clipboard unavailable', 'Your browser blocked clipboard access.');
+            errorToast(
+                'Clipboard unavailable',
+                'Your browser blocked clipboard access.',
+            );
             return;
         }
 
         try {
             await navigator.clipboard.writeText(text);
-            successToast(type === 'answer' ? 'Answer copied' : 'Citations copied');
+            successToast(
+                type === 'answer' ? 'Answer copied' : 'Citations copied',
+            );
             setCopied(type);
             window.setTimeout(() => {
                 setCopied((current) => (current === type ? null : current));
             }, 2000);
-        } catch (copyError) {
+        } catch {
             errorToast('Copy failed', 'Your browser blocked clipboard access.');
         }
     };
@@ -247,7 +306,10 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                     icon={<HelpCircle className="size-6" />}
                     ctaLabel="Try a sample question"
                     ctaProps={{
-                        onClick: () => setQuestion('What torque should I use on the CR-45 spindle assembly?'),
+                        onClick: () =>
+                            setQuestion(
+                                'What torque should I use on the CR-45 spindle assembly?',
+                            ),
                     }}
                 />
             );
@@ -269,15 +331,23 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                 <div className="rounded-xl border bg-card/70 p-4 shadow-sm">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p className="text-sm font-semibold text-muted-foreground">Answer + sources</p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+                            <p className="text-sm font-semibold text-muted-foreground">
+                                Answer + sources
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wide uppercase">
                                 {needsHumanReview ? (
-                                    <Badge variant="destructive" className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+                                    <Badge
+                                        variant="destructive"
+                                        className="bg-amber-100 text-amber-900 hover:bg-amber-100"
+                                    >
                                         Verify sources
                                     </Badge>
                                 ) : null}
                                 {confidence !== null ? (
-                                    <Badge variant="outline">Confidence {(confidence * 100).toFixed(0)}%</Badge>
+                                    <Badge variant="outline">
+                                        Confidence{' '}
+                                        {(confidence * 100).toFixed(0)}%
+                                    </Badge>
                                 ) : null}
                             </div>
                         </div>
@@ -314,7 +384,8 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                                     </>
                                 ) : (
                                     <>
-                                        <Copy className="size-3" /> Copy citations
+                                        <Copy className="size-3" /> Copy
+                                        citations
                                     </>
                                 )}
                             </Button>
@@ -328,7 +399,9 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                                 ))}
                             </ul>
                         ) : (
-                            <p className="whitespace-pre-wrap">{answerMarkdown}</p>
+                            <p className="whitespace-pre-wrap">
+                                {answerMarkdown}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -347,34 +420,52 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                 ) : null}
 
                 <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+                    <p className="text-xs font-semibold tracking-wide text-muted-foreground/80 uppercase">
                         Citations ({citations.length})
                     </p>
                     {citations.length === 0 ? (
                         <p className="text-sm text-muted-foreground">
-                            Copilot did not return any supporting snippets. Try widening your filters.
+                            Copilot did not return any supporting snippets. Try
+                            widening your filters.
                         </p>
                     ) : (
                         <div className="space-y-3">
                             {citations.map((citation) => {
                                 const key = `${citation.doc_id}:${citation.chunk_id ?? 'chunk'}`;
-                                const title = citation.title?.trim() || `Document ${citation.doc_id}`;
+                                const title =
+                                    citation.title?.trim() ||
+                                    `Document ${citation.doc_id}`;
 
                                 return (
-                                    <div key={key} className="rounded-xl border bg-muted/20 p-4">
+                                    <div
+                                        key={key}
+                                        className="rounded-xl border bg-muted/20 p-4"
+                                    >
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <p className="text-sm font-semibold text-foreground">{title}</p>
-                                            <Badge variant="outline" className="uppercase">
-                                                {sourceLabel(citation) ?? 'Source'}
+                                            <p className="text-sm font-semibold text-foreground">
+                                                {title}
+                                            </p>
+                                            <Badge
+                                                variant="outline"
+                                                className="uppercase"
+                                            >
+                                                {sourceLabel(citation) ??
+                                                    'Source'}
                                             </Badge>
                                             {citation.doc_version ? (
-                                                <Badge variant="secondary">v{citation.doc_version}</Badge>
+                                                <Badge variant="secondary">
+                                                    v{citation.doc_version}
+                                                </Badge>
                                             ) : null}
                                             {citation.chunk_id ? (
-                                                <Badge variant="secondary">Chunk {citation.chunk_id}</Badge>
+                                                <Badge variant="secondary">
+                                                    Chunk {citation.chunk_id}
+                                                </Badge>
                                             ) : null}
                                         </div>
-                                        <p className="mt-2 text-sm text-muted-foreground">{citation.snippet}</p>
+                                        <p className="mt-2 text-sm text-muted-foreground">
+                                            {citation.snippet}
+                                        </p>
                                         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                                             <span>Doc #{citation.doc_id}</span>
                                             <Button
@@ -382,16 +473,26 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                                                 size="sm"
                                                 variant="outline"
                                                 className="inline-flex items-center gap-1"
-                                                onClick={() => void handleOpenDocument(citation.doc_id)}
-                                                disabled={openingDocId === citation.doc_id}
+                                                onClick={() =>
+                                                    void handleOpenDocument(
+                                                        citation.doc_id,
+                                                    )
+                                                }
+                                                disabled={
+                                                    openingDocId ===
+                                                    citation.doc_id
+                                                }
                                             >
-                                                {openingDocId === citation.doc_id ? (
+                                                {openingDocId ===
+                                                citation.doc_id ? (
                                                     <>
-                                                        <Spinner className="size-3" /> Opening…
+                                                        <Spinner className="size-3" />{' '}
+                                                        Opening…
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <ExternalLink className="size-3" /> Open document
+                                                        <ExternalLink className="size-3" />{' '}
+                                                        Open document
                                                     </>
                                                 )}
                                             </Button>
@@ -411,24 +512,30 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
             <CardHeader>
                 <CardTitle>Ask Copilot</CardTitle>
                 <CardDescription>
-                    Generate an answer with citations pulled directly from indexed documents. Always validate the cited
-                    sources before applying changes.
+                    Generate an answer with citations pulled directly from
+                    indexed documents. Always validate the cited sources before
+                    applying changes.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <form className="space-y-4" onSubmit={handleGenerate}>
                     <div className="flex flex-col gap-3 md:flex-row md:items-end">
                         <div className="flex-1">
-                            <label htmlFor={questionFieldId} className="text-sm font-medium text-foreground">
+                            <label
+                                htmlFor={questionFieldId}
+                                className="text-sm font-medium text-foreground"
+                            >
                                 Question
                             </label>
                             <div className="relative mt-1">
-                                <Sparkles className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Sparkles className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     id={questionFieldId}
                                     placeholder="e.g. What torque spec applies to CR-45 spindle assembly?"
                                     value={question}
-                                    onChange={(event) => setQuestion(event.target.value)}
+                                    onChange={(event) =>
+                                        setQuestion(event.target.value)
+                                    }
                                     className="pl-10"
                                 />
                             </div>
@@ -437,13 +544,19 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                             <Button type="submit" disabled={isGenerating}>
                                 {isGenerating ? (
                                     <>
-                                        <Spinner className="mr-2 size-4" /> Generating…
+                                        <Spinner className="mr-2 size-4" />{' '}
+                                        Generating…
                                     </>
                                 ) : (
                                     'Generate answer'
                                 )}
                             </Button>
-                            <Button type="button" variant="outline" onClick={handleReset} disabled={isGenerating}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleReset}
+                                disabled={isGenerating}
+                            >
                                 Reset
                             </Button>
                         </div>
@@ -455,14 +568,22 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                         </div>
                         <div className="mt-4 grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">Source type</label>
-                                <Select value={sourceType} onValueChange={setSourceType}>
+                                <label className="text-sm font-medium text-foreground">
+                                    Source type
+                                </label>
+                                <Select
+                                    value={sourceType}
+                                    onValueChange={setSourceType}
+                                >
                                     <SelectTrigger aria-label="Document source">
                                         <SelectValue placeholder="All sources" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {SOURCE_TYPE_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value || 'all'} value={option.value}>
+                                            <SelectItem
+                                                key={option.value || 'all'}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         ))}
@@ -472,7 +593,10 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
-                                    <label htmlFor={tagFieldId} className="text-sm font-medium text-foreground">
+                                    <label
+                                        htmlFor={tagFieldId}
+                                        className="text-sm font-medium text-foreground"
+                                    >
                                         Document tags
                                     </label>
                                     {tags.length > 0 ? (
@@ -487,11 +611,13 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
-                                        <Tag className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Tag className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id={tagFieldId}
                                             value={tagInput}
-                                            onChange={(event) => setTagInput(event.target.value)}
+                                            onChange={(event) =>
+                                                setTagInput(event.target.value)
+                                            }
                                             onKeyDown={(event) => {
                                                 if (event.key === 'Enter') {
                                                     event.preventDefault();
@@ -502,18 +628,28 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
                                             className="pl-10"
                                         />
                                     </div>
-                                    <Button type="button" variant="outline" onClick={handleAddTag}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleAddTag}
+                                    >
                                         Add
                                     </Button>
                                 </div>
                                 {tags.length > 0 ? (
                                     <div className="flex flex-wrap gap-2">
                                         {tags.map((tag) => (
-                                            <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                            <Badge
+                                                key={tag}
+                                                variant="secondary"
+                                                className="flex items-center gap-1"
+                                            >
                                                 {tag}
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleRemoveTag(tag)}
+                                                    onClick={() =>
+                                                        handleRemoveTag(tag)
+                                                    }
                                                     className="rounded-full p-0.5 text-muted-foreground hover:text-foreground"
                                                     aria-label={`Remove tag ${tag}`}
                                                 >
@@ -538,7 +674,8 @@ export function CopilotAnswerPanel({ className, defaultSourceType = '' }: Copilo
 
                 <Alert>
                     <AlertDescription>
-                        AI suggestions must be verified against source documents. Never apply changes automatically without
+                        AI suggestions must be verified against source
+                        documents. Never apply changes automatically without
                         reviewing the cited evidence.
                     </AlertDescription>
                 </Alert>
@@ -572,8 +709,13 @@ function formatCitationsForCopy(citations: SemanticSearchHit[]): string | null {
     }
 
     const rows = citations.map((citation, index) => {
-        const snippet = typeof citation.snippet === 'string' ? citation.snippet.replace(/\s+/g, ' ').trim() : '';
-        const versionLabel = citation.doc_version ? `v${citation.doc_version}` : 'no version';
+        const snippet =
+            typeof citation.snippet === 'string'
+                ? citation.snippet.replace(/\s+/g, ' ').trim()
+                : '';
+        const versionLabel = citation.doc_version
+            ? `v${citation.doc_version}`
+            : 'no version';
         const chunkLabel = citation.chunk_id ?? 'n/a';
 
         return `${index + 1}. Doc ${citation.doc_id} ${versionLabel} · Chunk ${chunkLabel} · ${snippet}`.trim();

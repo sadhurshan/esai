@@ -9,7 +9,10 @@ export interface UseAiEventsOptions {
     enabled?: boolean;
 }
 
-export function useAiEvents(filters: AiEventFilters, options: UseAiEventsOptions = {}): UseQueryResult<AiEventResponse> {
+export function useAiEvents(
+    filters: AiEventFilters,
+    options: UseAiEventsOptions = {},
+): UseQueryResult<AiEventResponse> {
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
     const enabled = options.enabled ?? true;
     const serializedFilters = filters ?? {};

@@ -16,7 +16,11 @@ interface PoChangeOrderListResult {
 export function usePoChangeOrders(
     purchaseOrderId: number,
 ): UseQueryResult<PoChangeOrderListResult, ApiError> {
-    return useQuery<PoChangeOrderListResponse, ApiError, PoChangeOrderListResult>({
+    return useQuery<
+        PoChangeOrderListResponse,
+        ApiError,
+        PoChangeOrderListResult
+    >({
         queryKey: queryKeys.purchaseOrders.changeOrders(purchaseOrderId),
         enabled: Number.isFinite(purchaseOrderId) && purchaseOrderId > 0,
         queryFn: async () =>

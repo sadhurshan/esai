@@ -1,6 +1,10 @@
 import type { Rfq } from '@/sdk';
 
-type RfqLike = Pick<Rfq, 'status' | 'deadlineAt'> | { status?: string | null; deadlineAt?: Date | string | null } | null | undefined;
+type RfqLike =
+    | Pick<Rfq, 'status' | 'deadlineAt'>
+    | { status?: string | null; deadlineAt?: Date | string | null }
+    | null
+    | undefined;
 
 export function getRfqDeadlineDate(rfq: RfqLike): Date | null {
     if (!rfq || !rfq.deadlineAt) {
@@ -20,7 +24,8 @@ export function isResponseWindowClosed(rfq: RfqLike): boolean {
         return false;
     }
 
-    const status = typeof rfq.status === 'string' ? rfq.status.toLowerCase() : null;
+    const status =
+        typeof rfq.status === 'string' ? rfq.status.toLowerCase() : null;
     const closedByStatus = status !== null && status !== 'open';
     const deadline = getRfqDeadlineDate(rfq);
     const deadlinePassed = deadline ? deadline.getTime() < Date.now() : false;

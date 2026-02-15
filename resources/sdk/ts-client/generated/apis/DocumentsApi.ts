@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,28 +12,25 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  StoreDocument201Response,
+    ApiSuccessResponse,
+    StoreDocument201Response,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
     StoreDocument201ResponseFromJSON,
-    StoreDocument201ResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 function objectToJSON(value: unknown) {
     if (value == null) {
         return value;
     }
 
-    if (typeof value === 'object' && typeof (value as { toJSON?: () => unknown }).toJSON === 'function') {
+    if (
+        typeof value === 'object' &&
+        typeof (value as { toJSON?: () => unknown }).toJSON === 'function'
+    ) {
         return (value as { toJSON: () => unknown }).toJSON();
     }
 
@@ -70,109 +67,143 @@ export interface UploadFileRequest {
 
 /**
  * DocumentsApi - interface
- * 
+ *
  * @export
  * @interface DocumentsApiInterface
  */
 export interface DocumentsApiInterface {
     /**
-     * 
+     *
      * @summary Download quote attachments archive
-     * @param {number} quoteId 
+     * @param {number} quoteId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DocumentsApiInterface
      */
-    downloadQuoteAttachmentsRaw(requestParameters: DownloadQuoteAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>>;
+    downloadQuoteAttachmentsRaw(
+        requestParameters: DownloadQuoteAttachmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>>;
 
     /**
      * Download quote attachments archive
      */
-    downloadQuoteAttachments(requestParameters: DownloadQuoteAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob>;
+    downloadQuoteAttachments(
+        requestParameters: DownloadQuoteAttachmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob>;
 
     /**
-     * 
+     *
      * @summary Download RFQ CAD package
-     * @param {number} rfqId 
+     * @param {number} rfqId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DocumentsApiInterface
      */
-    downloadRfqCadRaw(requestParameters: DownloadRfqCadRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>>;
+    downloadRfqCadRaw(
+        requestParameters: DownloadRfqCadRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>>;
 
     /**
      * Download RFQ CAD package
      */
-    downloadRfqCad(requestParameters: DownloadRfqCadRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob>;
+    downloadRfqCad(
+        requestParameters: DownloadRfqCadRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob>;
 
     /**
-     * 
+     *
      * @summary Show document metadata
-     * @param {number} document 
+     * @param {number} document
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DocumentsApiInterface
      */
-    showDocumentRaw(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>>;
+    showDocumentRaw(
+        requestParameters: ShowDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<StoreDocument201Response>>;
 
     /**
      * Show document metadata
      */
-    showDocument(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response>;
+    showDocument(
+        requestParameters: ShowDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<StoreDocument201Response>;
 
     /**
-     * 
+     *
      * @summary Persist document to entity
      * @param {string} entity Target entity slug to associate with the uploaded document.
-     * @param {number} entityId 
-     * @param {string} kind 
-     * @param {string} category 
-     * @param {Blob} file 
+     * @param {number} entityId
+     * @param {string} kind
+     * @param {string} category
+     * @param {Blob} file
      * @param {string} [visibility] Visibility must match the configured &#x60;documents.allowed_visibilities&#x60; list (private, company, public).
-     * @param {Date} [expiresAt] 
-     * @param {object} [meta] 
-     * @param {object} [watermark] 
+     * @param {Date} [expiresAt]
+     * @param {object} [meta]
+     * @param {object} [watermark]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DocumentsApiInterface
      */
-    storeDocumentRaw(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>>;
+    storeDocumentRaw(
+        requestParameters: StoreDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<StoreDocument201Response>>;
 
     /**
      * Persist document to entity
      */
-    storeDocument(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response>;
+    storeDocument(
+        requestParameters: StoreDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<StoreDocument201Response>;
 
     /**
-     * 
+     *
      * @summary Upload file to temporary storage
-     * @param {Blob} file 
+     * @param {Blob} file
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DocumentsApiInterface
      */
-    uploadFileRaw(requestParameters: UploadFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    uploadFileRaw(
+        requestParameters: UploadFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Upload file to temporary storage
      */
-    uploadFile(requestParameters: UploadFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    uploadFile(
+        requestParameters: UploadFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterface {
-
+export class DocumentsApi
+    extends runtime.BaseAPI
+    implements DocumentsApiInterface
+{
     /**
      * Download quote attachments archive
      */
-    async downloadQuoteAttachmentsRaw(requestParameters: DownloadQuoteAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+    async downloadQuoteAttachmentsRaw(
+        requestParameters: DownloadQuoteAttachmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters['quoteId'] == null) {
             throw new runtime.RequiredError(
                 'quoteId',
-                'Required parameter "quoteId" was null or undefined when calling downloadQuoteAttachments().'
+                'Required parameter "quoteId" was null or undefined when calling downloadQuoteAttachments().',
             );
         }
 
@@ -181,27 +212,34 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/files/attachments/{quoteId}`;
-        urlPath = urlPath.replace(`{${"quoteId"}}`, encodeURIComponent(String(requestParameters['quoteId'])));
+        urlPath = urlPath.replace(
+            `{${'quoteId'}}`,
+            encodeURIComponent(String(requestParameters['quoteId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
         return new runtime.BlobApiResponse(response);
     }
@@ -209,19 +247,28 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
     /**
      * Download quote attachments archive
      */
-    async downloadQuoteAttachments(requestParameters: DownloadQuoteAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.downloadQuoteAttachmentsRaw(requestParameters, initOverrides);
+    async downloadQuoteAttachments(
+        requestParameters: DownloadQuoteAttachmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob> {
+        const response = await this.downloadQuoteAttachmentsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Download RFQ CAD package
      */
-    async downloadRfqCadRaw(requestParameters: DownloadRfqCadRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+    async downloadRfqCadRaw(
+        requestParameters: DownloadRfqCadRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters['rfqId'] == null) {
             throw new runtime.RequiredError(
                 'rfqId',
-                'Required parameter "rfqId" was null or undefined when calling downloadRfqCad().'
+                'Required parameter "rfqId" was null or undefined when calling downloadRfqCad().',
             );
         }
 
@@ -230,27 +277,34 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/files/cad/{rfqId}`;
-        urlPath = urlPath.replace(`{${"rfqId"}}`, encodeURIComponent(String(requestParameters['rfqId'])));
+        urlPath = urlPath.replace(
+            `{${'rfqId'}}`,
+            encodeURIComponent(String(requestParameters['rfqId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
         return new runtime.BlobApiResponse(response);
     }
@@ -258,19 +312,28 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
     /**
      * Download RFQ CAD package
      */
-    async downloadRfqCad(requestParameters: DownloadRfqCadRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.downloadRfqCadRaw(requestParameters, initOverrides);
+    async downloadRfqCad(
+        requestParameters: DownloadRfqCadRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob> {
+        const response = await this.downloadRfqCadRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show document metadata
      */
-    async showDocumentRaw(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>> {
+    async showDocumentRaw(
+        requestParameters: ShowDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<StoreDocument201Response>> {
         if (requestParameters['document'] == null) {
             throw new runtime.RequiredError(
                 'document',
-                'Required parameter "document" was null or undefined when calling showDocument().'
+                'Required parameter "document" was null or undefined when calling showDocument().',
             );
         }
 
@@ -279,75 +342,93 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/documents/{document}`;
-        urlPath = urlPath.replace(`{${"document"}}`, encodeURIComponent(String(requestParameters['document'])));
+        urlPath = urlPath.replace(
+            `{${'document'}}`,
+            encodeURIComponent(String(requestParameters['document'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => StoreDocument201ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            StoreDocument201ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show document metadata
      */
-    async showDocument(requestParameters: ShowDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response> {
-        const response = await this.showDocumentRaw(requestParameters, initOverrides);
+    async showDocument(
+        requestParameters: ShowDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<StoreDocument201Response> {
+        const response = await this.showDocumentRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Persist document to entity
      */
-    async storeDocumentRaw(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StoreDocument201Response>> {
+    async storeDocumentRaw(
+        requestParameters: StoreDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<StoreDocument201Response>> {
         if (requestParameters['entity'] == null) {
             throw new runtime.RequiredError(
                 'entity',
-                'Required parameter "entity" was null or undefined when calling storeDocument().'
+                'Required parameter "entity" was null or undefined when calling storeDocument().',
             );
         }
 
         if (requestParameters['entityId'] == null) {
             throw new runtime.RequiredError(
                 'entityId',
-                'Required parameter "entityId" was null or undefined when calling storeDocument().'
+                'Required parameter "entityId" was null or undefined when calling storeDocument().',
             );
         }
 
         if (requestParameters['kind'] == null) {
             throw new runtime.RequiredError(
                 'kind',
-                'Required parameter "kind" was null or undefined when calling storeDocument().'
+                'Required parameter "kind" was null or undefined when calling storeDocument().',
             );
         }
 
         if (requestParameters['category'] == null) {
             throw new runtime.RequiredError(
                 'category',
-                'Required parameter "category" was null or undefined when calling storeDocument().'
+                'Required parameter "category" was null or undefined when calling storeDocument().',
             );
         }
 
         if (requestParameters['file'] == null) {
             throw new runtime.RequiredError(
                 'file',
-                'Required parameter "file" was null or undefined when calling storeDocument().'
+                'Required parameter "file" was null or undefined when calling storeDocument().',
             );
         }
 
@@ -356,15 +437,16 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
         const consumes: runtime.Consume[] = [
@@ -388,7 +470,10 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         }
 
         if (requestParameters['entityId'] != null) {
-            formParams.append('entity_id', requestParameters['entityId'] as any);
+            formParams.append(
+                'entity_id',
+                requestParameters['entityId'] as any,
+            );
         }
 
         if (requestParameters['kind'] != null) {
@@ -400,55 +485,90 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         }
 
         if (requestParameters['visibility'] != null) {
-            formParams.append('visibility', requestParameters['visibility'] as any);
+            formParams.append(
+                'visibility',
+                requestParameters['visibility'] as any,
+            );
         }
 
         if (requestParameters['expiresAt'] != null) {
-            formParams.append('expires_at', (requestParameters['expiresAt'] as any).toISOString());
+            formParams.append(
+                'expires_at',
+                (requestParameters['expiresAt'] as any).toISOString(),
+            );
         }
 
         if (requestParameters['meta'] != null) {
-            formParams.append('meta', new Blob([JSON.stringify(objectToJSON(requestParameters['meta']))], { type: "application/json", }));
-                    }
+            formParams.append(
+                'meta',
+                new Blob(
+                    [JSON.stringify(objectToJSON(requestParameters['meta']))],
+                    { type: 'application/json' },
+                ),
+            );
+        }
 
         if (requestParameters['watermark'] != null) {
-            formParams.append('watermark', new Blob([JSON.stringify(objectToJSON(requestParameters['watermark']))], { type: "application/json", }));
-                    }
+            formParams.append(
+                'watermark',
+                new Blob(
+                    [
+                        JSON.stringify(
+                            objectToJSON(requestParameters['watermark']),
+                        ),
+                    ],
+                    { type: 'application/json' },
+                ),
+            );
+        }
 
         if (requestParameters['file'] != null) {
             formParams.append('file', requestParameters['file'] as any);
         }
 
-
         let urlPath = `/api/documents`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => StoreDocument201ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            StoreDocument201ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Persist document to entity
      */
-    async storeDocument(requestParameters: StoreDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StoreDocument201Response> {
-        const response = await this.storeDocumentRaw(requestParameters, initOverrides);
+    async storeDocument(
+        requestParameters: StoreDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<StoreDocument201Response> {
+        const response = await this.storeDocumentRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Upload file to temporary storage
      */
-    async uploadFileRaw(requestParameters: UploadFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async uploadFileRaw(
+        requestParameters: UploadFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['file'] == null) {
             throw new runtime.RequiredError(
                 'file',
-                'Required parameter "file" was null or undefined when calling uploadFile().'
+                'Required parameter "file" was null or undefined when calling uploadFile().',
             );
         }
 
@@ -457,15 +577,16 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
         const consumes: runtime.Consume[] = [
@@ -488,28 +609,37 @@ export class DocumentsApi extends runtime.BaseAPI implements DocumentsApiInterfa
             formParams.append('file', requestParameters['file'] as any);
         }
 
-
         let urlPath = `/api/files/upload`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Upload file to temporary storage
      */
-    async uploadFile(requestParameters: UploadFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.uploadFileRaw(requestParameters, initOverrides);
+    async uploadFile(
+        requestParameters: UploadFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.uploadFileRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }
 
 /**
@@ -521,9 +651,10 @@ export const StoreDocumentEntityEnum = {
     Po: 'po',
     Invoice: 'invoice',
     Supplier: 'supplier',
-    Part: 'part'
+    Part: 'part',
 } as const;
-export type StoreDocumentEntityEnum = typeof StoreDocumentEntityEnum[keyof typeof StoreDocumentEntityEnum];
+export type StoreDocumentEntityEnum =
+    (typeof StoreDocumentEntityEnum)[keyof typeof StoreDocumentEntityEnum];
 /**
  * @export
  */
@@ -539,9 +670,10 @@ export const StoreDocumentKindEnum = {
     Manual: 'manual',
     Certificate: 'certificate',
     EsgPack: 'esg_pack',
-    Other: 'other'
+    Other: 'other',
 } as const;
-export type StoreDocumentKindEnum = typeof StoreDocumentKindEnum[keyof typeof StoreDocumentKindEnum];
+export type StoreDocumentKindEnum =
+    (typeof StoreDocumentKindEnum)[keyof typeof StoreDocumentKindEnum];
 /**
  * @export
  */
@@ -553,6 +685,7 @@ export const StoreDocumentCategoryEnum = {
     Financial: 'financial',
     Communication: 'communication',
     Esg: 'esg',
-    Other: 'other'
+    Other: 'other',
 } as const;
-export type StoreDocumentCategoryEnum = typeof StoreDocumentCategoryEnum[keyof typeof StoreDocumentCategoryEnum];
+export type StoreDocumentCategoryEnum =
+    (typeof StoreDocumentCategoryEnum)[keyof typeof StoreDocumentCategoryEnum];

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrderLatestDeliverySentBy
  */
 export interface PurchaseOrderLatestDeliverySentBy {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLatestDeliverySentBy
      */
     id?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderLatestDeliverySentBy
      */
     name?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderLatestDeliverySentBy
      */
@@ -42,40 +41,49 @@ export interface PurchaseOrderLatestDeliverySentBy {
 /**
  * Check if a given object implements the PurchaseOrderLatestDeliverySentBy interface.
  */
-export function instanceOfPurchaseOrderLatestDeliverySentBy(value: object): value is PurchaseOrderLatestDeliverySentBy {
+export function instanceOfPurchaseOrderLatestDeliverySentBy(
+    value: object,
+): value is PurchaseOrderLatestDeliverySentBy {
     return true;
 }
 
-export function PurchaseOrderLatestDeliverySentByFromJSON(json: any): PurchaseOrderLatestDeliverySentBy {
+export function PurchaseOrderLatestDeliverySentByFromJSON(
+    json: any,
+): PurchaseOrderLatestDeliverySentBy {
     return PurchaseOrderLatestDeliverySentByFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderLatestDeliverySentByFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrderLatestDeliverySentBy {
+export function PurchaseOrderLatestDeliverySentByFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrderLatestDeliverySentBy {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
+        id: json['id'] == null ? undefined : json['id'],
+        name: json['name'] == null ? undefined : json['name'],
+        email: json['email'] == null ? undefined : json['email'],
     };
 }
 
-export function PurchaseOrderLatestDeliverySentByToJSON(json: any): PurchaseOrderLatestDeliverySentBy {
+export function PurchaseOrderLatestDeliverySentByToJSON(
+    json: any,
+): PurchaseOrderLatestDeliverySentBy {
     return PurchaseOrderLatestDeliverySentByToJSONTyped(json, false);
 }
 
-export function PurchaseOrderLatestDeliverySentByToJSONTyped(value?: PurchaseOrderLatestDeliverySentBy | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderLatestDeliverySentByToJSONTyped(
+    value?: PurchaseOrderLatestDeliverySentBy | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
-        'email': value['email'],
+        id: value['id'],
+        name: value['name'],
+        email: value['email'],
     };
 }
-

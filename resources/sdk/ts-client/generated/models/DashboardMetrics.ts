@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * Aggregated counts shown on the operations dashboard.
  * @export
@@ -20,31 +19,31 @@ import { mapValues } from '../runtime';
  */
 export interface DashboardMetrics {
     /**
-     * 
+     *
      * @type {number}
      * @memberof DashboardMetrics
      */
     openRfqCount: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof DashboardMetrics
      */
     quotesAwaitingReviewCount: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof DashboardMetrics
      */
     posAwaitingAcknowledgementCount: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof DashboardMetrics
      */
     unpaidInvoiceCount: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof DashboardMetrics
      */
@@ -54,12 +53,31 @@ export interface DashboardMetrics {
 /**
  * Check if a given object implements the DashboardMetrics interface.
  */
-export function instanceOfDashboardMetrics(value: object): value is DashboardMetrics {
-    if (!('openRfqCount' in value) || value['openRfqCount'] === undefined) return false;
-    if (!('quotesAwaitingReviewCount' in value) || value['quotesAwaitingReviewCount'] === undefined) return false;
-    if (!('posAwaitingAcknowledgementCount' in value) || value['posAwaitingAcknowledgementCount'] === undefined) return false;
-    if (!('unpaidInvoiceCount' in value) || value['unpaidInvoiceCount'] === undefined) return false;
-    if (!('lowStockPartCount' in value) || value['lowStockPartCount'] === undefined) return false;
+export function instanceOfDashboardMetrics(
+    value: object,
+): value is DashboardMetrics {
+    if (!('openRfqCount' in value) || value['openRfqCount'] === undefined)
+        return false;
+    if (
+        !('quotesAwaitingReviewCount' in value) ||
+        value['quotesAwaitingReviewCount'] === undefined
+    )
+        return false;
+    if (
+        !('posAwaitingAcknowledgementCount' in value) ||
+        value['posAwaitingAcknowledgementCount'] === undefined
+    )
+        return false;
+    if (
+        !('unpaidInvoiceCount' in value) ||
+        value['unpaidInvoiceCount'] === undefined
+    )
+        return false;
+    if (
+        !('lowStockPartCount' in value) ||
+        value['lowStockPartCount'] === undefined
+    )
+        return false;
     return true;
 }
 
@@ -67,17 +85,20 @@ export function DashboardMetricsFromJSON(json: any): DashboardMetrics {
     return DashboardMetricsFromJSONTyped(json, false);
 }
 
-export function DashboardMetricsFromJSONTyped(json: any, ignoreDiscriminator: boolean): DashboardMetrics {
+export function DashboardMetricsFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): DashboardMetrics {
     if (json == null) {
         return json;
     }
     return {
-        
-        'openRfqCount': json['open_rfq_count'],
-        'quotesAwaitingReviewCount': json['quotes_awaiting_review_count'],
-        'posAwaitingAcknowledgementCount': json['pos_awaiting_acknowledgement_count'],
-        'unpaidInvoiceCount': json['unpaid_invoice_count'],
-        'lowStockPartCount': json['low_stock_part_count'],
+        openRfqCount: json['open_rfq_count'],
+        quotesAwaitingReviewCount: json['quotes_awaiting_review_count'],
+        posAwaitingAcknowledgementCount:
+            json['pos_awaiting_acknowledgement_count'],
+        unpaidInvoiceCount: json['unpaid_invoice_count'],
+        lowStockPartCount: json['low_stock_part_count'],
     };
 }
 
@@ -85,18 +106,20 @@ export function DashboardMetricsToJSON(json: any): DashboardMetrics {
     return DashboardMetricsToJSONTyped(json, false);
 }
 
-export function DashboardMetricsToJSONTyped(value?: DashboardMetrics | null, ignoreDiscriminator: boolean = false): any {
+export function DashboardMetricsToJSONTyped(
+    value?: DashboardMetrics | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'open_rfq_count': value['openRfqCount'],
-        'quotes_awaiting_review_count': value['quotesAwaitingReviewCount'],
-        'pos_awaiting_acknowledgement_count': value['posAwaitingAcknowledgementCount'],
-        'unpaid_invoice_count': value['unpaidInvoiceCount'],
-        'low_stock_part_count': value['lowStockPartCount'],
+        open_rfq_count: value['openRfqCount'],
+        quotes_awaiting_review_count: value['quotesAwaitingReviewCount'],
+        pos_awaiting_acknowledgement_count:
+            value['posAwaitingAcknowledgementCount'],
+        unpaid_invoice_count: value['unpaidInvoiceCount'],
+        low_stock_part_count: value['lowStockPartCount'],
     };
 }
-

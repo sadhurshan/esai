@@ -1,8 +1,18 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
-import type { Paged, Supplier, SupplierDocument, SupplierDocumentType } from '@/types/sourcing';
+import type {
+    CostBandEstimate,
+    Paged,
+    Supplier,
+    SupplierDocument,
+    SupplierDocumentType,
+} from '@/types/sourcing';
 
 export interface SupplierQueryParams extends Record<string, unknown> {
     q?: string;
@@ -84,6 +94,22 @@ export interface SupplierApiPayload {
 
 type SupplierResponse = Paged<SupplierApiPayload>;
 
+type CostBandEstimatePayload = {
+    status: 'estimated' | 'insufficient_data';
+    min_minor?: number | null;
+    max_minor?: number | null;
+    currency?: string | null;
+    sample_size: number;
+    period_months: number;
+    matched_on: {
+        process?: string | null;
+        material?: string | null;
+        finish?: string | null;
+        region?: string | null;
+    };
+    explanation: string;
+};
+
 const coerceNumber = (value: unknown): number | null => {
     if (value === null || value === undefined) {
         return null;
@@ -94,7 +120,9 @@ const coerceNumber = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null;
 };
 
-const mapSupplierDocument = (payload: SupplierDocumentResponse): SupplierDocument => ({
+const mapSupplierDocument = (
+    payload: SupplierDocumentResponse,
+): SupplierDocument => ({
     id: payload.id,
     supplierId: payload.supplier_id,
     companyId: payload.company_id,
@@ -155,21 +183,48 @@ export const mapSupplier = (payload: SupplierApiPayload): Supplier => ({
               isVerified: payload.company.is_verified ?? null,
           }
         : null,
-    documents: payload.documents ? payload.documents.map(mapSupplierDocument) : null,
+    documents: payload.documents
+        ? payload.documents.map(mapSupplierDocument)
+        : null,
 });
 
 type SupplierResult = { items: Supplier[]; meta: SupplierResponse['meta'] };
 
-export function useSuppliers(params: SupplierQueryParams = {}): UseQueryResult<SupplierResult, ApiError> {
+export function useSuppliers(
+    params: SupplierQueryParams = {},
+): UseQueryResult<SupplierResult, ApiError> {
     return useQuery<SupplierResult, ApiError, SupplierResult>({
         queryKey: queryKeys.suppliers.list(params),
         queryFn: async () => {
             const query = buildQuery(params);
-            const response = (await api.get<SupplierResponse>(`/suppliers${query}`)) as unknown as SupplierResponse;
+            const response = (await api.get<SupplierResponse>(
+                `/suppliers${query}`,
+            )) as unknown as SupplierResponse;
+            const metaWithEstimate = response.meta as unknown as {
+                cost_band_estimate?: CostBandEstimatePayload | null;
+                [key: string]: unknown;
+            };
+            const { cost_band_estimate: estimatePayload, ...restMeta } =
+                metaWithEstimate ?? {};
+            const costBandEstimate: CostBandEstimate | null = estimatePayload
+                ? {
+                      status: estimatePayload.status,
+                      minMinor: estimatePayload.min_minor ?? null,
+                      maxMinor: estimatePayload.max_minor ?? null,
+                      currency: estimatePayload.currency ?? null,
+                      sampleSize: estimatePayload.sample_size,
+                      periodMonths: estimatePayload.period_months,
+                      matchedOn: estimatePayload.matched_on ?? {},
+                      explanation: estimatePayload.explanation,
+                  }
+                : null;
 
             return {
                 items: response.items.map(mapSupplier),
-                meta: response.meta,
+                meta: {
+                    ...(restMeta as SupplierResponse['meta']),
+                    costBandEstimate,
+                },
             };
         },
         staleTime: 30_000,

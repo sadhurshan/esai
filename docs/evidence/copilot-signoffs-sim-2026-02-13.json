@@ -1,0 +1,38 @@
+{
+    "generated_at": "2026-02-13T12:49:32+00:00",
+    "roles": {
+        "product": {
+            "approved": true,
+            "by": "sim-product",
+            "at": "2026-02-13T12:49:32+00:00",
+            "note": "approved"
+        },
+        "engineering": {
+            "approved": true,
+            "by": "sim-engineering",
+            "at": "2026-02-13T12:49:32+00:00",
+            "note": "approved"
+        },
+        "qa": {
+            "approved": true,
+            "by": "sim-qa",
+            "at": "2026-02-13T12:49:32+00:00",
+            "note": "approved"
+        },
+        "security": {
+            "approved": true,
+            "by": "sim-security",
+            "at": "2026-02-13T12:49:32+00:00",
+            "note": "approved"
+        }
+    },
+    "summary": {
+        "approved_count": 4,
+        "required_count": 4,
+        "all_approved": true
+    },
+    "meta": {
+        "mode": "simulation",
+        "updated_by": "copilot:bulk-signoff"
+    }
+}

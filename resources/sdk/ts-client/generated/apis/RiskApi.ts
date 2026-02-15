@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,18 +12,12 @@
  * Do not edit the class manually.
  */
 
-
+import type { ApiSuccessResponse } from '../models/index';
+import { ApiSuccessResponseFromJSON } from '../models/index';
 import * as runtime from '../runtime';
-import type {
-  ApiSuccessResponse,
-} from '../models/index';
-import {
-    ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-} from '../models/index';
 
 export interface GenerateRiskScoresRequest {
-    requestBody?: { [key: string]: any; };
+    requestBody?: { [key: string]: any };
 }
 
 export interface ShowRiskScoreRequest {
@@ -32,66 +26,83 @@ export interface ShowRiskScoreRequest {
 
 /**
  * RiskApi - interface
- * 
+ *
  * @export
  * @interface RiskApiInterface
  */
 export interface RiskApiInterface {
     /**
-     * 
+     *
      * @summary Generate new risk scores for suppliers
-     * @param {{ [key: string]: any; }} [requestBody] 
+     * @param {{ [key: string]: any; }} [requestBody]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RiskApiInterface
      */
-    generateRiskScoresRaw(requestParameters: GenerateRiskScoresRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    generateRiskScoresRaw(
+        requestParameters: GenerateRiskScoresRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Generate new risk scores for suppliers
      */
-    generateRiskScores(requestParameters: GenerateRiskScoresRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    generateRiskScores(
+        requestParameters: GenerateRiskScoresRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List supplier risk scores
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RiskApiInterface
      */
-    listRiskScoresRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listRiskScoresRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List supplier risk scores
      */
-    listRiskScores(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listRiskScores(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Retrieve supplier risk score
-     * @param {number} supplierId 
+     * @param {number} supplierId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RiskApiInterface
      */
-    showRiskScoreRaw(requestParameters: ShowRiskScoreRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showRiskScoreRaw(
+        requestParameters: ShowRiskScoreRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Retrieve supplier risk score
      */
-    showRiskScore(requestParameters: ShowRiskScoreRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    showRiskScore(
+        requestParameters: ShowRiskScoreRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
 export class RiskApi extends runtime.BaseAPI implements RiskApiInterface {
-
     /**
      * Generate new risk scores for suppliers
      */
-    async generateRiskScoresRaw(requestParameters: GenerateRiskScoresRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async generateRiskScoresRaw(
+        requestParameters: GenerateRiskScoresRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -99,76 +110,98 @@ export class RiskApi extends runtime.BaseAPI implements RiskApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/risk/generate`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Generate new risk scores for suppliers
      */
-    async generateRiskScores(requestParameters: GenerateRiskScoresRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.generateRiskScoresRaw(requestParameters, initOverrides);
+    async generateRiskScores(
+        requestParameters: GenerateRiskScoresRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.generateRiskScoresRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List supplier risk scores
      */
-    async listRiskScoresRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listRiskScoresRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/risk`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List supplier risk scores
      */
-    async listRiskScores(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listRiskScores(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listRiskScoresRaw(initOverrides);
         return await response.value();
     }
@@ -176,11 +209,14 @@ export class RiskApi extends runtime.BaseAPI implements RiskApiInterface {
     /**
      * Retrieve supplier risk score
      */
-    async showRiskScoreRaw(requestParameters: ShowRiskScoreRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showRiskScoreRaw(
+        requestParameters: ShowRiskScoreRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['supplierId'] == null) {
             throw new runtime.RequiredError(
                 'supplierId',
-                'Required parameter "supplierId" was null or undefined when calling showRiskScore().'
+                'Required parameter "supplierId" was null or undefined when calling showRiskScore().',
             );
         }
 
@@ -189,37 +225,51 @@ export class RiskApi extends runtime.BaseAPI implements RiskApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/risk/{supplierId}`;
-        urlPath = urlPath.replace(`{${"supplierId"}}`, encodeURIComponent(String(requestParameters['supplierId'])));
+        urlPath = urlPath.replace(
+            `{${'supplierId'}}`,
+            encodeURIComponent(String(requestParameters['supplierId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve supplier risk score
      */
-    async showRiskScore(requestParameters: ShowRiskScoreRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showRiskScoreRaw(requestParameters, initOverrides);
+    async showRiskScore(
+        requestParameters: ShowRiskScoreRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showRiskScoreRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

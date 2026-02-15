@@ -1,23 +1,49 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
+import { CurrencyPreferences } from '@/components/settings/currency-preferences';
+import {
+    UomMapper,
+    type UomMappingRow,
+} from '@/components/settings/uom-mapper';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
-import { CurrencyPreferences } from '@/components/settings/currency-preferences';
-import { UomMapper, type UomMappingRow } from '@/components/settings/uom-mapper';
 import { useAuth } from '@/contexts/auth-context';
-import { useLocalizationSettings, useUpdateLocalizationSettings } from '@/hooks/api/settings';
+import {
+    useLocalizationSettings,
+    useUpdateLocalizationSettings,
+} from '@/hooks/api/settings';
 import { useUoms } from '@/hooks/api/use-uoms';
-import type { LocalizationSettings } from '@/types/settings';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import type { LocalizationSettings } from '@/types/settings';
 
 const localeOptions = [
     { value: 'en-US', label: 'English (United States)' },
@@ -80,8 +106,14 @@ export type LocalizationFormValues = z.infer<typeof localizationSchema>;
 function getTimezoneOptions(): { value: string; label: string }[] {
     if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
         try {
-            const values = (Intl as unknown as { supportedValuesOf: (type: string) => string[] }).supportedValuesOf('timeZone');
-            return values.map((value) => ({ value, label: value })).slice(0, 250);
+            const values = (
+                Intl as unknown as {
+                    supportedValuesOf: (type: string) => string[];
+                }
+            ).supportedValuesOf('timeZone');
+            return values
+                .map((value) => ({ value, label: value }))
+                .slice(0, 250);
         } catch (error) {
             void error;
         }
@@ -135,15 +167,21 @@ function toFormValues(settings?: LocalizationSettings): LocalizationFormValues {
     return {
         timezone: settings?.timezone ?? 'UTC',
         locale: settings?.locale ?? 'en-US',
-        dateFormat: (settings?.dateFormat as LocalizationFormValues['dateFormat']) ?? 'YYYY-MM-DD',
-        numberFormat: (settings?.numberFormat as LocalizationFormValues['numberFormat']) ?? '1,234.56',
+        dateFormat:
+            (settings?.dateFormat as LocalizationFormValues['dateFormat']) ??
+            'YYYY-MM-DD',
+        numberFormat:
+            (settings?.numberFormat as LocalizationFormValues['numberFormat']) ??
+            '1,234.56',
         currency: {
             primary: settings?.currency.primary ?? 'USD',
             displayFx: settings?.currency.displayFx ?? false,
         },
         uom: {
             baseUom: settings?.uom.baseUom ?? 'EA',
-            mappings: settings?.uom.maps ? mapRecordToRows(settings.uom.maps) : [],
+            mappings: settings?.uom.maps
+                ? mapRecordToRows(settings.uom.maps)
+                : [],
         },
     } satisfies LocalizationFormValues;
 }
@@ -176,11 +214,18 @@ export function LocalizationSettingsPage() {
         return fallbackUoms;
     }, [uomQuery.data]);
 
-    const watchedValues = (useWatch<LocalizationFormValues>({ control: form.control }) ?? form.getValues()) as LocalizationFormValues;
+    const watchedValues = (useWatch<LocalizationFormValues>({
+        control: form.control,
+    }) ?? form.getValues()) as LocalizationFormValues;
     const baseUomValue =
-        (useWatch({ control: form.control, name: 'uom.baseUom' }) as string | undefined) ?? watchedValues.uom.baseUom;
+        (useWatch({ control: form.control, name: 'uom.baseUom' }) as
+            | string
+            | undefined) ?? watchedValues.uom.baseUom;
 
-    const preview = useMemo(() => buildLocalizationPreview(watchedValues), [watchedValues]);
+    const preview = useMemo(
+        () => buildLocalizationPreview(watchedValues),
+        [watchedValues],
+    );
 
     const handleSubmit = form.handleSubmit(async (values) => {
         try {
@@ -198,7 +243,8 @@ export function LocalizationSettingsPage() {
             publishToast({
                 variant: 'success',
                 title: 'Localization saved',
-                description: 'Dates, numbers, and units now align with your workspace preferences.',
+                description:
+                    'Dates, numbers, and units now align with your workspace preferences.',
             });
         } catch (error) {
             void error;
@@ -222,17 +268,26 @@ export function LocalizationSettingsPage() {
                 <title>Localization settings · Elements Supply</title>
             </Helmet>
             <div>
-                <p className="text-sm text-muted-foreground">Workspace · Settings</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Localization & units</h1>
                 <p className="text-sm text-muted-foreground">
-                    Configure locale, timezone, display formats, and base units so every document renders consistently for buyers and suppliers.
+                    Workspace · Settings
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Localization & units
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Configure locale, timezone, display formats, and base units
+                    so every document renders consistently for buyers and
+                    suppliers.
                 </p>
             </div>
             {isLoading ? (
                 <Skeleton className="h-96 w-full" />
             ) : (
                 <Form {...form}>
-                    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid gap-6 lg:grid-cols-[2fr_1fr]"
+                    >
                         <div className="space-y-6">
                             <Card>
                                 <CardHeader>
@@ -245,8 +300,15 @@ export function LocalizationSettingsPage() {
                                             name="timezone"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Timezone</FormLabel>
-                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                    <FormLabel>
+                                                        Timezone
+                                                    </FormLabel>
+                                                    <Select
+                                                        value={field.value}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
+                                                    >
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select timezone" />
@@ -254,11 +316,24 @@ export function LocalizationSettingsPage() {
                                                         </FormControl>
                                                         <SelectContent>
                                                             <SelectGroup>
-                                                                {timezoneOptions.map((option) => (
-                                                                    <SelectItem key={option.value} value={option.value}>
-                                                                        {option.label}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {timezoneOptions.map(
+                                                                    (
+                                                                        option,
+                                                                    ) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                option.value
+                                                                            }
+                                                                            value={
+                                                                                option.value
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                option.label
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectGroup>
                                                         </SelectContent>
                                                     </Select>
@@ -271,8 +346,15 @@ export function LocalizationSettingsPage() {
                                             name="locale"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Locale</FormLabel>
-                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                    <FormLabel>
+                                                        Locale
+                                                    </FormLabel>
+                                                    <Select
+                                                        value={field.value}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
+                                                    >
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select locale" />
@@ -280,11 +362,24 @@ export function LocalizationSettingsPage() {
                                                         </FormControl>
                                                         <SelectContent>
                                                             <SelectGroup>
-                                                                {localeOptions.map((option) => (
-                                                                    <SelectItem key={option.value} value={option.value}>
-                                                                        {option.label}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {localeOptions.map(
+                                                                    (
+                                                                        option,
+                                                                    ) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                option.value
+                                                                            }
+                                                                            value={
+                                                                                option.value
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                option.label
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectGroup>
                                                         </SelectContent>
                                                     </Select>
@@ -299,8 +394,15 @@ export function LocalizationSettingsPage() {
                                             name="dateFormat"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Date format</FormLabel>
-                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                    <FormLabel>
+                                                        Date format
+                                                    </FormLabel>
+                                                    <Select
+                                                        value={field.value}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
+                                                    >
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select format" />
@@ -308,11 +410,24 @@ export function LocalizationSettingsPage() {
                                                         </FormControl>
                                                         <SelectContent>
                                                             <SelectGroup>
-                                                                {dateFormatOptions.map((option) => (
-                                                                    <SelectItem key={option.value} value={option.value}>
-                                                                        {option.label}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {dateFormatOptions.map(
+                                                                    (
+                                                                        option,
+                                                                    ) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                option.value
+                                                                            }
+                                                                            value={
+                                                                                option.value
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                option.label
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectGroup>
                                                         </SelectContent>
                                                     </Select>
@@ -325,8 +440,15 @@ export function LocalizationSettingsPage() {
                                             name="numberFormat"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Number format</FormLabel>
-                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                    <FormLabel>
+                                                        Number format
+                                                    </FormLabel>
+                                                    <Select
+                                                        value={field.value}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
+                                                    >
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select format" />
@@ -334,11 +456,24 @@ export function LocalizationSettingsPage() {
                                                         </FormControl>
                                                         <SelectContent>
                                                             <SelectGroup>
-                                                                {numberFormatOptions.map((option) => (
-                                                                    <SelectItem key={option.value} value={option.value}>
-                                                                        {option.label}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {numberFormatOptions.map(
+                                                                    (
+                                                                        option,
+                                                                    ) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                option.value
+                                                                            }
+                                                                            value={
+                                                                                option.value
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                option.label
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectGroup>
                                                         </SelectContent>
                                                     </Select>
@@ -354,7 +489,11 @@ export function LocalizationSettingsPage() {
                                     <CardTitle>Currency & FX</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <CurrencyPreferences control={form.control} name="currency" options={currencyOptions} />
+                                    <CurrencyPreferences
+                                        control={form.control}
+                                        name="currency"
+                                        options={currencyOptions}
+                                    />
                                 </CardContent>
                             </Card>
                             <Card>
@@ -368,7 +507,12 @@ export function LocalizationSettingsPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Base unit</FormLabel>
-                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                <Select
+                                                    value={field.value}
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                >
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select base unit" />
@@ -376,18 +520,29 @@ export function LocalizationSettingsPage() {
                                                     </FormControl>
                                                     <SelectContent>
                                                         <SelectGroup>
-                                                            {uomOptions.map((option) => (
-                                                                <SelectItem key={option.value} value={option.value}>
-                                                                    {option.label}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {uomOptions.map(
+                                                                (option) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            option.value
+                                                                        }
+                                                                        value={
+                                                                            option.value
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            option.label
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
                                                         </SelectGroup>
                                                     </SelectContent>
                                                 </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                     <FormField
                                         control={form.control}
                                         name="uom.mappings"
@@ -398,7 +553,13 @@ export function LocalizationSettingsPage() {
                                                     onChange={field.onChange}
                                                     baseUom={baseUomValue}
                                                     onBaseChange={(value) =>
-                                                        form.setValue('uom.baseUom', value, { shouldDirty: true })
+                                                        form.setValue(
+                                                            'uom.baseUom',
+                                                            value,
+                                                            {
+                                                                shouldDirty: true,
+                                                            },
+                                                        )
                                                     }
                                                     options={uomOptions}
                                                 />
@@ -408,8 +569,13 @@ export function LocalizationSettingsPage() {
                                     />
                                 </CardContent>
                                 <CardFooter className="justify-end">
-                                    <Button type="submit" disabled={updateLocalization.isPending}>
-                                        {updateLocalization.isPending ? 'Saving…' : 'Save localization'}
+                                    <Button
+                                        type="submit"
+                                        disabled={updateLocalization.isPending}
+                                    >
+                                        {updateLocalization.isPending
+                                            ? 'Saving…'
+                                            : 'Save localization'}
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -421,23 +587,35 @@ export function LocalizationSettingsPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-4 text-sm">
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Current time</Label>
-                                        <p className="text-base font-medium">{preview.datetime}</p>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Current time
+                                        </Label>
+                                        <p className="text-base font-medium">
+                                            {preview.datetime}
+                                        </p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Date format</Label>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Date format
+                                        </Label>
                                         <p>{preview.date}</p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Number format</Label>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Number format
+                                        </Label>
                                         <p>{preview.number}</p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Currency</Label>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Currency
+                                        </Label>
                                         <p>{preview.currency}</p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">FX tooltip</Label>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            FX tooltip
+                                        </Label>
                                         <p>{preview.fxTooltip}</p>
                                     </div>
                                 </CardContent>
@@ -453,14 +631,21 @@ export function LocalizationSettingsPage() {
 export function buildLocalizationPreview(values: LocalizationFormValues) {
     const sampleDate = new Date('2025-03-15T14:34:00Z');
 
-    const datetimeFormatter = new Intl.DateTimeFormat(values.locale ?? 'en-US', {
-        timeZone: values.timezone ?? 'UTC',
-        dateStyle: 'full',
-        timeStyle: 'short',
-    });
+    const datetimeFormatter = new Intl.DateTimeFormat(
+        values.locale ?? 'en-US',
+        {
+            timeZone: values.timezone ?? 'UTC',
+            dateStyle: 'full',
+            timeStyle: 'short',
+        },
+    );
 
     const number = formatNumber(values.numberFormat ?? '1,234.56', 1234567.89);
-    const date = formatDate(values.dateFormat ?? 'YYYY-MM-DD', sampleDate, values.timezone ?? 'UTC');
+    const date = formatDate(
+        values.dateFormat ?? 'YYYY-MM-DD',
+        sampleDate,
+        values.timezone ?? 'UTC',
+    );
     const currencyFormatter = new Intl.NumberFormat(values.locale ?? 'en-US', {
         style: 'currency',
         currency: values.currency.primary ?? 'USD',
@@ -477,7 +662,10 @@ export function buildLocalizationPreview(values: LocalizationFormValues) {
     };
 }
 
-function formatNumber(pattern: LocalizationFormValues['numberFormat'], value: number) {
+function formatNumber(
+    pattern: LocalizationFormValues['numberFormat'],
+    value: number,
+) {
     switch (pattern) {
         case '1.234,56':
             return value.toLocaleString('de-DE');
@@ -488,8 +676,14 @@ function formatNumber(pattern: LocalizationFormValues['numberFormat'], value: nu
     }
 }
 
-function formatDate(pattern: LocalizationFormValues['dateFormat'], date: Date, timezone: string) {
-    const zoned = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+function formatDate(
+    pattern: LocalizationFormValues['dateFormat'],
+    date: Date,
+    timezone: string,
+) {
+    const zoned = new Date(
+        date.toLocaleString('en-US', { timeZone: timezone }),
+    );
     const year = zoned.getFullYear();
     const month = String(zoned.getMonth() + 1).padStart(2, '0');
     const day = String(zoned.getDate()).padStart(2, '0');

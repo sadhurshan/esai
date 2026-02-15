@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -15,12 +19,19 @@ export interface UpdateProfilePayload {
     avatar?: File | null;
 }
 
-export function useUpdateProfile(): UseMutationResult<User, ApiError, UpdateProfilePayload> {
+export function useUpdateProfile(): UseMutationResult<
+    User,
+    ApiError,
+    UpdateProfilePayload
+> {
     const queryClient = useQueryClient();
 
     return useMutation<User, ApiError, UpdateProfilePayload>({
         mutationFn: async (payload) => {
-            const data = (await api.post<User>('/me/profile', buildProfileFormData(payload))) as unknown as User;
+            const data = (await api.post<User>(
+                '/me/profile',
+                buildProfileFormData(payload),
+            )) as unknown as User;
             return data;
         },
         onSuccess: (data) => {
@@ -49,7 +60,11 @@ const buildProfileFormData = (payload: UpdateProfilePayload): FormData => {
     return formData;
 };
 
-const appendNullableString = (formData: FormData, key: string, value: string | null | undefined): void => {
+const appendNullableString = (
+    formData: FormData,
+    key: string,
+    value: string | null | undefined,
+): void => {
     if (value === undefined) {
         return;
     }

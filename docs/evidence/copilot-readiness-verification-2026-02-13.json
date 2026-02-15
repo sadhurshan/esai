@@ -1,0 +1,43 @@
+{
+    "generated_at": "2026-02-13T19:14:46+00:00",
+    "artifact": "docs/evidence/copilot-launch-readiness-2026-02-13.json",
+    "summary": {
+        "total": 4,
+        "failed": 0,
+        "result": "pass"
+    },
+    "checks": [
+        {
+            "evidence": "runtime_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-runtime-gates-2026-02-13.json",
+            "expected_sha256": "84bc4d8e8fbd2ceca344623fc3f01a19fa37ee4b7f0d39bbd41abc7f72e064f8",
+            "actual_sha256": "84bc4d8e8fbd2ceca344623fc3f01a19fa37ee4b7f0d39bbd41abc7f72e064f8",
+            "message": "Hash matches artifact."
+        },
+        {
+            "evidence": "latency_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-latency-2026-02-13.json",
+            "expected_sha256": "f96fb7bc4f603ef00c93c836659fbd5f0880744f11381883e59093343fd3bba9",
+            "actual_sha256": "f96fb7bc4f603ef00c93c836659fbd5f0880744f11381883e59093343fd3bba9",
+            "message": "Hash matches artifact."
+        },
+        {
+            "evidence": "trace_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-latency-trace-attribution-2026-02-13.json",
+            "expected_sha256": "05f782f70353a376e17e988ccd2cfde0269dbb8d967ee2d02e4f1f643a1c3720",
+            "actual_sha256": "05f782f70353a376e17e988ccd2cfde0269dbb8d967ee2d02e4f1f643a1c3720",
+            "message": "Hash matches artifact."
+        },
+        {
+            "evidence": "signoff_evidence",
+            "status": "pass",
+            "path": "docs/evidence/copilot-signoffs-2026-02-13.json",
+            "expected_sha256": "8dcb5fe2f603c79b2a2ab9d8ad3d2173d8a50f726f6162888ced1b4bdb7aa4d8",
+            "actual_sha256": "8dcb5fe2f603c79b2a2ab9d8ad3d2173d8a50f726f6162888ced1b4bdb7aa4d8",
+            "message": "Hash matches artifact."
+        }
+    ]
+}

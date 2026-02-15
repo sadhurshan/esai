@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { Uom } from './Uom';
-import {
-    UomFromJSON,
-    UomFromJSONTyped,
-    UomToJSON,
-    UomToJSONTyped,
-} from './Uom';
 import type { ListUoms200ResponseAllOfDataMeta } from './ListUoms200ResponseAllOfDataMeta';
 import {
     ListUoms200ResponseAllOfDataMetaFromJSON,
-    ListUoms200ResponseAllOfDataMetaFromJSONTyped,
     ListUoms200ResponseAllOfDataMetaToJSON,
-    ListUoms200ResponseAllOfDataMetaToJSONTyped,
 } from './ListUoms200ResponseAllOfDataMeta';
+import type { Uom } from './Uom';
+import { UomFromJSON, UomToJSON } from './Uom';
 
 /**
- * 
+ *
  * @export
  * @interface ListUoms200ResponseAllOfData
  */
 export interface ListUoms200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<Uom>}
      * @memberof ListUoms200ResponseAllOfData
      */
     items: Array<Uom>;
     /**
-     * 
+     *
      * @type {ListUoms200ResponseAllOfDataMeta}
      * @memberof ListUoms200ResponseAllOfData
      */
@@ -51,40 +43,49 @@ export interface ListUoms200ResponseAllOfData {
 /**
  * Check if a given object implements the ListUoms200ResponseAllOfData interface.
  */
-export function instanceOfListUoms200ResponseAllOfData(value: object): value is ListUoms200ResponseAllOfData {
+export function instanceOfListUoms200ResponseAllOfData(
+    value: object,
+): value is ListUoms200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function ListUoms200ResponseAllOfDataFromJSON(json: any): ListUoms200ResponseAllOfData {
+export function ListUoms200ResponseAllOfDataFromJSON(
+    json: any,
+): ListUoms200ResponseAllOfData {
     return ListUoms200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListUoms200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListUoms200ResponseAllOfData {
+export function ListUoms200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListUoms200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(UomFromJSON)),
-        'meta': ListUoms200ResponseAllOfDataMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(UomFromJSON),
+        meta: ListUoms200ResponseAllOfDataMetaFromJSON(json['meta']),
     };
 }
 
-export function ListUoms200ResponseAllOfDataToJSON(json: any): ListUoms200ResponseAllOfData {
+export function ListUoms200ResponseAllOfDataToJSON(
+    json: any,
+): ListUoms200ResponseAllOfData {
     return ListUoms200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListUoms200ResponseAllOfDataToJSONTyped(value?: ListUoms200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListUoms200ResponseAllOfDataToJSONTyped(
+    value?: ListUoms200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(UomToJSON)),
-        'meta': ListUoms200ResponseAllOfDataMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(UomToJSON),
+        meta: ListUoms200ResponseAllOfDataMetaToJSON(value['meta']),
     };
 }
-

@@ -56,6 +56,7 @@ class AISupplyService:
         self._risk_label_map = {"low": 0, "medium": 1, "high": 2}
         self._risk_label_inverse = {value: key for key, value in self._risk_label_map.items()}
         self._model_store_path = os.getenv("AI_SERVICE_MODEL_PATH") or os.path.join(os.getcwd(), "storage", "ai_models.joblib")
+        self._chat_fine_tune: Optional[Dict[str, Any]] = None
 
         artifact_path = self._resolve_model_file(self._model_store_path)
         if os.path.exists(artifact_path):
@@ -96,15 +97,35 @@ class AISupplyService:
 
         self._validate_date_bounds(start_dt, end_dt, "load_inventory_data")
 
-        base_sql = f"""
-            SELECT part_id,
-                   DATE(transaction_date) AS txn_date,
-                   SUM(quantity) AS quantity
-            FROM {table_name}
-            WHERE transaction_date >= :start_date
-              AND transaction_date < :end_date_exclusive
-              AND transaction_type IN :transaction_types
-        """
+        if table_name == "inventory_txns":
+            normalized_type_expr = """
+                CASE
+                    WHEN type IN ('issue') THEN 'issue'
+                    WHEN type IN ('return_in', 'return_out') THEN 'return'
+                    WHEN type IN ('transfer_in', 'transfer_out') THEN 'transfer'
+                    WHEN type IN ('adjust_in', 'adjust_out') THEN 'adjustment'
+                    ELSE NULL
+                END
+            """
+            base_sql = f"""
+                SELECT part_id,
+                       DATE(created_at) AS txn_date,
+                       SUM(qty) AS quantity
+                FROM {table_name}
+                WHERE created_at >= :start_date
+                  AND created_at < :end_date_exclusive
+                  AND {normalized_type_expr} IN :transaction_types
+            """
+        else:
+            base_sql = f"""
+                SELECT part_id,
+                       DATE(transaction_date) AS txn_date,
+                       SUM(quantity) AS quantity
+                FROM {table_name}
+                WHERE transaction_date >= :start_date
+                  AND transaction_date < :end_date_exclusive
+                  AND transaction_type IN :transaction_types
+            """
 
         params = {
             "start_date": start_dt,
@@ -255,7 +276,14 @@ class AISupplyService:
         LOGGER.info("Completed forecasting model training for %s parts", len(results))
         return results
 
-    def predict_demand(self, part_id: int, history: pd.Series, horizon: int) -> Dict[str, float]:
+    def predict_demand(
+        self,
+        part_id: int,
+        history: pd.Series,
+        horizon: int,
+        lead_time_days: Optional[int] = None,
+        lead_time_variance_days: Optional[float] = None,
+    ) -> Dict[str, float]:
         """Forecast demand for a part and emit reorder recommendations.
 
         Args:
@@ -309,12 +337,18 @@ class AISupplyService:
         demand_qty = float(forecast_series.sum())
         avg_daily_demand = demand_qty / float(horizon)
         safety_stock = self._compute_safety_stock(series)
-        lead_time_days = int(model_config.get("lead_time_days", self._default_lead_time_days))
-        lead_time_days = max(1, lead_time_days)
-        reorder_point = avg_daily_demand * lead_time_days + safety_stock
+        resolved_lead_time = lead_time_days if lead_time_days is not None else model_config.get("lead_time_days", None)
+        resolved_lead_time = int(resolved_lead_time or self._default_lead_time_days)
+        resolved_lead_time = max(1, resolved_lead_time)
+        variance_days = float(lead_time_variance_days or 0.0)
+        variance_days = max(0.0, variance_days)
+        effective_lead_time = resolved_lead_time + variance_days
+        reorder_point = avg_daily_demand * effective_lead_time + safety_stock
+
+        suggested_order_qty = max(demand_qty + safety_stock, reorder_point)
 
         last_date = series.index.max().to_pydatetime().date()
-        order_by_date = (last_date + dt.timedelta(days=max(1, lead_time_days - 1))).isoformat()
+        order_by_date = (last_date + dt.timedelta(days=max(1, int(effective_lead_time) - 1))).isoformat()
 
         return {
             "model_used": selected_model,
@@ -324,6 +358,13 @@ class AISupplyService:
             "reorder_point": reorder_point,
             "safety_stock": safety_stock,
             "order_by_date": order_by_date,
+            "lead_time_days": float(resolved_lead_time),
+            "lead_time_variance_days": variance_days,
+            "suggested_order_qty": suggested_order_qty,
+            "explanation": (
+                "Based on %d demand points, %.2f units/day average, and lead time %.1f ± %.1f days."
+                % (len(series), avg_daily_demand, float(resolved_lead_time), variance_days)
+            ),
         }
 
     def load_supplier_data(
@@ -367,8 +408,9 @@ class AISupplyService:
         deliveries_df = self._fetch_supplier_deliveries(engine, start_dt, end_dt, company_id)
         price_df = self._fetch_supplier_prices(engine, start_dt, end_dt, company_id)
         events_df = self._fetch_supplier_events(engine, start_dt, end_dt, company_id)
+        risk_scores_df = self._fetch_supplier_risk_scores(engine, start_dt, end_dt, company_id)
 
-        if deliveries_df.empty and price_df.empty and events_df.empty:
+        if deliveries_df.empty and price_df.empty and events_df.empty and risk_scores_df.empty:
             empty_frame = pd.DataFrame(columns=feature_columns)
             self._warn_if_dataframe_sparse(empty_frame, "load_supplier_data")
             return empty_frame
@@ -380,6 +422,8 @@ class AISupplyService:
             supplier_ids.update(price_df["supplier_id"].dropna().unique())
         if "supplier_id" in events_df:
             supplier_ids.update(events_df["supplier_id"].dropna().unique())
+        if "supplier_id" in risk_scores_df:
+            supplier_ids.update(risk_scores_df["supplier_id"].dropna().unique())
         supplier_ids = sorted(int(s) for s in supplier_ids if pd.notna(s))
 
         if not supplier_ids:
@@ -405,6 +449,10 @@ class AISupplyService:
         if feature_df.empty:
             self._warn_if_dataframe_sparse(feature_df, "load_supplier_data")
             return feature_df
+
+        if not risk_scores_df.empty:
+            risk_scores_df = risk_scores_df.drop_duplicates(subset=["supplier_id"], keep="last")
+            feature_df = feature_df.merge(risk_scores_df, on="supplier_id", how="left")
 
         defaults = {column: 0.0 for column in feature_columns if column != "supplier_id"}
         feature_df = self._fill_missing_features(feature_df, defaults=defaults, skip_columns={"supplier_id"})
@@ -592,6 +640,8 @@ class AISupplyService:
         score_for_category = float(np.clip(risk_score, 0.0, 1.0)) if math.isfinite(risk_score) else 0.0
         risk_category = self._score_to_category(score_for_category)
         explanation = self._build_risk_explanation(feature_vector)
+        badges = self._build_risk_badges(supplier_series)
+        mitigation_tips = self._build_risk_mitigation_tips(supplier_series, risk_category)
 
         LOGGER.info(
             "Predicted supplier risk supplier_id=%s category=%s score=%.3f model_type=%s predicted_class=%s",
@@ -606,6 +656,8 @@ class AISupplyService:
             "risk_category": risk_category,
             "risk_score": float(risk_score),
             "explanation": explanation,
+            "badges": badges,
+            "mitigation_tips": mitigation_tips,
         }
 
     @staticmethod
@@ -693,6 +745,59 @@ class AISupplyService:
         if score <= high:
             return "Medium"
         return "High"
+
+    @staticmethod
+    def _coerce_metric(series: pd.Series, key: str) -> Optional[float]:
+        try:
+            value = float(series.get(key))
+        except (TypeError, ValueError):
+            return None
+        return value
+
+    def _build_risk_badges(self, supplier_series: pd.Series) -> list[str]:
+        badges: list[str] = []
+        on_time = self._coerce_metric(supplier_series, "on_time_rate")
+        defect = self._coerce_metric(supplier_series, "defect_rate")
+        lead_time_var = self._coerce_metric(supplier_series, "lead_time_variance")
+        price_volatility = self._coerce_metric(supplier_series, "price_volatility")
+        responsiveness = self._coerce_metric(supplier_series, "service_responsiveness")
+
+        if on_time is not None and on_time < 0.85:
+            badges.append("Late deliveries")
+        if defect is not None and defect > 0.03:
+            badges.append("High defect rate")
+        if lead_time_var is not None and lead_time_var > 0.2:
+            badges.append("Lead time volatility")
+        if price_volatility is not None and price_volatility > 0.2:
+            badges.append("Price volatility")
+        if responsiveness is not None and responsiveness < 0.6:
+            badges.append("Slow RFQ response")
+
+        return badges
+
+    def _build_risk_mitigation_tips(self, supplier_series: pd.Series, category: str) -> list[str]:
+        tips: list[str] = []
+        on_time = self._coerce_metric(supplier_series, "on_time_rate")
+        defect = self._coerce_metric(supplier_series, "defect_rate")
+        lead_time_var = self._coerce_metric(supplier_series, "lead_time_variance")
+        price_volatility = self._coerce_metric(supplier_series, "price_volatility")
+        responsiveness = self._coerce_metric(supplier_series, "service_responsiveness")
+
+        if on_time is not None and on_time < 0.85:
+            tips.append("Confirm lead time buffers and track on-time delivery SLAs.")
+        if defect is not None and defect > 0.03:
+            tips.append("Request a corrective action plan and review QA checkpoints.")
+        if lead_time_var is not None and lead_time_var > 0.2:
+            tips.append("Add a secondary supplier or increase safety stock for critical parts.")
+        if price_volatility is not None and price_volatility > 0.2:
+            tips.append("Negotiate pricing tiers or lock in rates for the next cycle.")
+        if responsiveness is not None and responsiveness < 0.6:
+            tips.append("Set response SLAs and prioritize suppliers with faster turnaround.")
+
+        if not tips:
+            tips.append(f"Continue monitoring {category.lower()} risk signals and schedule quarterly reviews.")
+
+        return tips
 
     @staticmethod
     def _format_feature_label(column: str) -> str:
@@ -809,6 +914,7 @@ class AISupplyService:
             "risk_label_map": self._risk_label_map,
             "risk_label_inverse": self._risk_label_inverse,
             "risk_model_trained_at": self._risk_model_trained_at,
+            "chat_fine_tune": self._chat_fine_tune,
             "metadata": {
                 "saved_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "last_trained_at": self.readiness_snapshot().get("last_trained_at"),
@@ -862,6 +968,7 @@ class AISupplyService:
             value: key for key, value in self._risk_label_map.items()
         }
         self._risk_model_trained_at = payload.get("risk_model_trained_at")
+        self._chat_fine_tune = payload.get("chat_fine_tune")
 
         LOGGER.info(
             "Loaded AI models artifact path=%s forecast_models=%s risk_model=%s",
@@ -870,6 +977,12 @@ class AISupplyService:
             bool(self._risk_model),
         )
         return True
+
+    def record_chat_fine_tune(self, payload: Dict[str, Any]) -> None:
+        """Persist chat fine-tune metadata in the model registry."""
+        if not isinstance(payload, dict):
+            raise ValueError("Chat fine-tune metadata must be a dictionary")
+        self._chat_fine_tune = payload
 
     @staticmethod
     def _resolve_model_file(path: str) -> str:
@@ -1128,6 +1241,56 @@ class AISupplyService:
         events["event_type"] = events["event_type"].astype(str).str.lower()
         events["occurred_at"] = self._normalize_datetime_series(events["occurred_at"])
         return events
+
+    def _fetch_supplier_risk_scores(
+        self,
+        engine: Engine,
+        start_dt: dt.date,
+        end_dt: dt.date,
+        company_id: Optional[int],
+    ) -> DataFrame:
+        sql = """
+            SELECT
+                supplier_id,
+                overall_score,
+                risk_grade,
+                updated_at
+            FROM supplier_risk_scores
+            WHERE updated_at BETWEEN :start_date AND :end_date
+              AND deleted_at IS NULL
+        """
+        params: Dict[str, object] = {
+            "start_date": start_dt,
+            "end_date": end_dt + dt.timedelta(days=1),
+        }
+        if company_id is not None:
+            sql += " AND company_id = :company_id"
+            params["company_id"] = company_id
+
+        statement = text(sql)
+        try:
+            scores = pd.read_sql_query(statement, engine, params=params, parse_dates=["updated_at"])
+        except SQLAlchemyError as exc:
+            message = str(exc).lower()
+            missing_table = (
+                "no such table" in message
+                or "doesn't exist" in message
+                or "undefined table" in message
+            )
+            if missing_table:
+                LOGGER.warning(
+                    "supplier_risk_scores table unavailable; continuing without risk score join"
+                )
+                return pd.DataFrame(columns=["supplier_id", "overall_score", "risk_grade", "updated_at"])
+            LOGGER.exception("Failed to load supplier risk scores")
+            raise
+
+        if scores.empty:
+            return scores
+
+        scores["risk_grade"] = scores["risk_grade"].astype(str).str.strip().str.lower()
+        scores = scores.sort_values("updated_at")
+        return scores
 
     @staticmethod
     def _determine_validation_window(history_len: int, horizon: int) -> int:

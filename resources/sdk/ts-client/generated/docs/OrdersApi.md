@@ -2,12 +2,10 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**listOrders**](OrdersApi.md#listorders) | **GET** /api/orders | List public supplier orders |
-| [**showOrder**](OrdersApi.md#showorder) | **GET** /api/orders/{orderId} | Show supplier order detail |
-
-
+| Method                                    | HTTP request                  | Description                 |
+| ----------------------------------------- | ----------------------------- | --------------------------- |
+| [**listOrders**](OrdersApi.md#listorders) | **GET** /api/orders           | List public supplier orders |
+| [**showOrder**](OrdersApi.md#showorder)   | **GET** /api/orders/{orderId} | Show supplier order detail  |
 
 ## listOrders
 
@@ -18,28 +16,25 @@ List public supplier orders
 ### Example
 
 ```ts
-import {
-  Configuration,
-  OrdersApi,
-} from '';
+import { Configuration, OrdersApi } from '';
 import type { ListOrdersRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new OrdersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new OrdersApi(config);
 
-  try {
-    const data = await api.listOrders();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.listOrders();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -63,14 +58,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Orders visible to the authenticated supplier. |  -  |
+
+| Status code | Description                                   | Response headers |
+| ----------- | --------------------------------------------- | ---------------- |
+| **200**     | Orders visible to the authenticated supplier. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showOrder
 
@@ -81,33 +75,30 @@ Show supplier order detail
 ### Example
 
 ```ts
-import {
-  Configuration,
-  OrdersApi,
-} from '';
+import { Configuration, OrdersApi } from '';
 import type { ShowOrderRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new OrdersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new OrdersApi(config);
 
-  const body = {
-    // number
-    orderId: 56,
-  } satisfies ShowOrderRequest;
+    const body = {
+        // number
+        orderId: 56,
+    } satisfies ShowOrderRequest;
 
-  try {
-    const data = await api.showOrder(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showOrder(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -116,10 +107,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **orderId** | `number` |  | [Defaults to `undefined`] |
+| Name        | Type     | Description | Notes                     |
+| ----------- | -------- | ----------- | ------------------------- |
+| **orderId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -134,11 +124,10 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Order details for supplier view. |  -  |
+
+| Status code | Description                      | Response headers |
+| ----------- | -------------------------------- | ---------------- |
+| **200**     | Order details for supplier view. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
 import type { CursorMeta } from './CursorMeta';
-import {
-    CursorMetaFromJSON,
-    CursorMetaFromJSONTyped,
-    CursorMetaToJSON,
-    CursorMetaToJSONTyped,
-} from './CursorMeta';
+import { CursorMetaFromJSON, CursorMetaToJSON } from './CursorMeta';
+import type { PageMeta } from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 
 /**
  * Metadata applied to every successful response. Includes request correlation identifiers and pagination cursors.
@@ -41,13 +30,13 @@ export interface RequestMeta {
      */
     requestId: string;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof RequestMeta
      */
     pagination?: PageMeta;
     /**
-     * 
+     *
      * @type {CursorMeta}
      * @memberof RequestMeta
      */
@@ -58,7 +47,8 @@ export interface RequestMeta {
  * Check if a given object implements the RequestMeta interface.
  */
 export function instanceOfRequestMeta(value: object): value is RequestMeta {
-    if (!('requestId' in value) || value['requestId'] === undefined) return false;
+    if (!('requestId' in value) || value['requestId'] === undefined)
+        return false;
     return true;
 }
 
@@ -66,15 +56,23 @@ export function RequestMetaFromJSON(json: any): RequestMeta {
     return RequestMetaFromJSONTyped(json, false);
 }
 
-export function RequestMetaFromJSONTyped(json: any, ignoreDiscriminator: boolean): RequestMeta {
+export function RequestMetaFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RequestMeta {
     if (json == null) {
         return json;
     }
     return {
-        
-        'requestId': json['request_id'],
-        'pagination': json['pagination'] == null ? undefined : PageMetaFromJSON(json['pagination']),
-        'cursor': json['cursor'] == null ? undefined : CursorMetaFromJSON(json['cursor']),
+        requestId: json['request_id'],
+        pagination:
+            json['pagination'] == null
+                ? undefined
+                : PageMetaFromJSON(json['pagination']),
+        cursor:
+            json['cursor'] == null
+                ? undefined
+                : CursorMetaFromJSON(json['cursor']),
     };
 }
 
@@ -82,16 +80,17 @@ export function RequestMetaToJSON(json: any): RequestMeta {
     return RequestMetaToJSONTyped(json, false);
 }
 
-export function RequestMetaToJSONTyped(value?: RequestMeta | null, ignoreDiscriminator: boolean = false): any {
+export function RequestMetaToJSONTyped(
+    value?: RequestMeta | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'request_id': value['requestId'],
-        'pagination': PageMetaToJSON(value['pagination']),
-        'cursor': CursorMetaToJSON(value['cursor']),
+        request_id: value['requestId'],
+        pagination: PageMetaToJSON(value['pagination']),
+        cursor: CursorMetaToJSON(value['cursor']),
     };
 }
-

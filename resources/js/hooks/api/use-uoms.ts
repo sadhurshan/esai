@@ -48,7 +48,9 @@ function normalizeUoms(items: UomOption[]): UomOption[] {
     return result;
 }
 
-export function useUoms(options: UseUomsOptions = {}): UseQueryResult<UomOption[]> {
+export function useUoms(
+    options: UseUomsOptions = {},
+): UseQueryResult<UomOption[]> {
     const localizationApi = useSdkClient(LocalizationApi);
     const { dimension, enabled } = options;
 

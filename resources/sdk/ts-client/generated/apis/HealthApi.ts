@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,22 +12,13 @@
  * Do not edit the class manually.
  */
 
-
+import type { GetHealth200Response } from '../models/index';
+import { GetHealth200ResponseFromJSON } from '../models/index';
 import * as runtime from '../runtime';
-import type {
-  ApiErrorResponse,
-  GetHealth200Response,
-} from '../models/index';
-import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
-    GetHealth200ResponseFromJSON,
-    GetHealth200ResponseToJSON,
-} from '../models/index';
 
 /**
  * HealthApi - interface
- * 
+ *
  * @export
  * @interface HealthApiInterface
  */
@@ -39,13 +30,17 @@ export interface HealthApiInterface {
      * @throws {RequiredError}
      * @memberof HealthApiInterface
      */
-    downloadOpenApiRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>>;
+    downloadOpenApiRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<object>>;
 
     /**
      * Returns the compiled OpenAPI JSON artifact produced by the `api:spec:build` command.
      * Download compiled OpenAPI document
      */
-    downloadOpenApi(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object>;
+    downloadOpenApi(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<object>;
 
     /**
      * Returns the Postman collection generated from the compiled OpenAPI document.
@@ -54,53 +49,63 @@ export interface HealthApiInterface {
      * @throws {RequiredError}
      * @memberof HealthApiInterface
      */
-    downloadPostmanCollectionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>>;
+    downloadPostmanCollectionRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<object>>;
 
     /**
      * Returns the Postman collection generated from the compiled OpenAPI document.
      * Download Postman collection
      */
-    downloadPostmanCollection(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object>;
+    downloadPostmanCollection(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<object>;
 
     /**
-     * 
+     *
      * @summary API health check
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof HealthApiInterface
      */
-    getHealthRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetHealth200Response>>;
+    getHealthRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<GetHealth200Response>>;
 
     /**
      * API health check
      */
-    getHealth(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetHealth200Response>;
-
+    getHealth(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<GetHealth200Response>;
 }
 
 /**
- * 
+ *
  */
 export class HealthApi extends runtime.BaseAPI implements HealthApiInterface {
-
     /**
      * Returns the compiled OpenAPI JSON artifact produced by the `api:spec:build` command.
      * Download compiled OpenAPI document
      */
-    async downloadOpenApiRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+    async downloadOpenApiRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<object>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-
         let urlPath = `/api/docs/openapi.json`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -109,7 +114,9 @@ export class HealthApi extends runtime.BaseAPI implements HealthApiInterface {
      * Returns the compiled OpenAPI JSON artifact produced by the `api:spec:build` command.
      * Download compiled OpenAPI document
      */
-    async downloadOpenApi(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+    async downloadOpenApi(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<object> {
         const response = await this.downloadOpenApiRaw(initOverrides);
         return await response.value();
     }
@@ -118,20 +125,24 @@ export class HealthApi extends runtime.BaseAPI implements HealthApiInterface {
      * Returns the Postman collection generated from the compiled OpenAPI document.
      * Download Postman collection
      */
-    async downloadPostmanCollectionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+    async downloadPostmanCollectionRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<object>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-
         let urlPath = `/api/docs/postman.json`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -140,7 +151,9 @@ export class HealthApi extends runtime.BaseAPI implements HealthApiInterface {
      * Returns the Postman collection generated from the compiled OpenAPI document.
      * Download Postman collection
      */
-    async downloadPostmanCollection(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+    async downloadPostmanCollection(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<object> {
         const response = await this.downloadPostmanCollectionRaw(initOverrides);
         return await response.value();
     }
@@ -148,30 +161,37 @@ export class HealthApi extends runtime.BaseAPI implements HealthApiInterface {
     /**
      * API health check
      */
-    async getHealthRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetHealth200Response>> {
+    async getHealthRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<GetHealth200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-
         let urlPath = `/api/health`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => GetHealth200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            GetHealth200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * API health check
      */
-    async getHealth(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetHealth200Response> {
+    async getHealth(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<GetHealth200Response> {
         const response = await this.getHealthRaw(initOverrides);
         return await response.value();
     }
-
 }

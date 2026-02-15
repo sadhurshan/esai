@@ -84,30 +84,41 @@ export function DataTable<T>({
                                         scope="col"
                                         style={{ width: column.width }}
                                         className={cn(
-                                            'sticky top-0 border-b border-sidebar-border/60 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground',
-                                            column.align === 'center' && 'text-center',
-                                            column.align === 'right' && 'text-right',
+                                            'sticky top-0 border-b border-sidebar-border/60 px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase',
+                                            column.align === 'center' &&
+                                                'text-center',
+                                            column.align === 'right' &&
+                                                'text-right',
                                         )}
                                     >
                                         {isSortable ? (
                                             <button
                                                 type="button"
-                                                onClick={() => handleSort(column.key)}
+                                                onClick={() =>
+                                                    handleSort(column.key)
+                                                }
                                                 className={cn(
-                                                    'flex w-full items-center gap-2 text-left uppercase tracking-wide',
-                                                    column.align === 'center' && 'justify-center text-center',
-                                                    column.align === 'right' && 'justify-end text-right',
+                                                    'flex w-full items-center gap-2 text-left tracking-wide uppercase',
+                                                    column.align === 'center' &&
+                                                        'justify-center text-center',
+                                                    column.align === 'right' &&
+                                                        'justify-end text-right',
                                                 )}
                                                 aria-label={`Sort by ${column.title}`}
                                                 aria-pressed={isActive}
-                                                data-direction={isActive ? sortDirection : undefined}
+                                                data-direction={
+                                                    isActive
+                                                        ? sortDirection
+                                                        : undefined
+                                                }
                                             >
                                                 <span>{column.title}</span>
                                                 <ArrowUpDown
                                                     className={cn(
                                                         'size-3',
                                                         isActive &&
-                                                            sortDirection === 'desc' &&
+                                                            sortDirection ===
+                                                                'desc' &&
                                                             'rotate-180',
                                                     )}
                                                 />
@@ -128,22 +139,31 @@ export function DataTable<T>({
                     <tbody>
                         {isLoading ? (
                             <Fragment>
-                                {Array.from({ length: skeletonRowCount }).map((_, index) => (
-                                    <tr key={`skeleton-${index}`} className="border-b border-sidebar-border/40 last:border-b-0">
-                                        {columns.map((column) => (
-                                            <td
-                                                key={column.key}
-                                                className={cn(
-                                                    'px-4 py-3 align-middle',
-                                                    column.align === 'center' && 'text-center',
-                                                    column.align === 'right' && 'text-right',
-                                                )}
-                                            >
-                                                <Skeleton className="h-4 w-full" />
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
+                                {Array.from({ length: skeletonRowCount }).map(
+                                    (_, index) => (
+                                        <tr
+                                            key={`skeleton-${index}`}
+                                            className="border-b border-sidebar-border/40 last:border-b-0"
+                                        >
+                                            {columns.map((column) => (
+                                                <td
+                                                    key={column.key}
+                                                    className={cn(
+                                                        'px-4 py-3 align-middle',
+                                                        column.align ===
+                                                            'center' &&
+                                                            'text-center',
+                                                        column.align ===
+                                                            'right' &&
+                                                            'text-right',
+                                                    )}
+                                                >
+                                                    <Skeleton className="h-4 w-full" />
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ),
+                                )}
                             </Fragment>
                         ) : data.length === 0 ? (
                             <tr>
@@ -165,8 +185,10 @@ export function DataTable<T>({
                                             key={column.key}
                                             className={cn(
                                                 'px-4 py-3 align-middle text-sm text-foreground',
-                                                column.align === 'center' && 'text-center',
-                                                column.align === 'right' && 'text-right',
+                                                column.align === 'center' &&
+                                                    'text-center',
+                                                column.align === 'right' &&
+                                                    'text-right',
                                             )}
                                         >
                                             {renderCell(row, column)}

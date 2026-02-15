@@ -1,8 +1,12 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { publishToast } from '@/components/ui/use-toast';
 import { api, ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
 import type { InvoiceDetail } from '@/types/sourcing';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 import { mapInvoiceDetail } from './utils';
 
 export interface SupplierUpdateInvoiceLineInput {
@@ -21,11 +25,25 @@ export interface SupplierUpdateInvoiceInput {
     lines?: SupplierUpdateInvoiceLineInput[];
 }
 
-export function useUpdateSupplierInvoice(): UseMutationResult<InvoiceDetail, ApiError | Error, SupplierUpdateInvoiceInput> {
+export function useUpdateSupplierInvoice(): UseMutationResult<
+    InvoiceDetail,
+    ApiError | Error,
+    SupplierUpdateInvoiceInput
+> {
     const queryClient = useQueryClient();
 
-    return useMutation<InvoiceDetail, ApiError | Error, SupplierUpdateInvoiceInput>({
-        mutationFn: async ({ invoiceId, invoiceNumber, invoiceDate, dueDate, lines }) => {
+    return useMutation<
+        InvoiceDetail,
+        ApiError | Error,
+        SupplierUpdateInvoiceInput
+    >({
+        mutationFn: async ({
+            invoiceId,
+            invoiceNumber,
+            invoiceDate,
+            dueDate,
+            lines,
+        }) => {
             const id = String(invoiceId);
 
             if (!id) {
@@ -56,9 +74,14 @@ export function useUpdateSupplierInvoice(): UseMutationResult<InvoiceDetail, Api
                 }));
             }
 
-            const response = await api.put<Record<string, unknown>>(`supplier/invoices/${id}`, payload);
+            const response = await api.put<Record<string, unknown>>(
+                `supplier/invoices/${id}`,
+                payload,
+            );
 
-            return mapInvoiceDetail(response as unknown as Record<string, unknown>);
+            return mapInvoiceDetail(
+                response as unknown as Record<string, unknown>,
+            );
         },
         onSuccess: (invoice) => {
             publishToast({
@@ -67,13 +90,24 @@ export function useUpdateSupplierInvoice(): UseMutationResult<InvoiceDetail, Api
                 description: `Invoice ${invoice.invoiceNumber} has been saved.`,
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.supplierList() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.list() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.detail(invoice.id) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.supplierDetail(invoice.id) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.supplierList(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.list(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.detail(invoice.id),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.supplierDetail(invoice.id),
+            });
         },
         onError: (error) => {
-            const message = error instanceof ApiError ? error.message : error.message ?? 'Unable to update invoice.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : (error.message ?? 'Unable to update invoice.');
             publishToast({
                 variant: 'destructive',
                 title: 'Update failed',

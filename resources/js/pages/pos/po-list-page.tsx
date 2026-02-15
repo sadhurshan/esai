@@ -1,16 +1,18 @@
+import { ClipboardList, Filter, RotateCcw, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
-import { ClipboardList, Filter, RotateCcw, X } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
-import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/empty-state';
+import { Pagination } from '@/components/pagination';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { PoStatusBadge } from '@/components/pos/po-status-badge';
 import { MoneyCell } from '@/components/quotes/money-cell';
+import { SupplierDirectoryPicker } from '@/components/rfqs/supplier-directory-picker';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -19,13 +21,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { usePos, type UsePosParams } from '@/hooks/api/pos/use-pos';
-import type { PurchaseOrderSummary, Supplier } from '@/types/sourcing';
 import { formatDate } from '@/lib/format';
-import { publishToast } from '@/components/ui/use-toast';
-import { SupplierDirectoryPicker } from '@/components/rfqs/supplier-directory-picker';
+import type { PurchaseOrderSummary, Supplier } from '@/types/sourcing';
 
 const STATUS_FILTERS = [
     { value: 'all', label: 'All statuses' },
@@ -50,14 +50,17 @@ const PER_PAGE = 20;
 export function PoListPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const poFeatureEnabled = hasFeature('purchase_orders');
 
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [supplierFilter, setSupplierFilter] = useState('');
     const [ackStatusFilter, setAckStatusFilter] = useState('all');
-    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+        null,
+    );
     const [supplierPickerOpen, setSupplierPickerOpen] = useState(false);
     const [issuedFrom, setIssuedFrom] = useState('');
     const [issuedTo, setIssuedTo] = useState('');
@@ -89,7 +92,10 @@ export function PoListPage() {
                 key: 'poNumber',
                 title: 'PO #',
                 render: (po) => (
-                    <Link className="font-semibold text-primary" to={`/app/purchase-orders/${po.id}`}>
+                    <Link
+                        className="font-semibold text-primary"
+                        to={`/app/purchase-orders/${po.id}`}
+                    >
                         {po.poNumber}
                     </Link>
                 ),
@@ -113,7 +119,13 @@ export function PoListPage() {
                 key: 'total',
                 title: 'Total',
                 align: 'right',
-                render: (po) => <MoneyCell amountMinor={po.totalMinor} currency={po.currency} label="PO total" />,
+                render: (po) => (
+                    <MoneyCell
+                        amountMinor={po.totalMinor}
+                        currency={po.currency}
+                        label="PO total"
+                    />
+                ),
             },
             {
                 key: 'status',
@@ -151,7 +163,11 @@ export function PoListPage() {
         setIssuedFrom('');
         setIssuedTo('');
         setPage(1);
-        publishToast({ variant: 'default', title: 'Filters cleared', description: 'Showing all purchase orders.' });
+        publishToast({
+            variant: 'default',
+            title: 'Filters cleared',
+            description: 'Showing all purchase orders.',
+        });
     };
 
     const handleSupplierSelected = (supplier: Supplier) => {
@@ -178,7 +194,9 @@ export function PoListPage() {
                     description="Upgrade your Elements Supply plan to access purchase order workflows."
                     icon={<ClipboardList className="h-10 w-10" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -195,13 +213,22 @@ export function PoListPage() {
 
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Procurement</p>
-                    <h1 className="text-2xl font-semibold text-foreground">Purchase orders</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Procurement
+                    </p>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Purchase orders
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Track issued POs, monitor supplier acknowledgements, and drill into line level pricing.
+                        Track issued POs, monitor supplier acknowledgements, and
+                        drill into line level pricing.
                     </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/app/rfqs')}>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/app/rfqs')}
+                >
                     Create from RFQ
                 </Button>
             </div>
@@ -209,7 +236,9 @@ export function PoListPage() {
             <Card className="border-border/70">
                 <CardContent className="grid gap-4 py-6 md:grid-cols-5">
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">PO status</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            PO status
+                        </label>
                         <Select
                             value={statusFilter}
                             onValueChange={(value) => {
@@ -222,7 +251,10 @@ export function PoListPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 {STATUS_FILTERS.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
+                                    <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                    >
                                         {option.label}
                                     </SelectItem>
                                 ))}
@@ -230,7 +262,9 @@ export function PoListPage() {
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Acknowledgement</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Acknowledgement
+                        </label>
                         <Select
                             value={ackStatusFilter}
                             onValueChange={(value) => {
@@ -243,7 +277,10 @@ export function PoListPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 {ACK_STATUS_FILTERS.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
+                                    <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                    >
                                         {option.label}
                                     </SelectItem>
                                 ))}
@@ -251,7 +288,9 @@ export function PoListPage() {
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Supplier</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Supplier
+                        </label>
                         <div className="flex items-center gap-2">
                             <Button
                                 type="button"
@@ -259,7 +298,11 @@ export function PoListPage() {
                                 className="flex-1 justify-between"
                                 onClick={() => setSupplierPickerOpen(true)}
                             >
-                                <span>{selectedSupplier ? selectedSupplier.name : 'Browse supplier directory'}</span>
+                                <span>
+                                    {selectedSupplier
+                                        ? selectedSupplier.name
+                                        : 'Browse supplier directory'}
+                                </span>
                             </Button>
                             {selectedSupplier ? (
                                 <Button
@@ -274,11 +317,14 @@ export function PoListPage() {
                             ) : null}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            Filter results by supplier. Start typing to search your approved directory.
+                            Filter results by supplier. Start typing to search
+                            your approved directory.
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Issued from</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Issued from
+                        </label>
                         <Input
                             type="date"
                             value={issuedFrom}
@@ -289,7 +335,9 @@ export function PoListPage() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Issued to</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Issued to
+                        </label>
                         <Input
                             type="date"
                             value={issuedTo}
@@ -299,12 +347,23 @@ export function PoListPage() {
                             }}
                         />
                     </div>
-                    <div className="md:col-span-4 flex flex-wrap gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
+                    <div className="flex flex-wrap gap-2 md:col-span-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleResetFilters}
+                        >
                             <RotateCcw className="mr-2 h-4 w-4" /> Reset filters
                         </Button>
-                        <Button type="button" variant="ghost" size="sm" disabled>
-                            <Filter className="mr-2 h-4 w-4" /> Advanced filters (coming soon)
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled
+                        >
+                            <Filter className="mr-2 h-4 w-4" /> Advanced filters
+                            (coming soon)
                         </Button>
                     </div>
                 </CardContent>
@@ -318,14 +377,20 @@ export function PoListPage() {
                     <EmptyState
                         title="No purchase orders yet"
                         description="Award RFQ lines and convert them to POs to see them listed here."
-                        icon={<ClipboardList className="h-10 w-10 text-muted-foreground" />}
+                        icon={
+                            <ClipboardList className="h-10 w-10 text-muted-foreground" />
+                        }
                         ctaLabel="Go to awards"
                         ctaProps={{ onClick: () => navigate('/app/rfqs') }}
                     />
                 }
             />
 
-            <Pagination meta={paginationMeta} onPageChange={setPage} isLoading={posQuery.isLoading} />
+            <Pagination
+                meta={paginationMeta}
+                onPageChange={setPage}
+                isLoading={posQuery.isLoading}
+            />
 
             <SupplierDirectoryPicker
                 open={supplierPickerOpen}

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,75 +12,73 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface WebhookDelivery
  */
 export interface WebhookDelivery {
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookDelivery
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookDelivery
      */
     subscriptionId: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof WebhookDelivery
      */
     companyId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookDelivery
      */
     event: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookDelivery
      */
     status: WebhookDeliveryStatusEnum;
     /**
-     * 
+     *
      * @type {number}
      * @memberof WebhookDelivery
      */
     attempts: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookDelivery
      */
     lastError?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof WebhookDelivery
      */
     dispatchedAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof WebhookDelivery
      */
     deliveredAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof WebhookDelivery
      */
     createdAt?: Date;
 }
-
 
 /**
  * @export
@@ -90,17 +88,20 @@ export const WebhookDeliveryStatusEnum = {
     Dispatched: 'dispatched',
     Delivered: 'delivered',
     Failed: 'failed',
-    DeadLetter: 'dead_letter'
+    DeadLetter: 'dead_letter',
 } as const;
-export type WebhookDeliveryStatusEnum = typeof WebhookDeliveryStatusEnum[keyof typeof WebhookDeliveryStatusEnum];
-
+export type WebhookDeliveryStatusEnum =
+    (typeof WebhookDeliveryStatusEnum)[keyof typeof WebhookDeliveryStatusEnum];
 
 /**
  * Check if a given object implements the WebhookDelivery interface.
  */
-export function instanceOfWebhookDelivery(value: object): value is WebhookDelivery {
+export function instanceOfWebhookDelivery(
+    value: object,
+): value is WebhookDelivery {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('subscriptionId' in value) || value['subscriptionId'] === undefined) return false;
+    if (!('subscriptionId' in value) || value['subscriptionId'] === undefined)
+        return false;
     if (!('event' in value) || value['event'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('attempts' in value) || value['attempts'] === undefined) return false;
@@ -111,22 +112,33 @@ export function WebhookDeliveryFromJSON(json: any): WebhookDelivery {
     return WebhookDeliveryFromJSONTyped(json, false);
 }
 
-export function WebhookDeliveryFromJSONTyped(json: any, ignoreDiscriminator: boolean): WebhookDelivery {
+export function WebhookDeliveryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): WebhookDelivery {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'subscriptionId': json['subscription_id'],
-        'companyId': json['company_id'] == null ? undefined : json['company_id'],
-        'event': json['event'],
-        'status': json['status'],
-        'attempts': json['attempts'],
-        'lastError': json['last_error'] == null ? undefined : json['last_error'],
-        'dispatchedAt': json['dispatched_at'] == null ? undefined : (new Date(json['dispatched_at'])),
-        'deliveredAt': json['delivered_at'] == null ? undefined : (new Date(json['delivered_at'])),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
+        id: json['id'],
+        subscriptionId: json['subscription_id'],
+        companyId: json['company_id'] == null ? undefined : json['company_id'],
+        event: json['event'],
+        status: json['status'],
+        attempts: json['attempts'],
+        lastError: json['last_error'] == null ? undefined : json['last_error'],
+        dispatchedAt:
+            json['dispatched_at'] == null
+                ? undefined
+                : new Date(json['dispatched_at']),
+        deliveredAt:
+            json['delivered_at'] == null
+                ? undefined
+                : new Date(json['delivered_at']),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
     };
 }
 
@@ -134,23 +146,33 @@ export function WebhookDeliveryToJSON(json: any): WebhookDelivery {
     return WebhookDeliveryToJSONTyped(json, false);
 }
 
-export function WebhookDeliveryToJSONTyped(value?: WebhookDelivery | null, ignoreDiscriminator: boolean = false): any {
+export function WebhookDeliveryToJSONTyped(
+    value?: WebhookDelivery | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'subscription_id': value['subscriptionId'],
-        'company_id': value['companyId'],
-        'event': value['event'],
-        'status': value['status'],
-        'attempts': value['attempts'],
-        'last_error': value['lastError'],
-        'dispatched_at': value['dispatchedAt'] == null ? value['dispatchedAt'] : value['dispatchedAt'].toISOString(),
-        'delivered_at': value['deliveredAt'] == null ? value['deliveredAt'] : value['deliveredAt'].toISOString(),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
+        id: value['id'],
+        subscription_id: value['subscriptionId'],
+        company_id: value['companyId'],
+        event: value['event'],
+        status: value['status'],
+        attempts: value['attempts'],
+        last_error: value['lastError'],
+        dispatched_at:
+            value['dispatchedAt'] == null
+                ? value['dispatchedAt']
+                : value['dispatchedAt'].toISOString(),
+        delivered_at:
+            value['deliveredAt'] == null
+                ? value['deliveredAt']
+                : value['deliveredAt'].toISOString(),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
     };
 }
-

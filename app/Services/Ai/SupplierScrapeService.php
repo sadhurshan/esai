@@ -10,6 +10,7 @@ use App\Models\SupplierScrapeJob;
 use App\Support\CompanyContext;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
@@ -125,6 +126,11 @@ class SupplierScrapeService
         }
 
         $records = $this->collectRemoteResults($remoteJobId);
+        Log::info('supplier_scrape_raw_results', [
+            'job_id' => $job->id,
+            'remote_job_id' => $remoteJobId,
+            'records' => $records,
+        ]);
         $this->persistScrapedSuppliers($job, $records);
 
         if ($job->finished_at === null) {

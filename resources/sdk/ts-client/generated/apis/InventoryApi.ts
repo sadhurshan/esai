@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,33 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiSuccessResponse,
-  ApproveCreditNoteRequest,
-  CreateGrnRequest,
-  CreateRmaRequest,
-  ListCompanyGrns200Response,
-  ListGrns200Response,
-  ListRmas200Response,
-  ShowGrn200Response,
-  ShowRma200Response,
-  StoreCompanyGrnRequest,
-  UpdateGrnRequest,
+    ApiSuccessResponse,
+    ApproveCreditNoteRequest,
+    CreateGrnRequest,
+    CreateRmaRequest,
+    ListCompanyGrns200Response,
+    ListGrns200Response,
+    ListRmas200Response,
+    ShowGrn200Response,
+    ShowRma200Response,
+    StoreCompanyGrnRequest,
+    UpdateGrnRequest,
 } from '../models/index';
 import {
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-    ApproveCreditNoteRequestFromJSON,
     ApproveCreditNoteRequestToJSON,
-    CreateGrnRequestFromJSON,
     CreateGrnRequestToJSON,
-    CreateRmaRequestFromJSON,
     CreateRmaRequestToJSON,
     ListCompanyGrns200ResponseFromJSON,
-    ListCompanyGrns200ResponseToJSON,
     ListGrns200ResponseFromJSON,
-    ListGrns200ResponseToJSON,
     ListRmas200ResponseFromJSON,
-    ListRmas200ResponseToJSON,
     ShowGrn200ResponseFromJSON,
-    ShowGrn200ResponseToJSON,
     ShowRma200ResponseFromJSON,
-    ShowRma200ResponseToJSON,
-    StoreCompanyGrnRequestFromJSON,
     StoreCompanyGrnRequestToJSON,
-    UpdateGrnRequestFromJSON,
     UpdateGrnRequestToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AttachCompanyGrnFileRequest {
     grnId: number;
@@ -117,242 +105,322 @@ export interface UpdateGrnOperationRequest {
 
 /**
  * InventoryApi - interface
- * 
+ *
  * @export
  * @interface InventoryApiInterface
  */
 export interface InventoryApiInterface {
     /**
-     * 
+     *
      * @summary Upload attachment to goods receipt note
-     * @param {number} grnId 
-     * @param {Blob} file 
+     * @param {number} grnId
+     * @param {Blob} file
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    attachCompanyGrnFileRaw(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+    attachCompanyGrnFileRaw(
+        requestParameters: AttachCompanyGrnFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>>;
 
     /**
      * Upload attachment to goods receipt note
      */
-    attachCompanyGrnFile(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+    attachCompanyGrnFile(
+        requestParameters: AttachCompanyGrnFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response>;
 
     /**
-     * 
+     *
      * @summary Create goods receipt note
-     * @param {number} purchaseOrderId 
-     * @param {CreateGrnRequest} createGrnRequest 
+     * @param {number} purchaseOrderId
+     * @param {CreateGrnRequest} createGrnRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    createGrnRaw(requestParameters: CreateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createGrnRaw(
+        requestParameters: CreateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create goods receipt note
      */
-    createGrn(requestParameters: CreateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createGrn(
+        requestParameters: CreateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create RMA for purchase order
-     * @param {number} purchaseOrderId 
-     * @param {CreateRmaRequest} createRmaRequest 
+     * @param {number} purchaseOrderId
+     * @param {CreateRmaRequest} createRmaRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    createRmaRaw(requestParameters: CreateRmaOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createRmaRaw(
+        requestParameters: CreateRmaOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create RMA for purchase order
      */
-    createRma(requestParameters: CreateRmaOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createRma(
+        requestParameters: CreateRmaOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete goods receipt note
-     * @param {number} purchaseOrderId 
-     * @param {number} grnId 
+     * @param {number} purchaseOrderId
+     * @param {number} grnId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    deleteGrnRaw(requestParameters: DeleteGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteGrnRaw(
+        requestParameters: DeleteGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete goods receipt note
      */
-    deleteGrn(requestParameters: DeleteGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteGrn(
+        requestParameters: DeleteGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List company goods receipt notes
-     * @param {number} [perPage] 
+     * @param {number} [perPage]
      * @param {string} [cursor] Cursor token for pagination.
-     * @param {number} [purchaseOrderId] 
-     * @param {number} [supplierId] 
-     * @param {'draft' | 'posted' | 'variance' | 'all'} [status] 
-     * @param {Date} [receivedFrom] 
-     * @param {Date} [receivedTo] 
-     * @param {string} [search] 
+     * @param {number} [purchaseOrderId]
+     * @param {number} [supplierId]
+     * @param {'draft' | 'posted' | 'variance' | 'all'} [status]
+     * @param {Date} [receivedFrom]
+     * @param {Date} [receivedTo]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    listCompanyGrnsRaw(requestParameters: ListCompanyGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCompanyGrns200Response>>;
+    listCompanyGrnsRaw(
+        requestParameters: ListCompanyGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListCompanyGrns200Response>>;
 
     /**
      * List company goods receipt notes
      */
-    listCompanyGrns(requestParameters: ListCompanyGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCompanyGrns200Response>;
+    listCompanyGrns(
+        requestParameters: ListCompanyGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListCompanyGrns200Response>;
 
     /**
-     * 
+     *
      * @summary List goods receipt notes for purchase order
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    listGrnsRaw(requestParameters: ListGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListGrns200Response>>;
+    listGrnsRaw(
+        requestParameters: ListGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListGrns200Response>>;
 
     /**
      * List goods receipt notes for purchase order
      */
-    listGrns(requestParameters: ListGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListGrns200Response>;
+    listGrns(
+        requestParameters: ListGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListGrns200Response>;
 
     /**
-     * 
+     *
      * @summary List RMAs
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    listRmasRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRmas200Response>>;
+    listRmasRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListRmas200Response>>;
 
     /**
      * List RMAs
      */
-    listRmas(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRmas200Response>;
+    listRmas(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListRmas200Response>;
 
     /**
-     * 
+     *
      * @summary Review RMA
-     * @param {string} rmaId 
-     * @param {ApproveCreditNoteRequest} approveCreditNoteRequest 
+     * @param {string} rmaId
+     * @param {ApproveCreditNoteRequest} approveCreditNoteRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    reviewRmaRaw(requestParameters: ReviewRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    reviewRmaRaw(
+        requestParameters: ReviewRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Review RMA
      */
-    reviewRma(requestParameters: ReviewRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    reviewRma(
+        requestParameters: ReviewRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show a goods receipt note
-     * @param {number} grnId 
+     * @param {number} grnId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    showCompanyGrnRaw(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+    showCompanyGrnRaw(
+        requestParameters: ShowCompanyGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>>;
 
     /**
      * Show a goods receipt note
      */
-    showCompanyGrn(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+    showCompanyGrn(
+        requestParameters: ShowCompanyGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response>;
 
     /**
-     * 
+     *
      * @summary Show goods receipt note
-     * @param {number} purchaseOrderId 
-     * @param {number} grnId 
+     * @param {number} purchaseOrderId
+     * @param {number} grnId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    showGrnRaw(requestParameters: ShowGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+    showGrnRaw(
+        requestParameters: ShowGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>>;
 
     /**
      * Show goods receipt note
      */
-    showGrn(requestParameters: ShowGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+    showGrn(
+        requestParameters: ShowGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve RMA
-     * @param {string} rmaId 
+     * @param {string} rmaId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    showRmaRaw(requestParameters: ShowRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowRma200Response>>;
+    showRmaRaw(
+        requestParameters: ShowRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowRma200Response>>;
 
     /**
      * Retrieve RMA
      */
-    showRma(requestParameters: ShowRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowRma200Response>;
+    showRma(
+        requestParameters: ShowRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowRma200Response>;
 
     /**
-     * 
+     *
      * @summary Record a goods receipt note for a purchase order
-     * @param {StoreCompanyGrnRequest} storeCompanyGrnRequest 
+     * @param {StoreCompanyGrnRequest} storeCompanyGrnRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    storeCompanyGrnRaw(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>>;
+    storeCompanyGrnRaw(
+        requestParameters: StoreCompanyGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>>;
 
     /**
      * Record a goods receipt note for a purchase order
      */
-    storeCompanyGrn(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response>;
+    storeCompanyGrn(
+        requestParameters: StoreCompanyGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response>;
 
     /**
-     * 
+     *
      * @summary Update goods receipt note
-     * @param {number} purchaseOrderId 
-     * @param {number} grnId 
-     * @param {UpdateGrnRequest} updateGrnRequest 
+     * @param {number} purchaseOrderId
+     * @param {number} grnId
+     * @param {UpdateGrnRequest} updateGrnRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InventoryApiInterface
      */
-    updateGrnRaw(requestParameters: UpdateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateGrnRaw(
+        requestParameters: UpdateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update goods receipt note
      */
-    updateGrn(requestParameters: UpdateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    updateGrn(
+        requestParameters: UpdateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterface {
-
+export class InventoryApi
+    extends runtime.BaseAPI
+    implements InventoryApiInterface
+{
     /**
      * Upload attachment to goods receipt note
      */
-    async attachCompanyGrnFileRaw(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+    async attachCompanyGrnFileRaw(
+        requestParameters: AttachCompanyGrnFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>> {
         if (requestParameters['grnId'] == null) {
             throw new runtime.RequiredError(
                 'grnId',
-                'Required parameter "grnId" was null or undefined when calling attachCompanyGrnFile().'
+                'Required parameter "grnId" was null or undefined when calling attachCompanyGrnFile().',
             );
         }
 
         if (requestParameters['file'] == null) {
             throw new runtime.RequiredError(
                 'file',
-                'Required parameter "file" was null or undefined when calling attachCompanyGrnFile().'
+                'Required parameter "file" was null or undefined when calling attachCompanyGrnFile().',
             );
         }
 
@@ -361,15 +429,16 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
         const consumes: runtime.Consume[] = [
@@ -392,44 +461,60 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
             formParams.append('file', requestParameters['file'] as any);
         }
 
-
         let urlPath = `/api/receiving/grns/{grnId}/attachments`;
-        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+        urlPath = urlPath.replace(
+            `{${'grnId'}}`,
+            encodeURIComponent(String(requestParameters['grnId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowGrn200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Upload attachment to goods receipt note
      */
-    async attachCompanyGrnFile(requestParameters: AttachCompanyGrnFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
-        const response = await this.attachCompanyGrnFileRaw(requestParameters, initOverrides);
+    async attachCompanyGrnFile(
+        requestParameters: AttachCompanyGrnFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response> {
+        const response = await this.attachCompanyGrnFileRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create goods receipt note
      */
-    async createGrnRaw(requestParameters: CreateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createGrnRaw(
+        requestParameters: CreateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling createGrn().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling createGrn().',
             );
         }
 
         if (requestParameters['createGrnRequest'] == null) {
             throw new runtime.RequiredError(
                 'createGrnRequest',
-                'Required parameter "createGrnRequest" was null or undefined when calling createGrn().'
+                'Required parameter "createGrnRequest" was null or undefined when calling createGrn().',
             );
         }
 
@@ -440,55 +525,75 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/grns`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateGrnRequestToJSON(requestParameters['createGrnRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreateGrnRequestToJSON(
+                    requestParameters['createGrnRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create goods receipt note
      */
-    async createGrn(requestParameters: CreateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createGrnRaw(requestParameters, initOverrides);
+    async createGrn(
+        requestParameters: CreateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createGrnRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create RMA for purchase order
      */
-    async createRmaRaw(requestParameters: CreateRmaOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createRmaRaw(
+        requestParameters: CreateRmaOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling createRma().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling createRma().',
             );
         }
 
         if (requestParameters['createRmaRequest'] == null) {
             throw new runtime.RequiredError(
                 'createRmaRequest',
-                'Required parameter "createRmaRequest" was null or undefined when calling createRma().'
+                'Required parameter "createRmaRequest" was null or undefined when calling createRma().',
             );
         }
 
@@ -499,55 +604,75 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/rmas/purchase-orders/{purchaseOrderId}`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateRmaRequestToJSON(requestParameters['createRmaRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreateRmaRequestToJSON(
+                    requestParameters['createRmaRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create RMA for purchase order
      */
-    async createRma(requestParameters: CreateRmaOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createRmaRaw(requestParameters, initOverrides);
+    async createRma(
+        requestParameters: CreateRmaOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createRmaRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete goods receipt note
      */
-    async deleteGrnRaw(requestParameters: DeleteGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteGrnRaw(
+        requestParameters: DeleteGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling deleteGrn().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling deleteGrn().',
             );
         }
 
         if (requestParameters['grnId'] == null) {
             throw new runtime.RequiredError(
                 'grnId',
-                'Required parameter "grnId" was null or undefined when calling deleteGrn().'
+                'Required parameter "grnId" was null or undefined when calling deleteGrn().',
             );
         }
 
@@ -556,44 +681,65 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/grns/{grnId}`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
-        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'grnId'}}`,
+            encodeURIComponent(String(requestParameters['grnId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete goods receipt note
      */
-    async deleteGrn(requestParameters: DeleteGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteGrnRaw(requestParameters, initOverrides);
+    async deleteGrn(
+        requestParameters: DeleteGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteGrnRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List company goods receipt notes
      */
-    async listCompanyGrnsRaw(requestParameters: ListCompanyGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCompanyGrns200Response>> {
+    async listCompanyGrnsRaw(
+        requestParameters: ListCompanyGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListCompanyGrns200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['perPage'] != null) {
@@ -605,7 +751,8 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         }
 
         if (requestParameters['purchaseOrderId'] != null) {
-            queryParameters['purchase_order_id'] = requestParameters['purchaseOrderId'];
+            queryParameters['purchase_order_id'] =
+                requestParameters['purchaseOrderId'];
         }
 
         if (requestParameters['supplierId'] != null) {
@@ -617,7 +764,8 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         }
 
         if (requestParameters['receivedFrom'] != null) {
-            queryParameters['received_from'] = requestParameters['receivedFrom'];
+            queryParameters['received_from'] =
+                requestParameters['receivedFrom'];
         }
 
         if (requestParameters['receivedTo'] != null) {
@@ -631,46 +779,61 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/receiving/grns`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListCompanyGrns200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListCompanyGrns200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List company goods receipt notes
      */
-    async listCompanyGrns(requestParameters: ListCompanyGrnsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCompanyGrns200Response> {
-        const response = await this.listCompanyGrnsRaw(requestParameters, initOverrides);
+    async listCompanyGrns(
+        requestParameters: ListCompanyGrnsRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListCompanyGrns200Response> {
+        const response = await this.listCompanyGrnsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List goods receipt notes for purchase order
      */
-    async listGrnsRaw(requestParameters: ListGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListGrns200Response>> {
+    async listGrnsRaw(
+        requestParameters: ListGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListGrns200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling listGrns().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling listGrns().',
             );
         }
 
@@ -679,76 +842,101 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/grns`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListGrns200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListGrns200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List goods receipt notes for purchase order
      */
-    async listGrns(requestParameters: ListGrnsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListGrns200Response> {
-        const response = await this.listGrnsRaw(requestParameters, initOverrides);
+    async listGrns(
+        requestParameters: ListGrnsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListGrns200Response> {
+        const response = await this.listGrnsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List RMAs
      */
-    async listRmasRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListRmas200Response>> {
+    async listRmasRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListRmas200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/rmas`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListRmas200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListRmas200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List RMAs
      */
-    async listRmas(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListRmas200Response> {
+    async listRmas(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListRmas200Response> {
         const response = await this.listRmasRaw(initOverrides);
         return await response.value();
     }
@@ -756,18 +944,21 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
     /**
      * Review RMA
      */
-    async reviewRmaRaw(requestParameters: ReviewRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async reviewRmaRaw(
+        requestParameters: ReviewRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['rmaId'] == null) {
             throw new runtime.RequiredError(
                 'rmaId',
-                'Required parameter "rmaId" was null or undefined when calling reviewRma().'
+                'Required parameter "rmaId" was null or undefined when calling reviewRma().',
             );
         }
 
         if (requestParameters['approveCreditNoteRequest'] == null) {
             throw new runtime.RequiredError(
                 'approveCreditNoteRequest',
-                'Required parameter "approveCreditNoteRequest" was null or undefined when calling reviewRma().'
+                'Required parameter "approveCreditNoteRequest" was null or undefined when calling reviewRma().',
             );
         }
 
@@ -778,48 +969,68 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/rmas/{rmaId}/review`;
-        urlPath = urlPath.replace(`{${"rmaId"}}`, encodeURIComponent(String(requestParameters['rmaId'])));
+        urlPath = urlPath.replace(
+            `{${'rmaId'}}`,
+            encodeURIComponent(String(requestParameters['rmaId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ApproveCreditNoteRequestToJSON(requestParameters['approveCreditNoteRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: ApproveCreditNoteRequestToJSON(
+                    requestParameters['approveCreditNoteRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Review RMA
      */
-    async reviewRma(requestParameters: ReviewRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.reviewRmaRaw(requestParameters, initOverrides);
+    async reviewRma(
+        requestParameters: ReviewRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.reviewRmaRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show a goods receipt note
      */
-    async showCompanyGrnRaw(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+    async showCompanyGrnRaw(
+        requestParameters: ShowCompanyGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>> {
         if (requestParameters['grnId'] == null) {
             throw new runtime.RequiredError(
                 'grnId',
-                'Required parameter "grnId" was null or undefined when calling showCompanyGrn().'
+                'Required parameter "grnId" was null or undefined when calling showCompanyGrn().',
             );
         }
 
@@ -828,54 +1039,72 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/receiving/grns/{grnId}`;
-        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+        urlPath = urlPath.replace(
+            `{${'grnId'}}`,
+            encodeURIComponent(String(requestParameters['grnId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowGrn200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show a goods receipt note
      */
-    async showCompanyGrn(requestParameters: ShowCompanyGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
-        const response = await this.showCompanyGrnRaw(requestParameters, initOverrides);
+    async showCompanyGrn(
+        requestParameters: ShowCompanyGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response> {
+        const response = await this.showCompanyGrnRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show goods receipt note
      */
-    async showGrnRaw(requestParameters: ShowGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+    async showGrnRaw(
+        requestParameters: ShowGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling showGrn().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling showGrn().',
             );
         }
 
         if (requestParameters['grnId'] == null) {
             throw new runtime.RequiredError(
                 'grnId',
-                'Required parameter "grnId" was null or undefined when calling showGrn().'
+                'Required parameter "grnId" was null or undefined when calling showGrn().',
             );
         }
 
@@ -884,48 +1113,69 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/grns/{grnId}`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
-        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'grnId'}}`,
+            encodeURIComponent(String(requestParameters['grnId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowGrn200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show goods receipt note
      */
-    async showGrn(requestParameters: ShowGrnRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
-        const response = await this.showGrnRaw(requestParameters, initOverrides);
+    async showGrn(
+        requestParameters: ShowGrnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response> {
+        const response = await this.showGrnRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve RMA
      */
-    async showRmaRaw(requestParameters: ShowRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowRma200Response>> {
+    async showRmaRaw(
+        requestParameters: ShowRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowRma200Response>> {
         if (requestParameters['rmaId'] == null) {
             throw new runtime.RequiredError(
                 'rmaId',
-                'Required parameter "rmaId" was null or undefined when calling showRma().'
+                'Required parameter "rmaId" was null or undefined when calling showRma().',
             );
         }
 
@@ -934,47 +1184,65 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/rmas/{rmaId}`;
-        urlPath = urlPath.replace(`{${"rmaId"}}`, encodeURIComponent(String(requestParameters['rmaId'])));
+        urlPath = urlPath.replace(
+            `{${'rmaId'}}`,
+            encodeURIComponent(String(requestParameters['rmaId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowRma200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowRma200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve RMA
      */
-    async showRma(requestParameters: ShowRmaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowRma200Response> {
-        const response = await this.showRmaRaw(requestParameters, initOverrides);
+    async showRma(
+        requestParameters: ShowRmaRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowRma200Response> {
+        const response = await this.showRmaRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Record a goods receipt note for a purchase order
      */
-    async storeCompanyGrnRaw(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowGrn200Response>> {
+    async storeCompanyGrnRaw(
+        requestParameters: StoreCompanyGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowGrn200Response>> {
         if (requestParameters['storeCompanyGrnRequest'] == null) {
             throw new runtime.RequiredError(
                 'storeCompanyGrnRequest',
-                'Required parameter "storeCompanyGrnRequest" was null or undefined when calling storeCompanyGrn().'
+                'Required parameter "storeCompanyGrnRequest" was null or undefined when calling storeCompanyGrn().',
             );
         }
 
@@ -985,61 +1253,78 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/receiving/grns`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: StoreCompanyGrnRequestToJSON(requestParameters['storeCompanyGrnRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: StoreCompanyGrnRequestToJSON(
+                    requestParameters['storeCompanyGrnRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowGrn200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowGrn200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Record a goods receipt note for a purchase order
      */
-    async storeCompanyGrn(requestParameters: StoreCompanyGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowGrn200Response> {
-        const response = await this.storeCompanyGrnRaw(requestParameters, initOverrides);
+    async storeCompanyGrn(
+        requestParameters: StoreCompanyGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowGrn200Response> {
+        const response = await this.storeCompanyGrnRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update goods receipt note
      */
-    async updateGrnRaw(requestParameters: UpdateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateGrnRaw(
+        requestParameters: UpdateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling updateGrn().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling updateGrn().',
             );
         }
 
         if (requestParameters['grnId'] == null) {
             throw new runtime.RequiredError(
                 'grnId',
-                'Required parameter "grnId" was null or undefined when calling updateGrn().'
+                'Required parameter "grnId" was null or undefined when calling updateGrn().',
             );
         }
 
         if (requestParameters['updateGrnRequest'] == null) {
             throw new runtime.RequiredError(
                 'updateGrnRequest',
-                'Required parameter "updateGrnRequest" was null or undefined when calling updateGrn().'
+                'Required parameter "updateGrnRequest" was null or undefined when calling updateGrn().',
             );
         }
 
@@ -1050,41 +1335,60 @@ export class InventoryApi extends runtime.BaseAPI implements InventoryApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/grns/{grnId}`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
-        urlPath = urlPath.replace(`{${"grnId"}}`, encodeURIComponent(String(requestParameters['grnId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'grnId'}}`,
+            encodeURIComponent(String(requestParameters['grnId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateGrnRequestToJSON(requestParameters['updateGrnRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpdateGrnRequestToJSON(
+                    requestParameters['updateGrnRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update goods receipt note
      */
-    async updateGrn(requestParameters: UpdateGrnOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateGrnRaw(requestParameters, initOverrides);
+    async updateGrn(
+        requestParameters: UpdateGrnOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateGrnRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }
 
 /**
@@ -1094,6 +1398,7 @@ export const ListCompanyGrnsStatusEnum = {
     Draft: 'draft',
     Posted: 'posted',
     Variance: 'variance',
-    All: 'all'
+    All: 'all',
 } as const;
-export type ListCompanyGrnsStatusEnum = typeof ListCompanyGrnsStatusEnum[keyof typeof ListCompanyGrnsStatusEnum];
+export type ListCompanyGrnsStatusEnum =
+    (typeof ListCompanyGrnsStatusEnum)[keyof typeof ListCompanyGrnsStatusEnum];

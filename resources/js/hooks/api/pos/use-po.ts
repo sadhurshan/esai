@@ -1,12 +1,14 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
+import { mapPurchaseOrder } from '@/hooks/api/usePurchaseOrder';
 import { queryKeys } from '@/lib/queryKeys';
 import { PurchaseOrdersApi } from '@/sdk';
 import type { PurchaseOrderDetail } from '@/types/sourcing';
-import { mapPurchaseOrder } from '@/hooks/api/usePurchaseOrder';
 
-export function usePo(poId: number): UseQueryResult<PurchaseOrderDetail, unknown> {
+export function usePo(
+    poId: number,
+): UseQueryResult<PurchaseOrderDetail, unknown> {
     const purchaseOrdersApi = useSdkClient(PurchaseOrdersApi);
 
     return useQuery<PurchaseOrderDetail>({

@@ -1,15 +1,30 @@
-import { useMemo, useState } from 'react';
 import { Globe, RadioTower } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
-import Heading from '@/components/heading';
-import { WebhookEndpointEditor, type WebhookEventOption } from '@/components/admin/webhook-endpoint-editor';
 import { WebhookDeliveryTable } from '@/components/admin/webhook-delivery-table';
+import {
+    WebhookEndpointEditor,
+    type WebhookEventOption,
+} from '@/components/admin/webhook-endpoint-editor';
 import { EmptyState } from '@/components/empty-state';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/auth-context';
 import { useCreateWebhook } from '@/hooks/api/admin/use-create-webhook';
@@ -19,7 +34,11 @@ import { useTestWebhook } from '@/hooks/api/admin/use-test-webhook';
 import { useUpdateWebhook } from '@/hooks/api/admin/use-update-webhook';
 import { useWebhookDeliveries } from '@/hooks/api/admin/use-webhook-deliveries';
 import { useWebhooks } from '@/hooks/api/admin/use-webhooks';
-import type { CreateWebhookPayload, WebhookDeliveryItem, WebhookSubscriptionItem } from '@/types/admin';
+import type {
+    CreateWebhookPayload,
+    WebhookDeliveryItem,
+    WebhookSubscriptionItem,
+} from '@/types/admin';
 
 const WEBHOOK_EVENT_OPTIONS: WebhookEventOption[] = [
     {
@@ -55,13 +74,18 @@ export function AdminWebhooksPage() {
     const retryDelivery = useRetryWebhookDelivery();
     const testWebhook = useTestWebhook();
 
-    const [selectionOverride, setSelectionOverride] = useState<string | null>(null);
-    const [cursorMap, setCursorMap] = useState<Record<string, string | null>>({});
+    const [selectionOverride, setSelectionOverride] = useState<string | null>(
+        null,
+    );
+    const [cursorMap, setCursorMap] = useState<Record<string, string | null>>(
+        {},
+    );
     const [editorState, setEditorState] = useState<{
         mode: 'create' | 'edit';
         subscription?: WebhookSubscriptionItem | null;
     } | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<WebhookSubscriptionItem | null>(null);
+    const [deleteTarget, setDeleteTarget] =
+        useState<WebhookSubscriptionItem | null>(null);
 
     const webhooks = data?.items ?? EMPTY_WEBHOOKS;
 
@@ -69,14 +93,25 @@ export function AdminWebhooksPage() {
         if (!webhooks.length) {
             return null;
         }
-        if (selectionOverride && webhooks.some((subscription) => String(subscription.id) === selectionOverride)) {
+        if (
+            selectionOverride &&
+            webhooks.some(
+                (subscription) => String(subscription.id) === selectionOverride,
+            )
+        ) {
             return selectionOverride;
         }
         return String(webhooks[0].id);
     }, [selectionOverride, webhooks]);
 
-    const deliveryCursor = selectedSubscriptionId ? cursorMap[selectedSubscriptionId] ?? null : null;
-    const selectedSubscription = webhooks.find((subscription) => String(subscription.id) === selectedSubscriptionId) ?? null;
+    const deliveryCursor = selectedSubscriptionId
+        ? (cursorMap[selectedSubscriptionId] ?? null)
+        : null;
+    const selectedSubscription =
+        webhooks.find(
+            (subscription) =>
+                String(subscription.id) === selectedSubscriptionId,
+        ) ?? null;
 
     const companyOptions = state.company?.id
         ? [
@@ -92,11 +127,16 @@ export function AdminWebhooksPage() {
         cursor: deliveryCursor ?? undefined,
     });
 
-    const retryingDeliveryId = retryDelivery.isPending ? retryDelivery.variables?.deliveryId ?? null : null;
+    const retryingDeliveryId = retryDelivery.isPending
+        ? (retryDelivery.variables?.deliveryId ?? null)
+        : null;
 
     const handleEditorSubmit = async (payload: CreateWebhookPayload) => {
         if (editorState?.mode === 'edit' && editorState.subscription) {
-            await updateWebhook.mutateAsync({ subscriptionId: editorState.subscription.id, ...payload });
+            await updateWebhook.mutateAsync({
+                subscriptionId: editorState.subscription.id,
+                ...payload,
+            });
         } else {
             await createWebhook.mutateAsync(payload);
         }
@@ -120,7 +160,10 @@ export function AdminWebhooksPage() {
 
     const handleSendTest = (subscription: WebhookSubscriptionItem) => {
         const defaultEvent = subscription.events?.[0] ?? 'webhook.test';
-        testWebhook.mutate({ subscriptionId: subscription.id, event: defaultEvent });
+        testWebhook.mutate({
+            subscriptionId: subscription.id,
+            event: defaultEvent,
+        });
     };
 
     return (
@@ -130,7 +173,10 @@ export function AdminWebhooksPage() {
                     title="Webhooks"
                     description="Create outbound subscriptions, rotate secrets, and inspect delivery health."
                 />
-                <Button type="button" onClick={() => setEditorState({ mode: 'create' })}>
+                <Button
+                    type="button"
+                    onClick={() => setEditorState({ mode: 'create' })}
+                >
                     Create endpoint
                 </Button>
             </div>
@@ -139,7 +185,10 @@ export function AdminWebhooksPage() {
                 {isLoading ? (
                     <div className="grid gap-4 md:grid-cols-2">
                         {Array.from({ length: 4 }).map((_, index) => (
-                            <div key={index} className="h-48 animate-pulse rounded-xl border border-dashed border-muted" />
+                            <div
+                                key={index}
+                                className="h-48 animate-pulse rounded-xl border border-dashed border-muted"
+                            />
                         ))}
                     </div>
                 ) : webhooks.length === 0 ? (
@@ -148,55 +197,120 @@ export function AdminWebhooksPage() {
                         title="No endpoints yet"
                         description="Create a webhook subscription to receive RFQ, quote, and fulfillment events."
                         ctaLabel="Create endpoint"
-                        ctaProps={{ onClick: () => setEditorState({ mode: 'create' }) }}
+                        ctaProps={{
+                            onClick: () => setEditorState({ mode: 'create' }),
+                        }}
                     />
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2">
                         {webhooks.map((subscription) => {
                             const isActive = subscription.active;
-                            const isSelected = selectedSubscriptionId === String(subscription.id);
+                            const isSelected =
+                                selectedSubscriptionId ===
+                                String(subscription.id);
                             const events = subscription.events ?? [];
                             return (
-                                <Card key={subscription.id} className={isSelected ? 'border-primary/60 shadow-sm' : ''}>
+                                <Card
+                                    key={subscription.id}
+                                    className={
+                                        isSelected
+                                            ? 'border-primary/60 shadow-sm'
+                                            : ''
+                                    }
+                                >
                                     <CardHeader className="gap-2">
                                         <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
                                             {subscription.url}
-                                            <Badge variant={isActive ? 'secondary' : 'outline'}>
+                                            <Badge
+                                                variant={
+                                                    isActive
+                                                        ? 'secondary'
+                                                        : 'outline'
+                                                }
+                                            >
                                                 {isActive ? 'Active' : 'Paused'}
                                             </Badge>
                                         </CardTitle>
                                         <CardDescription>
-                                            {events.length} event{events.length === 1 ? '' : 's'} subscribed
+                                            {events.length} event
+                                            {events.length === 1
+                                                ? ''
+                                                : 's'}{' '}
+                                            subscribed
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-3 text-sm">
                                         <div className="flex items-center gap-2 text-muted-foreground">
-                                            <Globe className="h-4 w-4" aria-hidden /> Company #{subscription.companyId}
+                                            <Globe
+                                                className="h-4 w-4"
+                                                aria-hidden
+                                            />{' '}
+                                            Company #{subscription.companyId}
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {events.map((event) => (
-                                                <Badge key={`${subscription.id}-${event}`} variant="outline" className="font-mono text-[11px]">
+                                                <Badge
+                                                    key={`${subscription.id}-${event}`}
+                                                    variant="outline"
+                                                    className="font-mono text-[11px]"
+                                                >
                                                     {event}
                                                 </Badge>
                                             ))}
                                         </div>
                                         {subscription.secretHint ? (
-                                            <p className="text-xs text-muted-foreground">Secret ends with {subscription.secretHint}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Secret ends with{' '}
+                                                {subscription.secretHint}
+                                            </p>
                                         ) : null}
                                     </CardContent>
                                     <CardFooter className="flex flex-wrap gap-2 border-t pt-4">
-                                        <Button type="button" variant="outline" onClick={() => setSelectionOverride(String(subscription.id))}>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() =>
+                                                setSelectionOverride(
+                                                    String(subscription.id),
+                                                )
+                                            }
+                                        >
                                             View deliveries
                                         </Button>
-                                        <Button type="button" variant="outline" onClick={() => setEditorState({ mode: 'edit', subscription })}>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() =>
+                                                setEditorState({
+                                                    mode: 'edit',
+                                                    subscription,
+                                                })
+                                            }
+                                        >
                                             Edit
                                         </Button>
-                                        <Button type="button" variant="outline" onClick={() => handleSendTest(subscription)} disabled={testWebhook.isPending}>
-                                            {testWebhook.isPending && testWebhook.variables?.subscriptionId === subscription.id
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() =>
+                                                handleSendTest(subscription)
+                                            }
+                                            disabled={testWebhook.isPending}
+                                        >
+                                            {testWebhook.isPending &&
+                                            testWebhook.variables
+                                                ?.subscriptionId ===
+                                                subscription.id
                                                 ? 'Testing…'
                                                 : 'Send test'}
                                         </Button>
-                                        <Button type="button" variant="destructive" onClick={() => setDeleteTarget(subscription)}>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            onClick={() =>
+                                                setDeleteTarget(subscription)
+                                            }
+                                        >
                                             Delete
                                         </Button>
                                     </CardFooter>
@@ -210,11 +324,17 @@ export function AdminWebhooksPage() {
             <section className="space-y-4">
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-3">
-                        <RadioTower className="h-5 w-5 text-muted-foreground" aria-hidden />
+                        <RadioTower
+                            className="h-5 w-5 text-muted-foreground"
+                            aria-hidden
+                        />
                         <div>
-                            <h3 className="text-base font-semibold">Delivery log</h3>
+                            <h3 className="text-base font-semibold">
+                                Delivery log
+                            </h3>
                             <p className="text-sm text-muted-foreground">
-                                Inspect payload delivery attempts for the selected endpoint.
+                                Inspect payload delivery attempts for the
+                                selected endpoint.
                             </p>
                         </div>
                     </div>
@@ -229,13 +349,19 @@ export function AdminWebhooksPage() {
                             if (!selectedSubscriptionId) {
                                 return;
                             }
-                            setCursorMap((prev) => ({ ...prev, [selectedSubscriptionId]: cursor }));
+                            setCursorMap((prev) => ({
+                                ...prev,
+                                [selectedSubscriptionId]: cursor,
+                            }));
                         }}
                         onPrevPage={(cursor) => {
                             if (!selectedSubscriptionId) {
                                 return;
                             }
-                            setCursorMap((prev) => ({ ...prev, [selectedSubscriptionId]: cursor }));
+                            setCursorMap((prev) => ({
+                                ...prev,
+                                [selectedSubscriptionId]: cursor,
+                            }));
                         }}
                         onRetry={handleRetry}
                         retryingDeliveryId={retryingDeliveryId}
@@ -249,10 +375,19 @@ export function AdminWebhooksPage() {
                 )}
             </section>
 
-            <Dialog open={Boolean(editorState)} onOpenChange={(open) => setEditorState(open ? editorState : null)}>
+            <Dialog
+                open={Boolean(editorState)}
+                onOpenChange={(open) =>
+                    setEditorState(open ? editorState : null)
+                }
+            >
                 <DialogContent className="max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>{editorState?.mode === 'edit' ? 'Edit endpoint' : 'Create endpoint'}</DialogTitle>
+                        <DialogTitle>
+                            {editorState?.mode === 'edit'
+                                ? 'Edit endpoint'
+                                : 'Create endpoint'}
+                        </DialogTitle>
                     </DialogHeader>
                     <WebhookEndpointEditor
                         subscription={editorState?.subscription ?? undefined}
@@ -260,7 +395,11 @@ export function AdminWebhooksPage() {
                         companyOptions={companyOptions}
                         onSubmit={handleEditorSubmit}
                         onCancel={() => setEditorState(null)}
-                        isSubmitting={editorState?.mode === 'edit' ? updateWebhook.isPending : createWebhook.isPending}
+                        isSubmitting={
+                            editorState?.mode === 'edit'
+                                ? updateWebhook.isPending
+                                : createWebhook.isPending
+                        }
                         mode={editorState?.mode ?? 'create'}
                     />
                 </DialogContent>
@@ -268,9 +407,15 @@ export function AdminWebhooksPage() {
 
             <ConfirmDialog
                 open={Boolean(deleteTarget)}
-                onOpenChange={(open) => setDeleteTarget(open ? deleteTarget : null)}
+                onOpenChange={(open) =>
+                    setDeleteTarget(open ? deleteTarget : null)
+                }
                 title="Delete webhook?"
-                description={deleteTarget ? `This will remove ${deleteTarget.url} immediately.` : ''}
+                description={
+                    deleteTarget
+                        ? `This will remove ${deleteTarget.url} immediately.`
+                        : ''
+                }
                 confirmLabel="Delete"
                 onConfirm={handleDelete}
                 isProcessing={deleteWebhook.isPending}

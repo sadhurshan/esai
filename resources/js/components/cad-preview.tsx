@@ -23,7 +23,9 @@ export function CADPreview({
             <p className="mt-3 text-sm font-medium text-foreground">
                 {fileName ?? 'No CAD file selected'}
             </p>
-            <p className="mt-1 max-w-sm text-xs text-muted-foreground">{message}</p>
+            <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                {message}
+            </p>
         </div>
     );
 }

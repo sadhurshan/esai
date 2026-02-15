@@ -1,7 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,8 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { PurchaseOrderDelivery } from '@/types/sourcing';
 import { formatDate } from '@/lib/format';
+import type { PurchaseOrderDelivery } from '@/types/sourcing';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
@@ -106,7 +106,9 @@ export function SendPoDialog({
                 <DialogHeader>
                     <DialogTitle>Send purchase order</DialogTitle>
                     <DialogDescription>
-                        {supplierName ? `Dispatch PO to ${supplierName}.` : 'Dispatch this PO to the supplier.'}
+                        {supplierName
+                            ? `Dispatch PO to ${supplierName}.`
+                            : 'Dispatch this PO to the supplier.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -115,22 +117,34 @@ export function SendPoDialog({
                         className="rounded-md border border-dashed border-muted-foreground/60 bg-muted/30 p-3 text-sm text-muted-foreground"
                         role="status"
                     >
-                        <div className="font-semibold text-foreground">Automatic delivery</div>
+                        <div className="font-semibold text-foreground">
+                            Automatic delivery
+                        </div>
                         {supplierEmail ? (
                             <p>
-                                We will email {supplierName ?? 'the supplier'} at <span className="font-medium">{supplierEmail}</span> and
-                                simultaneously post this PO to their webhook endpoint.
+                                We will email {supplierName ?? 'the supplier'}{' '}
+                                at{' '}
+                                <span className="font-medium">
+                                    {supplierEmail}
+                                </span>{' '}
+                                and simultaneously post this PO to their webhook
+                                endpoint.
                             </p>
                         ) : (
                             <p className="text-foreground">
-                                This supplier is missing a saved email. Enter a one-time address below to send this PO now, or update the supplier profile later to avoid this step.
+                                This supplier is missing a saved email. Enter a
+                                one-time address below to send this PO now, or
+                                update the supplier profile later to avoid this
+                                step.
                             </p>
                         )}
                     </div>
 
                     {!supplierEmail ? (
                         <div className="grid gap-2">
-                            <Label htmlFor="po-send-fallback">Supplier email</Label>
+                            <Label htmlFor="po-send-fallback">
+                                Supplier email
+                            </Label>
                             <Input
                                 id="po-send-fallback"
                                 type="email"
@@ -138,10 +152,17 @@ export function SendPoDialog({
                                 {...form.register('fallbackEmail')}
                             />
                             {form.formState.errors.fallbackEmail ? (
-                                <p className="text-sm text-destructive">{form.formState.errors.fallbackEmail.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {
+                                        form.formState.errors.fallbackEmail
+                                            .message
+                                    }
+                                </p>
                             ) : (
                                 <p className="text-xs text-muted-foreground">
-                                    This address is used for this send only; update the supplier profile to save it permanently.
+                                    This address is used for this send only;
+                                    update the supplier profile to save it
+                                    permanently.
                                 </p>
                             )}
                         </div>
@@ -156,23 +177,41 @@ export function SendPoDialog({
                             {...form.register('message')}
                         />
                         {form.formState.errors.message ? (
-                            <p className="text-sm text-destructive">{form.formState.errors.message.message}</p>
+                            <p className="text-sm text-destructive">
+                                {form.formState.errors.message.message}
+                            </p>
                         ) : (
-                            <p className="text-xs text-muted-foreground">Optional note that will accompany the email notification.</p>
+                            <p className="text-xs text-muted-foreground">
+                                Optional note that will accompany the email
+                                notification.
+                            </p>
                         )}
                     </div>
 
                     {latestDelivery ? (
                         <div className="rounded-md border border-border/70 bg-muted/20 p-3 text-xs text-muted-foreground">
-                            <div className="font-semibold text-foreground">Last delivery</div>
+                            <div className="font-semibold text-foreground">
+                                Last delivery
+                            </div>
                             <div>Status: {latestDelivery.status}</div>
-                            {latestDelivery.sentAt ? <div>Sent: {formatDate(latestDelivery.sentAt)}</div> : null}
-                            {latestDelivery.errorReason ? <div>Error: {latestDelivery.errorReason}</div> : null}
+                            {latestDelivery.sentAt ? (
+                                <div>
+                                    Sent: {formatDate(latestDelivery.sentAt)}
+                                </div>
+                            ) : null}
+                            {latestDelivery.errorReason ? (
+                                <div>Error: {latestDelivery.errorReason}</div>
+                            ) : null}
                         </div>
                     ) : null}
 
                     <DialogFooter>
-                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => onOpenChange(false)}
+                            disabled={isSubmitting}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>

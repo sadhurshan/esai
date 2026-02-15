@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,121 +12,114 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { SupplierApplicationPayloadContact } from './SupplierApplicationPayloadContact';
-import {
-    SupplierApplicationPayloadContactFromJSON,
-    SupplierApplicationPayloadContactFromJSONTyped,
-    SupplierApplicationPayloadContactToJSON,
-    SupplierApplicationPayloadContactToJSONTyped,
-} from './SupplierApplicationPayloadContact';
 import type { SupplierApplicationPayloadCapabilities } from './SupplierApplicationPayloadCapabilities';
 import {
     SupplierApplicationPayloadCapabilitiesFromJSON,
-    SupplierApplicationPayloadCapabilitiesFromJSONTyped,
     SupplierApplicationPayloadCapabilitiesToJSON,
-    SupplierApplicationPayloadCapabilitiesToJSONTyped,
 } from './SupplierApplicationPayloadCapabilities';
+import type { SupplierApplicationPayloadContact } from './SupplierApplicationPayloadContact';
+import {
+    SupplierApplicationPayloadContactFromJSON,
+    SupplierApplicationPayloadContactToJSON,
+} from './SupplierApplicationPayloadContact';
 import type { SupplierApplicationPayloadGeo } from './SupplierApplicationPayloadGeo';
 import {
     SupplierApplicationPayloadGeoFromJSON,
-    SupplierApplicationPayloadGeoFromJSONTyped,
     SupplierApplicationPayloadGeoToJSON,
-    SupplierApplicationPayloadGeoToJSONTyped,
 } from './SupplierApplicationPayloadGeo';
 
 /**
- * 
+ *
  * @export
  * @interface SupplierApplicationPayload
  */
 export interface SupplierApplicationPayload {
     /**
-     * 
+     *
      * @type {SupplierApplicationPayloadCapabilities}
      * @memberof SupplierApplicationPayload
      */
     capabilities: SupplierApplicationPayloadCapabilities;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     description?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     address?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     country?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     city?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof SupplierApplicationPayload
      */
     moq?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof SupplierApplicationPayload
      */
     minOrderQty?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof SupplierApplicationPayload
      */
     leadTimeDays?: number;
     /**
-     * 
+     *
      * @type {SupplierApplicationPayloadGeo}
      * @memberof SupplierApplicationPayload
      */
     geo?: SupplierApplicationPayloadGeo;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SupplierApplicationPayload
      */
     certifications?: Array<string>;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     facilities?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     website?: string;
     /**
-     * 
+     *
      * @type {SupplierApplicationPayloadContact}
      * @memberof SupplierApplicationPayload
      */
     contact?: SupplierApplicationPayloadContact;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SupplierApplicationPayload
      */
     notes?: string;
     /**
-     * 
+     *
      * @type {Array<number>}
      * @memberof SupplierApplicationPayload
      */
@@ -136,65 +129,89 @@ export interface SupplierApplicationPayload {
 /**
  * Check if a given object implements the SupplierApplicationPayload interface.
  */
-export function instanceOfSupplierApplicationPayload(value: object): value is SupplierApplicationPayload {
-    if (!('capabilities' in value) || value['capabilities'] === undefined) return false;
+export function instanceOfSupplierApplicationPayload(
+    value: object,
+): value is SupplierApplicationPayload {
+    if (!('capabilities' in value) || value['capabilities'] === undefined)
+        return false;
     return true;
 }
 
-export function SupplierApplicationPayloadFromJSON(json: any): SupplierApplicationPayload {
+export function SupplierApplicationPayloadFromJSON(
+    json: any,
+): SupplierApplicationPayload {
     return SupplierApplicationPayloadFromJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadFromJSONTyped(json: any, ignoreDiscriminator: boolean): SupplierApplicationPayload {
+export function SupplierApplicationPayloadFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SupplierApplicationPayload {
     if (json == null) {
         return json;
     }
     return {
-        
-        'capabilities': SupplierApplicationPayloadCapabilitiesFromJSON(json['capabilities']),
-        'description': json['description'] == null ? undefined : json['description'],
-        'address': json['address'] == null ? undefined : json['address'],
-        'country': json['country'] == null ? undefined : json['country'],
-        'city': json['city'] == null ? undefined : json['city'],
-        'moq': json['moq'] == null ? undefined : json['moq'],
-        'minOrderQty': json['min_order_qty'] == null ? undefined : json['min_order_qty'],
-        'leadTimeDays': json['lead_time_days'] == null ? undefined : json['lead_time_days'],
-        'geo': json['geo'] == null ? undefined : SupplierApplicationPayloadGeoFromJSON(json['geo']),
-        'certifications': json['certifications'] == null ? undefined : json['certifications'],
-        'facilities': json['facilities'] == null ? undefined : json['facilities'],
-        'website': json['website'] == null ? undefined : json['website'],
-        'contact': json['contact'] == null ? undefined : SupplierApplicationPayloadContactFromJSON(json['contact']),
-        'notes': json['notes'] == null ? undefined : json['notes'],
-        'documents': json['documents'] == null ? undefined : json['documents'],
+        capabilities: SupplierApplicationPayloadCapabilitiesFromJSON(
+            json['capabilities'],
+        ),
+        description:
+            json['description'] == null ? undefined : json['description'],
+        address: json['address'] == null ? undefined : json['address'],
+        country: json['country'] == null ? undefined : json['country'],
+        city: json['city'] == null ? undefined : json['city'],
+        moq: json['moq'] == null ? undefined : json['moq'],
+        minOrderQty:
+            json['min_order_qty'] == null ? undefined : json['min_order_qty'],
+        leadTimeDays:
+            json['lead_time_days'] == null ? undefined : json['lead_time_days'],
+        geo:
+            json['geo'] == null
+                ? undefined
+                : SupplierApplicationPayloadGeoFromJSON(json['geo']),
+        certifications:
+            json['certifications'] == null ? undefined : json['certifications'],
+        facilities: json['facilities'] == null ? undefined : json['facilities'],
+        website: json['website'] == null ? undefined : json['website'],
+        contact:
+            json['contact'] == null
+                ? undefined
+                : SupplierApplicationPayloadContactFromJSON(json['contact']),
+        notes: json['notes'] == null ? undefined : json['notes'],
+        documents: json['documents'] == null ? undefined : json['documents'],
     };
 }
 
-export function SupplierApplicationPayloadToJSON(json: any): SupplierApplicationPayload {
+export function SupplierApplicationPayloadToJSON(
+    json: any,
+): SupplierApplicationPayload {
     return SupplierApplicationPayloadToJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadToJSONTyped(value?: SupplierApplicationPayload | null, ignoreDiscriminator: boolean = false): any {
+export function SupplierApplicationPayloadToJSONTyped(
+    value?: SupplierApplicationPayload | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'capabilities': SupplierApplicationPayloadCapabilitiesToJSON(value['capabilities']),
-        'description': value['description'],
-        'address': value['address'],
-        'country': value['country'],
-        'city': value['city'],
-        'moq': value['moq'],
-        'min_order_qty': value['minOrderQty'],
-        'lead_time_days': value['leadTimeDays'],
-        'geo': SupplierApplicationPayloadGeoToJSON(value['geo']),
-        'certifications': value['certifications'],
-        'facilities': value['facilities'],
-        'website': value['website'],
-        'contact': SupplierApplicationPayloadContactToJSON(value['contact']),
-        'notes': value['notes'],
-        'documents': value['documents'],
+        capabilities: SupplierApplicationPayloadCapabilitiesToJSON(
+            value['capabilities'],
+        ),
+        description: value['description'],
+        address: value['address'],
+        country: value['country'],
+        city: value['city'],
+        moq: value['moq'],
+        min_order_qty: value['minOrderQty'],
+        lead_time_days: value['leadTimeDays'],
+        geo: SupplierApplicationPayloadGeoToJSON(value['geo']),
+        certifications: value['certifications'],
+        facilities: value['facilities'],
+        website: value['website'],
+        contact: SupplierApplicationPayloadContactToJSON(value['contact']),
+        notes: value['notes'],
+        documents: value['documents'],
     };
 }
-

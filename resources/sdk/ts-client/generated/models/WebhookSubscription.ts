@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,63 +12,62 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface WebhookSubscription
  */
 export interface WebhookSubscription {
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookSubscription
      */
     id: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof WebhookSubscription
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookSubscription
      */
     url: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof WebhookSubscription
      */
     secretHint?: string;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof WebhookSubscription
      */
     events: Array<string>;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof WebhookSubscription
      */
     active: boolean;
     /**
-     * 
+     *
      * @type {object}
      * @memberof WebhookSubscription
      */
     retryPolicy?: object;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof WebhookSubscription
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof WebhookSubscription
      */
@@ -78,9 +77,12 @@ export interface WebhookSubscription {
 /**
  * Check if a given object implements the WebhookSubscription interface.
  */
-export function instanceOfWebhookSubscription(value: object): value is WebhookSubscription {
+export function instanceOfWebhookSubscription(
+    value: object,
+): value is WebhookSubscription {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('url' in value) || value['url'] === undefined) return false;
     if (!('events' in value) || value['events'] === undefined) return false;
     if (!('active' in value) || value['active'] === undefined) return false;
@@ -91,21 +93,31 @@ export function WebhookSubscriptionFromJSON(json: any): WebhookSubscription {
     return WebhookSubscriptionFromJSONTyped(json, false);
 }
 
-export function WebhookSubscriptionFromJSONTyped(json: any, ignoreDiscriminator: boolean): WebhookSubscription {
+export function WebhookSubscriptionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): WebhookSubscription {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'url': json['url'],
-        'secretHint': json['secret_hint'] == null ? undefined : json['secret_hint'],
-        'events': json['events'],
-        'active': json['active'],
-        'retryPolicy': json['retry_policy'] == null ? undefined : json['retry_policy'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        url: json['url'],
+        secretHint:
+            json['secret_hint'] == null ? undefined : json['secret_hint'],
+        events: json['events'],
+        active: json['active'],
+        retryPolicy:
+            json['retry_policy'] == null ? undefined : json['retry_policy'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -113,22 +125,29 @@ export function WebhookSubscriptionToJSON(json: any): WebhookSubscription {
     return WebhookSubscriptionToJSONTyped(json, false);
 }
 
-export function WebhookSubscriptionToJSONTyped(value?: WebhookSubscription | null, ignoreDiscriminator: boolean = false): any {
+export function WebhookSubscriptionToJSONTyped(
+    value?: WebhookSubscription | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'url': value['url'],
-        'secret_hint': value['secretHint'],
-        'events': value['events'],
-        'active': value['active'],
-        'retry_policy': value['retryPolicy'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        url: value['url'],
+        secret_hint: value['secretHint'],
+        events: value['events'],
+        active: value['active'],
+        retry_policy: value['retryPolicy'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

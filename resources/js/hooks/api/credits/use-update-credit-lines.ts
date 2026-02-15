@@ -1,14 +1,19 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { CreditNoteDetail } from '@/types/sourcing';
 import { CreditApi, HttpError } from '@/sdk';
+import type { CreditNoteDetail } from '@/types/sourcing';
 
 import { mapCreditNoteDetail } from './utils';
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
 
 export interface UpdateCreditLinesInput {
     creditNoteId: number | string;
@@ -20,11 +25,19 @@ export interface UpdateCreditLinesInput {
     }>;
 }
 
-export function useUpdateCreditLines(): UseMutationResult<CreditNoteDetail, HttpError | Error, UpdateCreditLinesInput> {
+export function useUpdateCreditLines(): UseMutationResult<
+    CreditNoteDetail,
+    HttpError | Error,
+    UpdateCreditLinesInput
+> {
     const creditApi = useSdkClient(CreditApi);
     const queryClient = useQueryClient();
 
-    return useMutation<CreditNoteDetail, HttpError | Error, UpdateCreditLinesInput>({
+    return useMutation<
+        CreditNoteDetail,
+        HttpError | Error,
+        UpdateCreditLinesInput
+    >({
         mutationFn: async ({ creditNoteId, lines }) => {
             const parsedId = Number(creditNoteId);
             if (!Number.isFinite(parsedId) || parsedId <= 0) {
@@ -46,15 +59,23 @@ export function useUpdateCreditLines(): UseMutationResult<CreditNoteDetail, Http
             });
 
             if (creditNote.id) {
-                void queryClient.invalidateQueries({ queryKey: queryKeys.credits.detail(creditNote.id) });
+                void queryClient.invalidateQueries({
+                    queryKey: queryKeys.credits.detail(creditNote.id),
+                });
             }
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.credits.list() });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.credits.list(),
+            });
             if (creditNote.invoiceId) {
-                void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.detail(creditNote.invoiceId) });
+                void queryClient.invalidateQueries({
+                    queryKey: queryKeys.invoices.detail(creditNote.invoiceId),
+                });
             }
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.matching.candidates({}) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.matching.candidates({}),
+            });
         },
         onError: (error) => {
             publishToast({

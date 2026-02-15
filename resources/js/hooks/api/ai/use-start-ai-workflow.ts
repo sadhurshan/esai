@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -16,25 +20,45 @@ export interface StartAiWorkflowResult {
 
 export function useStartAiWorkflow(
     threadId?: number | null,
-): UseMutationResult<StartAiWorkflowResult, ApiError, StartAiWorkflowVariables> {
+): UseMutationResult<
+    StartAiWorkflowResult,
+    ApiError,
+    StartAiWorkflowVariables
+> {
     const queryClient = useQueryClient();
 
-    return useMutation<StartAiWorkflowResult, ApiError, StartAiWorkflowVariables>({
+    return useMutation<
+        StartAiWorkflowResult,
+        ApiError,
+        StartAiWorkflowVariables
+    >({
         mutationFn: async (variables) => {
-            const response = await api.post<StartAiWorkflowResult>('/v1/ai/workflows/start', {
-                ...variables,
-                thread_id: threadId ?? undefined,
-            });
+            const response = await api.post<StartAiWorkflowResult>(
+                '/v1/ai/workflows/start',
+                {
+                    ...variables,
+                    thread_id: threadId ?? undefined,
+                },
+            );
 
             return response.data;
         },
-        onSuccess: (_data) => {
+        onSuccess: () => {
             if (threadId) {
-                queryClient.invalidateQueries({ queryKey: queryKeys.ai.chat.thread(threadId), exact: false });
-                queryClient.invalidateQueries({ queryKey: queryKeys.ai.chat.root(), exact: false });
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.ai.chat.thread(threadId),
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.ai.chat.root(),
+                    exact: false,
+                });
             }
 
-            queryClient.invalidateQueries({ queryKey: ['ai', 'workflows'], exact: false });
+            queryClient.invalidateQueries({
+                queryKey: ['ai', 'workflows'],
+                exact: false,
+            });
         },
     });
 }

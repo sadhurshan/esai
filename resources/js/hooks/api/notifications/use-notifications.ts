@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -46,9 +50,14 @@ interface NotificationIndexResponse {
 }
 
 const toRecord = (value: unknown): MetaRecord | undefined =>
-    typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as MetaRecord) : undefined;
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as MetaRecord)
+        : undefined;
 
-const pickNumber = (sources: Array<MetaRecord | undefined>, keys: string[]): number | undefined => {
+const pickNumber = (
+    sources: Array<MetaRecord | undefined>,
+    keys: string[],
+): number | undefined => {
     for (const source of sources) {
         if (!source) {
             continue;
@@ -65,7 +74,9 @@ const pickNumber = (sources: Array<MetaRecord | undefined>, keys: string[]): num
     return undefined;
 };
 
-const mapNotification = (payload: NotificationResponseItem): NotificationListItem => ({
+const mapNotification = (
+    payload: NotificationResponseItem,
+): NotificationListItem => ({
     id: payload.id,
     eventType: payload.event_type,
     title: payload.title,
@@ -79,22 +90,36 @@ const mapNotification = (payload: NotificationResponseItem): NotificationListIte
     updatedAt: payload.updated_at,
 });
 
-const mapMeta = (meta?: NotificationIndexResponse['meta']): NotificationListMeta => {
+const mapMeta = (
+    meta?: NotificationIndexResponse['meta'],
+): NotificationListMeta => {
     const root = toRecord(meta);
     const data = toRecord(root?.data);
     const envelope = toRecord(root?.envelope);
-    const pagination = toRecord(envelope?.pagination) ?? toRecord(root?.pagination);
+    const pagination =
+        toRecord(envelope?.pagination) ?? toRecord(root?.pagination);
 
     return {
         total: pickNumber([root, data, pagination], ['total']),
         perPage: pickNumber([root, data, pagination], ['per_page', 'perPage']),
-        currentPage: pickNumber([root, data, pagination], ['current_page', 'currentPage']),
-        lastPage: pickNumber([root, data, pagination], ['last_page', 'lastPage']),
-        unreadCount: pickNumber([root, envelope], ['unread_count', 'unreadCount']),
+        currentPage: pickNumber(
+            [root, data, pagination],
+            ['current_page', 'currentPage'],
+        ),
+        lastPage: pickNumber(
+            [root, data, pagination],
+            ['last_page', 'lastPage'],
+        ),
+        unreadCount: pickNumber(
+            [root, envelope],
+            ['unread_count', 'unreadCount'],
+        ),
     };
 };
 
-const resolveItems = (payload: NotificationIndexResponse | NotificationResponseItem[]): NotificationResponseItem[] => {
+const resolveItems = (
+    payload: NotificationIndexResponse | NotificationResponseItem[],
+): NotificationResponseItem[] => {
     if (Array.isArray(payload)) {
         return payload;
     }
@@ -117,13 +142,21 @@ export function useNotifications(
 ): UseQueryResult<NotificationListResult, ApiError> {
     const queryParams: Record<string, unknown> = { ...params };
 
-    return useQuery<NotificationIndexResponse | NotificationResponseItem[], ApiError, NotificationListResult>({
+    return useQuery<
+        NotificationIndexResponse | NotificationResponseItem[],
+        ApiError,
+        NotificationListResult
+    >({
         queryKey: queryKeys.notifications.list(queryParams),
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            const payload = await api.get<NotificationIndexResponse | NotificationResponseItem[]>(`/notifications${query}`);
+            const payload = await api.get<
+                NotificationIndexResponse | NotificationResponseItem[]
+            >(`/notifications${query}`);
 
-            return payload as unknown as NotificationIndexResponse | NotificationResponseItem[];
+            return payload as unknown as
+                | NotificationIndexResponse
+                | NotificationResponseItem[];
         },
         select: (response) => ({
             items: resolveItems(response).map(mapNotification),

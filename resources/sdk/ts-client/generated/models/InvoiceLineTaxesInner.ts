@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InvoiceLineTaxesInner
  */
 export interface InvoiceLineTaxesInner {
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineTaxesInner
      */
     id?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineTaxesInner
      */
     taxCodeId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineTaxesInner
      */
     ratePercent?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineTaxesInner
      */
     amountMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineTaxesInner
      */
     amount?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceLineTaxesInner
      */
@@ -60,26 +59,35 @@ export interface InvoiceLineTaxesInner {
 /**
  * Check if a given object implements the InvoiceLineTaxesInner interface.
  */
-export function instanceOfInvoiceLineTaxesInner(value: object): value is InvoiceLineTaxesInner {
+export function instanceOfInvoiceLineTaxesInner(
+    value: object,
+): value is InvoiceLineTaxesInner {
     return true;
 }
 
-export function InvoiceLineTaxesInnerFromJSON(json: any): InvoiceLineTaxesInner {
+export function InvoiceLineTaxesInnerFromJSON(
+    json: any,
+): InvoiceLineTaxesInner {
     return InvoiceLineTaxesInnerFromJSONTyped(json, false);
 }
 
-export function InvoiceLineTaxesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceLineTaxesInner {
+export function InvoiceLineTaxesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceLineTaxesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'taxCodeId': json['tax_code_id'] == null ? undefined : json['tax_code_id'],
-        'ratePercent': json['rate_percent'] == null ? undefined : json['rate_percent'],
-        'amountMinor': json['amount_minor'] == null ? undefined : json['amount_minor'],
-        'amount': json['amount'] == null ? undefined : json['amount'],
-        'sequence': json['sequence'] == null ? undefined : json['sequence'],
+        id: json['id'] == null ? undefined : json['id'],
+        taxCodeId:
+            json['tax_code_id'] == null ? undefined : json['tax_code_id'],
+        ratePercent:
+            json['rate_percent'] == null ? undefined : json['rate_percent'],
+        amountMinor:
+            json['amount_minor'] == null ? undefined : json['amount_minor'],
+        amount: json['amount'] == null ? undefined : json['amount'],
+        sequence: json['sequence'] == null ? undefined : json['sequence'],
     };
 }
 
@@ -87,19 +95,20 @@ export function InvoiceLineTaxesInnerToJSON(json: any): InvoiceLineTaxesInner {
     return InvoiceLineTaxesInnerToJSONTyped(json, false);
 }
 
-export function InvoiceLineTaxesInnerToJSONTyped(value?: InvoiceLineTaxesInner | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceLineTaxesInnerToJSONTyped(
+    value?: InvoiceLineTaxesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'tax_code_id': value['taxCodeId'],
-        'rate_percent': value['ratePercent'],
-        'amount_minor': value['amountMinor'],
-        'amount': value['amount'],
-        'sequence': value['sequence'],
+        id: value['id'],
+        tax_code_id: value['taxCodeId'],
+        rate_percent: value['ratePercent'],
+        amount_minor: value['amountMinor'],
+        amount: value['amount'],
+        sequence: value['sequence'],
     };
 }
-

@@ -1,12 +1,35 @@
-import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import {
+    AlertCircle,
+    Building2,
+    Clock,
+    Download,
+    Loader2,
+    ShieldCheck,
+    Trash2,
+} from 'lucide-react';
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ComponentType,
+} from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Building2, ShieldCheck, Clock, AlertCircle, Loader2, Trash2, Download } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileDropzone } from '@/components/file-dropzone';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -17,23 +40,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/contexts/auth-context';
-import { publishToast } from '@/components/ui/use-toast';
-import {
-    useApplyForSupplier,
-    useSupplierSelfStatus,
-    useUpdateSupplierVisibility,
-    type SupplierApplicationPayload,
-    type SupplierSelfStatus,
-    type DirectoryVisibility,
-    type SupplierApplicationStatusValue,
-} from '@/hooks/api/useSupplierSelfService';
-import { useSupplierDocuments, useUploadSupplierDocument, useDeleteSupplierDocument, type SupplierDocument, type SupplierDocumentType } from '@/hooks/api/useSupplierDocuments';
-import { useSupplierApplications, useWithdrawSupplierApplication } from '@/hooks/api/useSupplierApplications';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -41,34 +47,84 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { FileDropzone } from '@/components/file-dropzone';
-import { DOCUMENT_ACCEPT_EXTENSIONS, DOCUMENT_ACCEPT_LABEL, DOCUMENT_MAX_SIZE_MB } from '@/config/documents';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { publishToast } from '@/components/ui/use-toast';
+import {
+    DOCUMENT_ACCEPT_EXTENSIONS,
+    DOCUMENT_ACCEPT_LABEL,
+    DOCUMENT_MAX_SIZE_MB,
+} from '@/config/documents';
+import { useAuth } from '@/contexts/auth-context';
+import {
+    useSupplierApplications,
+    useWithdrawSupplierApplication,
+} from '@/hooks/api/useSupplierApplications';
+import {
+    useDeleteSupplierDocument,
+    useSupplierDocuments,
+    useUploadSupplierDocument,
+    type SupplierDocument,
+    type SupplierDocumentType,
+} from '@/hooks/api/useSupplierDocuments';
+import {
+    useApplyForSupplier,
+    useSupplierSelfStatus,
+    useUpdateSupplierVisibility,
+    type DirectoryVisibility,
+    type SupplierApplicationPayload,
+    type SupplierApplicationStatusValue,
+    type SupplierSelfStatus,
+} from '@/hooks/api/useSupplierSelfService';
 
 const optionalTextField = (max: number, message?: string) =>
-    z.string().max(max, message ?? `Maximum ${max} characters.`).optional().or(z.literal(''));
+    z
+        .string()
+        .max(max, message ?? `Maximum ${max} characters.`)
+        .optional()
+        .or(z.literal(''));
 
-const listField = z.string().max(500, 'Keep this under 500 characters.').optional().or(z.literal(''));
-const optionalEmail = z.union([z.literal(''), z.string().email('Enter a valid email address.')]);
-const optionalUrl = z.union([z.literal(''), z.string().url('Enter a valid URL (https://example.com).')]);
-const optionalCountry = z.union([z.literal(''), z.string().length(2, 'Use a 2-letter country code.')]);
+const listField = z
+    .string()
+    .max(500, 'Keep this under 500 characters.')
+    .optional()
+    .or(z.literal(''));
+const optionalEmail = z.union([
+    z.literal(''),
+    z.string().email('Enter a valid email address.'),
+]);
+const optionalUrl = z.union([
+    z.literal(''),
+    z.string().url('Enter a valid URL (https://example.com).'),
+]);
+const optionalCountry = z.union([
+    z.literal(''),
+    z.string().length(2, 'Use a 2-letter country code.'),
+]);
 
 const positiveInteger = z
-    .preprocess((value) => {
-        if (value === '' || value === null || value === undefined) {
-            return undefined;
-        }
-        if (typeof value === 'number') {
-            return Number.isFinite(value) ? value : undefined;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === '') {
+    .preprocess(
+        (value) => {
+            if (value === '' || value === null || value === undefined) {
                 return undefined;
             }
-            return Number(trimmed);
-        }
-        return value;
-    }, z.number({ invalid_type_error: 'Enter a valid whole number.' }).int('Use whole numbers only.').min(1, 'Must be at least 1.'))
+            if (typeof value === 'number') {
+                return Number.isFinite(value) ? value : undefined;
+            }
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (trimmed === '') {
+                    return undefined;
+                }
+                return Number(trimmed);
+            }
+            return value;
+        },
+        z
+            .number({ invalid_type_error: 'Enter a valid whole number.' })
+            .int('Use whole numbers only.')
+            .min(1, 'Must be at least 1.'),
+    )
     .optional();
 
 const supplierApplicationSchema = z
@@ -101,7 +157,9 @@ const supplierApplicationSchema = z
             values.capabilitiesTolerances,
             values.capabilitiesIndustries,
         ];
-        const hasCapabilities = capabilityInputs.some((value) => Boolean(value && value.trim().length > 0));
+        const hasCapabilities = capabilityInputs.some((value) =>
+            Boolean(value && value.trim().length > 0),
+        );
 
         if (!hasCapabilities) {
             ctx.addIssue({
@@ -112,26 +170,43 @@ const supplierApplicationSchema = z
         }
 
         const hasContact =
-            Boolean(values.contactEmail && values.contactEmail.trim().length > 0) ||
-            Boolean(values.contactPhone && values.contactPhone.trim().length > 0) ||
+            Boolean(
+                values.contactEmail && values.contactEmail.trim().length > 0,
+            ) ||
+            Boolean(
+                values.contactPhone && values.contactPhone.trim().length > 0,
+            ) ||
             Boolean(values.contactName && values.contactName.trim().length > 0);
 
         if (!hasContact) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 path: ['contactEmail'],
-                message: 'Provide a contact email, phone, or name for follow-ups.',
+                message:
+                    'Provide a contact email, phone, or name for follow-ups.',
             });
         }
     });
 
-export type SupplierApplicationFormValues = z.infer<typeof supplierApplicationSchema>;
+export type SupplierApplicationFormValues = z.infer<
+    typeof supplierApplicationSchema
+>;
 
-type SupplierStatus = 'none' | 'pending' | 'approved' | 'rejected' | 'suspended';
+type SupplierStatus =
+    | 'none'
+    | 'pending'
+    | 'approved'
+    | 'rejected'
+    | 'suspended';
 
 const STATUS_META: Record<
     SupplierStatus,
-    { label: string; description: string; icon: ComponentType<{ className?: string }>; badge: 'default' | 'secondary' | 'outline' | 'destructive' }
+    {
+        label: string;
+        description: string;
+        icon: ComponentType<{ className?: string }>;
+        badge: 'default' | 'secondary' | 'outline' | 'destructive';
+    }
 > = {
     none: {
         label: 'Not applied',
@@ -141,25 +216,29 @@ const STATUS_META: Record<
     },
     pending: {
         label: 'Pending review',
-        description: 'Our team is reviewing your submission. Expect an update soon.',
+        description:
+            'Our team is reviewing your submission. Expect an update soon.',
         icon: Clock,
         badge: 'outline',
     },
     approved: {
         label: 'Approved supplier',
-        description: 'Supplier tooling, invitations, and RFQ replies are enabled.',
+        description:
+            'Supplier tooling, invitations, and RFQ replies are enabled.',
         icon: ShieldCheck,
         badge: 'default',
     },
     rejected: {
         label: 'Application rejected',
-        description: 'The last application was declined. Update your profile and reapply.',
+        description:
+            'The last application was declined. Update your profile and reapply.',
         icon: AlertCircle,
         badge: 'destructive',
     },
     suspended: {
         label: 'Supplier suspended',
-        description: 'Access is temporarily disabled. Contact support for next steps.',
+        description:
+            'Access is temporarily disabled. Contact support for next steps.',
         icon: AlertCircle,
         badge: 'destructive',
     },
@@ -167,14 +246,29 @@ const STATUS_META: Record<
 
 const APPLICATION_STATUS_META: Record<
     SupplierApplicationStatusValue,
-    { label: string; badge: 'default' | 'secondary' | 'outline' | 'destructive' }
+    {
+        label: string;
+        badge: 'default' | 'secondary' | 'outline' | 'destructive';
+    }
 > = {
-    pending: { label: STATUS_META.pending.label, badge: STATUS_META.pending.badge },
-    approved: { label: STATUS_META.approved.label, badge: STATUS_META.approved.badge },
-    rejected: { label: STATUS_META.rejected.label, badge: STATUS_META.rejected.badge },
+    pending: {
+        label: STATUS_META.pending.label,
+        badge: STATUS_META.pending.badge,
+    },
+    approved: {
+        label: STATUS_META.approved.label,
+        badge: STATUS_META.approved.badge,
+    },
+    rejected: {
+        label: STATUS_META.rejected.label,
+        badge: STATUS_META.rejected.badge,
+    },
 };
 
-const DOCUMENT_TYPE_OPTIONS: Array<{ label: string; value: SupplierDocumentType }> = [
+const DOCUMENT_TYPE_OPTIONS: Array<{
+    label: string;
+    value: SupplierDocumentType;
+}> = [
     { label: 'ISO 9001', value: 'iso9001' },
     { label: 'ISO 14001', value: 'iso14001' },
     { label: 'AS 9100', value: 'as9100' },
@@ -186,18 +280,26 @@ const DOCUMENT_TYPE_OPTIONS: Array<{ label: string; value: SupplierDocumentType 
     { label: 'Other', value: 'other' },
 ];
 
-const DIRECTORY_VISIBILITY_META: Record<DirectoryVisibility, { label: string; description: string }> = {
+const DIRECTORY_VISIBILITY_META: Record<
+    DirectoryVisibility,
+    { label: string; description: string }
+> = {
     private: {
         label: 'Private (default)',
-        description: 'Only your internal buyers can view this supplier profile. You remain hidden from the marketplace directory.',
+        description:
+            'Only your internal buyers can view this supplier profile. You remain hidden from the marketplace directory.',
     },
     public: {
         label: 'Public listing',
-        description: 'Buyers browsing the directory can discover your profile, capabilities, and compliance summary.',
+        description:
+            'Buyers browsing the directory can discover your profile, capabilities, and compliance summary.',
     },
 };
 
-const DIRECTORY_VISIBILITY_OPTIONS: Array<{ value: DirectoryVisibility; label: string }> = [
+const DIRECTORY_VISIBILITY_OPTIONS: Array<{
+    value: DirectoryVisibility;
+    label: string;
+}> = [
     { value: 'private', label: 'Private' },
     { value: 'public', label: 'Public' },
 ];
@@ -224,7 +326,9 @@ function buildCapabilities(values: SupplierApplicationFormValues) {
         industries: splitList(values.capabilitiesIndustries),
     };
 
-    return Object.entries(payload).reduce<SupplierApplicationPayload['capabilities']>((acc, [key, list]) => {
+    return Object.entries(payload).reduce<
+        SupplierApplicationPayload['capabilities']
+    >((acc, [key, list]) => {
         if (list && list.length > 0) {
             acc[key as keyof SupplierApplicationPayload['capabilities']] = list;
         }
@@ -238,23 +342,33 @@ export function SupplierApplicationPanel() {
     const isSupplierPersona = activePersona?.type === 'supplier';
     const initialStatus: SupplierSelfStatus | undefined = state.company
         ? {
-              supplier_status: (state.company.supplier_status ?? 'none') as string,
-              directory_visibility: (state.company.directory_visibility ?? 'private') as DirectoryVisibility,
-              supplier_profile_completed_at: state.company.supplier_profile_completed_at ?? null,
-              is_listed: Boolean((state.company as { is_listed?: boolean }).is_listed ?? false),
+              supplier_status: (state.company.supplier_status ??
+                  'none') as string,
+              directory_visibility: (state.company.directory_visibility ??
+                  'private') as DirectoryVisibility,
+              supplier_profile_completed_at:
+                  state.company.supplier_profile_completed_at ?? null,
+              is_listed: Boolean(
+                  (state.company as { is_listed?: boolean }).is_listed ?? false,
+              ),
               current_application: null,
           }
         : undefined;
     const supplierStatusQuery = useSupplierSelfStatus(initialStatus);
     const supplierStatusData = supplierStatusQuery.data ?? initialStatus;
-    const rawStatus = (supplierStatusData?.supplier_status ?? 'none') as SupplierStatus;
+    const rawStatus = (supplierStatusData?.supplier_status ??
+        'none') as SupplierStatus;
     const hasApplication = Boolean(supplierStatusData?.current_application);
     const status =
-        rawStatus === 'pending' && !hasApplication && state.company?.start_mode === 'supplier'
+        rawStatus === 'pending' &&
+        !hasApplication &&
+        state.company?.start_mode === 'supplier'
             ? 'none'
             : rawStatus;
-    const directoryVisibility = (supplierStatusData?.directory_visibility ?? 'private') as DirectoryVisibility;
-    const supplierProfileCompletedAt = supplierStatusData?.supplier_profile_completed_at ?? null;
+    const directoryVisibility = (supplierStatusData?.directory_visibility ??
+        'private') as DirectoryVisibility;
+    const supplierProfileCompletedAt =
+        supplierStatusData?.supplier_profile_completed_at ?? null;
     const isListed = Boolean(supplierStatusData?.is_listed ?? false);
     const companyStatus = state.company?.status ?? 'pending';
     const isCompanyApproved = ['active', 'trial'].includes(companyStatus);
@@ -264,29 +378,47 @@ export function SupplierApplicationPanel() {
     const applyMutation = useApplyForSupplier();
     const updateVisibilityMutation = useUpdateSupplierVisibility();
     const isOwner = role === 'owner';
-    const canViewApplications = !isSupplierPersona && (isOwner || role === 'buyer_admin');
-    const supplierApplicationsQuery = useSupplierApplications({ enabled: canViewApplications });
+    const canViewApplications =
+        !isSupplierPersona && (isOwner || role === 'buyer_admin');
+    const supplierApplicationsQuery = useSupplierApplications({
+        enabled: canViewApplications,
+    });
     const supplierApplications = supplierApplicationsQuery.data?.items ?? [];
     const withdrawApplicationMutation = useWithdrawSupplierApplication();
     const [withdrawingId, setWithdrawingId] = useState<number | null>(null);
     const supplierDocumentsQuery = useSupplierDocuments();
     const uploadSupplierDocumentMutation = useUploadSupplierDocument();
     const deleteSupplierDocumentMutation = useDeleteSupplierDocument();
-    const documents = useMemo(() => supplierDocumentsQuery.data?.items ?? [], [supplierDocumentsQuery.data]);
+    const documents = useMemo(
+        () => supplierDocumentsQuery.data?.items ?? [],
+        [supplierDocumentsQuery.data],
+    );
     const documentsLoading = supplierDocumentsQuery.isLoading;
-    const [visibilityDraft, setVisibilityDraft] = useState<DirectoryVisibility>(directoryVisibility);
+    const [visibilityDraft, setVisibilityDraft] =
+        useState<DirectoryVisibility>(directoryVisibility);
     const documentSectionRef = useRef<HTMLDivElement | null>(null);
-    const expiredDocuments = useMemo(() => documents.filter((document) => document.status === 'expired'), [documents]);
-    const expiringDocuments = useMemo(() => documents.filter((document) => document.status === 'expiring'), [documents]);
-    const documentAlertDocuments = expiredDocuments.length > 0 ? expiredDocuments : expiringDocuments;
-    const shouldShowDocumentAlert = !documentsLoading && documentAlertDocuments.length > 0;
+    const expiredDocuments = useMemo(
+        () => documents.filter((document) => document.status === 'expired'),
+        [documents],
+    );
+    const expiringDocuments = useMemo(
+        () => documents.filter((document) => document.status === 'expiring'),
+        [documents],
+    );
+    const documentAlertDocuments =
+        expiredDocuments.length > 0 ? expiredDocuments : expiringDocuments;
+    const shouldShowDocumentAlert =
+        !documentsLoading && documentAlertDocuments.length > 0;
     const hasCompletedProfile = Boolean(supplierProfileCompletedAt);
     const isUpdatingVisibility = updateVisibilityMutation.isPending;
-    const canEditVisibility = isOwner && isCompanyApproved && status === 'approved';
+    const canEditVisibility =
+        isOwner && isCompanyApproved && status === 'approved';
     const isVisibilityDirty = visibilityDraft !== directoryVisibility;
     const requiresDocumentReview = expiredDocuments.length > 0;
-    const isPublicOptionDisabled = requiresDocumentReview || !hasCompletedProfile;
-    const visibilitySubmitDisabled = !canEditVisibility || !isVisibilityDirty || isUpdatingVisibility;
+    const isPublicOptionDisabled =
+        requiresDocumentReview || !hasCompletedProfile;
+    const visibilitySubmitDisabled =
+        !canEditVisibility || !isVisibilityDirty || isUpdatingVisibility;
     const visibilityBlockedReason = (() => {
         if (!isOwner) {
             return 'Only workspace owners can change directory visibility.';
@@ -312,7 +444,8 @@ export function SupplierApplicationPanel() {
         if (isListed) {
             return {
                 title: 'Visible in directory',
-                description: 'Buyers searching the Elements directory can reach out with new RFQs and invitations.',
+                description:
+                    'Buyers searching the Elements directory can reach out with new RFQs and invitations.',
             };
         }
 
@@ -327,17 +460,27 @@ export function SupplierApplicationPanel() {
 
         return {
             title: 'Private listing',
-            description: 'Keep your supplier profile hidden until you are ready for inbound buyer requests.',
+            description:
+                'Keep your supplier profile hidden until you are ready for inbound buyer requests.',
         };
     })();
-    const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
-    const [documentType, setDocumentType] = useState<SupplierDocumentType>('iso9001');
+    const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>(
+        [],
+    );
+    const [documentType, setDocumentType] =
+        useState<SupplierDocumentType>('iso9001');
     const [documentIssuedAt, setDocumentIssuedAt] = useState('');
     const [documentExpiresAt, setDocumentExpiresAt] = useState('');
     const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [documentError, setDocumentError] = useState<string | null>(null);
-    const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
-    const canApply = !isSupplierPersona && isOwner && isCompanyApproved && (status === 'none' || status === 'rejected');
+    const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(
+        null,
+    );
+    const canApply =
+        !isSupplierPersona &&
+        isOwner &&
+        isCompanyApproved &&
+        (status === 'none' || status === 'rejected');
     const actionLabel = useMemo(() => {
         if (!isCompanyApproved) {
             return 'Awaiting company approval';
@@ -366,12 +509,19 @@ export function SupplierApplicationPanel() {
     }, [directoryVisibility]);
 
     useEffect(() => {
-        setSelectedDocumentIds((previous) => previous.filter((id) => documents.some((document) => document.id === id)));
+        setSelectedDocumentIds((previous) =>
+            previous.filter((id) =>
+                documents.some((document) => document.id === id),
+            ),
+        );
     }, [documents]);
 
     const scrollToDocumentSection = () => {
         if (documentSectionRef.current) {
-            documentSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            documentSectionRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
         }
     };
 
@@ -436,7 +586,8 @@ export function SupplierApplicationPanel() {
             publishToast({
                 variant: 'success',
                 title: 'Application submitted',
-                description: 'We will notify you once the supplier review is complete.',
+                description:
+                    'We will notify you once the supplier review is complete.',
             });
             setDialogOpen(false);
             reset();
@@ -447,7 +598,11 @@ export function SupplierApplicationPanel() {
             }
             setSelectedDocumentIds([]);
         } catch (error) {
-            setFormError(error instanceof Error ? error.message : 'Unable to submit your supplier application.');
+            setFormError(
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to submit your supplier application.',
+            );
         }
     });
 
@@ -457,7 +612,9 @@ export function SupplierApplicationPanel() {
         }
 
         try {
-            await updateVisibilityMutation.mutateAsync({ visibility: visibilityDraft });
+            await updateVisibilityMutation.mutateAsync({
+                visibility: visibilityDraft,
+            });
             publishToast({
                 variant: 'success',
                 title: 'Directory visibility updated',
@@ -472,14 +629,20 @@ export function SupplierApplicationPanel() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to update visibility',
-                description: error instanceof Error ? error.message : 'Try again in a few moments.',
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : 'Try again in a few moments.',
             });
             setVisibilityDraft(directoryVisibility);
         }
     };
 
     const StatusIcon = meta.icon;
-    const pendingApplication = status === 'pending' ? (supplierStatusData?.current_application ?? null) : null;
+    const pendingApplication =
+        status === 'pending'
+            ? (supplierStatusData?.current_application ?? null)
+            : null;
     const blockingDocuments = pendingApplication?.documents ?? [];
     const statusDescription = useMemo(() => {
         if (status === 'approved') {
@@ -497,7 +660,10 @@ export function SupplierApplicationPanel() {
         return meta.description;
     }, [meta.description, pendingApplication?.auto_reverification, status]);
 
-    const documentStatusVariant: Record<SupplierDocument['status'], 'default' | 'secondary' | 'destructive'> = {
+    const documentStatusVariant: Record<
+        SupplierDocument['status'],
+        'default' | 'secondary' | 'destructive'
+    > = {
         valid: 'default',
         expiring: 'secondary',
         expired: 'destructive',
@@ -510,7 +676,9 @@ export function SupplierApplicationPanel() {
 
         const parsed = new Date(value);
 
-        return Number.isNaN(parsed.getTime()) ? '—' : parsed.toLocaleDateString();
+        return Number.isNaN(parsed.getTime())
+            ? '—'
+            : parsed.toLocaleDateString();
     };
 
     const formatFileSize = (value: number): string => {
@@ -567,25 +735,35 @@ export function SupplierApplicationPanel() {
         setDocumentError(null);
 
         try {
-            const newDocument = await uploadSupplierDocumentMutation.mutateAsync({
-                file: pendingFile,
-                type: documentType,
-                issued_at: documentIssuedAt || undefined,
-                expires_at: documentExpiresAt || undefined,
-            });
+            const newDocument =
+                await uploadSupplierDocumentMutation.mutateAsync({
+                    file: pendingFile,
+                    type: documentType,
+                    issued_at: documentIssuedAt || undefined,
+                    expires_at: documentExpiresAt || undefined,
+                });
 
             setPendingFile(null);
             setDocumentIssuedAt('');
             setDocumentExpiresAt('');
-            setSelectedDocumentIds((previous) => (previous.includes(newDocument.id) ? previous : [...previous, newDocument.id]));
+            setSelectedDocumentIds((previous) =>
+                previous.includes(newDocument.id)
+                    ? previous
+                    : [...previous, newDocument.id],
+            );
 
             publishToast({
                 variant: 'success',
                 title: 'Document uploaded',
-                description: 'Your compliance document is ready to attach to this application.',
+                description:
+                    'Your compliance document is ready to attach to this application.',
             });
         } catch (error) {
-            setDocumentError(error instanceof Error ? error.message : 'Unable to upload the document.');
+            setDocumentError(
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to upload the document.',
+            );
         }
     };
 
@@ -601,7 +779,8 @@ export function SupplierApplicationPanel() {
             publishToast({
                 variant: 'success',
                 title: 'Application withdrawn',
-                description: 'You can resubmit once your profile and documents are ready.',
+                description:
+                    'You can resubmit once your profile and documents are ready.',
             });
             await refresh();
             await supplierStatusQuery.refetch();
@@ -612,7 +791,10 @@ export function SupplierApplicationPanel() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to withdraw application',
-                description: error instanceof Error ? error.message : 'Try again in a moment.',
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : 'Try again in a moment.',
             });
         } finally {
             setWithdrawingId(null);
@@ -624,17 +806,23 @@ export function SupplierApplicationPanel() {
 
         try {
             await deleteSupplierDocumentMutation.mutateAsync(documentId);
-            setSelectedDocumentIds((previous) => previous.filter((id) => id !== documentId));
+            setSelectedDocumentIds((previous) =>
+                previous.filter((id) => id !== documentId),
+            );
             publishToast({
                 variant: 'success',
                 title: 'Document removed',
-                description: 'The document is no longer available for future applications.',
+                description:
+                    'The document is no longer available for future applications.',
             });
         } catch (error) {
             publishToast({
                 variant: 'destructive',
                 title: 'Failed to delete document',
-                description: error instanceof Error ? error.message : 'Try again in a moment.',
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : 'Try again in a moment.',
             });
         } finally {
             setDeletingDocumentId(null);
@@ -654,9 +842,12 @@ export function SupplierApplicationPanel() {
         <Card>
             <CardHeader className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <CardTitle className="text-lg">Supplier application</CardTitle>
+                    <CardTitle className="text-lg">
+                        Supplier application
+                    </CardTitle>
                     <CardDescription>
-                        Control when your company participates as a supplier. Owners can submit the profile below for review.
+                        Control when your company participates as a supplier.
+                        Owners can submit the profile below for review.
                     </CardDescription>
                 </div>
                 <Badge variant={meta.badge} className="flex items-center gap-1">
@@ -665,43 +856,86 @@ export function SupplierApplicationPanel() {
                 </Badge>
             </CardHeader>
             <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{statusDescription}</p>
+                <p className="text-sm text-muted-foreground">
+                    {statusDescription}
+                </p>
 
                 {status === 'pending' && pendingApplication ? (
-                    <Alert variant={pendingApplication.auto_reverification ? 'destructive' : 'default'}>
+                    <Alert
+                        variant={
+                            pendingApplication.auto_reverification
+                                ? 'destructive'
+                                : 'default'
+                        }
+                    >
                         <AlertDescription className="space-y-3">
                             {pendingApplication.auto_reverification ? (
                                 <span>
-                                    Access is temporarily paused because required certificates expired. Upload refreshed documents so we can
-                                    complete re-verification.
+                                    Access is temporarily paused because
+                                    required certificates expired. Upload
+                                    refreshed documents so we can complete
+                                    re-verification.
                                 </span>
                             ) : (
-                                <span>Your submission is waiting for review. We will notify the owner once a decision is made.</span>
+                                <span>
+                                    Your submission is waiting for review. We
+                                    will notify the owner once a decision is
+                                    made.
+                                </span>
                             )}
                             <div className="space-y-1 text-xs text-muted-foreground">
                                 {pendingApplication.submitted_at ? (
-                                    <p>Submitted {formatDateTime(pendingApplication.submitted_at)}</p>
+                                    <p>
+                                        Submitted{' '}
+                                        {formatDateTime(
+                                            pendingApplication.submitted_at,
+                                        )}
+                                    </p>
                                 ) : null}
-                                {pendingApplication.notes ? <p>Notes: {pendingApplication.notes}</p> : null}
+                                {pendingApplication.notes ? (
+                                    <p>Notes: {pendingApplication.notes}</p>
+                                ) : null}
                             </div>
                             {blockingDocuments.length > 0 ? (
                                 <div className="space-y-2 rounded-md border border-border/60 bg-background/80 p-3">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                         Documents requiring updates
                                     </p>
                                     <div className="space-y-2">
                                         {blockingDocuments.map((document) => {
-                                            const documentLabel = document.type ? document.type.replace(/_/g, ' ') : 'Document';
+                                            const documentLabel = document.type
+                                                ? document.type.replace(
+                                                      /_/g,
+                                                      ' ',
+                                                  )
+                                                : 'Document';
 
                                             return (
-                                                <div key={document.id} className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                                                <div
+                                                    key={document.id}
+                                                    className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+                                                >
                                                     <div className="flex flex-col gap-0.5">
-                                                        <p className="font-medium capitalize text-foreground">{documentLabel}</p>
+                                                        <p className="font-medium text-foreground capitalize">
+                                                            {documentLabel}
+                                                        </p>
                                                         <p>
-                                                            Expires {formatDate(document.expires_at)} • {document.status.toUpperCase()}
+                                                            Expires{' '}
+                                                            {formatDate(
+                                                                document.expires_at,
+                                                            )}{' '}
+                                                            •{' '}
+                                                            {document.status.toUpperCase()}
                                                         </p>
                                                     </div>
-                                                    <Badge variant={documentStatusVariant[document.status]} className="w-fit">
+                                                    <Badge
+                                                        variant={
+                                                            documentStatusVariant[
+                                                                document.status
+                                                            ]
+                                                        }
+                                                        className="w-fit"
+                                                    >
                                                         {document.status}
                                                     </Badge>
                                                 </div>
@@ -717,8 +951,9 @@ export function SupplierApplicationPanel() {
                 {!isOwner ? (
                     <Alert>
                         <AlertDescription>
-                            Only workspace owners can submit or re-submit supplier applications. Ask your owner to start the process if
-                            you need supplier access.
+                            Only workspace owners can submit or re-submit
+                            supplier applications. Ask your owner to start the
+                            process if you need supplier access.
                         </AlertDescription>
                     </Alert>
                 ) : null}
@@ -726,8 +961,9 @@ export function SupplierApplicationPanel() {
                 {!isCompanyApproved ? (
                     <Alert>
                         <AlertDescription>
-                            Company verification is still pending. Platform operations must approve your documents before supplier tools
-                            are unlocked.
+                            Company verification is still pending. Platform
+                            operations must approve your documents before
+                            supplier tools are unlocked.
                         </AlertDescription>
                     </Alert>
                 ) : null}
@@ -735,8 +971,9 @@ export function SupplierApplicationPanel() {
                 {status === 'approved' && isCompanyApproved ? (
                     <Alert>
                         <AlertDescription>
-                            Supplier tooling is live. To stay listed in the supplier directory, keep your profile current and ensure your
-                            compliance documents remain valid.
+                            Supplier tooling is live. To stay listed in the
+                            supplier directory, keep your profile current and
+                            ensure your compliance documents remain valid.
                         </AlertDescription>
                     </Alert>
                 ) : null}
@@ -744,13 +981,21 @@ export function SupplierApplicationPanel() {
                 {status === 'rejected' ? (
                     <Alert variant="destructive">
                         <AlertDescription>
-                            The previous submission was rejected. Update your capabilities and certifications before applying again.
+                            The previous submission was rejected. Update your
+                            capabilities and certifications before applying
+                            again.
                         </AlertDescription>
                     </Alert>
                 ) : null}
 
                 {shouldShowDocumentAlert ? (
-                    <Alert variant={expiredDocuments.length > 0 ? 'destructive' : 'default'}>
+                    <Alert
+                        variant={
+                            expiredDocuments.length > 0
+                                ? 'destructive'
+                                : 'default'
+                        }
+                    >
                         <AlertDescription className="space-y-2">
                             <p className="text-sm font-medium text-foreground">
                                 {expiredDocuments.length > 0
@@ -763,21 +1008,46 @@ export function SupplierApplicationPanel() {
                                     : 'Provide renewed certificates to stay in good standing before access is paused.'}
                             </p>
                             <div className="space-y-1 text-xs text-muted-foreground">
-                                {documentAlertDocuments.slice(0, 3).map((document) => (
-                                    <div key={document.id} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
-                                        <span className="font-medium capitalize text-foreground">
-                                            {document.type?.replace(/_/g, ' ') ?? 'Document'}
-                                        </span>
-                                        <span>
-                                            {document.status === 'expired' ? 'Expired' : 'Expires'} {formatDate(document.expires_at)}
-                                        </span>
-                                    </div>
-                                ))}
+                                {documentAlertDocuments
+                                    .slice(0, 3)
+                                    .map((document) => (
+                                        <div
+                                            key={document.id}
+                                            className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between"
+                                        >
+                                            <span className="font-medium text-foreground capitalize">
+                                                {document.type?.replace(
+                                                    /_/g,
+                                                    ' ',
+                                                ) ?? 'Document'}
+                                            </span>
+                                            <span>
+                                                {document.status === 'expired'
+                                                    ? 'Expired'
+                                                    : 'Expires'}{' '}
+                                                {formatDate(
+                                                    document.expires_at,
+                                                )}
+                                            </span>
+                                        </div>
+                                    ))}
                                 {documentAlertDocuments.length > 3 ? (
-                                    <p>+{documentAlertDocuments.length - 3} more document{documentAlertDocuments.length - 3 === 1 ? '' : 's'} need attention</p>
+                                    <p>
+                                        +{documentAlertDocuments.length - 3}{' '}
+                                        more document
+                                        {documentAlertDocuments.length - 3 === 1
+                                            ? ''
+                                            : 's'}{' '}
+                                        need attention
+                                    </p>
                                 ) : null}
                             </div>
-                            <Button type="button" size="sm" variant="outline" onClick={scrollToDocumentSection}>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={scrollToDocumentSection}
+                            >
                                 Review documents
                             </Button>
                         </AlertDescription>
@@ -787,80 +1057,141 @@ export function SupplierApplicationPanel() {
                 <div className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p className="text-sm font-medium">Directory visibility</p>
+                            <p className="text-sm font-medium">
+                                Directory visibility
+                            </p>
                             <p className="text-xs text-muted-foreground">
-                                Control whether buyers browsing the Elements directory can discover your supplier profile.
+                                Control whether buyers browsing the Elements
+                                directory can discover your supplier profile.
                             </p>
                         </div>
-                        <Badge variant={directoryVisibility === 'public' ? 'default' : 'outline'} className="w-fit uppercase">
-                            {DIRECTORY_VISIBILITY_META[directoryVisibility].label}
+                        <Badge
+                            variant={
+                                directoryVisibility === 'public'
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            className="w-fit uppercase"
+                        >
+                            {
+                                DIRECTORY_VISIBILITY_META[directoryVisibility]
+                                    .label
+                            }
                         </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        {DIRECTORY_VISIBILITY_META[directoryVisibility].description}
+                        {
+                            DIRECTORY_VISIBILITY_META[directoryVisibility]
+                                .description
+                        }
                     </p>
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                         <div className="space-y-3">
                             <div className="space-y-2">
-                                <Label htmlFor="directory-visibility">Visibility setting</Label>
+                                <Label htmlFor="directory-visibility">
+                                    Visibility setting
+                                </Label>
                                 <Select
                                     value={visibilityDraft}
-                                    onValueChange={(value) => setVisibilityDraft(value as DirectoryVisibility)}
-                                    disabled={!canEditVisibility || isUpdatingVisibility}
+                                    onValueChange={(value) =>
+                                        setVisibilityDraft(
+                                            value as DirectoryVisibility,
+                                        )
+                                    }
+                                    disabled={
+                                        !canEditVisibility ||
+                                        isUpdatingVisibility
+                                    }
                                 >
                                     <SelectTrigger
                                         id="directory-visibility"
-                                        aria-disabled={!canEditVisibility || isUpdatingVisibility}
+                                        aria-disabled={
+                                            !canEditVisibility ||
+                                            isUpdatingVisibility
+                                        }
                                     >
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {DIRECTORY_VISIBILITY_OPTIONS.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                                disabled={option.value === 'public' ? isPublicOptionDisabled : false}
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
+                                        {DIRECTORY_VISIBILITY_OPTIONS.map(
+                                            (option) => (
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                    disabled={
+                                                        option.value ===
+                                                        'public'
+                                                            ? isPublicOptionDisabled
+                                                            : false
+                                                    }
+                                                >
+                                                    {option.label}
+                                                </SelectItem>
+                                            ),
+                                        )}
                                     </SelectContent>
                                 </Select>
-                                {!canEditVisibility && visibilityBlockedReason ? (
-                                    <p className="text-xs text-muted-foreground">{visibilityBlockedReason}</p>
+                                {!canEditVisibility &&
+                                visibilityBlockedReason ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {visibilityBlockedReason}
+                                    </p>
                                 ) : null}
-                                {canEditVisibility && isPublicOptionDisabled && publicDisabledReason ? (
-                                    <p className="text-xs text-destructive">{publicDisabledReason}</p>
+                                {canEditVisibility &&
+                                isPublicOptionDisabled &&
+                                publicDisabledReason ? (
+                                    <p className="text-xs text-destructive">
+                                        {publicDisabledReason}
+                                    </p>
                                 ) : null}
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                                <Button type="button" onClick={handleVisibilitySubmit} disabled={visibilitySubmitDisabled}>
-                                    {isUpdatingVisibility ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                <Button
+                                    type="button"
+                                    onClick={handleVisibilitySubmit}
+                                    disabled={visibilitySubmitDisabled}
+                                >
+                                    {isUpdatingVisibility ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : null}
                                     Save visibility
                                 </Button>
                                 {isVisibilityDirty ? (
-                                    <span className="text-xs text-muted-foreground">Unsaved changes</span>
+                                    <span className="text-xs text-muted-foreground">
+                                        Unsaved changes
+                                    </span>
                                 ) : null}
                             </div>
                         </div>
                         <div className="rounded-lg border border-dashed border-border/80 bg-background/80 p-3 text-xs text-muted-foreground">
-                            <p className="text-sm font-medium text-foreground">{listingStatusCopy.title}</p>
+                            <p className="text-sm font-medium text-foreground">
+                                {listingStatusCopy.title}
+                            </p>
                             <p>{listingStatusCopy.description}</p>
                         </div>
                     </div>
                 </div>
 
-                <div ref={documentSectionRef} className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4">
+                <div
+                    ref={documentSectionRef}
+                    className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4"
+                >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p className="text-sm font-medium">Compliance documents</p>
+                            <p className="text-sm font-medium">
+                                Compliance documents
+                            </p>
                             <p className="text-xs text-muted-foreground">
-                                Upload certificates, NDAs, and insurance proofs once, then attach them to every supplier application.
+                                Upload certificates, NDAs, and insurance proofs
+                                once, then attach them to every supplier
+                                application.
                                 {` ${DOCUMENT_ACCEPT_LABEL}`}
                             </p>
                         </div>
                         <Badge variant="outline" className="w-fit">
-                            {documentsLoading ? 'Loading…' : `${documents.length} file${documents.length === 1 ? '' : 's'}`}
+                            {documentsLoading
+                                ? 'Loading…'
+                                : `${documents.length} file${documents.length === 1 ? '' : 's'}`}
                         </Badge>
                     </div>
 
@@ -876,7 +1207,8 @@ export function SupplierApplicationPanel() {
                                     </div>
                                 ) : documents.length === 0 ? (
                                     <p className="text-xs text-muted-foreground">
-                                        No supplier documents uploaded yet. Add a document using the form on the right.
+                                        No supplier documents uploaded yet. Add
+                                        a document using the form on the right.
                                     </p>
                                 ) : (
                                     documents.map((document) => (
@@ -886,24 +1218,52 @@ export function SupplierApplicationPanel() {
                                         >
                                             <Checkbox
                                                 id={`document-${document.id}`}
-                                                checked={selectedDocumentIds.includes(document.id)}
+                                                checked={selectedDocumentIds.includes(
+                                                    document.id,
+                                                )}
                                                 onCheckedChange={(checked) =>
-                                                    handleDocumentToggle(document.id, checked === true)
+                                                    handleDocumentToggle(
+                                                        document.id,
+                                                        checked === true,
+                                                    )
                                                 }
-                                                disabled={deletingDocumentId === document.id}
+                                                disabled={
+                                                    deletingDocumentId ===
+                                                    document.id
+                                                }
                                             />
                                             <div className="flex flex-1 flex-col gap-1">
                                                 <div className="flex items-center gap-2 text-sm font-medium capitalize">
-                                                    {document.type.replace('_', ' ')}
-                                                    <Badge variant={documentStatusVariant[document.status]} className="uppercase">
+                                                    {document.type.replace(
+                                                        '_',
+                                                        ' ',
+                                                    )}
+                                                    <Badge
+                                                        variant={
+                                                            documentStatusVariant[
+                                                                document.status
+                                                            ]
+                                                        }
+                                                        className="uppercase"
+                                                    >
                                                         {document.status}
                                                     </Badge>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Issued {formatDate(document.issued_at)} • Expires {formatDate(document.expires_at)}
+                                                    Issued{' '}
+                                                    {formatDate(
+                                                        document.issued_at,
+                                                    )}{' '}
+                                                    • Expires{' '}
+                                                    {formatDate(
+                                                        document.expires_at,
+                                                    )}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {formatFileSize(document.size_bytes)} • {document.mime}
+                                                    {formatFileSize(
+                                                        document.size_bytes,
+                                                    )}{' '}
+                                                    • {document.mime}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
@@ -915,7 +1275,13 @@ export function SupplierApplicationPanel() {
                                                         aria-label="View document"
                                                         asChild
                                                     >
-                                                        <a href={document.download_url} target="_blank" rel="noreferrer">
+                                                        <a
+                                                            href={
+                                                                document.download_url
+                                                            }
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
                                                             <Download className="h-4 w-4" />
                                                         </a>
                                                     </Button>
@@ -925,10 +1291,18 @@ export function SupplierApplicationPanel() {
                                                     variant="ghost"
                                                     size="icon"
                                                     aria-label="Remove document"
-                                                    onClick={() => handleDeleteDocument(document.id)}
-                                                    disabled={deletingDocumentId === document.id}
+                                                    onClick={() =>
+                                                        handleDeleteDocument(
+                                                            document.id,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        deletingDocumentId ===
+                                                        document.id
+                                                    }
                                                 >
-                                                    {deletingDocumentId === document.id ? (
+                                                    {deletingDocumentId ===
+                                                    document.id ? (
                                                         <Loader2 className="h-4 w-4 animate-spin" />
                                                     ) : (
                                                         <Trash2 className="h-4 w-4" />
@@ -940,19 +1314,32 @@ export function SupplierApplicationPanel() {
                                 )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                Selected documents will be included with your application for the reviewer.
+                                Selected documents will be included with your
+                                application for the reviewer.
                             </p>
                         </div>
                         <div className="space-y-3">
-                            <Label htmlFor="document-type">Upload new document</Label>
+                            <Label htmlFor="document-type">
+                                Upload new document
+                            </Label>
                             <div className="grid gap-3">
-                                <Select value={documentType} onValueChange={(value) => setDocumentType(value as SupplierDocumentType)}>
+                                <Select
+                                    value={documentType}
+                                    onValueChange={(value) =>
+                                        setDocumentType(
+                                            value as SupplierDocumentType,
+                                        )
+                                    }
+                                >
                                     <SelectTrigger id="document-type">
                                         <SelectValue placeholder="Choose a document type" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         ))}
@@ -960,22 +1347,34 @@ export function SupplierApplicationPanel() {
                                 </Select>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     <div className="space-y-1">
-                                        <Label htmlFor="document-issued-at">Issued on</Label>
+                                        <Label htmlFor="document-issued-at">
+                                            Issued on
+                                        </Label>
                                         <Input
                                             id="document-issued-at"
                                             type="date"
                                             value={documentIssuedAt}
-                                            onChange={(event) => setDocumentIssuedAt(event.target.value)}
+                                            onChange={(event) =>
+                                                setDocumentIssuedAt(
+                                                    event.target.value,
+                                                )
+                                            }
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <Label htmlFor="document-expires-at">Expires on</Label>
+                                        <Label htmlFor="document-expires-at">
+                                            Expires on
+                                        </Label>
                                         <Input
                                             id="document-expires-at"
                                             type="date"
                                             value={documentExpiresAt}
                                             min={documentIssuedAt || undefined}
-                                            onChange={(event) => setDocumentExpiresAt(event.target.value)}
+                                            onChange={(event) =>
+                                                setDocumentExpiresAt(
+                                                    event.target.value,
+                                                )
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -983,23 +1382,38 @@ export function SupplierApplicationPanel() {
                                     accept={DOCUMENT_ACCEPT_EXTENSIONS}
                                     acceptLabel={DOCUMENT_ACCEPT_LABEL}
                                     onFilesSelected={handleFileSelection}
-                                    disabled={uploadSupplierDocumentMutation.isPending}
+                                    disabled={
+                                        uploadSupplierDocumentMutation.isPending
+                                    }
                                     description={`Drag files or click to browse (max ${DOCUMENT_MAX_SIZE_MB} MB)`}
                                 />
                                 <div className="rounded-md border border-dashed border-muted-foreground/40 p-2 text-xs text-muted-foreground">
                                     {pendingFile ? (
                                         <span>
-                                            Selected: <strong>{pendingFile.name}</strong> ({formatFileSize(pendingFile.size)})
+                                            Selected:{' '}
+                                            <strong>{pendingFile.name}</strong>{' '}
+                                            ({formatFileSize(pendingFile.size)})
                                         </span>
                                     ) : (
-                                        <span>No file selected. Files up to {DOCUMENT_MAX_SIZE_MB} MB are supported.</span>
+                                        <span>
+                                            No file selected. Files up to{' '}
+                                            {DOCUMENT_MAX_SIZE_MB} MB are
+                                            supported.
+                                        </span>
                                     )}
                                 </div>
-                                {documentError ? <p className="text-xs text-destructive">{documentError}</p> : null}
+                                {documentError ? (
+                                    <p className="text-xs text-destructive">
+                                        {documentError}
+                                    </p>
+                                ) : null}
                                 <Button
                                     type="button"
                                     onClick={handleDocumentUpload}
-                                    disabled={uploadSupplierDocumentMutation.isPending || !pendingFile}
+                                    disabled={
+                                        uploadSupplierDocumentMutation.isPending ||
+                                        !pendingFile
+                                    }
                                 >
                                     {uploadSupplierDocumentMutation.isPending ? (
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1015,9 +1429,12 @@ export function SupplierApplicationPanel() {
                     <div className="space-y-4 rounded-xl border border-border/80 bg-card/30 p-4">
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <p className="text-sm font-medium">Submission history</p>
+                                <p className="text-sm font-medium">
+                                    Submission history
+                                </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Owners can withdraw pending requests before reviews begin.
+                                    Owners can withdraw pending requests before
+                                    reviews begin.
                                 </p>
                             </div>
                             <Badge variant="outline" className="w-fit">
@@ -1031,19 +1448,31 @@ export function SupplierApplicationPanel() {
                             <SubmissionHistorySkeleton />
                         ) : supplierApplicationsQuery.isError ? (
                             <Alert variant="destructive">
-                                <AlertDescription>Unable to load supplier applications right now.</AlertDescription>
+                                <AlertDescription>
+                                    Unable to load supplier applications right
+                                    now.
+                                </AlertDescription>
                             </Alert>
                         ) : supplierApplications.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                                Submit your first supplier profile to see the review timeline here.
+                                Submit your first supplier profile to see the
+                                review timeline here.
                             </p>
                         ) : (
                             <div className="space-y-3">
                                 {supplierApplications.map((application) => {
-                                    const metaEntry = APPLICATION_STATUS_META[application.status] ?? APPLICATION_STATUS_META.pending;
-                                    const documentCount = application.documents?.length ?? 0;
-                                    const showWithdraw = isOwner && application.status === 'pending';
-                                    const isWithdrawing = withdrawingId === application.id && withdrawApplicationMutation.isPending;
+                                    const metaEntry =
+                                        APPLICATION_STATUS_META[
+                                            application.status
+                                        ] ?? APPLICATION_STATUS_META.pending;
+                                    const documentCount =
+                                        application.documents?.length ?? 0;
+                                    const showWithdraw =
+                                        isOwner &&
+                                        application.status === 'pending';
+                                    const isWithdrawing =
+                                        withdrawingId === application.id &&
+                                        withdrawApplicationMutation.isPending;
 
                                     return (
                                         <div
@@ -1053,27 +1482,44 @@ export function SupplierApplicationPanel() {
                                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <p className="text-sm font-medium text-foreground">
-                                                        Submitted {formatDateTime(application.created_at)}
+                                                        Submitted{' '}
+                                                        {formatDateTime(
+                                                            application.created_at,
+                                                        )}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {application.status === 'pending'
+                                                        {application.status ===
+                                                        'pending'
                                                             ? 'Awaiting review'
                                                             : `${metaEntry.label} ${formatDateTime(application.reviewed_at)}`}
                                                     </p>
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <Badge variant={metaEntry.badge}>{metaEntry.label}</Badge>
+                                                    <Badge
+                                                        variant={
+                                                            metaEntry.badge
+                                                        }
+                                                    >
+                                                        {metaEntry.label}
+                                                    </Badge>
                                                     {showWithdraw ? (
                                                         <Button
                                                             type="button"
                                                             size="sm"
                                                             variant="ghost"
-                                                            onClick={() => handleWithdrawApplication(application.id)}
-                                                            disabled={isWithdrawing}
+                                                            onClick={() =>
+                                                                handleWithdrawApplication(
+                                                                    application.id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isWithdrawing
+                                                            }
                                                         >
                                                             {isWithdrawing ? (
                                                                 <span className="inline-flex items-center gap-1">
-                                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Withdrawing…
+                                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />{' '}
+                                                                    Withdrawing…
                                                                 </span>
                                                             ) : (
                                                                 'Withdraw'
@@ -1083,8 +1529,16 @@ export function SupplierApplicationPanel() {
                                                 </div>
                                             </div>
                                             <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-                                                <p>Documents attached: {documentCount}</p>
-                                                {application.notes ? <p>Notes: {application.notes}</p> : null}
+                                                <p>
+                                                    Documents attached:{' '}
+                                                    {documentCount}
+                                                </p>
+                                                {application.notes ? (
+                                                    <p>
+                                                        Notes:{' '}
+                                                        {application.notes}
+                                                    </p>
+                                                ) : null}
                                             </div>
                                         </div>
                                     );
@@ -1094,31 +1548,51 @@ export function SupplierApplicationPanel() {
                     </div>
                 ) : null}
 
-                <Button onClick={() => (canApply ? setDialogOpen(true) : null)} disabled={!canApply}>
+                <Button
+                    onClick={() => (canApply ? setDialogOpen(true) : null)}
+                    disabled={!canApply}
+                >
                     {actionLabel}
                 </Button>
 
                 <Dialog
                     open={dialogOpen}
-                    onOpenChange={(next) => (!isSubmitting && !applyMutation.isPending ? setDialogOpen(next) : null)}
+                    onOpenChange={(next) =>
+                        !isSubmitting && !applyMutation.isPending
+                            ? setDialogOpen(next)
+                            : null
+                    }
                 >
                     <DialogContent className="max-h-[85vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Supplier application</DialogTitle>
                             <DialogDescription>
-                                Share your capabilities, certifications, and business readiness. Our platform team uses this to approve supplier
-                                access.
+                                Share your capabilities, certifications, and
+                                business readiness. Our platform team uses this
+                                to approve supplier access.
                             </DialogDescription>
                         </DialogHeader>
                         <form className="space-y-5" onSubmit={onSubmit}>
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">Overview</Label>
-                                    <Textarea id="description" rows={4} placeholder="What do you manufacture?" {...register('description')} />
+                                    <Label htmlFor="description">
+                                        Overview
+                                    </Label>
+                                    <Textarea
+                                        id="description"
+                                        rows={4}
+                                        placeholder="What do you manufacture?"
+                                        {...register('description')}
+                                    />
                                     {errors.description ? (
-                                        <p className="text-xs text-destructive">{errors.description.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {errors.description.message}
+                                        </p>
                                     ) : (
-                                        <p className="text-xs text-muted-foreground">200-400 characters describing your services.</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            200-400 characters describing your
+                                            services.
+                                        </p>
                                     )}
                                 </div>
                                 <div className="space-y-2">
@@ -1127,37 +1601,79 @@ export function SupplierApplicationPanel() {
                                         id="website"
                                         placeholder="https://example.com"
                                         {...register('website', {
-                                            setValueAs: (value) => (typeof value === 'string' ? value.trim() : value),
+                                            setValueAs: (value) =>
+                                                typeof value === 'string'
+                                                    ? value.trim()
+                                                    : value,
                                         })}
                                     />
-                                    {errors.website ? <p className="text-xs text-destructive">{errors.website.message}</p> : null}
+                                    {errors.website ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.website.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="address">Address</Label>
-                                    <Input id="address" placeholder="123 Industrial Way" {...register('address')} />
-                                    {errors.address ? <p className="text-xs text-destructive">{errors.address.message}</p> : null}
+                                    <Input
+                                        id="address"
+                                        placeholder="123 Industrial Way"
+                                        {...register('address')}
+                                    />
+                                    {errors.address ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.address.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="city">City</Label>
-                                    <Input id="city" placeholder="Austin" {...register('city')} />
-                                    {errors.city ? <p className="text-xs text-destructive">{errors.city.message}</p> : null}
+                                    <Input
+                                        id="city"
+                                        placeholder="Austin"
+                                        {...register('city')}
+                                    />
+                                    {errors.city ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.city.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="country">Country (ISO)</Label>
+                                    <Label htmlFor="country">
+                                        Country (ISO)
+                                    </Label>
                                     <Input
                                         id="country"
                                         maxLength={2}
                                         placeholder="US"
                                         {...register('country', {
-                                            setValueAs: (value) => (typeof value === 'string' ? value.trim().toUpperCase() : value),
+                                            setValueAs: (value) =>
+                                                typeof value === 'string'
+                                                    ? value.trim().toUpperCase()
+                                                    : value,
                                         })}
                                     />
-                                    {errors.country ? <p className="text-xs text-destructive">{errors.country.message}</p> : null}
+                                    {errors.country ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.country.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="moq">MOQ</Label>
-                                    <Input id="moq" type="number" min={1} placeholder="Minimum order quantity" {...register('moq')} />
-                                    {errors.moq ? <p className="text-xs text-destructive">{errors.moq.message}</p> : null}
+                                    <Input
+                                        id="moq"
+                                        type="number"
+                                        min={1}
+                                        placeholder="Minimum order quantity"
+                                        {...register('moq')}
+                                    />
+                                    {errors.moq ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.moq.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 {/* <div className="space-y-2">
                                     <Label htmlFor="minOrderQty">Minimum order qty</Label>
@@ -1165,51 +1681,137 @@ export function SupplierApplicationPanel() {
                                     {errors.minOrderQty ? <p className="text-xs text-destructive">{errors.minOrderQty.message}</p> : null}
                                 </div> */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="leadTimeDays">Lead time (days)</Label>
-                                    <Input id="leadTimeDays" type="number" min={1} placeholder="e.g. 10" {...register('leadTimeDays')} />
-                                    {errors.leadTimeDays ? <p className="text-xs text-destructive">{errors.leadTimeDays.message}</p> : null}
+                                    <Label htmlFor="leadTimeDays">
+                                        Lead time (days)
+                                    </Label>
+                                    <Input
+                                        id="leadTimeDays"
+                                        type="number"
+                                        min={1}
+                                        placeholder="e.g. 10"
+                                        {...register('leadTimeDays')}
+                                    />
+                                    {errors.leadTimeDays ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.leadTimeDays.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <Label className="text-sm font-medium">Capabilities</Label>
-                                    <p className="text-xs text-muted-foreground">Comma or line separated lists.</p>
+                                    <Label className="text-sm font-medium">
+                                        Capabilities
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Comma or line separated lists.
+                                    </p>
                                 </div>
                                 <div className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="capabilitiesMethods">Processes</Label>
-                                        <Textarea id="capabilitiesMethods" rows={3} placeholder="CNC machining, stamping" {...register('capabilitiesMethods')} />
+                                        <Label htmlFor="capabilitiesMethods">
+                                            Processes
+                                        </Label>
+                                        <Textarea
+                                            id="capabilitiesMethods"
+                                            rows={3}
+                                            placeholder="CNC machining, stamping"
+                                            {...register('capabilitiesMethods')}
+                                        />
                                         {errors.capabilitiesMethods ? (
-                                            <p className="text-xs text-destructive">{errors.capabilitiesMethods.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    errors.capabilitiesMethods
+                                                        .message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="capabilitiesMaterials">Materials</Label>
-                                        <Textarea id="capabilitiesMaterials" rows={3} placeholder="6061-T6, 17-4PH" {...register('capabilitiesMaterials')} />
+                                        <Label htmlFor="capabilitiesMaterials">
+                                            Materials
+                                        </Label>
+                                        <Textarea
+                                            id="capabilitiesMaterials"
+                                            rows={3}
+                                            placeholder="6061-T6, 17-4PH"
+                                            {...register(
+                                                'capabilitiesMaterials',
+                                            )}
+                                        />
                                         {errors.capabilitiesMaterials ? (
-                                            <p className="text-xs text-destructive">{errors.capabilitiesMaterials.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    errors.capabilitiesMaterials
+                                                        .message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="capabilitiesFinishes">Finishes</Label>
-                                        <Textarea id="capabilitiesFinishes" rows={3} placeholder="Anodizing, powder coat" {...register('capabilitiesFinishes')} />
+                                        <Label htmlFor="capabilitiesFinishes">
+                                            Finishes
+                                        </Label>
+                                        <Textarea
+                                            id="capabilitiesFinishes"
+                                            rows={3}
+                                            placeholder="Anodizing, powder coat"
+                                            {...register(
+                                                'capabilitiesFinishes',
+                                            )}
+                                        />
                                         {errors.capabilitiesFinishes ? (
-                                            <p className="text-xs text-destructive">{errors.capabilitiesFinishes.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    errors.capabilitiesFinishes
+                                                        .message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="capabilitiesTolerances">Tolerances</Label>
-                                        <Textarea id="capabilitiesTolerances" rows={3} placeholder="±0.05 mm" {...register('capabilitiesTolerances')} />
+                                        <Label htmlFor="capabilitiesTolerances">
+                                            Tolerances
+                                        </Label>
+                                        <Textarea
+                                            id="capabilitiesTolerances"
+                                            rows={3}
+                                            placeholder="±0.05 mm"
+                                            {...register(
+                                                'capabilitiesTolerances',
+                                            )}
+                                        />
                                         {errors.capabilitiesTolerances ? (
-                                            <p className="text-xs text-destructive">{errors.capabilitiesTolerances.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    errors
+                                                        .capabilitiesTolerances
+                                                        .message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-2 md:col-span-2">
-                                        <Label htmlFor="capabilitiesIndustries">Industries served</Label>
-                                        <Textarea id="capabilitiesIndustries" rows={3} placeholder="Aerospace, MedTech" {...register('capabilitiesIndustries')} />
+                                        <Label htmlFor="capabilitiesIndustries">
+                                            Industries served
+                                        </Label>
+                                        <Textarea
+                                            id="capabilitiesIndustries"
+                                            rows={3}
+                                            placeholder="Aerospace, MedTech"
+                                            {...register(
+                                                'capabilitiesIndustries',
+                                            )}
+                                        />
                                         {errors.capabilitiesIndustries ? (
-                                            <p className="text-xs text-destructive">{errors.capabilitiesIndustries.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {
+                                                    errors
+                                                        .capabilitiesIndustries
+                                                        .message
+                                                }
+                                            </p>
                                         ) : null}
                                     </div>
                                 </div>
@@ -1217,45 +1819,105 @@ export function SupplierApplicationPanel() {
 
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="certifications">Certifications</Label>
-                                    <Textarea id="certifications" rows={3} placeholder="ISO 9001, AS9100" {...register('certifications')} />
+                                    <Label htmlFor="certifications">
+                                        Certifications
+                                    </Label>
+                                    <Textarea
+                                        id="certifications"
+                                        rows={3}
+                                        placeholder="ISO 9001, AS9100"
+                                        {...register('certifications')}
+                                    />
                                     {errors.certifications ? (
-                                        <p className="text-xs text-destructive">{errors.certifications.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {errors.certifications.message}
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="facilities">Facilities / equipment</Label>
-                                    <Textarea id="facilities" rows={3} placeholder="5-axis mills, CMM" {...register('facilities')} />
-                                    {errors.facilities ? <p className="text-xs text-destructive">{errors.facilities.message}</p> : null}
+                                    <Label htmlFor="facilities">
+                                        Facilities / equipment
+                                    </Label>
+                                    <Textarea
+                                        id="facilities"
+                                        rows={3}
+                                        placeholder="5-axis mills, CMM"
+                                        {...register('facilities')}
+                                    />
+                                    {errors.facilities ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.facilities.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
 
                             <div className="grid gap-4 md:grid-cols-3">
                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="contactName">Primary contact</Label>
-                                    <Input id="contactName" placeholder="Jordan Supplier" {...register('contactName')} />
-                                    {errors.contactName ? <p className="text-xs text-destructive">{errors.contactName.message}</p> : null}
+                                    <Label htmlFor="contactName">
+                                        Primary contact
+                                    </Label>
+                                    <Input
+                                        id="contactName"
+                                        placeholder="Jordan Supplier"
+                                        {...register('contactName')}
+                                    />
+                                    {errors.contactName ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.contactName.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="contactPhone">Phone</Label>
-                                    <Input id="contactPhone" placeholder="+1 555-1234" {...register('contactPhone')} />
-                                    {errors.contactPhone ? <p className="text-xs text-destructive">{errors.contactPhone.message}</p> : null}
+                                    <Input
+                                        id="contactPhone"
+                                        placeholder="+1 555-1234"
+                                        {...register('contactPhone')}
+                                    />
+                                    {errors.contactPhone ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.contactPhone.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="contactEmail">Contact email</Label>
-                                    <Input id="contactEmail" type="email" placeholder="supplier@example.com" {...register('contactEmail')} />
-                                    {errors.contactEmail ? <p className="text-xs text-destructive">{errors.contactEmail.message}</p> : null}
+                                    <Label htmlFor="contactEmail">
+                                        Contact email
+                                    </Label>
+                                    <Input
+                                        id="contactEmail"
+                                        type="email"
+                                        placeholder="supplier@example.com"
+                                        {...register('contactEmail')}
+                                    />
+                                    {errors.contactEmail ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.contactEmail.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="notes">Notes</Label>
-                                    <Textarea id="notes" rows={3} placeholder="Anything else we should know?" {...register('notes')} />
-                                    {errors.notes ? <p className="text-xs text-destructive">{errors.notes.message}</p> : null}
+                                    <Textarea
+                                        id="notes"
+                                        rows={3}
+                                        placeholder="Anything else we should know?"
+                                        {...register('notes')}
+                                    />
+                                    {errors.notes ? (
+                                        <p className="text-xs text-destructive">
+                                            {errors.notes.message}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
 
                             {formError ? (
                                 <Alert variant="destructive">
-                                    <AlertDescription>{formError}</AlertDescription>
+                                    <AlertDescription>
+                                        {formError}
+                                    </AlertDescription>
                                 </Alert>
                             ) : null}
 
@@ -1263,14 +1925,25 @@ export function SupplierApplicationPanel() {
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    onClick={() => (!isSubmitting && !applyMutation.isPending ? setDialogOpen(false) : null)}
+                                    onClick={() =>
+                                        !isSubmitting &&
+                                        !applyMutation.isPending
+                                            ? setDialogOpen(false)
+                                            : null
+                                    }
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit" disabled={isSubmitting || applyMutation.isPending}>
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        isSubmitting || applyMutation.isPending
+                                    }
+                                >
                                     {isSubmitting || applyMutation.isPending ? (
                                         <span className="inline-flex items-center gap-2">
-                                            <Loader2 className="h-4 w-4 animate-spin" /> Submitting…
+                                            <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                                            Submitting…
                                         </span>
                                     ) : (
                                         'Submit application'
@@ -1289,7 +1962,10 @@ function SubmissionHistorySkeleton() {
     return (
         <div className="space-y-3">
             {[0, 1].map((index) => (
-                <div key={index} className="space-y-2 rounded-lg border border-border/80 bg-background/80 p-3">
+                <div
+                    key={index}
+                    className="space-y-2 rounded-lg border border-border/80 bg-background/80 p-3"
+                >
                     <Skeleton className="h-4 w-1/3" />
                     <Skeleton className="h-3 w-1/5" />
                 </div>

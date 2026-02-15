@@ -73,7 +73,10 @@ export function FilterBar({
                 </div>
 
                 {filters.map((filter) => (
-                    <div key={filter.id} className="min-w-[180px] flex-1 md:flex-none">
+                    <div
+                        key={filter.id}
+                        className="min-w-[180px] flex-1 md:flex-none"
+                    >
                         {isLoading ? (
                             <Skeleton className="h-9 w-full" />
                         ) : (
@@ -86,7 +89,9 @@ export function FilterBar({
                                 onValueChange={(value) =>
                                     onFilterChange?.(
                                         filter.id,
-                                        value === EMPTY_OPTION_VALUE ? '' : value,
+                                        value === EMPTY_OPTION_VALUE
+                                            ? ''
+                                            : value,
                                     )
                                 }
                             >
@@ -101,7 +106,10 @@ export function FilterBar({
                                                 : option.value;
 
                                         return (
-                                            <SelectItem key={optionValue} value={optionValue}>
+                                            <SelectItem
+                                                key={optionValue}
+                                                value={optionValue}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         );
@@ -114,7 +122,11 @@ export function FilterBar({
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-2">
-                <Button variant="secondary" size="sm" onClick={() => onReset?.()}>
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onReset?.()}
+                >
                     Reset
                 </Button>
             </div>

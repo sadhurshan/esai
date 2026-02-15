@@ -11,10 +11,12 @@ import { AppRoutes } from './app-routes';
 const container = document.getElementById('app');
 
 if (container === null) {
-    throw new Error('Unable to locate DOM mount element for the application shell.');
+    throw new Error(
+        'Unable to locate DOM mount element for the application shell.',
+    );
 }
 
-const root = createRoot(container);
+const root = createRoot(container); 
 
 root.render(
     <StrictMode>

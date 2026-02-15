@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useMemo } from 'react';
 import {
     useFieldArray,
     useWatch,
     type ArrayPath,
+    type FieldValues,
     type Path,
     type PathValue,
     type UseFormReturn,
-    type FieldValues,
 } from 'react-hook-form';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -17,7 +17,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useFormatting, type FormattingContextValue } from '@/contexts/formatting-context';
+import {
+    useFormatting,
+    type FormattingContextValue,
+} from '@/contexts/formatting-context';
 
 export interface GrnLineFormValue {
     id?: string | number;
@@ -41,13 +44,25 @@ interface GrnLineEditorProps<FormValues extends GrnFormLike> {
     disabled?: boolean;
 }
 
-export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled = false }: GrnLineEditorProps<FormValues>) {
+export function GrnLineEditor<FormValues extends GrnFormLike>({
+    form,
+    disabled = false,
+}: GrnLineEditorProps<FormValues>) {
     const { control, register, setValue, formState } = form;
     const { formatNumber } = useFormatting();
     const linesPath = 'lines' as ArrayPath<FormValues>;
-    const { fields: rawFields } = useFieldArray<FormValues, typeof linesPath, 'id'>({ control, name: linesPath });
-    const fields = rawFields as Array<(typeof rawFields)[number] & GrnLineFormValue>;
-    const watchedLines = useWatch({ control, name: linesPath as Path<FormValues> }) as GrnLineFormValue[] | undefined;
+    const { fields: rawFields } = useFieldArray<
+        FormValues,
+        typeof linesPath,
+        'id'
+    >({ control, name: linesPath });
+    const fields = rawFields as Array<
+        (typeof rawFields)[number] & GrnLineFormValue
+    >;
+    const watchedLines = useWatch({
+        control,
+        name: linesPath as Path<FormValues>,
+    }) as GrnLineFormValue[] | undefined;
 
     const hasLinesToReceive = fields.length > 0;
 
@@ -56,7 +71,10 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
             (acc, field, index) => {
                 const watched = watchedLines?.[index];
                 const ordered = watched?.orderedQty ?? field.orderedQty ?? 0;
-                const previously = watched?.previouslyReceived ?? field.previouslyReceived ?? 0;
+                const previously =
+                    watched?.previouslyReceived ??
+                    field.previouslyReceived ??
+                    0;
                 const planned = watched?.qtyReceived ?? field.qtyReceived ?? 0;
 
                 acc.totalOrdered += ordered;
@@ -73,7 +91,8 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
             <Alert>
                 <AlertTitle>No remaining lines</AlertTitle>
                 <AlertDescription>
-                    This purchase order does not have open quantities. Choose another PO or allow overrides.
+                    This purchase order does not have open quantities. Choose
+                    another PO or allow overrides.
                 </AlertDescription>
             </Alert>
         );
@@ -84,21 +103,39 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
             <Card className="border-border/70">
                 <CardContent className="grid gap-4 py-4 text-sm text-muted-foreground md:grid-cols-3">
                     <div>
-                        <p className="text-xs uppercase tracking-wide text-foreground/70">Ordered</p>
+                        <p className="text-xs tracking-wide text-foreground/70 uppercase">
+                            Ordered
+                        </p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatQty(orderedTotals.totalOrdered, formatNumber)} units
+                            {formatQty(
+                                orderedTotals.totalOrdered,
+                                formatNumber,
+                            )}{' '}
+                            units
                         </p>
                     </div>
                     <div>
-                        <p className="text-xs uppercase tracking-wide text-foreground/70">Received to date</p>
+                        <p className="text-xs tracking-wide text-foreground/70 uppercase">
+                            Received to date
+                        </p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatQty(orderedTotals.totalPreviously, formatNumber)} units
+                            {formatQty(
+                                orderedTotals.totalPreviously,
+                                formatNumber,
+                            )}{' '}
+                            units
                         </p>
                     </div>
                     <div>
-                        <p className="text-xs uppercase tracking-wide text-foreground/70">Planned in this GRN</p>
+                        <p className="text-xs tracking-wide text-foreground/70 uppercase">
+                            Planned in this GRN
+                        </p>
                         <p className="text-base font-semibold text-foreground">
-                            {formatQty(orderedTotals.totalPlanned, formatNumber)} units
+                            {formatQty(
+                                orderedTotals.totalPlanned,
+                                formatNumber,
+                            )}{' '}
+                            units
                         </p>
                     </div>
                 </CardContent>
@@ -110,14 +147,27 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                         ? formState.errors.lines[index]
                         : undefined;
                     const watched = watchedLines?.[index] ?? field;
-                    const ordered = watched?.orderedQty ?? field.orderedQty ?? 0;
-                    const previously = watched?.previouslyReceived ?? field.previouslyReceived ?? 0;
-                    const remainingFallback = Number.isFinite(ordered - previously) ? ordered - previously : 0;
+                    const ordered =
+                        watched?.orderedQty ?? field.orderedQty ?? 0;
+                    const previously =
+                        watched?.previouslyReceived ??
+                        field.previouslyReceived ??
+                        0;
+                    const remainingFallback = Number.isFinite(
+                        ordered - previously,
+                    )
+                        ? ordered - previously
+                        : 0;
                     const remaining =
-                        watched?.remainingQty ?? field.remainingQty ?? (remainingFallback > 0 ? remainingFallback : 0);
-                    const plannedQty = watched?.qtyReceived ?? field.qtyReceived ?? 0;
+                        watched?.remainingQty ??
+                        field.remainingQty ??
+                        (remainingFallback > 0 ? remainingFallback : 0);
+                    const plannedQty =
+                        watched?.qtyReceived ?? field.qtyReceived ?? 0;
                     const uom = watched?.uom ?? field.uom ?? 'units';
-                    const isOverReceipt = Number.isFinite(remaining) && plannedQty > (remaining ?? 0);
+                    const isOverReceipt =
+                        Number.isFinite(remaining) &&
+                        plannedQty > (remaining ?? 0);
 
                     const handleFillRemaining = () => {
                         const target = remaining ?? 0;
@@ -132,7 +182,10 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                     };
 
                     return (
-                        <Card key={field.id ?? field.poLineId} className="border-border/70">
+                        <Card
+                            key={field.id ?? field.poLineId}
+                            className="border-border/70"
+                        >
                             <CardContent className="space-y-4 py-4">
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
@@ -140,7 +193,8 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                                             Line {field.lineNo ?? index + 1}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {field.description ?? 'Purchase order line'}
+                                            {field.description ??
+                                                'Purchase order line'}
                                         </p>
                                     </div>
                                     <Badge variant="outline">{uom}</Badge>
@@ -148,28 +202,47 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
 
                                 <div className="grid gap-4 md:grid-cols-4">
                                     <div>
-                                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Ordered</p>
+                                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Ordered
+                                        </p>
                                         <p className="text-sm font-medium text-foreground">
-                                            {formatQty(ordered, formatNumber)} {uom}
+                                            {formatQty(ordered, formatNumber)}{' '}
+                                            {uom}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Received</p>
+                                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Received
+                                        </p>
                                         <p className="text-sm font-medium text-foreground">
-                                            {formatQty(previously, formatNumber)} {uom}
+                                            {formatQty(
+                                                previously,
+                                                formatNumber,
+                                            )}{' '}
+                                            {uom}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Remaining</p>
+                                        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                                            Remaining
+                                        </p>
                                         <p className="text-sm font-medium text-foreground">
-                                            {formatQty(remaining ?? 0, formatNumber)} {uom}
+                                            {formatQty(
+                                                remaining ?? 0,
+                                                formatNumber,
+                                            )}{' '}
+                                            {uom}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor={`line-qty-${field.id ?? field.poLineId}`}>Quantity received</Label>
+                                        <Label
+                                            htmlFor={`line-qty-${field.id ?? field.poLineId}`}
+                                        >
+                                            Quantity received
+                                        </Label>
                                         <div className="flex gap-2">
                                             <Input
                                                 id={`line-qty-${field.id ?? field.poLineId}`}
@@ -178,20 +251,28 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                                                 min={0}
                                                 disabled={disabled}
                                                 inputMode="decimal"
-                                                {...register(`lines.${index}.qtyReceived` as Path<FormValues>, { valueAsNumber: true })}
+                                                {...register(
+                                                    `lines.${index}.qtyReceived` as Path<FormValues>,
+                                                    { valueAsNumber: true },
+                                                )}
                                             />
                                             <Button
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={handleFillRemaining}
-                                                disabled={disabled || !Number.isFinite(remaining)}
+                                                disabled={
+                                                    disabled ||
+                                                    !Number.isFinite(remaining)
+                                                }
                                             >
                                                 Fill remaining
                                             </Button>
                                         </div>
                                         {lineErrors?.qtyReceived ? (
-                                            <p className="text-xs text-destructive">{lineErrors.qtyReceived.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {lineErrors.qtyReceived.message}
+                                            </p>
                                         ) : null}
                                         {!lineErrors?.qtyReceived ? (
                                             <p
@@ -200,7 +281,14 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                                                 {isOverReceipt ? (
                                                     <span className="flex items-center gap-1">
                                                         <AlertTriangle className="h-3.5 w-3.5" />
-                                                        Over by {formatQty(plannedQty - (remaining ?? 0), formatNumber)} {uom}
+                                                        Over by{' '}
+                                                        {formatQty(
+                                                            plannedQty -
+                                                                (remaining ??
+                                                                    0),
+                                                            formatNumber,
+                                                        )}{' '}
+                                                        {uom}
                                                     </span>
                                                 ) : (
                                                     `Leave blank or enter 0 if nothing arrived.`
@@ -209,16 +297,24 @@ export function GrnLineEditor<FormValues extends GrnFormLike>({ form, disabled =
                                         ) : null}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor={`line-notes-${field.id ?? field.poLineId}`}>Line note</Label>
+                                        <Label
+                                            htmlFor={`line-notes-${field.id ?? field.poLineId}`}
+                                        >
+                                            Line note
+                                        </Label>
                                         <Textarea
                                             id={`line-notes-${field.id ?? field.poLineId}`}
                                             rows={3}
                                             placeholder="Damage, overage, or carrier notes"
                                             disabled={disabled}
-                                            {...register(`lines.${index}.notes` as Path<FormValues>)}
+                                            {...register(
+                                                `lines.${index}.notes` as Path<FormValues>,
+                                            )}
                                         />
                                         {lineErrors?.notes ? (
-                                            <p className="text-xs text-destructive">{lineErrors.notes.message}</p>
+                                            <p className="text-xs text-destructive">
+                                                {lineErrors.notes.message}
+                                            </p>
                                         ) : null}
                                     </div>
                                 </div>
@@ -246,7 +342,9 @@ function formatQty(
             minimumFractionDigits: absValue >= 1 ? 0 : 3,
             maximumFractionDigits: absValue >= 1 ? 2 : 3,
         });
-        return absValue >= 1 ? formatted : formatted.replace(/0+$/, '').replace(/\.$/, '') || '0';
+        return absValue >= 1
+            ? formatted
+            : formatted.replace(/0+$/, '').replace(/\.$/, '') || '0';
     }
 
     if (absValue >= 1) {

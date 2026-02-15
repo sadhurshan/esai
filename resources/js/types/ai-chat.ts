@@ -3,7 +3,11 @@ import type { AiAnalyticsCardPayload } from './ai-analytics';
 export type AiChatThreadStatus = 'open' | 'closed';
 export type AiChatMessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
-export type AiActionDraftStatus = 'drafted' | 'approved' | 'rejected' | 'expired';
+export type AiActionDraftStatus =
+    | 'drafted'
+    | 'approved'
+    | 'rejected'
+    | 'expired';
 
 export type AiChatResponseType =
     | 'answer'

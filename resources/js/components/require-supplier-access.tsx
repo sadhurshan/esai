@@ -1,9 +1,9 @@
-import { Outlet, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { ShieldAlert } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+import { Outlet, useNavigate } from 'react-router-dom';
 
-import { useAuth } from '@/contexts/auth-context';
 import { EmptyState } from '@/components/empty-state';
+import { useAuth } from '@/contexts/auth-context';
 
 export function RequireSupplierAccess() {
     const { state, activePersona } = useAuth();
@@ -12,7 +12,8 @@ export function RequireSupplierAccess() {
 
     const isSupplierPersona = activePersona?.type === 'supplier';
     const isSupplierStart =
-        state.company?.start_mode === 'supplier' || (status && status !== 'none');
+        state.company?.start_mode === 'supplier' ||
+        (status && status !== 'none');
 
     if (!isSupplierPersona && !isSupplierStart && status !== 'approved') {
         return (

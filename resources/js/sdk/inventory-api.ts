@@ -1,6 +1,9 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
 import { parseEnvelope, sanitizeQuery } from './api-helpers';
 
@@ -84,7 +87,10 @@ export class InventoryModuleApi extends BaseAPI {
         super(configuration);
     }
 
-    async listItems(query: ListInventoryItemsQuery = {}, initOverrides?: RequestInit | InitOverrideFunction) {
+    async listItems(
+        query: ListInventoryItemsQuery = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -108,7 +114,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async showItem(itemId: string | number, initOverrides?: RequestInit | InitOverrideFunction) {
+    async showItem(
+        itemId: string | number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -122,7 +131,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async createItem(payload: InventoryItemMutationPayload, initOverrides?: RequestInit | InitOverrideFunction) {
+    async createItem(
+        payload: InventoryItemMutationPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {
             'Content-Type': 'application/json',
         };
@@ -186,7 +198,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async listMovements(query: ListStockMovementsQuery = {}, initOverrides?: RequestInit | InitOverrideFunction) {
+    async listMovements(
+        query: ListStockMovementsQuery = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -209,7 +224,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async showMovement(movementId: string | number, initOverrides?: RequestInit | InitOverrideFunction) {
+    async showMovement(
+        movementId: string | number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -223,7 +241,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async createMovement(payload: CreateStockMovementPayload, initOverrides?: RequestInit | InitOverrideFunction) {
+    async createMovement(
+        payload: CreateStockMovementPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {
             'Content-Type': 'application/json',
         };
@@ -254,7 +275,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async listLowStock(query: ListLowStockQuery = {}, initOverrides?: RequestInit | InitOverrideFunction) {
+    async listLowStock(
+        query: ListLowStockQuery = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -275,7 +299,10 @@ export class InventoryModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async listLocations(query: ListLocationsQuery = {}, initOverrides?: RequestInit | InitOverrideFunction) {
+    async listLocations(
+        query: ListLocationsQuery = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {

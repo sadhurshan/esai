@@ -1,9 +1,16 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
-import type { SalesOrderDetail, UpdateShipmentStatusPayload } from '@/types/orders';
 import { HttpError, OrdersAppApi } from '@/sdk';
+import type {
+    SalesOrderDetail,
+    UpdateShipmentStatusPayload,
+} from '@/types/orders';
 
 import { invalidateOrderCaches } from './utils';
 
@@ -23,7 +30,9 @@ export function useUpdateShipmentStatus(): UseMutationResult<
     return useMutation<SalesOrderDetail, HttpError, UpdateShipmentStatusInput>({
         mutationFn: async ({ shipmentId, status, deliveredAt }) => {
             if (status === 'delivered' && !deliveredAt) {
-                throw new Error('deliveredAt is required when marking a shipment as delivered');
+                throw new Error(
+                    'deliveredAt is required when marking a shipment as delivered',
+                );
             }
 
             return ordersApi.updateShipmentStatus(shipmentId, {
@@ -34,7 +43,10 @@ export function useUpdateShipmentStatus(): UseMutationResult<
         onSuccess: (data, variables) => {
             publishToast({
                 variant: 'success',
-                title: variables.status === 'delivered' ? 'Shipment delivered' : 'Shipment in transit',
+                title:
+                    variables.status === 'delivered'
+                        ? 'Shipment delivered'
+                        : 'Shipment in transit',
                 description:
                     variables.status === 'delivered'
                         ? 'Buyer has been notified that goods have arrived.'

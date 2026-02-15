@@ -22,7 +22,8 @@ export class DashboardApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters['X-API-Key'] = await this.configuration.apiKey('X-API-Key');
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key');
         }
 
         if (this.configuration && this.configuration.accessToken) {
@@ -43,10 +44,15 @@ export class DashboardApi extends runtime.BaseAPI {
             initOverrides,
         );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue as DashboardMetricsResponse);
+        return new runtime.JSONApiResponse(
+            response,
+            (jsonValue) => jsonValue as DashboardMetricsResponse,
+        );
     }
 
-    async getMetrics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardMetricsResponse> {
+    async getMetrics(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<DashboardMetricsResponse> {
         const response = await this.getMetricsRaw(initOverrides);
         return await response.value();
     }

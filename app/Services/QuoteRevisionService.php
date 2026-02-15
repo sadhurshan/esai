@@ -8,7 +8,9 @@ use App\Exceptions\QuoteActionException;
 use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Models\QuoteRevision;
+use App\Models\RFQ;
 use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Support\ActivePersonaContext;
 use App\Support\Audit\AuditLogger;
 use App\Support\CompanyContext;
@@ -34,7 +36,9 @@ class QuoteRevisionService
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly DocumentStorer $documentStorer,
-        private readonly NotificationService $notifications
+        private readonly NotificationService $notifications,
+        private readonly PricingObservationService $pricingObservationService,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {
     }
 
@@ -90,6 +94,7 @@ class QuoteRevisionService
 
                 $this->applyQuoteUpdates($quote, $payload, $nextRevision);
                 $this->updateQuoteItems($quote, $payload['items'] ?? []);
+                $this->pricingObservationService->recordQuoteRevision($quote, $revision);
 
                 $this->auditLogger->created($revision, [
                     'quote_id' => $quote->id,
@@ -101,6 +106,12 @@ class QuoteRevisionService
         });
 
         $refreshedQuote = CompanyContext::bypass(static fn () => $quote->fresh(['supplier', 'company']));
+
+        $rfq = $quote->rfq;
+
+        if ($rfq instanceof RFQ) {
+            $this->digitalTwinLinkService->linkQuoteSubmission($rfq, $quote, $supplier);
+        }
 
         $supplierName = $refreshedQuote?->supplier?->name ?? 'A supplier';
 

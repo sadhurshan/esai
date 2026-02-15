@@ -1,38 +1,47 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate, useParams } from 'react-router-dom';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
-import { FileText, Loader2 } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { QuoteAttachmentsInput } from '@/components/quotes/quote-attachments-input';
 import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
+import { EmptyState } from '@/components/empty-state';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { MoneyCell } from '@/components/quotes/money-cell';
+import { QuoteAttachmentsInput } from '@/components/quotes/quote-attachments-input';
+import { QuoteLineEditor } from '@/components/quotes/quote-line-editor';
+import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
-import { QuoteLineEditor } from '@/components/quotes/quote-line-editor';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
-import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
-import { MoneyCell } from '@/components/quotes/money-cell';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
+import { useCreateQuote } from '@/hooks/api/quotes/use-create-quote';
+import { useSubmitQuote } from '@/hooks/api/quotes/use-submit-quote';
 import { useRfq } from '@/hooks/api/rfqs/use-rfq';
 import { useRfqLines } from '@/hooks/api/rfqs/use-rfq-lines';
 import { useMoneySettings } from '@/hooks/api/use-money-settings';
-import { useCreateQuote } from '@/hooks/api/quotes/use-create-quote';
-import { useSubmitQuote } from '@/hooks/api/quotes/use-submit-quote';
+import {
+    getRfqDeadlineDate,
+    isResponseWindowClosed,
+} from '@/lib/rfq-response-window';
+import { normalizeTaxCodeIds } from '@/lib/tax-code-helpers';
 import type { SupplierQuoteFormValues } from '@/pages/quotes/supplier-quote-schema';
 import { supplierQuoteFormSchema } from '@/pages/quotes/supplier-quote-schema';
-import type { RfqItem, SubmitQuoteRequest, Quote } from '@/sdk';
-import { SubmitQuoteRequestStatusEnum, HttpError } from '@/sdk';
-import { getRfqDeadlineDate, isResponseWindowClosed } from '@/lib/rfq-response-window';
-import { normalizeTaxCodeIds } from '@/lib/tax-code-helpers';
+import type { Quote, RfqItem, SubmitQuoteRequest } from '@/sdk';
+import { HttpError, SubmitQuoteRequestStatusEnum } from '@/sdk';
 
 const MIN_MINOR_UNIT = 2;
 
@@ -42,24 +51,40 @@ export function SupplierQuoteCreatePage() {
     const { hasFeature, state, notifyPlanLimit, activePersona } = useAuth();
     const supplierRole = state.user?.role === 'supplier';
     const isSupplierPersona = activePersona?.type === 'supplier';
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const quotesEnabled = hasFeature('quotes_enabled') || isSupplierPersona;
-    const supplierPortalEnabled = hasFeature('supplier_portal_enabled') || supplierRole || isSupplierPersona;
-    const canAccessQuotes = !featureFlagsLoaded || (quotesEnabled && supplierPortalEnabled);
+    const supplierPortalEnabled =
+        hasFeature('supplier_portal_enabled') ||
+        supplierRole ||
+        isSupplierPersona;
+    const canAccessQuotes =
+        !featureFlagsLoaded || (quotesEnabled && supplierPortalEnabled);
 
     const { formatDate } = useFormatting();
 
-    const rfqQuery = useRfq(rfqId, { enabled: Boolean(rfqId) && canAccessQuotes });
+    const rfqQuery = useRfq(rfqId, {
+        enabled: Boolean(rfqId) && canAccessQuotes,
+    });
     const rfqLinesQuery = useRfqLines({ rfqId: rfqId ?? null });
     const moneySettingsQuery = useMoneySettings();
 
     const createQuote = useCreateQuote();
     const submitQuote = useSubmitQuote();
 
-    const rfqLines = useMemo(() => rfqLinesQuery.items ?? [], [rfqLinesQuery.items]);
-    const rfqLineQuantities = useMemo(() => mapLineQuantity(rfqLines), [rfqLines]);
+    const rfqLines = useMemo(
+        () => rfqLinesQuery.items ?? [],
+        [rfqLinesQuery.items],
+    );
+    const rfqLineQuantities = useMemo(
+        () => mapLineQuantity(rfqLines),
+        [rfqLines],
+    );
 
-    const currencyOptions = useMemo(() => inferCurrencyOptions(moneySettingsQuery.data), [moneySettingsQuery.data]);
+    const currencyOptions = useMemo(
+        () => inferCurrencyOptions(moneySettingsQuery.data),
+        [moneySettingsQuery.data],
+    );
     const defaultCurrency = currencyOptions[0]?.value ?? 'USD';
     const minorUnit = inferMinorUnit(moneySettingsQuery.data) ?? MIN_MINOR_UNIT;
 
@@ -70,10 +95,19 @@ export function SupplierQuoteCreatePage() {
     const resetSignatureRef = useRef<string | null>(null);
 
     const watchedLines = useWatch({ control: form.control, name: 'lines' });
-    const watchedCurrency = useWatch({ control: form.control, name: 'currency' });
-    const watchedMinOrderQty = useWatch({ control: form.control, name: 'minOrderQty' });
+    const watchedCurrency = useWatch({
+        control: form.control,
+        name: 'currency',
+    });
+    const watchedMinOrderQty = useWatch({
+        control: form.control,
+        name: 'minOrderQty',
+    });
 
-    const linesSignature = useMemo(() => JSON.stringify(rfqLines.map((line) => [line.id, line.quantity])), [rfqLines]);
+    const linesSignature = useMemo(
+        () => JSON.stringify(rfqLines.map((line) => [line.id, line.quantity])),
+        [rfqLines],
+    );
 
     useEffect(() => {
         if (rfqLines.length === 0) {
@@ -90,7 +124,11 @@ export function SupplierQuoteCreatePage() {
     }, [defaultCurrency, form, linesSignature, rfqId, rfqLines]);
 
     const quoteTotals = useMemo(() => {
-        return calculateReviewTotals(watchedLines, rfqLineQuantities, minorUnit);
+        return calculateReviewTotals(
+            watchedLines,
+            rfqLineQuantities,
+            minorUnit,
+        );
     }, [minorUnit, rfqLineQuantities, watchedLines]);
 
     const rfq = rfqQuery.data ?? null;
@@ -105,7 +143,10 @@ export function SupplierQuoteCreatePage() {
 
         try {
             const payload = buildSubmitQuotePayload(values, rfqId, minorUnit);
-            const response = await createQuote.mutateAsync({ ...payload, status: SubmitQuoteRequestStatusEnum.Draft });
+            const response = await createQuote.mutateAsync({
+                ...payload,
+                status: SubmitQuoteRequestStatusEnum.Draft,
+            });
             publishToast({
                 variant: 'success',
                 title: 'Draft created',
@@ -125,7 +166,10 @@ export function SupplierQuoteCreatePage() {
         try {
             const payload = buildSubmitQuotePayload(values, rfqId, minorUnit);
             const response: Quote = await createQuote.mutateAsync(payload);
-            await submitQuote.mutateAsync({ quoteId: response.id, rfqId: response.rfqId });
+            await submitQuote.mutateAsync({
+                quoteId: response.id,
+                rfqId: response.rfqId,
+            });
             publishToast({
                 variant: 'success',
                 title: 'Quote submitted',
@@ -147,7 +191,9 @@ export function SupplierQuoteCreatePage() {
                 <EmptyState
                     title="Supplier workspace not enabled"
                     description="Ask the buyer to enable supplier portal access to submit quotes online."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                 />
             </div>
         );
@@ -163,7 +209,9 @@ export function SupplierQuoteCreatePage() {
                 <EmptyState
                     title="Select an RFQ"
                     description="Open this page from an RFQ invitation to respond."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="Back to RFQs"
                     ctaProps={{ onClick: () => navigate('/app/rfqs') }}
                 />
@@ -195,7 +243,8 @@ export function SupplierQuoteCreatePage() {
             {isLoading ? (
                 <Card className="border-sidebar-border/60">
                     <CardContent className="flex items-center gap-3 p-8 text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Preparing RFQ context…
+                        <Loader2 className="h-4 w-4 animate-spin" /> Preparing
+                        RFQ context…
                     </CardContent>
                 </Card>
             ) : null}
@@ -203,7 +252,9 @@ export function SupplierQuoteCreatePage() {
             {!isLoading && rfqQuery.isError ? (
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load RFQ</AlertTitle>
-                    <AlertDescription>Check the invitation link or try again shortly.</AlertDescription>
+                    <AlertDescription>
+                        Check the invitation link or try again shortly.
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -215,30 +266,49 @@ export function SupplierQuoteCreatePage() {
                                 <CardTitle>1. Company & contact</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4 text-sm">
-                                <DetailRow label="Company">{state.company?.name ?? 'Supplier company'}</DetailRow>
-                                <DetailRow label="Contact">{state.user?.name ?? state.user?.email ?? '—'}</DetailRow>
-                                <DetailRow label="Email">{state.user?.email ?? '—'}</DetailRow>
+                                <DetailRow label="Company">
+                                    {state.company?.name ?? 'Supplier company'}
+                                </DetailRow>
+                                <DetailRow label="Contact">
+                                    {state.user?.name ??
+                                        state.user?.email ??
+                                        '—'}
+                                </DetailRow>
+                                <DetailRow label="Email">
+                                    {state.user?.email ?? '—'}
+                                </DetailRow>
                             </CardContent>
                         </Card>
 
                         <Card className="border-sidebar-border/60">
                             <CardHeader>
-                                <CardTitle>2. Quote currency & summary</CardTitle>
+                                <CardTitle>
+                                    2. Quote currency & summary
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="quote-currency">Currency</Label>
+                                    <Label htmlFor="quote-currency">
+                                        Currency
+                                    </Label>
                                     <Select
                                         disabled={responseWindowClosed}
                                         value={watchedCurrency}
-                                        onValueChange={(value) => form.setValue('currency', value, { shouldDirty: true })}
+                                        onValueChange={(value) =>
+                                            form.setValue('currency', value, {
+                                                shouldDirty: true,
+                                            })
+                                        }
                                     >
                                         <SelectTrigger id="quote-currency">
                                             <SelectValue placeholder="Select currency" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {currencyOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
@@ -246,7 +316,9 @@ export function SupplierQuoteCreatePage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="quote-lead">Overall lead time (days)</Label>
+                                    <Label htmlFor="quote-lead">
+                                        Overall lead time (days)
+                                    </Label>
                                     <Input
                                         id="quote-lead"
                                         type="number"
@@ -257,11 +329,18 @@ export function SupplierQuoteCreatePage() {
                                         {...form.register('leadTimeDays')}
                                     />
                                     {form.formState.errors.leadTimeDays ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.leadTimeDays.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors
+                                                    .leadTimeDays.message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="quote-incoterm">Incoterm (optional)</Label>
+                                    <Label htmlFor="quote-incoterm">
+                                        Incoterm (optional)
+                                    </Label>
                                     <Input
                                         id="quote-incoterm"
                                         placeholder="FOB Shenzhen"
@@ -269,11 +348,18 @@ export function SupplierQuoteCreatePage() {
                                         {...form.register('incoterm')}
                                     />
                                     {form.formState.errors.incoterm ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.incoterm.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors.incoterm
+                                                    .message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="quote-payment-terms">Payment terms (optional)</Label>
+                                    <Label htmlFor="quote-payment-terms">
+                                        Payment terms (optional)
+                                    </Label>
                                     <Input
                                         id="quote-payment-terms"
                                         placeholder="Net 30"
@@ -281,11 +367,18 @@ export function SupplierQuoteCreatePage() {
                                         {...form.register('paymentTerms')}
                                     />
                                     {form.formState.errors.paymentTerms ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.paymentTerms.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors
+                                                    .paymentTerms.message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="quote-moq">Minimum order quantity</Label>
+                                    <Label htmlFor="quote-moq">
+                                        Minimum order quantity
+                                    </Label>
                                     <Input
                                         id="quote-moq"
                                         type="number"
@@ -296,11 +389,18 @@ export function SupplierQuoteCreatePage() {
                                         {...form.register('minOrderQty')}
                                     />
                                     {form.formState.errors.minOrderQty ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.minOrderQty.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {
+                                                form.formState.errors
+                                                    .minOrderQty.message
+                                            }
+                                        </p>
                                     ) : null}
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="quote-note">Buyer-facing note (optional)</Label>
+                                    <Label htmlFor="quote-note">
+                                        Buyer-facing note (optional)
+                                    </Label>
                                     <Textarea
                                         id="quote-note"
                                         rows={3}
@@ -309,7 +409,9 @@ export function SupplierQuoteCreatePage() {
                                         {...form.register('note')}
                                     />
                                     {form.formState.errors.note ? (
-                                        <p className="text-xs text-destructive">{form.formState.errors.note.message}</p>
+                                        <p className="text-xs text-destructive">
+                                            {form.formState.errors.note.message}
+                                        </p>
                                     ) : null}
                                 </div>
                             </CardContent>
@@ -323,7 +425,9 @@ export function SupplierQuoteCreatePage() {
                                 <QuoteLineEditor
                                     form={form}
                                     rfqLines={rfqLines}
-                                    currency={watchedCurrency ?? defaultCurrency}
+                                    currency={
+                                        watchedCurrency ?? defaultCurrency
+                                    }
                                     disabled={responseWindowClosed}
                                     enableTaxCodes={!isSupplierPersona}
                                 />
@@ -361,11 +465,14 @@ export function SupplierQuoteCreatePage() {
                                 <CardTitle>Submit</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                    <Button
+                                <Button
                                     type="button"
                                     variant="outline"
                                     className="w-full"
-                                        disabled={createQuote.isPending || responseWindowClosed}
+                                    disabled={
+                                        createQuote.isPending ||
+                                        responseWindowClosed
+                                    }
                                     onClick={form.handleSubmit(handleSaveDraft)}
                                 >
                                     Save draft
@@ -373,15 +480,24 @@ export function SupplierQuoteCreatePage() {
                                 <Button
                                     type="button"
                                     className="w-full"
-                                        disabled={createQuote.isPending || submitQuote.isPending || responseWindowClosed}
-                                    onClick={form.handleSubmit(handleSubmitQuote)}
+                                    disabled={
+                                        createQuote.isPending ||
+                                        submitQuote.isPending ||
+                                        responseWindowClosed
+                                    }
+                                    onClick={form.handleSubmit(
+                                        handleSubmitQuote,
+                                    )}
                                 >
-                                    {createQuote.isPending || submitQuote.isPending ? 'Submitting…' : 'Submit quote'}
+                                    {createQuote.isPending ||
+                                    submitQuote.isPending
+                                        ? 'Submitting…'
+                                        : 'Submit quote'}
                                 </Button>
                                 <p className="text-xs text-muted-foreground">
-                                        {responseWindowClosed
-                                            ? 'This RFQ is locked. Ask the buyer to extend the deadline before making changes.'
-                                            : 'We will email the buyer and show this submission in the RFQ timeline.'}
+                                    {responseWindowClosed
+                                        ? 'This RFQ is locked. Ask the buyer to extend the deadline before making changes.'
+                                        : 'We will email the buyer and show this submission in the RFQ timeline.'}
                                 </p>
                             </CardContent>
                         </Card>
@@ -392,7 +508,10 @@ export function SupplierQuoteCreatePage() {
     );
 }
 
-function createDefaultValues(lines: RfqItem[], currency: string): SupplierQuoteFormValues {
+function createDefaultValues(
+    lines: RfqItem[],
+    currency: string,
+): SupplierQuoteFormValues {
     return {
         currency,
         minOrderQty: '',
@@ -420,22 +539,41 @@ function mapLineQuantity(lines: RfqItem[]): Record<string, number> {
     }, {});
 }
 
-function inferCurrencyOptions(settings?: { baseCurrency?: { code?: string; name?: string }; pricingCurrency?: { code?: string; name?: string } }) {
+function inferCurrencyOptions(settings?: {
+    baseCurrency?: { code?: string; name?: string };
+    pricingCurrency?: { code?: string; name?: string };
+}) {
     const options = new Map<string, string>();
     if (settings?.pricingCurrency?.code) {
-        options.set(settings.pricingCurrency.code, `${settings.pricingCurrency.code} · ${settings.pricingCurrency.name ?? 'Pricing currency'}`);
+        options.set(
+            settings.pricingCurrency.code,
+            `${settings.pricingCurrency.code} · ${settings.pricingCurrency.name ?? 'Pricing currency'}`,
+        );
     }
     if (settings?.baseCurrency?.code) {
-        options.set(settings.baseCurrency.code, `${settings.baseCurrency.code} · ${settings.baseCurrency.name ?? 'Base currency'}`);
+        options.set(
+            settings.baseCurrency.code,
+            `${settings.baseCurrency.code} · ${settings.baseCurrency.name ?? 'Base currency'}`,
+        );
     }
     if (options.size === 0) {
         options.set('USD', 'USD · United States Dollar');
     }
-    return Array.from(options.entries()).map(([value, label]) => ({ value, label }));
+    return Array.from(options.entries()).map(([value, label]) => ({
+        value,
+        label,
+    }));
 }
 
-function inferMinorUnit(settings?: { pricingCurrency?: { minorUnit?: number }; baseCurrency?: { minorUnit?: number } }) {
-    return settings?.pricingCurrency?.minorUnit ?? settings?.baseCurrency?.minorUnit ?? null;
+function inferMinorUnit(settings?: {
+    pricingCurrency?: { minorUnit?: number };
+    baseCurrency?: { minorUnit?: number };
+}) {
+    return (
+        settings?.pricingCurrency?.minorUnit ??
+        settings?.baseCurrency?.minorUnit ??
+        null
+    );
 }
 
 function calculateReviewTotals(
@@ -461,7 +599,12 @@ function calculateReviewTotals(
     }, 0);
 
     const completedLines = lines.reduce((acc, line) => {
-        if (line.unitPrice && line.unitPrice.trim().length > 0 && line.leadTimeDays && line.leadTimeDays.trim().length > 0) {
+        if (
+            line.unitPrice &&
+            line.unitPrice.trim().length > 0 &&
+            line.leadTimeDays &&
+            line.leadTimeDays.trim().length > 0
+        ) {
             return acc + 1;
         }
         return acc;
@@ -475,7 +618,11 @@ function toMinorUnits(amount: number, minorUnit: number): number {
     return Math.round(amount * factor);
 }
 
-function buildSubmitQuotePayload(values: SupplierQuoteFormValues, rfqId: string | number, minorUnit: number): SubmitQuoteRequest {
+function buildSubmitQuotePayload(
+    values: SupplierQuoteFormValues,
+    rfqId: string | number,
+    minorUnit: number,
+): SubmitQuoteRequest {
     const attachmentIds = (values.attachments ?? [])
         .map((attachment) => String(attachment.id))
         .filter((value) => value.length > 0);
@@ -483,11 +630,23 @@ function buildSubmitQuotePayload(values: SupplierQuoteFormValues, rfqId: string 
     return {
         rfqId: String(rfqId),
         currency: values.currency,
-        minOrderQty: values.minOrderQty && values.minOrderQty.length ? Number(values.minOrderQty) : undefined,
-        leadTimeDays: values.leadTimeDays && values.leadTimeDays.length ? Number(values.leadTimeDays) : undefined,
+        minOrderQty:
+            values.minOrderQty && values.minOrderQty.length
+                ? Number(values.minOrderQty)
+                : undefined,
+        leadTimeDays:
+            values.leadTimeDays && values.leadTimeDays.length
+                ? Number(values.leadTimeDays)
+                : undefined,
         note: values.note && values.note.length ? values.note : undefined,
-        incoterm: values.incoterm && values.incoterm.length ? values.incoterm : undefined,
-        paymentTerms: values.paymentTerms && values.paymentTerms.length ? values.paymentTerms : undefined,
+        incoterm:
+            values.incoterm && values.incoterm.length
+                ? values.incoterm
+                : undefined,
+        paymentTerms:
+            values.paymentTerms && values.paymentTerms.length
+                ? values.paymentTerms
+                : undefined,
         attachments: attachmentIds.length ? attachmentIds : undefined,
         items: values.lines.map((line) => {
             const taxCodeIds = normalizeTaxCodeIds(line.taxCodeIds);
@@ -503,10 +662,19 @@ function buildSubmitQuotePayload(values: SupplierQuoteFormValues, rfqId: string 
     };
 }
 
-function handleQuoteError(error: unknown, notifyPlanLimit: (notice: { code?: string | null; message?: string | null }) => void) {
+function handleQuoteError(
+    error: unknown,
+    notifyPlanLimit: (notice: {
+        code?: string | null;
+        message?: string | null;
+    }) => void,
+) {
     if (error instanceof HttpError) {
         if (error.response.status === 402) {
-            notifyPlanLimit({ code: 'quotes', message: 'Quotes require a higher plan.' });
+            notifyPlanLimit({
+                code: 'quotes',
+                message: 'Quotes require a higher plan.',
+            });
             publishToast({
                 variant: 'destructive',
                 title: 'Plan upgrade required',
@@ -518,14 +686,20 @@ function handleQuoteError(error: unknown, notifyPlanLimit: (notice: { code?: str
             publishToast({
                 variant: 'destructive',
                 title: 'Forbidden',
-                description: 'You are not allowed to submit quotes for this RFQ.',
+                description:
+                    'You are not allowed to submit quotes for this RFQ.',
             });
             return;
         }
     }
 
-    const message = error instanceof Error ? error.message : 'Unable to process quote.';
-    publishToast({ variant: 'destructive', title: 'Submission failed', description: message });
+    const message =
+        error instanceof Error ? error.message : 'Unable to process quote.';
+    publishToast({
+        variant: 'destructive',
+        title: 'Submission failed',
+        description: message,
+    });
 }
 
 function ReviewPanel({
@@ -552,19 +726,31 @@ function ReviewPanel({
             </CardHeader>
             <CardContent className="space-y-4">
                 <div>
-                    <p className="text-xs uppercase text-muted-foreground">RFQ</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                        RFQ
+                    </p>
                     <p className="text-base font-semibold">{rfqNumber}</p>
                 </div>
                 <div>
-                    <p className="text-xs uppercase text-muted-foreground">Quote total</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                        Quote total
+                    </p>
                     <MoneyCell amountMinor={totalMinor} currency={currency} />
                 </div>
                 <div>
-                    <p className="text-xs uppercase text-muted-foreground">Minimum order qty</p>
-                    <p className="text-sm font-medium">{minOrderQty && String(minOrderQty).length ? minOrderQty : '—'}</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                        Minimum order qty
+                    </p>
+                    <p className="text-sm font-medium">
+                        {minOrderQty && String(minOrderQty).length
+                            ? minOrderQty
+                            : '—'}
+                    </p>
                 </div>
                 <div>
-                    <p className="text-xs uppercase text-muted-foreground">Line progress</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                        Line progress
+                    </p>
                     <p className="text-sm">
                         {lineCount}/{totalLines} complete
                     </p>
@@ -580,7 +766,8 @@ function ReviewPanel({
                     <DocumentNumberPreview docType="quote" className="w-full" />
                 ) : (
                     <div className="rounded-lg border border-dashed border-sidebar-border/60 bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
-                        Quote numbers are assigned by the buyer after they review your submission.
+                        Quote numbers are assigned by the buyer after they
+                        review your submission.
                     </div>
                 )}
             </CardContent>
@@ -588,10 +775,18 @@ function ReviewPanel({
     );
 }
 
-function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+function DetailRow({
+    label,
+    children,
+}: {
+    label: string;
+    children: React.ReactNode;
+}) {
     return (
         <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                {label}
+            </p>
             <p className="text-sm font-medium text-foreground">{children}</p>
         </div>
     );

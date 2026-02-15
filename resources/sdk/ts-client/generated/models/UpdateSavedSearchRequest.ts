@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UpdateSavedSearchRequest
  */
 export interface UpdateSavedSearchRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateSavedSearchRequest
      */
     name?: string;
     /**
-     * 
+     *
      * @type {{ [key: string]: any; }}
      * @memberof UpdateSavedSearchRequest
      */
-    query?: { [key: string]: any; };
+    query?: { [key: string]: any };
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof UpdateSavedSearchRequest
      */
@@ -42,40 +41,49 @@ export interface UpdateSavedSearchRequest {
 /**
  * Check if a given object implements the UpdateSavedSearchRequest interface.
  */
-export function instanceOfUpdateSavedSearchRequest(value: object): value is UpdateSavedSearchRequest {
+export function instanceOfUpdateSavedSearchRequest(
+    value: object,
+): value is UpdateSavedSearchRequest {
     return true;
 }
 
-export function UpdateSavedSearchRequestFromJSON(json: any): UpdateSavedSearchRequest {
+export function UpdateSavedSearchRequestFromJSON(
+    json: any,
+): UpdateSavedSearchRequest {
     return UpdateSavedSearchRequestFromJSONTyped(json, false);
 }
 
-export function UpdateSavedSearchRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateSavedSearchRequest {
+export function UpdateSavedSearchRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateSavedSearchRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'name': json['name'] == null ? undefined : json['name'],
-        'query': json['query'] == null ? undefined : json['query'],
-        'shared': json['shared'] == null ? undefined : json['shared'],
+        name: json['name'] == null ? undefined : json['name'],
+        query: json['query'] == null ? undefined : json['query'],
+        shared: json['shared'] == null ? undefined : json['shared'],
     };
 }
 
-export function UpdateSavedSearchRequestToJSON(json: any): UpdateSavedSearchRequest {
+export function UpdateSavedSearchRequestToJSON(
+    json: any,
+): UpdateSavedSearchRequest {
     return UpdateSavedSearchRequestToJSONTyped(json, false);
 }
 
-export function UpdateSavedSearchRequestToJSONTyped(value?: UpdateSavedSearchRequest | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateSavedSearchRequestToJSONTyped(
+    value?: UpdateSavedSearchRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'name': value['name'],
-        'query': value['query'],
-        'shared': value['shared'],
+        name: value['name'],
+        query: value['query'],
+        shared: value['shared'],
     };
 }
-

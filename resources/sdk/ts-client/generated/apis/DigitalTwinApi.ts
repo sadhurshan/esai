@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,9 @@
  * Do not edit the class manually.
  */
 
-
+import type { ApiSuccessResponse } from '../models/index';
+import { ApiSuccessResponseFromJSON } from '../models/index';
 import * as runtime from '../runtime';
-import type {
-  ApiSuccessResponse,
-} from '../models/index';
-import {
-    ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-} from '../models/index';
 
 export interface CompleteDigitalTwinProcedureRequest {
     assetId: number;
@@ -28,24 +22,24 @@ export interface CompleteDigitalTwinProcedureRequest {
 }
 
 export interface CreateDigitalTwinAssetRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface CreateDigitalTwinLocationRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface CreateDigitalTwinProcedureRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface CreateDigitalTwinSystemRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface CreateDigitalTwinWorkOrderRequest {
     assetId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface DeleteDigitalTwinAssetRequest {
@@ -76,22 +70,22 @@ export interface LinkDigitalTwinProcedureRequest {
 
 export interface PatchDigitalTwinAssetRequest {
     assetId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface PatchDigitalTwinLocationRequest {
     locationId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface PatchDigitalTwinProcedureRequest {
     procedureId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface PatchDigitalTwinSystemRequest {
     systemId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface ShowDigitalTwinAssetRequest {
@@ -116,538 +110,720 @@ export interface SyncDigitalTwinAssetRequest {
 
 export interface SyncDigitalTwinAssetBomRequest {
     assetId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateDigitalTwinAssetRequest {
     assetId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateDigitalTwinAssetStatusRequest {
     assetId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateDigitalTwinLocationRequest {
     locationId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateDigitalTwinProcedureRequest {
     procedureId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface UpdateDigitalTwinSystemRequest {
     systemId: number;
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 /**
  * DigitalTwinApi - interface
- * 
+ *
  * @export
  * @interface DigitalTwinApiInterface
  */
 export interface DigitalTwinApiInterface {
     /**
-     * 
+     *
      * @summary Complete maintenance procedure for asset
-     * @param {number} assetId 
-     * @param {number} procedureId 
+     * @param {number} assetId
+     * @param {number} procedureId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    completeDigitalTwinProcedureRaw(requestParameters: CompleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    completeDigitalTwinProcedureRaw(
+        requestParameters: CompleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Complete maintenance procedure for asset
      */
-    completeDigitalTwinProcedure(requestParameters: CompleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    completeDigitalTwinProcedure(
+        requestParameters: CompleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create digital twin asset
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    createDigitalTwinAssetRaw(requestParameters: CreateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createDigitalTwinAssetRaw(
+        requestParameters: CreateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create digital twin asset
      */
-    createDigitalTwinAsset(requestParameters: CreateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createDigitalTwinAsset(
+        requestParameters: CreateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create digital twin location
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    createDigitalTwinLocationRaw(requestParameters: CreateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createDigitalTwinLocationRaw(
+        requestParameters: CreateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create digital twin location
      */
-    createDigitalTwinLocation(requestParameters: CreateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createDigitalTwinLocation(
+        requestParameters: CreateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create maintenance procedure
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    createDigitalTwinProcedureRaw(requestParameters: CreateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createDigitalTwinProcedureRaw(
+        requestParameters: CreateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create maintenance procedure
      */
-    createDigitalTwinProcedure(requestParameters: CreateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createDigitalTwinProcedure(
+        requestParameters: CreateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create digital twin system
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    createDigitalTwinSystemRaw(requestParameters: CreateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createDigitalTwinSystemRaw(
+        requestParameters: CreateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create digital twin system
      */
-    createDigitalTwinSystem(requestParameters: CreateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createDigitalTwinSystem(
+        requestParameters: CreateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Create work order for asset
-     * @param {number} assetId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} assetId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    createDigitalTwinWorkOrderRaw(requestParameters: CreateDigitalTwinWorkOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createDigitalTwinWorkOrderRaw(
+        requestParameters: CreateDigitalTwinWorkOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create work order for asset
      */
-    createDigitalTwinWorkOrder(requestParameters: CreateDigitalTwinWorkOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createDigitalTwinWorkOrder(
+        requestParameters: CreateDigitalTwinWorkOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete digital twin asset
-     * @param {number} assetId 
+     * @param {number} assetId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    deleteDigitalTwinAssetRaw(requestParameters: DeleteDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteDigitalTwinAssetRaw(
+        requestParameters: DeleteDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete digital twin asset
      */
-    deleteDigitalTwinAsset(requestParameters: DeleteDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteDigitalTwinAsset(
+        requestParameters: DeleteDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete digital twin location
-     * @param {number} locationId 
+     * @param {number} locationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    deleteDigitalTwinLocationRaw(requestParameters: DeleteDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteDigitalTwinLocationRaw(
+        requestParameters: DeleteDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete digital twin location
      */
-    deleteDigitalTwinLocation(requestParameters: DeleteDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteDigitalTwinLocation(
+        requestParameters: DeleteDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete maintenance procedure
-     * @param {number} procedureId 
+     * @param {number} procedureId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    deleteDigitalTwinProcedureRaw(requestParameters: DeleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteDigitalTwinProcedureRaw(
+        requestParameters: DeleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete maintenance procedure
      */
-    deleteDigitalTwinProcedure(requestParameters: DeleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteDigitalTwinProcedure(
+        requestParameters: DeleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete digital twin system
-     * @param {number} systemId 
+     * @param {number} systemId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    deleteDigitalTwinSystemRaw(requestParameters: DeleteDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteDigitalTwinSystemRaw(
+        requestParameters: DeleteDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete digital twin system
      */
-    deleteDigitalTwinSystem(requestParameters: DeleteDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteDigitalTwinSystem(
+        requestParameters: DeleteDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Detach maintenance procedure from asset
-     * @param {number} assetId 
-     * @param {number} procedureId 
+     * @param {number} assetId
+     * @param {number} procedureId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    detachDigitalTwinProcedureRaw(requestParameters: DetachDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    detachDigitalTwinProcedureRaw(
+        requestParameters: DetachDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Detach maintenance procedure from asset
      */
-    detachDigitalTwinProcedure(requestParameters: DetachDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    detachDigitalTwinProcedure(
+        requestParameters: DetachDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Link maintenance procedure to asset
-     * @param {number} assetId 
-     * @param {number} procedureId 
+     * @param {number} assetId
+     * @param {number} procedureId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    linkDigitalTwinProcedureRaw(requestParameters: LinkDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    linkDigitalTwinProcedureRaw(
+        requestParameters: LinkDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Link maintenance procedure to asset
      */
-    linkDigitalTwinProcedure(requestParameters: LinkDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    linkDigitalTwinProcedure(
+        requestParameters: LinkDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List registered digital twin assets
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    listDigitalTwinAssetsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listDigitalTwinAssetsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List registered digital twin assets
      */
-    listDigitalTwinAssets(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listDigitalTwinAssets(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List digital twin locations
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    listDigitalTwinLocationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listDigitalTwinLocationsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List digital twin locations
      */
-    listDigitalTwinLocations(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listDigitalTwinLocations(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List maintenance procedures
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    listDigitalTwinProceduresRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listDigitalTwinProceduresRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List maintenance procedures
      */
-    listDigitalTwinProcedures(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listDigitalTwinProcedures(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List digital twin systems
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    listDigitalTwinSystemsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listDigitalTwinSystemsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List digital twin systems
      */
-    listDigitalTwinSystems(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listDigitalTwinSystems(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Partially update digital twin asset
-     * @param {number} assetId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} assetId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    patchDigitalTwinAssetRaw(requestParameters: PatchDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    patchDigitalTwinAssetRaw(
+        requestParameters: PatchDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Partially update digital twin asset
      */
-    patchDigitalTwinAsset(requestParameters: PatchDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    patchDigitalTwinAsset(
+        requestParameters: PatchDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Partially update digital twin location
-     * @param {number} locationId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} locationId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    patchDigitalTwinLocationRaw(requestParameters: PatchDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    patchDigitalTwinLocationRaw(
+        requestParameters: PatchDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Partially update digital twin location
      */
-    patchDigitalTwinLocation(requestParameters: PatchDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    patchDigitalTwinLocation(
+        requestParameters: PatchDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Partially update maintenance procedure
-     * @param {number} procedureId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} procedureId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    patchDigitalTwinProcedureRaw(requestParameters: PatchDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    patchDigitalTwinProcedureRaw(
+        requestParameters: PatchDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Partially update maintenance procedure
      */
-    patchDigitalTwinProcedure(requestParameters: PatchDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    patchDigitalTwinProcedure(
+        requestParameters: PatchDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Partially update digital twin system
-     * @param {number} systemId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} systemId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    patchDigitalTwinSystemRaw(requestParameters: PatchDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    patchDigitalTwinSystemRaw(
+        requestParameters: PatchDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Partially update digital twin system
      */
-    patchDigitalTwinSystem(requestParameters: PatchDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    patchDigitalTwinSystem(
+        requestParameters: PatchDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show digital twin asset
-     * @param {number} assetId 
+     * @param {number} assetId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    showDigitalTwinAssetRaw(requestParameters: ShowDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showDigitalTwinAssetRaw(
+        requestParameters: ShowDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show digital twin asset
      */
-    showDigitalTwinAsset(requestParameters: ShowDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showDigitalTwinAsset(
+        requestParameters: ShowDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show digital twin location
-     * @param {number} locationId 
+     * @param {number} locationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    showDigitalTwinLocationRaw(requestParameters: ShowDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showDigitalTwinLocationRaw(
+        requestParameters: ShowDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show digital twin location
      */
-    showDigitalTwinLocation(requestParameters: ShowDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showDigitalTwinLocation(
+        requestParameters: ShowDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show maintenance procedure
-     * @param {number} procedureId 
+     * @param {number} procedureId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    showDigitalTwinProcedureRaw(requestParameters: ShowDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showDigitalTwinProcedureRaw(
+        requestParameters: ShowDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show maintenance procedure
      */
-    showDigitalTwinProcedure(requestParameters: ShowDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showDigitalTwinProcedure(
+        requestParameters: ShowDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show digital twin system
-     * @param {number} systemId 
+     * @param {number} systemId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    showDigitalTwinSystemRaw(requestParameters: ShowDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showDigitalTwinSystemRaw(
+        requestParameters: ShowDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show digital twin system
      */
-    showDigitalTwinSystem(requestParameters: ShowDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    showDigitalTwinSystem(
+        requestParameters: ShowDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Trigger asset synchronization
-     * @param {number} assetId 
+     * @param {number} assetId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    syncDigitalTwinAssetRaw(requestParameters: SyncDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    syncDigitalTwinAssetRaw(
+        requestParameters: SyncDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Trigger asset synchronization
      */
-    syncDigitalTwinAsset(requestParameters: SyncDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    syncDigitalTwinAsset(
+        requestParameters: SyncDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Sync asset bill of materials
-     * @param {number} assetId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} assetId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    syncDigitalTwinAssetBomRaw(requestParameters: SyncDigitalTwinAssetBomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    syncDigitalTwinAssetBomRaw(
+        requestParameters: SyncDigitalTwinAssetBomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Sync asset bill of materials
      */
-    syncDigitalTwinAssetBom(requestParameters: SyncDigitalTwinAssetBomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    syncDigitalTwinAssetBom(
+        requestParameters: SyncDigitalTwinAssetBomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Replace digital twin asset
-     * @param {number} assetId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} assetId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    updateDigitalTwinAssetRaw(requestParameters: UpdateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateDigitalTwinAssetRaw(
+        requestParameters: UpdateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Replace digital twin asset
      */
-    updateDigitalTwinAsset(requestParameters: UpdateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateDigitalTwinAsset(
+        requestParameters: UpdateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Update asset operational status
-     * @param {number} assetId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} assetId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    updateDigitalTwinAssetStatusRaw(requestParameters: UpdateDigitalTwinAssetStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateDigitalTwinAssetStatusRaw(
+        requestParameters: UpdateDigitalTwinAssetStatusRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update asset operational status
      */
-    updateDigitalTwinAssetStatus(requestParameters: UpdateDigitalTwinAssetStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateDigitalTwinAssetStatus(
+        requestParameters: UpdateDigitalTwinAssetStatusRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Replace digital twin location
-     * @param {number} locationId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} locationId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    updateDigitalTwinLocationRaw(requestParameters: UpdateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateDigitalTwinLocationRaw(
+        requestParameters: UpdateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Replace digital twin location
      */
-    updateDigitalTwinLocation(requestParameters: UpdateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateDigitalTwinLocation(
+        requestParameters: UpdateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Replace maintenance procedure
-     * @param {number} procedureId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} procedureId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    updateDigitalTwinProcedureRaw(requestParameters: UpdateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateDigitalTwinProcedureRaw(
+        requestParameters: UpdateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Replace maintenance procedure
      */
-    updateDigitalTwinProcedure(requestParameters: UpdateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    updateDigitalTwinProcedure(
+        requestParameters: UpdateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Replace digital twin system
-     * @param {number} systemId 
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {number} systemId
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DigitalTwinApiInterface
      */
-    updateDigitalTwinSystemRaw(requestParameters: UpdateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateDigitalTwinSystemRaw(
+        requestParameters: UpdateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Replace digital twin system
      */
-    updateDigitalTwinSystem(requestParameters: UpdateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    updateDigitalTwinSystem(
+        requestParameters: UpdateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInterface {
-
+export class DigitalTwinApi
+    extends runtime.BaseAPI
+    implements DigitalTwinApiInterface
+{
     /**
      * Complete maintenance procedure for asset
      */
-    async completeDigitalTwinProcedureRaw(requestParameters: CompleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async completeDigitalTwinProcedureRaw(
+        requestParameters: CompleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling completeDigitalTwinProcedure().'
+                'Required parameter "assetId" was null or undefined when calling completeDigitalTwinProcedure().',
             );
         }
 
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling completeDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling completeDigitalTwinProcedure().',
             );
         }
 
@@ -656,48 +832,69 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/procedures/{procedureId}/complete`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Complete maintenance procedure for asset
      */
-    async completeDigitalTwinProcedure(requestParameters: CompleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.completeDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async completeDigitalTwinProcedure(
+        requestParameters: CompleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.completeDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create digital twin asset
      */
-    async createDigitalTwinAssetRaw(requestParameters: CreateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createDigitalTwinAssetRaw(
+        requestParameters: CreateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinAsset().'
+                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinAsset().',
             );
         }
 
@@ -708,47 +905,62 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create digital twin asset
      */
-    async createDigitalTwinAsset(requestParameters: CreateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createDigitalTwinAssetRaw(requestParameters, initOverrides);
+    async createDigitalTwinAsset(
+        requestParameters: CreateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createDigitalTwinAssetRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create digital twin location
      */
-    async createDigitalTwinLocationRaw(requestParameters: CreateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createDigitalTwinLocationRaw(
+        requestParameters: CreateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinLocation().'
+                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinLocation().',
             );
         }
 
@@ -759,47 +971,62 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/locations`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create digital twin location
      */
-    async createDigitalTwinLocation(requestParameters: CreateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createDigitalTwinLocationRaw(requestParameters, initOverrides);
+    async createDigitalTwinLocation(
+        requestParameters: CreateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createDigitalTwinLocationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create maintenance procedure
      */
-    async createDigitalTwinProcedureRaw(requestParameters: CreateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createDigitalTwinProcedureRaw(
+        requestParameters: CreateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinProcedure().'
+                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinProcedure().',
             );
         }
 
@@ -810,47 +1037,62 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/procedures`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create maintenance procedure
      */
-    async createDigitalTwinProcedure(requestParameters: CreateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async createDigitalTwinProcedure(
+        requestParameters: CreateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create digital twin system
      */
-    async createDigitalTwinSystemRaw(requestParameters: CreateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createDigitalTwinSystemRaw(
+        requestParameters: CreateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinSystem().'
+                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinSystem().',
             );
         }
 
@@ -861,54 +1103,69 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/systems`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create digital twin system
      */
-    async createDigitalTwinSystem(requestParameters: CreateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createDigitalTwinSystemRaw(requestParameters, initOverrides);
+    async createDigitalTwinSystem(
+        requestParameters: CreateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createDigitalTwinSystemRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create work order for asset
      */
-    async createDigitalTwinWorkOrderRaw(requestParameters: CreateDigitalTwinWorkOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createDigitalTwinWorkOrderRaw(
+        requestParameters: CreateDigitalTwinWorkOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling createDigitalTwinWorkOrder().'
+                'Required parameter "assetId" was null or undefined when calling createDigitalTwinWorkOrder().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinWorkOrder().'
+                'Required parameter "requestBody" was null or undefined when calling createDigitalTwinWorkOrder().',
             );
         }
 
@@ -919,48 +1176,66 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/work-orders`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create work order for asset
      */
-    async createDigitalTwinWorkOrder(requestParameters: CreateDigitalTwinWorkOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createDigitalTwinWorkOrderRaw(requestParameters, initOverrides);
+    async createDigitalTwinWorkOrder(
+        requestParameters: CreateDigitalTwinWorkOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createDigitalTwinWorkOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete digital twin asset
      */
-    async deleteDigitalTwinAssetRaw(requestParameters: DeleteDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteDigitalTwinAssetRaw(
+        requestParameters: DeleteDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling deleteDigitalTwinAsset().'
+                'Required parameter "assetId" was null or undefined when calling deleteDigitalTwinAsset().',
             );
         }
 
@@ -969,47 +1244,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete digital twin asset
      */
-    async deleteDigitalTwinAsset(requestParameters: DeleteDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteDigitalTwinAssetRaw(requestParameters, initOverrides);
+    async deleteDigitalTwinAsset(
+        requestParameters: DeleteDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteDigitalTwinAssetRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete digital twin location
      */
-    async deleteDigitalTwinLocationRaw(requestParameters: DeleteDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteDigitalTwinLocationRaw(
+        requestParameters: DeleteDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['locationId'] == null) {
             throw new runtime.RequiredError(
                 'locationId',
-                'Required parameter "locationId" was null or undefined when calling deleteDigitalTwinLocation().'
+                'Required parameter "locationId" was null or undefined when calling deleteDigitalTwinLocation().',
             );
         }
 
@@ -1018,47 +1311,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/locations/{locationId}`;
-        urlPath = urlPath.replace(`{${"locationId"}}`, encodeURIComponent(String(requestParameters['locationId'])));
+        urlPath = urlPath.replace(
+            `{${'locationId'}}`,
+            encodeURIComponent(String(requestParameters['locationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete digital twin location
      */
-    async deleteDigitalTwinLocation(requestParameters: DeleteDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteDigitalTwinLocationRaw(requestParameters, initOverrides);
+    async deleteDigitalTwinLocation(
+        requestParameters: DeleteDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteDigitalTwinLocationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete maintenance procedure
      */
-    async deleteDigitalTwinProcedureRaw(requestParameters: DeleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteDigitalTwinProcedureRaw(
+        requestParameters: DeleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling deleteDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling deleteDigitalTwinProcedure().',
             );
         }
 
@@ -1067,47 +1378,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/procedures/{procedureId}`;
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete maintenance procedure
      */
-    async deleteDigitalTwinProcedure(requestParameters: DeleteDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async deleteDigitalTwinProcedure(
+        requestParameters: DeleteDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete digital twin system
      */
-    async deleteDigitalTwinSystemRaw(requestParameters: DeleteDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteDigitalTwinSystemRaw(
+        requestParameters: DeleteDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['systemId'] == null) {
             throw new runtime.RequiredError(
                 'systemId',
-                'Required parameter "systemId" was null or undefined when calling deleteDigitalTwinSystem().'
+                'Required parameter "systemId" was null or undefined when calling deleteDigitalTwinSystem().',
             );
         }
 
@@ -1116,54 +1445,72 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/systems/{systemId}`;
-        urlPath = urlPath.replace(`{${"systemId"}}`, encodeURIComponent(String(requestParameters['systemId'])));
+        urlPath = urlPath.replace(
+            `{${'systemId'}}`,
+            encodeURIComponent(String(requestParameters['systemId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete digital twin system
      */
-    async deleteDigitalTwinSystem(requestParameters: DeleteDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteDigitalTwinSystemRaw(requestParameters, initOverrides);
+    async deleteDigitalTwinSystem(
+        requestParameters: DeleteDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteDigitalTwinSystemRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Detach maintenance procedure from asset
      */
-    async detachDigitalTwinProcedureRaw(requestParameters: DetachDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async detachDigitalTwinProcedureRaw(
+        requestParameters: DetachDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling detachDigitalTwinProcedure().'
+                'Required parameter "assetId" was null or undefined when calling detachDigitalTwinProcedure().',
             );
         }
 
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling detachDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling detachDigitalTwinProcedure().',
             );
         }
 
@@ -1172,55 +1519,76 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/procedures/{procedureId}`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Detach maintenance procedure from asset
      */
-    async detachDigitalTwinProcedure(requestParameters: DetachDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.detachDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async detachDigitalTwinProcedure(
+        requestParameters: DetachDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.detachDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Link maintenance procedure to asset
      */
-    async linkDigitalTwinProcedureRaw(requestParameters: LinkDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async linkDigitalTwinProcedureRaw(
+        requestParameters: LinkDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling linkDigitalTwinProcedure().'
+                'Required parameter "assetId" was null or undefined when calling linkDigitalTwinProcedure().',
             );
         }
 
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling linkDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling linkDigitalTwinProcedure().',
             );
         }
 
@@ -1229,77 +1597,105 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/procedures/{procedureId}`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Link maintenance procedure to asset
      */
-    async linkDigitalTwinProcedure(requestParameters: LinkDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.linkDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async linkDigitalTwinProcedure(
+        requestParameters: LinkDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.linkDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List registered digital twin assets
      */
-    async listDigitalTwinAssetsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listDigitalTwinAssetsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List registered digital twin assets
      */
-    async listDigitalTwinAssets(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listDigitalTwinAssets(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listDigitalTwinAssetsRaw(initOverrides);
         return await response.value();
     }
@@ -1307,40 +1703,50 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
     /**
      * List digital twin locations
      */
-    async listDigitalTwinLocationsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listDigitalTwinLocationsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/locations`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List digital twin locations
      */
-    async listDigitalTwinLocations(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listDigitalTwinLocations(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listDigitalTwinLocationsRaw(initOverrides);
         return await response.value();
     }
@@ -1348,40 +1754,50 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
     /**
      * List maintenance procedures
      */
-    async listDigitalTwinProceduresRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listDigitalTwinProceduresRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/procedures`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List maintenance procedures
      */
-    async listDigitalTwinProcedures(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listDigitalTwinProcedures(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listDigitalTwinProceduresRaw(initOverrides);
         return await response.value();
     }
@@ -1389,40 +1805,50 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
     /**
      * List digital twin systems
      */
-    async listDigitalTwinSystemsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listDigitalTwinSystemsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/systems`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List digital twin systems
      */
-    async listDigitalTwinSystems(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listDigitalTwinSystems(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listDigitalTwinSystemsRaw(initOverrides);
         return await response.value();
     }
@@ -1430,18 +1856,21 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
     /**
      * Partially update digital twin asset
      */
-    async patchDigitalTwinAssetRaw(requestParameters: PatchDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async patchDigitalTwinAssetRaw(
+        requestParameters: PatchDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling patchDigitalTwinAsset().'
+                'Required parameter "assetId" was null or undefined when calling patchDigitalTwinAsset().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinAsset().'
+                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinAsset().',
             );
         }
 
@@ -1452,55 +1881,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Partially update digital twin asset
      */
-    async patchDigitalTwinAsset(requestParameters: PatchDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.patchDigitalTwinAssetRaw(requestParameters, initOverrides);
+    async patchDigitalTwinAsset(
+        requestParameters: PatchDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.patchDigitalTwinAssetRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Partially update digital twin location
      */
-    async patchDigitalTwinLocationRaw(requestParameters: PatchDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async patchDigitalTwinLocationRaw(
+        requestParameters: PatchDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['locationId'] == null) {
             throw new runtime.RequiredError(
                 'locationId',
-                'Required parameter "locationId" was null or undefined when calling patchDigitalTwinLocation().'
+                'Required parameter "locationId" was null or undefined when calling patchDigitalTwinLocation().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinLocation().'
+                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinLocation().',
             );
         }
 
@@ -1511,55 +1958,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/locations/{locationId}`;
-        urlPath = urlPath.replace(`{${"locationId"}}`, encodeURIComponent(String(requestParameters['locationId'])));
+        urlPath = urlPath.replace(
+            `{${'locationId'}}`,
+            encodeURIComponent(String(requestParameters['locationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Partially update digital twin location
      */
-    async patchDigitalTwinLocation(requestParameters: PatchDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.patchDigitalTwinLocationRaw(requestParameters, initOverrides);
+    async patchDigitalTwinLocation(
+        requestParameters: PatchDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.patchDigitalTwinLocationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Partially update maintenance procedure
      */
-    async patchDigitalTwinProcedureRaw(requestParameters: PatchDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async patchDigitalTwinProcedureRaw(
+        requestParameters: PatchDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling patchDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling patchDigitalTwinProcedure().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinProcedure().'
+                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinProcedure().',
             );
         }
 
@@ -1570,55 +2035,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/procedures/{procedureId}`;
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Partially update maintenance procedure
      */
-    async patchDigitalTwinProcedure(requestParameters: PatchDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.patchDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async patchDigitalTwinProcedure(
+        requestParameters: PatchDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.patchDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Partially update digital twin system
      */
-    async patchDigitalTwinSystemRaw(requestParameters: PatchDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async patchDigitalTwinSystemRaw(
+        requestParameters: PatchDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['systemId'] == null) {
             throw new runtime.RequiredError(
                 'systemId',
-                'Required parameter "systemId" was null or undefined when calling patchDigitalTwinSystem().'
+                'Required parameter "systemId" was null or undefined when calling patchDigitalTwinSystem().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinSystem().'
+                'Required parameter "requestBody" was null or undefined when calling patchDigitalTwinSystem().',
             );
         }
 
@@ -1629,48 +2112,66 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/systems/{systemId}`;
-        urlPath = urlPath.replace(`{${"systemId"}}`, encodeURIComponent(String(requestParameters['systemId'])));
+        urlPath = urlPath.replace(
+            `{${'systemId'}}`,
+            encodeURIComponent(String(requestParameters['systemId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Partially update digital twin system
      */
-    async patchDigitalTwinSystem(requestParameters: PatchDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.patchDigitalTwinSystemRaw(requestParameters, initOverrides);
+    async patchDigitalTwinSystem(
+        requestParameters: PatchDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.patchDigitalTwinSystemRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show digital twin asset
      */
-    async showDigitalTwinAssetRaw(requestParameters: ShowDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showDigitalTwinAssetRaw(
+        requestParameters: ShowDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling showDigitalTwinAsset().'
+                'Required parameter "assetId" was null or undefined when calling showDigitalTwinAsset().',
             );
         }
 
@@ -1679,47 +2180,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show digital twin asset
      */
-    async showDigitalTwinAsset(requestParameters: ShowDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showDigitalTwinAssetRaw(requestParameters, initOverrides);
+    async showDigitalTwinAsset(
+        requestParameters: ShowDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showDigitalTwinAssetRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show digital twin location
      */
-    async showDigitalTwinLocationRaw(requestParameters: ShowDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showDigitalTwinLocationRaw(
+        requestParameters: ShowDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['locationId'] == null) {
             throw new runtime.RequiredError(
                 'locationId',
-                'Required parameter "locationId" was null or undefined when calling showDigitalTwinLocation().'
+                'Required parameter "locationId" was null or undefined when calling showDigitalTwinLocation().',
             );
         }
 
@@ -1728,47 +2247,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/locations/{locationId}`;
-        urlPath = urlPath.replace(`{${"locationId"}}`, encodeURIComponent(String(requestParameters['locationId'])));
+        urlPath = urlPath.replace(
+            `{${'locationId'}}`,
+            encodeURIComponent(String(requestParameters['locationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show digital twin location
      */
-    async showDigitalTwinLocation(requestParameters: ShowDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showDigitalTwinLocationRaw(requestParameters, initOverrides);
+    async showDigitalTwinLocation(
+        requestParameters: ShowDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showDigitalTwinLocationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show maintenance procedure
      */
-    async showDigitalTwinProcedureRaw(requestParameters: ShowDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showDigitalTwinProcedureRaw(
+        requestParameters: ShowDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling showDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling showDigitalTwinProcedure().',
             );
         }
 
@@ -1777,47 +2314,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/procedures/{procedureId}`;
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show maintenance procedure
      */
-    async showDigitalTwinProcedure(requestParameters: ShowDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async showDigitalTwinProcedure(
+        requestParameters: ShowDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show digital twin system
      */
-    async showDigitalTwinSystemRaw(requestParameters: ShowDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showDigitalTwinSystemRaw(
+        requestParameters: ShowDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['systemId'] == null) {
             throw new runtime.RequiredError(
                 'systemId',
-                'Required parameter "systemId" was null or undefined when calling showDigitalTwinSystem().'
+                'Required parameter "systemId" was null or undefined when calling showDigitalTwinSystem().',
             );
         }
 
@@ -1826,47 +2381,65 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/systems/{systemId}`;
-        urlPath = urlPath.replace(`{${"systemId"}}`, encodeURIComponent(String(requestParameters['systemId'])));
+        urlPath = urlPath.replace(
+            `{${'systemId'}}`,
+            encodeURIComponent(String(requestParameters['systemId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show digital twin system
      */
-    async showDigitalTwinSystem(requestParameters: ShowDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showDigitalTwinSystemRaw(requestParameters, initOverrides);
+    async showDigitalTwinSystem(
+        requestParameters: ShowDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showDigitalTwinSystemRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Trigger asset synchronization
      */
-    async syncDigitalTwinAssetRaw(requestParameters: SyncDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async syncDigitalTwinAssetRaw(
+        requestParameters: SyncDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling syncDigitalTwinAsset().'
+                'Required parameter "assetId" was null or undefined when calling syncDigitalTwinAsset().',
             );
         }
 
@@ -1875,54 +2448,72 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/sync`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Trigger asset synchronization
      */
-    async syncDigitalTwinAsset(requestParameters: SyncDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.syncDigitalTwinAssetRaw(requestParameters, initOverrides);
+    async syncDigitalTwinAsset(
+        requestParameters: SyncDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.syncDigitalTwinAssetRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Sync asset bill of materials
      */
-    async syncDigitalTwinAssetBomRaw(requestParameters: SyncDigitalTwinAssetBomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async syncDigitalTwinAssetBomRaw(
+        requestParameters: SyncDigitalTwinAssetBomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling syncDigitalTwinAssetBom().'
+                'Required parameter "assetId" was null or undefined when calling syncDigitalTwinAssetBom().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling syncDigitalTwinAssetBom().'
+                'Required parameter "requestBody" was null or undefined when calling syncDigitalTwinAssetBom().',
             );
         }
 
@@ -1933,55 +2524,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/bom`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Sync asset bill of materials
      */
-    async syncDigitalTwinAssetBom(requestParameters: SyncDigitalTwinAssetBomRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.syncDigitalTwinAssetBomRaw(requestParameters, initOverrides);
+    async syncDigitalTwinAssetBom(
+        requestParameters: SyncDigitalTwinAssetBomRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.syncDigitalTwinAssetBomRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Replace digital twin asset
      */
-    async updateDigitalTwinAssetRaw(requestParameters: UpdateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateDigitalTwinAssetRaw(
+        requestParameters: UpdateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling updateDigitalTwinAsset().'
+                'Required parameter "assetId" was null or undefined when calling updateDigitalTwinAsset().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinAsset().'
+                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinAsset().',
             );
         }
 
@@ -1992,55 +2601,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Replace digital twin asset
      */
-    async updateDigitalTwinAsset(requestParameters: UpdateDigitalTwinAssetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateDigitalTwinAssetRaw(requestParameters, initOverrides);
+    async updateDigitalTwinAsset(
+        requestParameters: UpdateDigitalTwinAssetRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateDigitalTwinAssetRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update asset operational status
      */
-    async updateDigitalTwinAssetStatusRaw(requestParameters: UpdateDigitalTwinAssetStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateDigitalTwinAssetStatusRaw(
+        requestParameters: UpdateDigitalTwinAssetStatusRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['assetId'] == null) {
             throw new runtime.RequiredError(
                 'assetId',
-                'Required parameter "assetId" was null or undefined when calling updateDigitalTwinAssetStatus().'
+                'Required parameter "assetId" was null or undefined when calling updateDigitalTwinAssetStatus().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinAssetStatus().'
+                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinAssetStatus().',
             );
         }
 
@@ -2051,55 +2678,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/assets/{assetId}/status`;
-        urlPath = urlPath.replace(`{${"assetId"}}`, encodeURIComponent(String(requestParameters['assetId'])));
+        urlPath = urlPath.replace(
+            `{${'assetId'}}`,
+            encodeURIComponent(String(requestParameters['assetId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PATCH',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update asset operational status
      */
-    async updateDigitalTwinAssetStatus(requestParameters: UpdateDigitalTwinAssetStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateDigitalTwinAssetStatusRaw(requestParameters, initOverrides);
+    async updateDigitalTwinAssetStatus(
+        requestParameters: UpdateDigitalTwinAssetStatusRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateDigitalTwinAssetStatusRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Replace digital twin location
      */
-    async updateDigitalTwinLocationRaw(requestParameters: UpdateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateDigitalTwinLocationRaw(
+        requestParameters: UpdateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['locationId'] == null) {
             throw new runtime.RequiredError(
                 'locationId',
-                'Required parameter "locationId" was null or undefined when calling updateDigitalTwinLocation().'
+                'Required parameter "locationId" was null or undefined when calling updateDigitalTwinLocation().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinLocation().'
+                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinLocation().',
             );
         }
 
@@ -2110,55 +2755,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/locations/{locationId}`;
-        urlPath = urlPath.replace(`{${"locationId"}}`, encodeURIComponent(String(requestParameters['locationId'])));
+        urlPath = urlPath.replace(
+            `{${'locationId'}}`,
+            encodeURIComponent(String(requestParameters['locationId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Replace digital twin location
      */
-    async updateDigitalTwinLocation(requestParameters: UpdateDigitalTwinLocationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateDigitalTwinLocationRaw(requestParameters, initOverrides);
+    async updateDigitalTwinLocation(
+        requestParameters: UpdateDigitalTwinLocationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateDigitalTwinLocationRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Replace maintenance procedure
      */
-    async updateDigitalTwinProcedureRaw(requestParameters: UpdateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateDigitalTwinProcedureRaw(
+        requestParameters: UpdateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['procedureId'] == null) {
             throw new runtime.RequiredError(
                 'procedureId',
-                'Required parameter "procedureId" was null or undefined when calling updateDigitalTwinProcedure().'
+                'Required parameter "procedureId" was null or undefined when calling updateDigitalTwinProcedure().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinProcedure().'
+                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinProcedure().',
             );
         }
 
@@ -2169,55 +2832,73 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/procedures/{procedureId}`;
-        urlPath = urlPath.replace(`{${"procedureId"}}`, encodeURIComponent(String(requestParameters['procedureId'])));
+        urlPath = urlPath.replace(
+            `{${'procedureId'}}`,
+            encodeURIComponent(String(requestParameters['procedureId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Replace maintenance procedure
      */
-    async updateDigitalTwinProcedure(requestParameters: UpdateDigitalTwinProcedureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateDigitalTwinProcedureRaw(requestParameters, initOverrides);
+    async updateDigitalTwinProcedure(
+        requestParameters: UpdateDigitalTwinProcedureRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateDigitalTwinProcedureRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Replace digital twin system
      */
-    async updateDigitalTwinSystemRaw(requestParameters: UpdateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateDigitalTwinSystemRaw(
+        requestParameters: UpdateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['systemId'] == null) {
             throw new runtime.RequiredError(
                 'systemId',
-                'Required parameter "systemId" was null or undefined when calling updateDigitalTwinSystem().'
+                'Required parameter "systemId" was null or undefined when calling updateDigitalTwinSystem().',
             );
         }
 
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinSystem().'
+                'Required parameter "requestBody" was null or undefined when calling updateDigitalTwinSystem().',
             );
         }
 
@@ -2228,38 +2909,52 @@ export class DigitalTwinApi extends runtime.BaseAPI implements DigitalTwinApiInt
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/digital-twin/systems/{systemId}`;
-        urlPath = urlPath.replace(`{${"systemId"}}`, encodeURIComponent(String(requestParameters['systemId'])));
+        urlPath = urlPath.replace(
+            `{${'systemId'}}`,
+            encodeURIComponent(String(requestParameters['systemId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Replace digital twin system
      */
-    async updateDigitalTwinSystem(requestParameters: UpdateDigitalTwinSystemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateDigitalTwinSystemRaw(requestParameters, initOverrides);
+    async updateDigitalTwinSystem(
+        requestParameters: UpdateDigitalTwinSystemRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateDigitalTwinSystemRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

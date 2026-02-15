@@ -1,9 +1,17 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
-import { queryKeys } from '@/lib/queryKeys';
 import { toCursorMeta, type CursorPaginationMeta } from '@/lib/pagination';
-import type { EventDeliveryFilters, EventDeliveryItem, EventDeliveryStatus } from '@/types/notifications';
+import { queryKeys } from '@/lib/queryKeys';
+import type {
+    EventDeliveryFilters,
+    EventDeliveryItem,
+    EventDeliveryStatus,
+} from '@/types/notifications';
 
 interface EventDeliveryResponseItem {
     id: number;
@@ -29,7 +37,9 @@ interface EventDeliveryIndexResponse {
     meta?: Record<string, unknown> | null;
 }
 
-const mapDelivery = (payload: EventDeliveryResponseItem): EventDeliveryItem => ({
+const mapDelivery = (
+    payload: EventDeliveryResponseItem,
+): EventDeliveryItem => ({
     id: payload.id,
     subscriptionId: payload.subscription_id,
     endpoint: payload.endpoint,

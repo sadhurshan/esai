@@ -9,7 +9,10 @@ export interface UseRfpOptions {
     enabled?: boolean;
 }
 
-export function useRfp(rfpId?: string | number, options: UseRfpOptions = {}): UseQueryResult<RfpDetail, ApiError> {
+export function useRfp(
+    rfpId?: string | number,
+    options: UseRfpOptions = {},
+): UseQueryResult<RfpDetail, ApiError> {
     const id = rfpId ? String(rfpId) : '';
     const enabled = options.enabled ?? id.length > 0;
 
@@ -17,7 +20,9 @@ export function useRfp(rfpId?: string | number, options: UseRfpOptions = {}): Us
         queryKey: queryKeys.rfps.detail(id || 'undefined'),
         enabled,
         queryFn: async () => {
-            const response = (await api.get<Record<string, unknown>>(`/rfps/${id}`)) as unknown as Record<string, unknown>;
+            const response = (await api.get<Record<string, unknown>>(
+                `/rfps/${id}`,
+            )) as unknown as Record<string, unknown>;
             return response;
         },
         select: (payload) => mapRfpDetail(payload),

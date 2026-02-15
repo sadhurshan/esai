@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ListSuppliers200ResponseAllOfData } from './ListSuppliers200ResponseAllOfData';
 import {
     ListSuppliers200ResponseAllOfDataFromJSON,
-    ListSuppliers200ResponseAllOfDataFromJSONTyped,
     ListSuppliers200ResponseAllOfDataToJSON,
-    ListSuppliers200ResponseAllOfDataToJSONTyped,
 } from './ListSuppliers200ResponseAllOfData';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListSuppliers200Response
  */
 export interface ListSuppliers200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListSuppliers200Response
      */
     status: ListSuppliers200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListSuppliers200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListSuppliers200ResponseAllOfData}
      * @memberof ListSuppliers200Response
      */
     data: ListSuppliers200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListSuppliers200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListSuppliers200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListSuppliers200ResponseStatusEnum = typeof ListSuppliers200ResponseStatusEnum[keyof typeof ListSuppliers200ResponseStatusEnum];
-
+export type ListSuppliers200ResponseStatusEnum =
+    (typeof ListSuppliers200ResponseStatusEnum)[keyof typeof ListSuppliers200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListSuppliers200Response interface.
  */
-export function instanceOfListSuppliers200Response(value: object): value is ListSuppliers200Response {
+export function instanceOfListSuppliers200Response(
+    value: object,
+): value is ListSuppliers200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListSuppliers200ResponseFromJSON(json: any): ListSuppliers200Response {
+export function ListSuppliers200ResponseFromJSON(
+    json: any,
+): ListSuppliers200Response {
     return ListSuppliers200ResponseFromJSONTyped(json, false);
 }
 
-export function ListSuppliers200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListSuppliers200Response {
+export function ListSuppliers200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListSuppliers200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListSuppliers200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListSuppliers200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListSuppliers200ResponseToJSON(json: any): ListSuppliers200Response {
+export function ListSuppliers200ResponseToJSON(
+    json: any,
+): ListSuppliers200Response {
     return ListSuppliers200ResponseToJSONTyped(json, false);
 }
 
-export function ListSuppliers200ResponseToJSONTyped(value?: ListSuppliers200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListSuppliers200ResponseToJSONTyped(
+    value?: ListSuppliers200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListSuppliers200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListSuppliers200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

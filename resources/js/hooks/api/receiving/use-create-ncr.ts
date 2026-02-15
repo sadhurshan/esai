@@ -29,11 +29,16 @@ export function useCreateNcr() {
             publishToast({
                 variant: 'success',
                 title: 'NCR raised',
-                description: 'The non-conformance record is now tracking this line.',
+                description:
+                    'The non-conformance record is now tracking this line.',
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.receiving.detail(variables.grnId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.receiving.list() });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.receiving.detail(variables.grnId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.receiving.list(),
+            });
         },
     });
 }

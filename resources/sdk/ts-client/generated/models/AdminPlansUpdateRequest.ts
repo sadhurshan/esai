@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,69 +12,68 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminPlansUpdateRequest
  */
 export interface AdminPlansUpdateRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminPlansUpdateRequest
      */
     name?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminPlansUpdateRequest
      */
     priceUsd?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminPlansUpdateRequest
      */
     rfqsPerMonth?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminPlansUpdateRequest
      */
     usersMax?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
     analyticsEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
     inventoryEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
     multiCurrencyEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
     taxEngineEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
     localizationEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansUpdateRequest
      */
@@ -84,54 +83,82 @@ export interface AdminPlansUpdateRequest {
 /**
  * Check if a given object implements the AdminPlansUpdateRequest interface.
  */
-export function instanceOfAdminPlansUpdateRequest(value: object): value is AdminPlansUpdateRequest {
+export function instanceOfAdminPlansUpdateRequest(
+    value: object,
+): value is AdminPlansUpdateRequest {
     return true;
 }
 
-export function AdminPlansUpdateRequestFromJSON(json: any): AdminPlansUpdateRequest {
+export function AdminPlansUpdateRequestFromJSON(
+    json: any,
+): AdminPlansUpdateRequest {
     return AdminPlansUpdateRequestFromJSONTyped(json, false);
 }
 
-export function AdminPlansUpdateRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminPlansUpdateRequest {
+export function AdminPlansUpdateRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminPlansUpdateRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'name': json['name'] == null ? undefined : json['name'],
-        'priceUsd': json['price_usd'] == null ? undefined : json['price_usd'],
-        'rfqsPerMonth': json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
-        'usersMax': json['users_max'] == null ? undefined : json['users_max'],
-        'analyticsEnabled': json['analytics_enabled'] == null ? undefined : json['analytics_enabled'],
-        'inventoryEnabled': json['inventory_enabled'] == null ? undefined : json['inventory_enabled'],
-        'multiCurrencyEnabled': json['multi_currency_enabled'] == null ? undefined : json['multi_currency_enabled'],
-        'taxEngineEnabled': json['tax_engine_enabled'] == null ? undefined : json['tax_engine_enabled'],
-        'localizationEnabled': json['localization_enabled'] == null ? undefined : json['localization_enabled'],
-        'exportsEnabled': json['exports_enabled'] == null ? undefined : json['exports_enabled'],
+        name: json['name'] == null ? undefined : json['name'],
+        priceUsd: json['price_usd'] == null ? undefined : json['price_usd'],
+        rfqsPerMonth:
+            json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
+        usersMax: json['users_max'] == null ? undefined : json['users_max'],
+        analyticsEnabled:
+            json['analytics_enabled'] == null
+                ? undefined
+                : json['analytics_enabled'],
+        inventoryEnabled:
+            json['inventory_enabled'] == null
+                ? undefined
+                : json['inventory_enabled'],
+        multiCurrencyEnabled:
+            json['multi_currency_enabled'] == null
+                ? undefined
+                : json['multi_currency_enabled'],
+        taxEngineEnabled:
+            json['tax_engine_enabled'] == null
+                ? undefined
+                : json['tax_engine_enabled'],
+        localizationEnabled:
+            json['localization_enabled'] == null
+                ? undefined
+                : json['localization_enabled'],
+        exportsEnabled:
+            json['exports_enabled'] == null
+                ? undefined
+                : json['exports_enabled'],
     };
 }
 
-export function AdminPlansUpdateRequestToJSON(json: any): AdminPlansUpdateRequest {
+export function AdminPlansUpdateRequestToJSON(
+    json: any,
+): AdminPlansUpdateRequest {
     return AdminPlansUpdateRequestToJSONTyped(json, false);
 }
 
-export function AdminPlansUpdateRequestToJSONTyped(value?: AdminPlansUpdateRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminPlansUpdateRequestToJSONTyped(
+    value?: AdminPlansUpdateRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'name': value['name'],
-        'price_usd': value['priceUsd'],
-        'rfqs_per_month': value['rfqsPerMonth'],
-        'users_max': value['usersMax'],
-        'analytics_enabled': value['analyticsEnabled'],
-        'inventory_enabled': value['inventoryEnabled'],
-        'multi_currency_enabled': value['multiCurrencyEnabled'],
-        'tax_engine_enabled': value['taxEngineEnabled'],
-        'localization_enabled': value['localizationEnabled'],
-        'exports_enabled': value['exportsEnabled'],
+        name: value['name'],
+        price_usd: value['priceUsd'],
+        rfqs_per_month: value['rfqsPerMonth'],
+        users_max: value['usersMax'],
+        analytics_enabled: value['analyticsEnabled'],
+        inventory_enabled: value['inventoryEnabled'],
+        multi_currency_enabled: value['multiCurrencyEnabled'],
+        tax_engine_enabled: value['taxEngineEnabled'],
+        localization_enabled: value['localizationEnabled'],
+        exports_enabled: value['exportsEnabled'],
     };
 }
-

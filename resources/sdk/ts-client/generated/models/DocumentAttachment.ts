@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,51 +12,50 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface DocumentAttachment
  */
 export interface DocumentAttachment {
     /**
-     * 
+     *
      * @type {number}
      * @memberof DocumentAttachment
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof DocumentAttachment
      */
     filename: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof DocumentAttachment
      */
     mime: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof DocumentAttachment
      */
     sizeBytes: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof DocumentAttachment
      */
     version?: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof DocumentAttachment
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {object}
      * @memberof DocumentAttachment
      */
@@ -66,11 +65,14 @@ export interface DocumentAttachment {
 /**
  * Check if a given object implements the DocumentAttachment interface.
  */
-export function instanceOfDocumentAttachment(value: object): value is DocumentAttachment {
+export function instanceOfDocumentAttachment(
+    value: object,
+): value is DocumentAttachment {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('filename' in value) || value['filename'] === undefined) return false;
     if (!('mime' in value) || value['mime'] === undefined) return false;
-    if (!('sizeBytes' in value) || value['sizeBytes'] === undefined) return false;
+    if (!('sizeBytes' in value) || value['sizeBytes'] === undefined)
+        return false;
     return true;
 }
 
@@ -78,19 +80,24 @@ export function DocumentAttachmentFromJSON(json: any): DocumentAttachment {
     return DocumentAttachmentFromJSONTyped(json, false);
 }
 
-export function DocumentAttachmentFromJSONTyped(json: any, ignoreDiscriminator: boolean): DocumentAttachment {
+export function DocumentAttachmentFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): DocumentAttachment {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'filename': json['filename'],
-        'mime': json['mime'],
-        'sizeBytes': json['size_bytes'],
-        'version': json['version'] == null ? undefined : json['version'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'meta': json['meta'] == null ? undefined : json['meta'],
+        id: json['id'],
+        filename: json['filename'],
+        mime: json['mime'],
+        sizeBytes: json['size_bytes'],
+        version: json['version'] == null ? undefined : json['version'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        meta: json['meta'] == null ? undefined : json['meta'],
     };
 }
 
@@ -98,20 +105,24 @@ export function DocumentAttachmentToJSON(json: any): DocumentAttachment {
     return DocumentAttachmentToJSONTyped(json, false);
 }
 
-export function DocumentAttachmentToJSONTyped(value?: DocumentAttachment | null, ignoreDiscriminator: boolean = false): any {
+export function DocumentAttachmentToJSONTyped(
+    value?: DocumentAttachment | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'filename': value['filename'],
-        'mime': value['mime'],
-        'size_bytes': value['sizeBytes'],
-        'version': value['version'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'meta': value['meta'],
+        id: value['id'],
+        filename: value['filename'],
+        mime: value['mime'],
+        size_bytes: value['sizeBytes'],
+        version: value['version'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        meta: value['meta'],
     };
 }
-

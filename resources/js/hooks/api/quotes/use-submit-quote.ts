@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import type { HttpError, Quote, SubmitQuote201Response } from '@/sdk';
@@ -11,18 +15,25 @@ export interface SubmitQuoteVariables {
     rfqId?: string | number;
 }
 
-export function useSubmitQuote(): UseMutationResult<Quote, HttpError | Error, SubmitQuoteVariables> {
+export function useSubmitQuote(): UseMutationResult<
+    Quote,
+    HttpError | Error,
+    SubmitQuoteVariables
+> {
     const quotesApi = useSdkClient(QuotesApi);
     const queryClient = useQueryClient();
 
     return useMutation<Quote, HttpError | Error, SubmitQuoteVariables>({
         mutationFn: async ({ quoteId }) => {
-            const response: SubmitQuote201Response = await quotesApi.submitDraftQuote({
-                quoteId: String(quoteId),
-            });
+            const response: SubmitQuote201Response =
+                await quotesApi.submitDraftQuote({
+                    quoteId: String(quoteId),
+                });
 
             if (!response?.data) {
-                throw new Error('Quote submission response was missing quote data.');
+                throw new Error(
+                    'Quote submission response was missing quote data.',
+                );
             }
 
             return response.data;

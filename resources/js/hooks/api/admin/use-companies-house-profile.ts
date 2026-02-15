@@ -23,7 +23,9 @@ export function useCompaniesHouseProfile({
         queryKey,
         queryFn: async () => {
             if (!companyId) {
-                throw new Error('companyId is required to fetch Companies House data.');
+                throw new Error(
+                    'companyId is required to fetch Companies House data.',
+                );
             }
 
             return adminConsoleApi.fetchCompaniesHouseProfile(companyId);

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,75 +12,74 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqItem
  */
 export interface RfqItem {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     id: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItem
      */
     lineNo: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     partName: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     spec?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     method?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     material?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     tolerance?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     finish?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItem
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqItem
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqItem
      */
@@ -102,23 +101,26 @@ export function RfqItemFromJSON(json: any): RfqItem {
     return RfqItemFromJSONTyped(json, false);
 }
 
-export function RfqItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqItem {
+export function RfqItemFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqItem {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'lineNo': json['line_no'],
-        'partName': json['part_name'],
-        'spec': json['spec'] == null ? undefined : json['spec'],
-        'method': json['method'] == null ? undefined : json['method'],
-        'material': json['material'] == null ? undefined : json['material'],
-        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
-        'finish': json['finish'] == null ? undefined : json['finish'],
-        'quantity': json['quantity'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'targetPrice': json['target_price'] == null ? undefined : json['target_price'],
+        id: json['id'],
+        lineNo: json['line_no'],
+        partName: json['part_name'],
+        spec: json['spec'] == null ? undefined : json['spec'],
+        method: json['method'] == null ? undefined : json['method'],
+        material: json['material'] == null ? undefined : json['material'],
+        tolerance: json['tolerance'] == null ? undefined : json['tolerance'],
+        finish: json['finish'] == null ? undefined : json['finish'],
+        quantity: json['quantity'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        targetPrice:
+            json['target_price'] == null ? undefined : json['target_price'],
     };
 }
 
@@ -126,24 +128,25 @@ export function RfqItemToJSON(json: any): RfqItem {
     return RfqItemToJSONTyped(json, false);
 }
 
-export function RfqItemToJSONTyped(value?: RfqItem | null, ignoreDiscriminator: boolean = false): any {
+export function RfqItemToJSONTyped(
+    value?: RfqItem | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'line_no': value['lineNo'],
-        'part_name': value['partName'],
-        'spec': value['spec'],
-        'method': value['method'],
-        'material': value['material'],
-        'tolerance': value['tolerance'],
-        'finish': value['finish'],
-        'quantity': value['quantity'],
-        'uom': value['uom'],
-        'target_price': value['targetPrice'],
+        id: value['id'],
+        line_no: value['lineNo'],
+        part_name: value['partName'],
+        spec: value['spec'],
+        method: value['method'],
+        material: value['material'],
+        tolerance: value['tolerance'],
+        finish: value['finish'],
+        quantity: value['quantity'],
+        uom: value['uom'],
+        target_price: value['targetPrice'],
     };
 }
-

@@ -2,37 +2,35 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**adminAssignPlan**](AdminApi.md#adminassignplanoperation) | **POST** /api/admin/companies/{companyId}/assign-plan | Assign plan to company |
-| [**adminCreateApiKey**](AdminApi.md#admincreateapikeyoperation) | **POST** /api/admin/api-keys | Issue API key for company |
-| [**adminCreateFeatureFlag**](AdminApi.md#admincreatefeatureflagoperation) | **POST** /api/admin/companies/{companyId}/feature-flags | Create feature flag override |
-| [**adminCreateRateLimit**](AdminApi.md#admincreateratelimitoperation) | **POST** /api/admin/rate-limits | Create rate limit rule |
-| [**adminCreateSupplier**](AdminApi.md#admincreatesupplier) | **POST** /api/admin/suppliers | Create supplier on behalf of tenant |
-| [**adminDeleteApiKey**](AdminApi.md#admindeleteapikey) | **DELETE** /api/admin/api-keys/{keyId} | Delete API key |
-| [**adminDeleteFeatureFlag**](AdminApi.md#admindeletefeatureflag) | **DELETE** /api/admin/companies/{companyId}/feature-flags/{flagId} | Remove feature flag override |
-| [**adminDeleteRateLimit**](AdminApi.md#admindeleteratelimit) | **DELETE** /api/admin/rate-limits/{rateLimitId} | Delete rate limit rule |
-| [**adminDeleteSupplier**](AdminApi.md#admindeletesupplier) | **DELETE** /api/admin/suppliers/{supplierId} | Archive supplier |
-| [**adminHealthSummary**](AdminApi.md#adminhealthsummary) | **GET** /api/admin/health | Platform health summary |
-| [**adminListApiKeys**](AdminApi.md#adminlistapikeys) | **GET** /api/admin/api-keys | List API keys |
-| [**adminListFeatureFlags**](AdminApi.md#adminlistfeatureflags) | **GET** /api/admin/companies/{companyId}/feature-flags | List company feature flags |
-| [**adminListRateLimits**](AdminApi.md#adminlistratelimits) | **GET** /api/admin/rate-limits | List rate limit rules |
-| [**adminListSuppliers**](AdminApi.md#adminlistsuppliers) | **GET** /api/admin/suppliers | List suppliers in admin console |
-| [**adminPlansDestroy**](AdminApi.md#adminplansdestroy) | **DELETE** /api/admin/plans/{planId} | Archive subscription plan |
-| [**adminPlansIndex**](AdminApi.md#adminplansindex) | **GET** /api/admin/plans | List subscription plans |
-| [**adminPlansShow**](AdminApi.md#adminplansshow) | **GET** /api/admin/plans/{planId} | Retrieve subscription plan |
-| [**adminPlansStore**](AdminApi.md#adminplansstoreoperation) | **POST** /api/admin/plans | Create subscription plan |
-| [**adminPlansUpdate**](AdminApi.md#adminplansupdateoperation) | **PUT** /api/admin/plans/{planId} | Update subscription plan |
-| [**adminRotateApiKey**](AdminApi.md#adminrotateapikey) | **POST** /api/admin/api-keys/{keyId}/rotate | Rotate API key secret |
-| [**adminShowRateLimit**](AdminApi.md#adminshowratelimit) | **GET** /api/admin/rate-limits/{rateLimitId} | Show rate limit rule |
-| [**adminShowSupplier**](AdminApi.md#adminshowsupplier) | **GET** /api/admin/suppliers/{supplierId} | Show supplier details in admin console |
-| [**adminToggleApiKey**](AdminApi.md#admintoggleapikey) | **POST** /api/admin/api-keys/{keyId}/toggle | Toggle API key activation |
-| [**adminUpdateCompanyStatus**](AdminApi.md#adminupdatecompanystatusoperation) | **PUT** /api/admin/companies/{companyId}/status | Update company lifecycle status |
-| [**adminUpdateFeatureFlag**](AdminApi.md#adminupdatefeatureflagoperation) | **PUT** /api/admin/companies/{companyId}/feature-flags/{flagId} | Update feature flag override |
-| [**adminUpdateRateLimit**](AdminApi.md#adminupdateratelimitoperation) | **PUT** /api/admin/rate-limits/{rateLimitId} | Update rate limit rule |
-| [**adminUpdateSupplier**](AdminApi.md#adminupdatesupplier) | **PATCH** /api/admin/suppliers/{supplierId} | Update supplier attributes in admin console |
-
-
+| Method                                                                        | HTTP request                                                       | Description                                 |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------- |
+| [**adminAssignPlan**](AdminApi.md#adminassignplanoperation)                   | **POST** /api/admin/companies/{companyId}/assign-plan              | Assign plan to company                      |
+| [**adminCreateApiKey**](AdminApi.md#admincreateapikeyoperation)               | **POST** /api/admin/api-keys                                       | Issue API key for company                   |
+| [**adminCreateFeatureFlag**](AdminApi.md#admincreatefeatureflagoperation)     | **POST** /api/admin/companies/{companyId}/feature-flags            | Create feature flag override                |
+| [**adminCreateRateLimit**](AdminApi.md#admincreateratelimitoperation)         | **POST** /api/admin/rate-limits                                    | Create rate limit rule                      |
+| [**adminCreateSupplier**](AdminApi.md#admincreatesupplier)                    | **POST** /api/admin/suppliers                                      | Create supplier on behalf of tenant         |
+| [**adminDeleteApiKey**](AdminApi.md#admindeleteapikey)                        | **DELETE** /api/admin/api-keys/{keyId}                             | Delete API key                              |
+| [**adminDeleteFeatureFlag**](AdminApi.md#admindeletefeatureflag)              | **DELETE** /api/admin/companies/{companyId}/feature-flags/{flagId} | Remove feature flag override                |
+| [**adminDeleteRateLimit**](AdminApi.md#admindeleteratelimit)                  | **DELETE** /api/admin/rate-limits/{rateLimitId}                    | Delete rate limit rule                      |
+| [**adminDeleteSupplier**](AdminApi.md#admindeletesupplier)                    | **DELETE** /api/admin/suppliers/{supplierId}                       | Archive supplier                            |
+| [**adminHealthSummary**](AdminApi.md#adminhealthsummary)                      | **GET** /api/admin/health                                          | Platform health summary                     |
+| [**adminListApiKeys**](AdminApi.md#adminlistapikeys)                          | **GET** /api/admin/api-keys                                        | List API keys                               |
+| [**adminListFeatureFlags**](AdminApi.md#adminlistfeatureflags)                | **GET** /api/admin/companies/{companyId}/feature-flags             | List company feature flags                  |
+| [**adminListRateLimits**](AdminApi.md#adminlistratelimits)                    | **GET** /api/admin/rate-limits                                     | List rate limit rules                       |
+| [**adminListSuppliers**](AdminApi.md#adminlistsuppliers)                      | **GET** /api/admin/suppliers                                       | List suppliers in admin console             |
+| [**adminPlansDestroy**](AdminApi.md#adminplansdestroy)                        | **DELETE** /api/admin/plans/{planId}                               | Archive subscription plan                   |
+| [**adminPlansIndex**](AdminApi.md#adminplansindex)                            | **GET** /api/admin/plans                                           | List subscription plans                     |
+| [**adminPlansShow**](AdminApi.md#adminplansshow)                              | **GET** /api/admin/plans/{planId}                                  | Retrieve subscription plan                  |
+| [**adminPlansStore**](AdminApi.md#adminplansstoreoperation)                   | **POST** /api/admin/plans                                          | Create subscription plan                    |
+| [**adminPlansUpdate**](AdminApi.md#adminplansupdateoperation)                 | **PUT** /api/admin/plans/{planId}                                  | Update subscription plan                    |
+| [**adminRotateApiKey**](AdminApi.md#adminrotateapikey)                        | **POST** /api/admin/api-keys/{keyId}/rotate                        | Rotate API key secret                       |
+| [**adminShowRateLimit**](AdminApi.md#adminshowratelimit)                      | **GET** /api/admin/rate-limits/{rateLimitId}                       | Show rate limit rule                        |
+| [**adminShowSupplier**](AdminApi.md#adminshowsupplier)                        | **GET** /api/admin/suppliers/{supplierId}                          | Show supplier details in admin console      |
+| [**adminToggleApiKey**](AdminApi.md#admintoggleapikey)                        | **POST** /api/admin/api-keys/{keyId}/toggle                        | Toggle API key activation                   |
+| [**adminUpdateCompanyStatus**](AdminApi.md#adminupdatecompanystatusoperation) | **PUT** /api/admin/companies/{companyId}/status                    | Update company lifecycle status             |
+| [**adminUpdateFeatureFlag**](AdminApi.md#adminupdatefeatureflagoperation)     | **PUT** /api/admin/companies/{companyId}/feature-flags/{flagId}    | Update feature flag override                |
+| [**adminUpdateRateLimit**](AdminApi.md#adminupdateratelimitoperation)         | **PUT** /api/admin/rate-limits/{rateLimitId}                       | Update rate limit rule                      |
+| [**adminUpdateSupplier**](AdminApi.md#adminupdatesupplier)                    | **PATCH** /api/admin/suppliers/{supplierId}                        | Update supplier attributes in admin console |
 
 ## adminAssignPlan
 
@@ -51,7 +49,7 @@ import type { AdminAssignPlanOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -80,11 +78,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Defaults to `undefined`] |
-| **adminAssignPlanRequest** | [AdminAssignPlanRequest](AdminAssignPlanRequest.md) |  | |
+| Name                       | Type                                                | Description | Notes                     |
+| -------------------------- | --------------------------------------------------- | ----------- | ------------------------- |
+| **companyId**              | `number`                                            |             | [Defaults to `undefined`] |
+| **adminAssignPlanRequest** | [AdminAssignPlanRequest](AdminAssignPlanRequest.md) |             |                           |
 
 ### Return type
 
@@ -99,14 +96,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **202** | Plan assignment queued. |  -  |
+
+| Status code | Description             | Response headers |
+| ----------- | ----------------------- | ---------------- |
+| **202**     | Plan assignment queued. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminCreateApiKey
 
@@ -125,7 +121,7 @@ import type { AdminCreateApiKeyOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -152,10 +148,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **adminCreateApiKeyRequest** | [AdminCreateApiKeyRequest](AdminCreateApiKeyRequest.md) |  | |
+| Name                         | Type                                                    | Description | Notes |
+| ---------------------------- | ------------------------------------------------------- | ----------- | ----- |
+| **adminCreateApiKeyRequest** | [AdminCreateApiKeyRequest](AdminCreateApiKeyRequest.md) |             |       |
 
 ### Return type
 
@@ -170,14 +165,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | API key created. Plaintext secret returned once. |  -  |
+
+| Status code | Description                                      | Response headers |
+| ----------- | ------------------------------------------------ | ---------------- |
+| **201**     | API key created. Plaintext secret returned once. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminCreateFeatureFlag
 
@@ -196,7 +190,7 @@ import type { AdminCreateFeatureFlagOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -225,11 +219,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Defaults to `undefined`] |
-| **adminCreateFeatureFlagRequest** | [AdminCreateFeatureFlagRequest](AdminCreateFeatureFlagRequest.md) |  | |
+| Name                              | Type                                                              | Description | Notes                     |
+| --------------------------------- | ----------------------------------------------------------------- | ----------- | ------------------------- |
+| **companyId**                     | `number`                                                          |             | [Defaults to `undefined`] |
+| **adminCreateFeatureFlagRequest** | [AdminCreateFeatureFlagRequest](AdminCreateFeatureFlagRequest.md) |             |                           |
 
 ### Return type
 
@@ -244,14 +237,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Feature flag created. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **201**     | Feature flag created. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminCreateRateLimit
 
@@ -270,7 +262,7 @@ import type { AdminCreateRateLimitOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -297,10 +289,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **adminCreateRateLimitRequest** | [AdminCreateRateLimitRequest](AdminCreateRateLimitRequest.md) |  | |
+| Name                            | Type                                                          | Description | Notes |
+| ------------------------------- | ------------------------------------------------------------- | ----------- | ----- |
+| **adminCreateRateLimitRequest** | [AdminCreateRateLimitRequest](AdminCreateRateLimitRequest.md) |             |       |
 
 ### Return type
 
@@ -315,14 +306,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Rate limit created. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **201**     | Rate limit created. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminCreateSupplier
 
@@ -333,33 +323,30 @@ Create supplier on behalf of tenant
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminCreateSupplierRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // object
-    body: Object,
-  } satisfies AdminCreateSupplierRequest;
+    const body = {
+        // object
+        body: Object,
+    } satisfies AdminCreateSupplierRequest;
 
-  try {
-    const data = await api.adminCreateSupplier(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminCreateSupplier(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -368,10 +355,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **body** | `object` |  | |
+| Name     | Type     | Description | Notes |
+| -------- | -------- | ----------- | ----- |
+| **body** | `object` |             |       |
 
 ### Return type
 
@@ -386,14 +372,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Supplier created. |  -  |
+
+| Status code | Description       | Response headers |
+| ----------- | ----------------- | ---------------- |
+| **201**     | Supplier created. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminDeleteApiKey
 
@@ -404,33 +389,30 @@ Delete API key
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminDeleteApiKeyRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    keyId: 56,
-  } satisfies AdminDeleteApiKeyRequest;
+    const body = {
+        // number
+        keyId: 56,
+    } satisfies AdminDeleteApiKeyRequest;
 
-  try {
-    const data = await api.adminDeleteApiKey(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminDeleteApiKey(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -439,10 +421,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **keyId** | `number` |  | [Defaults to `undefined`] |
+| Name      | Type     | Description | Notes                     |
+| --------- | -------- | ----------- | ------------------------- |
+| **keyId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -457,14 +438,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | API key deleted. |  -  |
+
+| Status code | Description      | Response headers |
+| ----------- | ---------------- | ---------------- |
+| **200**     | API key deleted. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminDeleteFeatureFlag
 
@@ -475,35 +455,32 @@ Remove feature flag override
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminDeleteFeatureFlagRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    companyId: 56,
-    // number
-    flagId: 56,
-  } satisfies AdminDeleteFeatureFlagRequest;
+    const body = {
+        // number
+        companyId: 56,
+        // number
+        flagId: 56,
+    } satisfies AdminDeleteFeatureFlagRequest;
 
-  try {
-    const data = await api.adminDeleteFeatureFlag(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminDeleteFeatureFlag(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -512,11 +489,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Defaults to `undefined`] |
-| **flagId** | `number` |  | [Defaults to `undefined`] |
+| Name          | Type     | Description | Notes                     |
+| ------------- | -------- | ----------- | ------------------------- |
+| **companyId** | `number` |             | [Defaults to `undefined`] |
+| **flagId**    | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -531,14 +507,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Feature flag removed. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **200**     | Feature flag removed. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminDeleteRateLimit
 
@@ -549,33 +524,30 @@ Delete rate limit rule
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminDeleteRateLimitRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    rateLimitId: 56,
-  } satisfies AdminDeleteRateLimitRequest;
+    const body = {
+        // number
+        rateLimitId: 56,
+    } satisfies AdminDeleteRateLimitRequest;
 
-  try {
-    const data = await api.adminDeleteRateLimit(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminDeleteRateLimit(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -584,10 +556,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rateLimitId** | `number` |  | [Defaults to `undefined`] |
+| Name            | Type     | Description | Notes                     |
+| --------------- | -------- | ----------- | ------------------------- |
+| **rateLimitId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -602,14 +573,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Rate limit removed. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **200**     | Rate limit removed. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminDeleteSupplier
 
@@ -620,33 +590,30 @@ Archive supplier
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminDeleteSupplierRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-  } satisfies AdminDeleteSupplierRequest;
+    const body = {
+        // number
+        supplierId: 56,
+    } satisfies AdminDeleteSupplierRequest;
 
-  try {
-    const data = await api.adminDeleteSupplier(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminDeleteSupplier(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -655,10 +622,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
+| Name           | Type     | Description | Notes                     |
+| -------------- | -------- | ----------- | ------------------------- |
+| **supplierId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -673,14 +639,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier archived. |  -  |
+
+| Status code | Description        | Response headers |
+| ----------- | ------------------ | ---------------- |
+| **200**     | Supplier archived. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminHealthSummary
 
@@ -691,28 +656,25 @@ Platform health summary
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminHealthSummaryRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  try {
-    const data = await api.adminHealthSummary();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminHealthSummary();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -736,14 +698,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Platform health metrics. |  -  |
+
+| Status code | Description              | Response headers |
+| ----------- | ------------------------ | ---------------- |
+| **200**     | Platform health metrics. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminListApiKeys
 
@@ -754,33 +715,30 @@ List API keys
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminListApiKeysRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number (optional)
-    companyId: 56,
-  } satisfies AdminListApiKeysRequest;
+    const body = {
+        // number (optional)
+        companyId: 56,
+    } satisfies AdminListApiKeysRequest;
 
-  try {
-    const data = await api.adminListApiKeys(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminListApiKeys(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -789,10 +747,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Optional] [Defaults to `undefined`] |
+| Name          | Type     | Description | Notes                                |
+| ------------- | -------- | ----------- | ------------------------------------ |
+| **companyId** | `number` |             | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -807,14 +764,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated API keys filtered by company when provided. |  -  |
+
+| Status code | Description                                           | Response headers |
+| ----------- | ----------------------------------------------------- | ---------------- |
+| **200**     | Paginated API keys filtered by company when provided. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminListFeatureFlags
 
@@ -825,33 +781,30 @@ List company feature flags
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminListFeatureFlagsRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    companyId: 56,
-  } satisfies AdminListFeatureFlagsRequest;
+    const body = {
+        // number
+        companyId: 56,
+    } satisfies AdminListFeatureFlagsRequest;
 
-  try {
-    const data = await api.adminListFeatureFlags(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminListFeatureFlags(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -860,10 +813,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Defaults to `undefined`] |
+| Name          | Type     | Description | Notes                     |
+| ------------- | -------- | ----------- | ------------------------- |
+| **companyId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -878,14 +830,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Collection of company-scoped feature toggles. |  -  |
+
+| Status code | Description                                   | Response headers |
+| ----------- | --------------------------------------------- | ---------------- |
+| **200**     | Collection of company-scoped feature toggles. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminListRateLimits
 
@@ -896,37 +847,34 @@ List rate limit rules
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminListRateLimitsRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number (optional)
-    companyId: 56,
-    // number (optional)
-    page: 56,
-    // number (optional)
-    perPage: 56,
-  } satisfies AdminListRateLimitsRequest;
+    const body = {
+        // number (optional)
+        companyId: 56,
+        // number (optional)
+        page: 56,
+        // number (optional)
+        perPage: 56,
+    } satisfies AdminListRateLimitsRequest;
 
-  try {
-    const data = await api.adminListRateLimits(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminListRateLimits(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -935,12 +883,11 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **page** | `number` |  | [Optional] [Defaults to `undefined`] |
-| **perPage** | `number` |  | [Optional] [Defaults to `undefined`] |
+| Name          | Type     | Description | Notes                                |
+| ------------- | -------- | ----------- | ------------------------------------ |
+| **companyId** | `number` |             | [Optional] [Defaults to `undefined`] |
+| **page**      | `number` |             | [Optional] [Defaults to `undefined`] |
+| **perPage**   | `number` |             | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -955,14 +902,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated rate limit definitions. |  -  |
+
+| Status code | Description                       | Response headers |
+| ----------- | --------------------------------- | ---------------- |
+| **200**     | Paginated rate limit definitions. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminListSuppliers
 
@@ -973,28 +919,25 @@ List suppliers in admin console
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminListSuppliersRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  try {
-    const data = await api.adminListSuppliers();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminListSuppliers();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1018,14 +961,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated suppliers scoped to current filters. |  -  |
+
+| Status code | Description                                    | Response headers |
+| ----------- | ---------------------------------------------- | ---------------- |
+| **200**     | Paginated suppliers scoped to current filters. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminPlansDestroy
 
@@ -1036,33 +978,30 @@ Archive subscription plan
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminPlansDestroyRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    planId: 56,
-  } satisfies AdminPlansDestroyRequest;
+    const body = {
+        // number
+        planId: 56,
+    } satisfies AdminPlansDestroyRequest;
 
-  try {
-    const data = await api.adminPlansDestroy(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminPlansDestroy(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1071,10 +1010,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **planId** | `number` |  | [Defaults to `undefined`] |
+| Name       | Type     | Description | Notes                     |
+| ---------- | -------- | ----------- | ------------------------- |
+| **planId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -1089,14 +1027,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: Not defined
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **204** | Plan archived. Response body omitted. |  -  |
+
+| Status code | Description                           | Response headers |
+| ----------- | ------------------------------------- | ---------------- |
+| **204**     | Plan archived. Response body omitted. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminPlansIndex
 
@@ -1107,28 +1044,25 @@ List subscription plans
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminPlansIndexRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  try {
-    const data = await api.adminPlansIndex();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminPlansIndex();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1152,14 +1086,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated plans configured in the platform. |  -  |
+
+| Status code | Description                                 | Response headers |
+| ----------- | ------------------------------------------- | ---------------- |
+| **200**     | Paginated plans configured in the platform. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminPlansShow
 
@@ -1170,33 +1103,30 @@ Retrieve subscription plan
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminPlansShowRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    planId: 56,
-  } satisfies AdminPlansShowRequest;
+    const body = {
+        // number
+        planId: 56,
+    } satisfies AdminPlansShowRequest;
 
-  try {
-    const data = await api.adminPlansShow(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminPlansShow(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1205,10 +1135,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **planId** | `number` |  | [Defaults to `undefined`] |
+| Name       | Type     | Description | Notes                     |
+| ---------- | -------- | ----------- | ------------------------- |
+| **planId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -1223,14 +1152,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Subscription plan details. |  -  |
+
+| Status code | Description                | Response headers |
+| ----------- | -------------------------- | ---------------- |
+| **200**     | Subscription plan details. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminPlansStore
 
@@ -1249,7 +1177,7 @@ import type { AdminPlansStoreOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -1276,10 +1204,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **adminPlansStoreRequest** | [AdminPlansStoreRequest](AdminPlansStoreRequest.md) |  | |
+| Name                       | Type                                                | Description | Notes |
+| -------------------------- | --------------------------------------------------- | ----------- | ----- |
+| **adminPlansStoreRequest** | [AdminPlansStoreRequest](AdminPlansStoreRequest.md) |             |       |
 
 ### Return type
 
@@ -1294,14 +1221,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | Plan created. |  -  |
+
+| Status code | Description   | Response headers |
+| ----------- | ------------- | ---------------- |
+| **201**     | Plan created. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminPlansUpdate
 
@@ -1320,7 +1246,7 @@ import type { AdminPlansUpdateOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -1349,11 +1275,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **planId** | `number` |  | [Defaults to `undefined`] |
-| **adminPlansUpdateRequest** | [AdminPlansUpdateRequest](AdminPlansUpdateRequest.md) |  | |
+| Name                        | Type                                                  | Description | Notes                     |
+| --------------------------- | ----------------------------------------------------- | ----------- | ------------------------- |
+| **planId**                  | `number`                                              |             | [Defaults to `undefined`] |
+| **adminPlansUpdateRequest** | [AdminPlansUpdateRequest](AdminPlansUpdateRequest.md) |             |                           |
 
 ### Return type
 
@@ -1368,14 +1293,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Plan updated. |  -  |
+
+| Status code | Description   | Response headers |
+| ----------- | ------------- | ---------------- |
+| **200**     | Plan updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminRotateApiKey
 
@@ -1386,33 +1310,30 @@ Rotate API key secret
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminRotateApiKeyRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    keyId: 56,
-  } satisfies AdminRotateApiKeyRequest;
+    const body = {
+        // number
+        keyId: 56,
+    } satisfies AdminRotateApiKeyRequest;
 
-  try {
-    const data = await api.adminRotateApiKey(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminRotateApiKey(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1421,10 +1342,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **keyId** | `number` |  | [Defaults to `undefined`] |
+| Name      | Type     | Description | Notes                     |
+| --------- | -------- | ----------- | ------------------------- |
+| **keyId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -1439,14 +1359,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | API key secret rotated. Returns new token. |  -  |
+
+| Status code | Description                                | Response headers |
+| ----------- | ------------------------------------------ | ---------------- |
+| **201**     | API key secret rotated. Returns new token. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminShowRateLimit
 
@@ -1457,33 +1376,30 @@ Show rate limit rule
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminShowRateLimitRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    rateLimitId: 56,
-  } satisfies AdminShowRateLimitRequest;
+    const body = {
+        // number
+        rateLimitId: 56,
+    } satisfies AdminShowRateLimitRequest;
 
-  try {
-    const data = await api.adminShowRateLimit(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminShowRateLimit(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1492,10 +1408,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rateLimitId** | `number` |  | [Defaults to `undefined`] |
+| Name            | Type     | Description | Notes                     |
+| --------------- | -------- | ----------- | ------------------------- |
+| **rateLimitId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -1510,14 +1425,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Rate limit rule detail. |  -  |
+
+| Status code | Description             | Response headers |
+| ----------- | ----------------------- | ---------------- |
+| **200**     | Rate limit rule detail. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminShowSupplier
 
@@ -1528,33 +1442,30 @@ Show supplier details in admin console
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminShowSupplierRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-  } satisfies AdminShowSupplierRequest;
+    const body = {
+        // number
+        supplierId: 56,
+    } satisfies AdminShowSupplierRequest;
 
-  try {
-    const data = await api.adminShowSupplier(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminShowSupplier(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1563,10 +1474,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
+| Name           | Type     | Description | Notes                     |
+| -------------- | -------- | ----------- | ------------------------- |
+| **supplierId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -1581,14 +1491,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier detail for admin review. |  -  |
+
+| Status code | Description                       | Response headers |
+| ----------- | --------------------------------- | ---------------- |
+| **200**     | Supplier detail for admin review. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminToggleApiKey
 
@@ -1599,33 +1508,30 @@ Toggle API key activation
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminToggleApiKeyRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    keyId: 56,
-  } satisfies AdminToggleApiKeyRequest;
+    const body = {
+        // number
+        keyId: 56,
+    } satisfies AdminToggleApiKeyRequest;
 
-  try {
-    const data = await api.adminToggleApiKey(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminToggleApiKey(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1634,10 +1540,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **keyId** | `number` |  | [Defaults to `undefined`] |
+| Name      | Type     | Description | Notes                     |
+| --------- | -------- | ----------- | ------------------------- |
+| **keyId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -1652,14 +1557,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | API key status toggled. |  -  |
+
+| Status code | Description             | Response headers |
+| ----------- | ----------------------- | ---------------- |
+| **200**     | API key status toggled. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminUpdateCompanyStatus
 
@@ -1678,7 +1582,7 @@ import type { AdminUpdateCompanyStatusOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -1707,11 +1611,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Defaults to `undefined`] |
-| **adminUpdateCompanyStatusRequest** | [AdminUpdateCompanyStatusRequest](AdminUpdateCompanyStatusRequest.md) |  | |
+| Name                                | Type                                                                  | Description | Notes                     |
+| ----------------------------------- | --------------------------------------------------------------------- | ----------- | ------------------------- |
+| **companyId**                       | `number`                                                              |             | [Defaults to `undefined`] |
+| **adminUpdateCompanyStatusRequest** | [AdminUpdateCompanyStatusRequest](AdminUpdateCompanyStatusRequest.md) |             |                           |
 
 ### Return type
 
@@ -1726,14 +1629,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Company status updated. |  -  |
+
+| Status code | Description             | Response headers |
+| ----------- | ----------------------- | ---------------- |
+| **200**     | Company status updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminUpdateFeatureFlag
 
@@ -1752,7 +1654,7 @@ import type { AdminUpdateFeatureFlagOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -1783,12 +1685,11 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companyId** | `number` |  | [Defaults to `undefined`] |
-| **flagId** | `number` |  | [Defaults to `undefined`] |
-| **adminUpdateFeatureFlagRequest** | [AdminUpdateFeatureFlagRequest](AdminUpdateFeatureFlagRequest.md) |  | |
+| Name                              | Type                                                              | Description | Notes                     |
+| --------------------------------- | ----------------------------------------------------------------- | ----------- | ------------------------- |
+| **companyId**                     | `number`                                                          |             | [Defaults to `undefined`] |
+| **flagId**                        | `number`                                                          |             | [Defaults to `undefined`] |
+| **adminUpdateFeatureFlagRequest** | [AdminUpdateFeatureFlagRequest](AdminUpdateFeatureFlagRequest.md) |             |                           |
 
 ### Return type
 
@@ -1803,14 +1704,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Feature flag updated. |  -  |
+
+| Status code | Description           | Response headers |
+| ----------- | --------------------- | ---------------- |
+| **200**     | Feature flag updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminUpdateRateLimit
 
@@ -1829,7 +1729,7 @@ import type { AdminUpdateRateLimitOperationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -1858,11 +1758,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **rateLimitId** | `number` |  | [Defaults to `undefined`] |
-| **adminUpdateRateLimitRequest** | [AdminUpdateRateLimitRequest](AdminUpdateRateLimitRequest.md) |  | |
+| Name                            | Type                                                          | Description | Notes                     |
+| ------------------------------- | ------------------------------------------------------------- | ----------- | ------------------------- |
+| **rateLimitId**                 | `number`                                                      |             | [Defaults to `undefined`] |
+| **adminUpdateRateLimitRequest** | [AdminUpdateRateLimitRequest](AdminUpdateRateLimitRequest.md) |             |                           |
 
 ### Return type
 
@@ -1877,14 +1776,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Rate limit updated. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **200**     | Rate limit updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## adminUpdateSupplier
 
@@ -1895,35 +1793,32 @@ Update supplier attributes in admin console
 ### Example
 
 ```ts
-import {
-  Configuration,
-  AdminApi,
-} from '';
+import { Configuration, AdminApi } from '';
 import type { AdminUpdateSupplierRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new AdminApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new AdminApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-    // { [key: string]: any; }
-    requestBody: Object,
-  } satisfies AdminUpdateSupplierRequest;
+    const body = {
+        // number
+        supplierId: 56,
+        // { [key: string]: any; }
+        requestBody: Object,
+    } satisfies AdminUpdateSupplierRequest;
 
-  try {
-    const data = await api.adminUpdateSupplier(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.adminUpdateSupplier(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -1932,11 +1827,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
-| **requestBody** | `{ [key: string]: any; }` |  | |
+| Name            | Type                      | Description | Notes                     |
+| --------------- | ------------------------- | ----------- | ------------------------- |
+| **supplierId**  | `number`                  |             | [Defaults to `undefined`] |
+| **requestBody** | `{ [key: string]: any; }` |             |                           |
 
 ### Return type
 
@@ -1951,11 +1845,10 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier updated. |  -  |
+
+| Status code | Description       | Response headers |
+| ----------- | ----------------- | ---------------- |
+| **200**     | Supplier updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

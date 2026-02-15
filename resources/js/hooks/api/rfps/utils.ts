@@ -1,6 +1,13 @@
-import type { RfpDetail, RfpProposalSummary, RfpProposalSummaryResponse } from '@/types/rfp';
+import type {
+    RfpDetail,
+    RfpProposalSummary,
+    RfpProposalSummaryResponse,
+} from '@/types/rfp';
 
-const readString = (source: Record<string, unknown>, ...keys: string[]): string | undefined => {
+const readString = (
+    source: Record<string, unknown>,
+    ...keys: string[]
+): string | undefined => {
     for (const key of keys) {
         const value = source[key];
         if (typeof value === 'string' && value.length > 0) {
@@ -10,7 +17,10 @@ const readString = (source: Record<string, unknown>, ...keys: string[]): string 
     return undefined;
 };
 
-const readNumber = (source: Record<string, unknown>, ...keys: string[]): number | undefined => {
+const readNumber = (
+    source: Record<string, unknown>,
+    ...keys: string[]
+): number | undefined => {
     for (const key of keys) {
         const value = source[key];
         if (typeof value === 'number' && Number.isFinite(value)) {
@@ -26,7 +36,10 @@ const readNumber = (source: Record<string, unknown>, ...keys: string[]): number 
     return undefined;
 };
 
-const readBoolean = (source: Record<string, unknown>, ...keys: string[]): boolean | undefined => {
+const readBoolean = (
+    source: Record<string, unknown>,
+    ...keys: string[]
+): boolean | undefined => {
     for (const key of keys) {
         const value = source[key];
         if (typeof value === 'boolean') {
@@ -47,7 +60,10 @@ const readBoolean = (source: Record<string, unknown>, ...keys: string[]): boolea
     return undefined;
 };
 
-const readRecord = (source: Record<string, unknown>, ...keys: string[]): Record<string, unknown> | undefined => {
+const readRecord = (
+    source: Record<string, unknown>,
+    ...keys: string[]
+): Record<string, unknown> | undefined => {
     for (const key of keys) {
         const value = source[key];
         if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -65,13 +81,21 @@ export function mapRfpDetail(payload: Record<string, unknown> = {}): RfpDetail {
         companyId: readNumber(source, 'companyId', 'company_id') ?? 0,
         title: readString(source, 'title') ?? 'Project RFP',
         status: readString(source, 'status') ?? 'draft',
-        problemObjectives: readString(source, 'problemObjectives', 'problem_objectives') ?? null,
+        problemObjectives:
+            readString(source, 'problemObjectives', 'problem_objectives') ??
+            null,
         scope: readString(source, 'scope') ?? null,
         timeline: readString(source, 'timeline') ?? null,
-        evaluationCriteria: readString(source, 'evaluationCriteria', 'evaluation_criteria') ?? null,
-        proposalFormat: readString(source, 'proposalFormat', 'proposal_format') ?? null,
-        aiAssistEnabled: readBoolean(source, 'aiAssistEnabled', 'ai_assist_enabled') ?? false,
-        aiSuggestions: readRecord(source, 'aiSuggestions', 'ai_suggestions') ?? null,
+        evaluationCriteria:
+            readString(source, 'evaluationCriteria', 'evaluation_criteria') ??
+            null,
+        proposalFormat:
+            readString(source, 'proposalFormat', 'proposal_format') ?? null,
+        aiAssistEnabled:
+            readBoolean(source, 'aiAssistEnabled', 'ai_assist_enabled') ??
+            false,
+        aiSuggestions:
+            readRecord(source, 'aiSuggestions', 'ai_suggestions') ?? null,
         publishedAt: readString(source, 'publishedAt', 'published_at') ?? null,
         inReviewAt: readString(source, 'inReviewAt', 'in_review_at') ?? null,
         awardedAt: readString(source, 'awardedAt', 'awarded_at') ?? null,
@@ -82,7 +106,10 @@ export function mapRfpDetail(payload: Record<string, unknown> = {}): RfpDetail {
     };
 }
 
-const readArray = (source: Record<string, unknown>, key: string): unknown[] | undefined => {
+const readArray = (
+    source: Record<string, unknown>,
+    key: string,
+): unknown[] | undefined => {
     const value = source[key];
     if (Array.isArray(value)) {
         return value;
@@ -99,15 +126,23 @@ const readObject = (input: unknown): Record<string, unknown> | null => {
     return null;
 };
 
-export function mapRfpProposalSummary(payload: Record<string, unknown>): RfpProposalSummary {
+export function mapRfpProposalSummary(
+    payload: Record<string, unknown>,
+): RfpProposalSummary {
     const source = payload ?? {};
-    const supplierSource = readObject(source.supplierCompany ?? source.supplier_company);
+    const supplierSource = readObject(
+        source.supplierCompany ?? source.supplier_company,
+    );
 
     return {
         id: readNumber(source, 'id') ?? 0,
         rfpId: readNumber(source, 'rfpId', 'rfp_id') ?? 0,
         companyId: readNumber(source, 'companyId', 'company_id') ?? 0,
-        supplierCompanyId: readNumber(source, 'supplierCompanyId', 'supplier_company_id'),
+        supplierCompanyId: readNumber(
+            source,
+            'supplierCompanyId',
+            'supplier_company_id',
+        ),
         supplierCompany: supplierSource
             ? {
                   id: readNumber(supplierSource, 'id'),
@@ -115,14 +150,34 @@ export function mapRfpProposalSummary(payload: Record<string, unknown>): RfpProp
               }
             : null,
         priceTotal: readNumber(source, 'priceTotal', 'price_total'),
-        priceTotalMinor: readNumber(source, 'priceTotalMinor', 'price_total_minor'),
+        priceTotalMinor: readNumber(
+            source,
+            'priceTotalMinor',
+            'price_total_minor',
+        ),
         currency: readString(source, 'currency'),
         leadTimeDays: readNumber(source, 'leadTimeDays', 'lead_time_days'),
         status: readString(source, 'status'),
-        attachmentsCount: readNumber(source, 'attachmentsCount', 'attachments_count'),
-        approachSummary: readString(source, 'approachSummary', 'approach_summary'),
-        scheduleSummary: readString(source, 'scheduleSummary', 'schedule_summary'),
-        valueAddSummary: readString(source, 'valueAddSummary', 'value_add_summary'),
+        attachmentsCount: readNumber(
+            source,
+            'attachmentsCount',
+            'attachments_count',
+        ),
+        approachSummary: readString(
+            source,
+            'approachSummary',
+            'approach_summary',
+        ),
+        scheduleSummary: readString(
+            source,
+            'scheduleSummary',
+            'schedule_summary',
+        ),
+        valueAddSummary: readString(
+            source,
+            'valueAddSummary',
+            'value_add_summary',
+        ),
         meta: readRecord(source, 'meta') ?? null,
         submittedBy: readNumber(source, 'submittedBy', 'submitted_by'),
         createdAt: readString(source, 'createdAt', 'created_at') ?? null,
@@ -130,23 +185,45 @@ export function mapRfpProposalSummary(payload: Record<string, unknown>): RfpProp
     };
 }
 
-export function mapRfpProposalCollection(payload: Record<string, unknown>): RfpProposalSummaryResponse {
+export function mapRfpProposalCollection(
+    payload: Record<string, unknown>,
+): RfpProposalSummaryResponse {
     const source = payload ?? {};
     const itemsSource = readArray(source, 'items') ?? [];
     const summarySource = readRecord(source, 'summary') ?? {};
 
     const items = itemsSource
-        .map((item) => (item && typeof item === 'object' ? mapRfpProposalSummary(item as Record<string, unknown>) : null))
+        .map((item) =>
+            item && typeof item === 'object'
+                ? mapRfpProposalSummary(item as Record<string, unknown>)
+                : null,
+        )
         .filter((item): item is RfpProposalSummary => Boolean(item));
 
     return {
         items,
         summary: {
             total: readNumber(summarySource, 'total') ?? items.length,
-            minPriceMinor: readNumber(summarySource, 'min_price_minor', 'minPriceMinor'),
-            maxPriceMinor: readNumber(summarySource, 'max_price_minor', 'maxPriceMinor'),
-            minLeadTimeDays: readNumber(summarySource, 'min_lead_time_days', 'minLeadTimeDays'),
-            maxLeadTimeDays: readNumber(summarySource, 'max_lead_time_days', 'maxLeadTimeDays'),
+            minPriceMinor: readNumber(
+                summarySource,
+                'min_price_minor',
+                'minPriceMinor',
+            ),
+            maxPriceMinor: readNumber(
+                summarySource,
+                'max_price_minor',
+                'maxPriceMinor',
+            ),
+            minLeadTimeDays: readNumber(
+                summarySource,
+                'min_lead_time_days',
+                'minLeadTimeDays',
+            ),
+            maxLeadTimeDays: readNumber(
+                summarySource,
+                'max_lead_time_days',
+                'maxLeadTimeDays',
+            ),
             currency: readString(summarySource, 'currency'),
         },
     };

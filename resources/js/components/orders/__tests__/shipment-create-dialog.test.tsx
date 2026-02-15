@@ -40,15 +40,21 @@ describe('ShipmentCreateDialog', () => {
         await user.clear(shipQtyInput);
         await user.type(shipQtyInput, '3');
 
-        await user.click(screen.getByRole('button', { name: /Create shipment/i }));
+        await user.click(
+            screen.getByRole('button', { name: /Create shipment/i }),
+        );
 
-        expect(await screen.findByText(/Line #1 only has 2 units remaining/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/Line #1 only has 2 units remaining/i),
+        ).toBeInTheDocument();
         expect(onSubmit).not.toHaveBeenCalled();
 
         await user.clear(shipQtyInput);
         await user.type(shipQtyInput, '2');
 
-        await user.click(screen.getByRole('button', { name: /Create shipment/i }));
+        await user.click(
+            screen.getByRole('button', { name: /Create shipment/i }),
+        );
 
         expect(onSubmit).toHaveBeenCalledWith(
             expect.objectContaining({

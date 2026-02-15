@@ -13,7 +13,9 @@ export interface OffsetPaginationMeta {
     raw?: Record<string, unknown>;
 }
 
-export function toCursorMeta(meta?: Record<string, unknown> | null): CursorPaginationMeta | undefined {
+export function toCursorMeta(
+    meta?: Record<string, unknown> | null,
+): CursorPaginationMeta | undefined {
     if (!meta || typeof meta !== 'object') {
         return undefined;
     }
@@ -35,19 +37,28 @@ export function toCursorMeta(meta?: Record<string, unknown> | null): CursorPagin
               : undefined;
 
     return {
-        nextCursor: typeof nextCandidate === 'string' ? nextCandidate : nextCandidate ?? undefined,
-        prevCursor: typeof prevCandidate === 'string' ? prevCandidate : prevCandidate ?? undefined,
+        nextCursor:
+            typeof nextCandidate === 'string'
+                ? nextCandidate
+                : (nextCandidate ?? undefined),
+        prevCursor:
+            typeof prevCandidate === 'string'
+                ? prevCandidate
+                : (prevCandidate ?? undefined),
         perPage: perPageCandidate,
         raw: meta as Record<string, unknown>,
     };
 }
 
-export function toOffsetMeta(meta?: Record<string, unknown> | null): OffsetPaginationMeta | undefined {
+export function toOffsetMeta(
+    meta?: Record<string, unknown> | null,
+): OffsetPaginationMeta | undefined {
     if (!meta || typeof meta !== 'object') {
         return undefined;
     }
 
-    const totalCandidate = typeof meta.total === 'number' ? (meta.total as number) : undefined;
+    const totalCandidate =
+        typeof meta.total === 'number' ? (meta.total as number) : undefined;
     const perPageCandidate =
         typeof meta.perPage === 'number'
             ? (meta.perPage as number)

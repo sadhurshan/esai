@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,30 +12,23 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiSuccessResponse,
-  CreateSavedSearchRequest,
-  ListSavedSearches200Response,
-  SearchGlobal200Response,
-  ShowSavedSearch200Response,
-  UpdateSavedSearchRequest,
+    ApiSuccessResponse,
+    CreateSavedSearchRequest,
+    ListSavedSearches200Response,
+    SearchGlobal200Response,
+    ShowSavedSearch200Response,
+    UpdateSavedSearchRequest,
 } from '../models/index';
 import {
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-    CreateSavedSearchRequestFromJSON,
     CreateSavedSearchRequestToJSON,
     ListSavedSearches200ResponseFromJSON,
-    ListSavedSearches200ResponseToJSON,
     SearchGlobal200ResponseFromJSON,
-    SearchGlobal200ResponseToJSON,
     ShowSavedSearch200ResponseFromJSON,
-    ShowSavedSearch200ResponseToJSON,
-    UpdateSavedSearchRequestFromJSON,
     UpdateSavedSearchRequestToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface CreateSavedSearchOperationRequest {
     createSavedSearchRequest: CreateSavedSearchRequest;
@@ -63,119 +56,154 @@ export interface UpdateSavedSearchOperationRequest {
 
 /**
  * SearchApi - interface
- * 
+ *
  * @export
  * @interface SearchApiInterface
  */
 export interface SearchApiInterface {
     /**
-     * 
+     *
      * @summary Create saved search
-     * @param {CreateSavedSearchRequest} createSavedSearchRequest 
+     * @param {CreateSavedSearchRequest} createSavedSearchRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SearchApiInterface
      */
-    createSavedSearchRaw(requestParameters: CreateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createSavedSearchRaw(
+        requestParameters: CreateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Create saved search
      */
-    createSavedSearch(requestParameters: CreateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createSavedSearch(
+        requestParameters: CreateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Delete saved search
-     * @param {number} savedSearchId 
+     * @param {number} savedSearchId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SearchApiInterface
      */
-    deleteSavedSearchRaw(requestParameters: DeleteSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteSavedSearchRaw(
+        requestParameters: DeleteSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete saved search
      */
-    deleteSavedSearch(requestParameters: DeleteSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteSavedSearch(
+        requestParameters: DeleteSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List saved searches
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SearchApiInterface
      */
-    listSavedSearchesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSavedSearches200Response>>;
+    listSavedSearchesRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListSavedSearches200Response>>;
 
     /**
      * List saved searches
      */
-    listSavedSearches(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSavedSearches200Response>;
+    listSavedSearches(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListSavedSearches200Response>;
 
     /**
-     * 
+     *
      * @summary Perform global search across tenant resources
-     * @param {string} q 
+     * @param {string} q
      * @param {Array<string>} [types] Optional filters limiting domain (comma separated).
-     * @param {Date} [dateFrom] 
-     * @param {Date} [dateTo] 
+     * @param {Date} [dateFrom]
+     * @param {Date} [dateTo]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SearchApiInterface
      */
-    searchGlobalRaw(requestParameters: SearchGlobalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchGlobal200Response>>;
+    searchGlobalRaw(
+        requestParameters: SearchGlobalRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SearchGlobal200Response>>;
 
     /**
      * Perform global search across tenant resources
      */
-    searchGlobal(requestParameters: SearchGlobalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SearchGlobal200Response>;
+    searchGlobal(
+        requestParameters: SearchGlobalRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SearchGlobal200Response>;
 
     /**
-     * 
+     *
      * @summary Show saved search
-     * @param {number} savedSearchId 
+     * @param {number} savedSearchId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SearchApiInterface
      */
-    showSavedSearchRaw(requestParameters: ShowSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowSavedSearch200Response>>;
+    showSavedSearchRaw(
+        requestParameters: ShowSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowSavedSearch200Response>>;
 
     /**
      * Show saved search
      */
-    showSavedSearch(requestParameters: ShowSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowSavedSearch200Response>;
+    showSavedSearch(
+        requestParameters: ShowSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowSavedSearch200Response>;
 
     /**
-     * 
+     *
      * @summary Update saved search
-     * @param {number} savedSearchId 
-     * @param {UpdateSavedSearchRequest} updateSavedSearchRequest 
+     * @param {number} savedSearchId
+     * @param {UpdateSavedSearchRequest} updateSavedSearchRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SearchApiInterface
      */
-    updateSavedSearchRaw(requestParameters: UpdateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    updateSavedSearchRaw(
+        requestParameters: UpdateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Update saved search
      */
-    updateSavedSearch(requestParameters: UpdateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    updateSavedSearch(
+        requestParameters: UpdateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
 export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
-
     /**
      * Create saved search
      */
-    async createSavedSearchRaw(requestParameters: CreateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createSavedSearchRaw(
+        requestParameters: CreateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['createSavedSearchRequest'] == null) {
             throw new runtime.RequiredError(
                 'createSavedSearchRequest',
-                'Required parameter "createSavedSearchRequest" was null or undefined when calling createSavedSearch().'
+                'Required parameter "createSavedSearchRequest" was null or undefined when calling createSavedSearch().',
             );
         }
 
@@ -186,47 +214,64 @@ export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/saved-searches`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateSavedSearchRequestToJSON(requestParameters['createSavedSearchRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreateSavedSearchRequestToJSON(
+                    requestParameters['createSavedSearchRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create saved search
      */
-    async createSavedSearch(requestParameters: CreateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createSavedSearchRaw(requestParameters, initOverrides);
+    async createSavedSearch(
+        requestParameters: CreateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createSavedSearchRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete saved search
      */
-    async deleteSavedSearchRaw(requestParameters: DeleteSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteSavedSearchRaw(
+        requestParameters: DeleteSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['savedSearchId'] == null) {
             throw new runtime.RequiredError(
                 'savedSearchId',
-                'Required parameter "savedSearchId" was null or undefined when calling deleteSavedSearch().'
+                'Required parameter "savedSearchId" was null or undefined when calling deleteSavedSearch().',
             );
         }
 
@@ -235,76 +280,101 @@ export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/saved-searches/{savedSearchId}`;
-        urlPath = urlPath.replace(`{${"savedSearchId"}}`, encodeURIComponent(String(requestParameters['savedSearchId'])));
+        urlPath = urlPath.replace(
+            `{${'savedSearchId'}}`,
+            encodeURIComponent(String(requestParameters['savedSearchId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete saved search
      */
-    async deleteSavedSearch(requestParameters: DeleteSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteSavedSearchRaw(requestParameters, initOverrides);
+    async deleteSavedSearch(
+        requestParameters: DeleteSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteSavedSearchRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List saved searches
      */
-    async listSavedSearchesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListSavedSearches200Response>> {
+    async listSavedSearchesRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListSavedSearches200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/saved-searches`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListSavedSearches200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListSavedSearches200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List saved searches
      */
-    async listSavedSearches(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListSavedSearches200Response> {
+    async listSavedSearches(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListSavedSearches200Response> {
         const response = await this.listSavedSearchesRaw(initOverrides);
         return await response.value();
     }
@@ -312,11 +382,14 @@ export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
     /**
      * Perform global search across tenant resources
      */
-    async searchGlobalRaw(requestParameters: SearchGlobalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchGlobal200Response>> {
+    async searchGlobalRaw(
+        requestParameters: SearchGlobalRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SearchGlobal200Response>> {
         if (requestParameters['q'] == null) {
             throw new runtime.RequiredError(
                 'q',
-                'Required parameter "q" was null or undefined when calling searchGlobal().'
+                'Required parameter "q" was null or undefined when calling searchGlobal().',
             );
         }
 
@@ -341,46 +414,61 @@ export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/search`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SearchGlobal200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            SearchGlobal200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Perform global search across tenant resources
      */
-    async searchGlobal(requestParameters: SearchGlobalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SearchGlobal200Response> {
-        const response = await this.searchGlobalRaw(requestParameters, initOverrides);
+    async searchGlobal(
+        requestParameters: SearchGlobalRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SearchGlobal200Response> {
+        const response = await this.searchGlobalRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show saved search
      */
-    async showSavedSearchRaw(requestParameters: ShowSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowSavedSearch200Response>> {
+    async showSavedSearchRaw(
+        requestParameters: ShowSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowSavedSearch200Response>> {
         if (requestParameters['savedSearchId'] == null) {
             throw new runtime.RequiredError(
                 'savedSearchId',
-                'Required parameter "savedSearchId" was null or undefined when calling showSavedSearch().'
+                'Required parameter "savedSearchId" was null or undefined when calling showSavedSearch().',
             );
         }
 
@@ -389,54 +477,72 @@ export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/saved-searches/{savedSearchId}`;
-        urlPath = urlPath.replace(`{${"savedSearchId"}}`, encodeURIComponent(String(requestParameters['savedSearchId'])));
+        urlPath = urlPath.replace(
+            `{${'savedSearchId'}}`,
+            encodeURIComponent(String(requestParameters['savedSearchId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowSavedSearch200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowSavedSearch200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show saved search
      */
-    async showSavedSearch(requestParameters: ShowSavedSearchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowSavedSearch200Response> {
-        const response = await this.showSavedSearchRaw(requestParameters, initOverrides);
+    async showSavedSearch(
+        requestParameters: ShowSavedSearchRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowSavedSearch200Response> {
+        const response = await this.showSavedSearchRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update saved search
      */
-    async updateSavedSearchRaw(requestParameters: UpdateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async updateSavedSearchRaw(
+        requestParameters: UpdateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['savedSearchId'] == null) {
             throw new runtime.RequiredError(
                 'savedSearchId',
-                'Required parameter "savedSearchId" was null or undefined when calling updateSavedSearch().'
+                'Required parameter "savedSearchId" was null or undefined when calling updateSavedSearch().',
             );
         }
 
         if (requestParameters['updateSavedSearchRequest'] == null) {
             throw new runtime.RequiredError(
                 'updateSavedSearchRequest',
-                'Required parameter "updateSavedSearchRequest" was null or undefined when calling updateSavedSearch().'
+                'Required parameter "updateSavedSearchRequest" was null or undefined when calling updateSavedSearch().',
             );
         }
 
@@ -447,38 +553,54 @@ export class SearchApi extends runtime.BaseAPI implements SearchApiInterface {
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/saved-searches/{savedSearchId}`;
-        urlPath = urlPath.replace(`{${"savedSearchId"}}`, encodeURIComponent(String(requestParameters['savedSearchId'])));
+        urlPath = urlPath.replace(
+            `{${'savedSearchId'}}`,
+            encodeURIComponent(String(requestParameters['savedSearchId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateSavedSearchRequestToJSON(requestParameters['updateSavedSearchRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpdateSavedSearchRequestToJSON(
+                    requestParameters['updateSavedSearchRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update saved search
      */
-    async updateSavedSearch(requestParameters: UpdateSavedSearchOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.updateSavedSearchRaw(requestParameters, initOverrides);
+    async updateSavedSearch(
+        requestParameters: UpdateSavedSearchOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.updateSavedSearchRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

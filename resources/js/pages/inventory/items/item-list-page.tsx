@@ -1,24 +1,30 @@
+import { Boxes, Filter, PackagePlus, RefreshCcw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
-import { Boxes, Filter, PackagePlus, RefreshCcw } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { EmptyState } from '@/components/empty-state';
+import { ItemStatusChip } from '@/components/inventory/item-status-chip';
+import { StockBadge } from '@/components/inventory/stock-badge';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/contexts/auth-context';
 import { useItems } from '@/hooks/api/inventory/use-items';
 import { useUpdateItem } from '@/hooks/api/inventory/use-update-item';
 import type { InventoryItemSummary } from '@/types/inventory';
-import { ItemStatusChip } from '@/components/inventory/item-status-chip';
-import { StockBadge } from '@/components/inventory/stock-badge';
 
 const PER_PAGE = 25;
 
@@ -31,12 +37,15 @@ type CursorMeta = {
 export function ItemListPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const inventoryEnabled = hasFeature('inventory_enabled');
 
     const [search, setSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [statusFilter, setStatusFilter] = useState<
+        'all' | 'active' | 'inactive'
+    >('all');
     const [belowMinOnly, setBelowMinOnly] = useState(false);
     const [cursor, setCursor] = useState<string | null>(null);
 
@@ -52,8 +61,14 @@ export function ItemListPage() {
 
     const items = itemsQuery.data?.items ?? [];
     const cursorMeta = (itemsQuery.data?.meta ?? null) as CursorMeta | null;
-    const nextCursor = typeof cursorMeta?.next_cursor === 'string' ? cursorMeta.next_cursor : null;
-    const prevCursor = typeof cursorMeta?.prev_cursor === 'string' ? cursorMeta.prev_cursor : null;
+    const nextCursor =
+        typeof cursorMeta?.next_cursor === 'string'
+            ? cursorMeta.next_cursor
+            : null;
+    const prevCursor =
+        typeof cursorMeta?.prev_cursor === 'string'
+            ? cursorMeta.prev_cursor
+            : null;
 
     const updateItemMutation = useUpdateItem();
 
@@ -63,7 +78,10 @@ export function ItemListPage() {
                 key: 'sku',
                 title: 'SKU',
                 render: (item) => (
-                    <Link className="font-semibold text-primary" to={`/app/inventory/items/${item.id}`}>
+                    <Link
+                        className="font-semibold text-primary"
+                        to={`/app/inventory/items/${item.id}`}
+                    >
                         {item.sku}
                     </Link>
                 ),
@@ -84,7 +102,13 @@ export function ItemListPage() {
             {
                 key: 'onHand',
                 title: 'On-hand',
-                render: (item) => <StockBadge onHand={item.onHand} minStock={item.minStock ?? undefined} uom={item.defaultUom} />,
+                render: (item) => (
+                    <StockBadge
+                        onHand={item.onHand}
+                        minStock={item.minStock ?? undefined}
+                        uom={item.defaultUom}
+                    />
+                ),
             },
             {
                 key: 'sitesCount',
@@ -103,7 +127,9 @@ export function ItemListPage() {
                 render: (item) => (
                     <div className="flex items-center justify-end gap-2">
                         <Button asChild size="sm" variant="ghost">
-                            <Link to={`/app/inventory/items/${item.id}`}>Open</Link>
+                            <Link to={`/app/inventory/items/${item.id}`}>
+                                Open
+                            </Link>
                         </Button>
                         <Button
                             type="button"
@@ -146,7 +172,9 @@ export function ItemListPage() {
                     description="Upgrade your plan to manage item masters, stock locations, and reorder policies."
                     icon={<Boxes className="h-12 w-12 text-muted-foreground" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -162,13 +190,22 @@ export function ItemListPage() {
 
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Inventory</p>
-                    <h1 className="text-2xl font-semibold text-foreground">Item master</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Inventory
+                    </p>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Item master
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Manage SKUs, default UoMs, and reorder policies to keep operations aligned.
+                        Manage SKUs, default UoMs, and reorder policies to keep
+                        operations aligned.
                     </p>
                 </div>
-                <Button type="button" size="sm" onClick={() => navigate('/app/inventory/items/new')}>
+                <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => navigate('/app/inventory/items/new')}
+                >
                     <PackagePlus className="mr-2 h-4 w-4" /> Create item
                 </Button>
             </div>
@@ -185,7 +222,9 @@ export function ItemListPage() {
                             }}
                             placeholder="Search catalog"
                         />
-                        <p className="text-xs text-muted-foreground">Partial matches allowed.</p>
+                        <p className="text-xs text-muted-foreground">
+                            Partial matches allowed.
+                        </p>
                     </div>
                     <div className="space-y-2">
                         <Label>Category</Label>
@@ -202,7 +241,9 @@ export function ItemListPage() {
                         <Label>Status</Label>
                         <Select
                             value={statusFilter}
-                            onValueChange={(value: 'all' | 'active' | 'inactive') => {
+                            onValueChange={(
+                                value: 'all' | 'active' | 'inactive',
+                            ) => {
                                 setStatusFilter(value);
                                 setCursor(null);
                             }}
@@ -213,7 +254,9 @@ export function ItemListPage() {
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
                                 <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive">Inactive</SelectItem>
+                                <SelectItem value="inactive">
+                                    Inactive
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -228,7 +271,10 @@ export function ItemListPage() {
                                     setCursor(null);
                                 }}
                             />
-                            <Label htmlFor="below-min" className="text-sm font-normal text-foreground">
+                            <Label
+                                htmlFor="below-min"
+                                className="text-sm font-normal text-foreground"
+                            >
                                 Show items under threshold
                             </Label>
                         </div>
@@ -236,10 +282,20 @@ export function ItemListPage() {
                     <div className="space-y-2">
                         <Label>&nbsp;</Label>
                         <div className="flex gap-2">
-                            <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleResetFilters}
+                            >
                                 <RefreshCcw className="mr-2 h-4 w-4" /> Reset
                             </Button>
-                            <Button type="button" variant="ghost" size="sm" disabled>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled
+                            >
                                 <Filter className="mr-2 h-4 w-4" /> Saved views
                             </Button>
                         </div>
@@ -255,9 +311,13 @@ export function ItemListPage() {
                     <EmptyState
                         title="No items yet"
                         description="Create your first SKU to start tracking stock locations and reorder points."
-                        icon={<Boxes className="h-12 w-12 text-muted-foreground" />}
+                        icon={
+                            <Boxes className="h-12 w-12 text-muted-foreground" />
+                        }
                         ctaLabel="Create item"
-                        ctaProps={{ onClick: () => navigate('/app/inventory/items/new') }}
+                        ctaProps={{
+                            onClick: () => navigate('/app/inventory/items/new'),
+                        }}
                     />
                 }
             />
@@ -270,7 +330,10 @@ export function ItemListPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setCursor(prevCursor ?? null)}
-                        disabled={itemsQuery.isLoading || (!prevCursor && cursor === null)}
+                        disabled={
+                            itemsQuery.isLoading ||
+                            (!prevCursor && cursor === null)
+                        }
                     >
                         Previous
                     </Button>

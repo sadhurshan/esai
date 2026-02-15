@@ -678,6 +678,9 @@ The application is considered “Launch Ready” only when:
 
        1. Reasonable range: Estimates a target price band using process, material, region, and historical platform data.  
        2. Negotiation aid: Helps buyers spot inflated quotes and helps suppliers avoid under quoting.
+       3. Data source: Store historical pricing observations from submitted quote revisions in `pricing_observations` (company_id, supplier_id, rfq_id, rfq_item_id, quote_id, quote_item_id, revision_no, process, material, finish, region, quantity, unit_price_minor, currency, observed_at, source_type, meta) with soft deletes.
+      4. Estimator model: For the current filters (process/material/finish/region), pull the last 24 months of observations, require at least 5 samples, and compute a $P_{20}$-$P_{80}$ band on unit_price_minor in the most common currency.
+       5. Explanation text: Provide a one-line summary that states sample size, time window, and which filters matched; return "insufficient data" with a clear explanation when fewer than 5 samples are available.
 
     6. **CAD / Drawing Intelligence**
 

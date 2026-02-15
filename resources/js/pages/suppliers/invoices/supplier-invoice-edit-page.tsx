@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Wallet } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, Wallet } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { EmptyState } from '@/components/empty-state';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { useSupplierInvoice } from '@/hooks/api/invoices/use-supplier-invoice';
 import { useSubmitSupplierInvoice } from '@/hooks/api/invoices/use-submit-supplier-invoice';
+import { useSupplierInvoice } from '@/hooks/api/invoices/use-supplier-invoice';
 import { useUpdateSupplierInvoice } from '@/hooks/api/invoices/use-update-supplier-invoice';
 import { usePo } from '@/hooks/api/pos/use-po';
 import { useTaxCodes } from '@/hooks/api/use-tax-codes';
 import {
     InvoiceHeaderCard,
-    InvoiceLinesCard,
     InvoiceLineFormState,
+    InvoiceLinesCard,
     PurchaseOrderStateCard,
     SubmissionCard,
 } from '@/pages/suppliers/invoices/supplier-invoice-create-page';
@@ -32,56 +32,82 @@ export function SupplierInvoiceEditPage() {
     const { state, hasFeature, activePersona } = useAuth();
     const { formatMoney, formatNumber } = useFormatting();
 
-    const [invoiceNumber, setInvoiceNumber] = useState('');
-    const [invoiceDate, setInvoiceDate] = useState('');
-    const [dueDate, setDueDate] = useState('');
-    const [currency, setCurrency] = useState('USD');
-    const [lineItems, setLineItems] = useState<InvoiceLineFormState[]>([]);
-    const [initializedInvoiceId, setInitializedInvoiceId] = useState<string | null>(null);
+    const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
+    const [invoiceDate, setInvoiceDate] = useState<string | null>(null);
+    const [dueDate, setDueDate] = useState<string | null>(null);
+    const [currency, setCurrency] = useState<string | null>(null);
+    const [lineItemOverrides, setLineItemOverrides] = useState<
+        Record<number, Partial<InvoiceLineFormState>>
+    >({});
     const [submissionNote, setSubmissionNote] = useState('');
 
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const supplierRole = state.user?.role === 'supplier';
     const isSupplierPersona = activePersona?.type === 'supplier';
-    const supplierPortalEligible = supplierRole || isSupplierPersona || hasFeature('supplier_portal_enabled');
-    const supplierInvoicingEnabled = supplierPortalEligible && hasFeature('supplier_invoicing_enabled');
-    const shouldLoadInvoice = Boolean(invoiceId) && (!featureFlagsLoaded || supplierInvoicingEnabled);
+    const supplierPortalEligible =
+        supplierRole ||
+        isSupplierPersona ||
+        hasFeature('supplier_portal_enabled');
+    const supplierInvoicingEnabled =
+        supplierPortalEligible && hasFeature('supplier_invoicing_enabled');
+    const shouldLoadInvoice =
+        Boolean(invoiceId) && (!featureFlagsLoaded || supplierInvoicingEnabled);
 
-    const invoiceQuery = useSupplierInvoice(shouldLoadInvoice ? invoiceId : undefined);
+    const invoiceQuery = useSupplierInvoice(
+        shouldLoadInvoice ? invoiceId : undefined,
+    );
     const invoice = invoiceQuery.data ?? null;
     const purchaseOrderId = invoice?.purchaseOrderId ?? 0;
     const poQuery = usePo(purchaseOrderId);
 
-    useEffect(() => {
-        if (!invoice || initializedInvoiceId === invoice.id) {
-            return;
+    const baseLineItems = useMemo<InvoiceLineFormState[]>(() => {
+        if (!invoice) {
+            return [];
         }
 
-        setInitializedInvoiceId(invoice.id);
-        setInvoiceNumber(invoice.invoiceNumber ?? '');
-        setInvoiceDate(invoice.invoiceDate ?? new Date().toISOString().slice(0, 10));
-        setDueDate(invoice.dueDate ?? '');
-        setCurrency(invoice.currency ?? 'USD');
-        setLineItems(
-            invoice.lines.map((line) => ({
-                poLineId: line.poLineId,
-                invoiceLineId: line.id,
-                lineNo: line.poLineId,
-                description: line.description,
-                quantity: line.quantity,
-                unitPrice: line.unitPrice,
-                uom: line.uom,
-                taxCodeIds: line.taxCodeIds ?? [],
-                include: true,
-                remainingQuantity: undefined,
+        return invoice.lines.map((line) => ({
+            poLineId: line.poLineId,
+            invoiceLineId: line.id,
+            lineNo: line.poLineId,
+            description: line.description,
+            quantity: line.quantity,
+            unitPrice: line.unitPrice,
+            uom: line.uom,
+            taxCodeIds: line.taxCodeIds ?? [],
+            include: true,
+            remainingQuantity: undefined,
+        }));
+    }, [invoice]);
+
+    const lineItems = useMemo(
+        () =>
+            baseLineItems.map((line) => ({
+                ...line,
+                ...(lineItemOverrides[line.poLineId] ?? {}),
             })),
-        );
-    }, [invoice, initializedInvoiceId]);
+        [baseLineItems, lineItemOverrides],
+    );
 
-    const canAccessBillingFeatures = ['owner', 'buyer_admin'].includes(state.user?.role ?? '');
-    const allowTaxCodePicker = supplierInvoicingEnabled && canAccessBillingFeatures && !isSupplierPersona;
+    const resolvedInvoiceNumber = invoiceNumber ?? invoice?.invoiceNumber ?? '';
+    const resolvedInvoiceDate =
+        invoiceDate ??
+        invoice?.invoiceDate ??
+        new Date().toISOString().slice(0, 10);
+    const resolvedDueDate = dueDate ?? invoice?.dueDate ?? '';
+    const resolvedCurrency = currency ?? invoice?.currency ?? 'USD';
 
-    const taxCodesQuery = useTaxCodes(undefined, { enabled: allowTaxCodePicker });
+    const canAccessBillingFeatures = ['owner', 'buyer_admin'].includes(
+        state.user?.role ?? '',
+    );
+    const allowTaxCodePicker =
+        supplierInvoicingEnabled &&
+        canAccessBillingFeatures &&
+        !isSupplierPersona;
+
+    const taxCodesQuery = useTaxCodes(undefined, {
+        enabled: allowTaxCodePicker,
+    });
     const taxCodeOptions = useMemo(() => {
         if (!allowTaxCodePicker) {
             return [];
@@ -89,22 +115,38 @@ export function SupplierInvoiceEditPage() {
         return taxCodesQuery.items.map((tax) => ({
             id: tax.id,
             label: `${tax.code ?? 'Tax'} · ${tax.name ?? 'Unnamed'}`,
-            detail: typeof tax.ratePercent === 'number' ? `${formatNumber(tax.ratePercent)}%` : null,
+            detail:
+                typeof tax.ratePercent === 'number'
+                    ? `${formatNumber(tax.ratePercent)}%`
+                    : null,
         }));
     }, [allowTaxCodePicker, formatNumber, taxCodesQuery.items]);
 
-    const formatCurrencyValue = (minorValue?: number | null, currencyCode?: string | null) =>
+    const formatCurrencyValue = (
+        minorValue?: number | null,
+        currencyCode?: string | null,
+    ) =>
         formatMoney((minorValue ?? 0) / MINOR_FACTOR, {
-            currency: currencyCode ?? currency ?? 'USD',
+            currency: currencyCode ?? resolvedCurrency ?? 'USD',
         });
 
     const selectedLines = useMemo(
-        () => lineItems.filter((line) => line.include && line.quantity > 0 && line.unitPrice > 0 && line.invoiceLineId),
+        () =>
+            lineItems.filter(
+                (line) =>
+                    line.include &&
+                    line.quantity > 0 &&
+                    line.unitPrice > 0 &&
+                    line.invoiceLineId,
+            ),
         [lineItems],
     );
 
     const totals = useMemo(() => {
-        const subtotal = selectedLines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+        const subtotal = selectedLines.reduce(
+            (sum, line) => sum + line.quantity * line.unitPrice,
+            0,
+        );
         return {
             subtotal,
             subtotalMinor: Math.round(subtotal * MINOR_FACTOR),
@@ -116,12 +158,24 @@ export function SupplierInvoiceEditPage() {
     const isSaving = updateMutation.isPending || submitMutation.isPending;
 
     const readyForDraft = Boolean(
-        invoice && invoiceNumber.trim().length > 0 && invoiceDate && selectedLines.length > 0,
+        invoice &&
+        resolvedInvoiceNumber.trim().length > 0 &&
+        resolvedInvoiceDate &&
+        selectedLines.length > 0,
     );
     const readyForSubmit = readyForDraft;
 
-    const handleLineChange = (poLineId: number, patch: Partial<InvoiceLineFormState>) => {
-        setLineItems((current) => current.map((line) => (line.poLineId === poLineId ? { ...line, ...patch } : line)));
+    const handleLineChange = (
+        poLineId: number,
+        patch: Partial<InvoiceLineFormState>,
+    ) => {
+        setLineItemOverrides((current) => ({
+            ...current,
+            [poLineId]: {
+                ...(current[poLineId] ?? {}),
+                ...patch,
+            },
+        }));
     };
 
     const handlePersist = (mode: 'draft' | 'submit') => {
@@ -151,19 +205,24 @@ export function SupplierInvoiceEditPage() {
         updateMutation.mutate(
             {
                 invoiceId: invoice.id,
-                invoiceNumber: invoiceNumber.trim(),
-                invoiceDate,
-                dueDate: dueDate || null,
+                invoiceNumber: resolvedInvoiceNumber.trim(),
+                invoiceDate: resolvedInvoiceDate,
+                dueDate: resolvedDueDate || null,
                 lines: payloadLines,
             },
             {
                 onSuccess: (updated) => {
                     if (mode === 'submit') {
                         submitMutation.mutate(
-                            { invoiceId: updated.id, note: submissionNote.trim() || undefined },
+                            {
+                                invoiceId: updated.id,
+                                note: submissionNote.trim() || undefined,
+                            },
                             {
                                 onSuccess: (submitted) => {
-                                    navigate(`/app/supplier/invoices/${submitted.id}`);
+                                    navigate(
+                                        `/app/supplier/invoices/${submitted.id}`,
+                                    );
                                 },
                             },
                         );
@@ -246,14 +305,20 @@ export function SupplierInvoiceEditPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Supplier portal</p>
-                    <h1 className="text-3xl font-semibold text-foreground">Edit invoice {invoice.invoiceNumber}</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Supplier portal
+                    </p>
+                    <h1 className="text-3xl font-semibold text-foreground">
+                        Edit invoice {invoice.invoiceNumber}
+                    </h1>
                     <p className="text-sm text-muted-foreground">
                         Update draft values before submitting to your buyer.
                     </p>
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                    <Link to={`/app/supplier/invoices/${invoice.id}`}>Back to invoice</Link>
+                    <Link to={`/app/supplier/invoices/${invoice.id}`}>
+                        Back to invoice
+                    </Link>
                 </Button>
             </div>
 
@@ -265,18 +330,20 @@ export function SupplierInvoiceEditPage() {
                         isError: poQuery.isError,
                         refetch: poQuery.refetch,
                     }}
-                    formatCurrency={(value, code) => formatCurrencyValue(value, code)}
+                    formatCurrency={(value, code) =>
+                        formatCurrencyValue(value, code)
+                    }
                 />
             ) : null}
 
             <InvoiceHeaderCard
-                invoiceNumber={invoiceNumber}
+                invoiceNumber={resolvedInvoiceNumber}
                 onInvoiceNumberChange={setInvoiceNumber}
-                invoiceDate={invoiceDate}
+                invoiceDate={resolvedInvoiceDate}
                 onInvoiceDateChange={setInvoiceDate}
-                dueDate={dueDate}
+                dueDate={resolvedDueDate}
                 onDueDateChange={setDueDate}
-                currency={currency}
+                currency={resolvedCurrency}
                 onCurrencyChange={setCurrency}
                 poCurrency={invoice.currency}
                 currencyReadOnly
@@ -285,7 +352,7 @@ export function SupplierInvoiceEditPage() {
             <InvoiceLinesCard
                 lineItems={lineItems}
                 onLineChange={handleLineChange}
-                currency={currency}
+                currency={resolvedCurrency}
                 formatNumber={formatNumber}
                 taxCodes={taxCodeOptions}
                 allowTaxCodes={allowTaxCodePicker}

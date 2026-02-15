@@ -1,4 +1,9 @@
-import { Configuration, ConfigurationParameters, FetchAPI, ResponseError } from './generated';
+import {
+    Configuration,
+    ConfigurationParameters,
+    FetchAPI,
+    ResponseError,
+} from './generated';
 
 export interface RetryOptions {
     maxAttempts: number;
@@ -16,7 +21,10 @@ export interface ClientOptions {
     defaultHeaders?: Record<string, string>;
 }
 
-type TokenSource = string | (() => MaybePromise<string | undefined>) | undefined;
+type TokenSource =
+    | string
+    | (() => MaybePromise<string | undefined>)
+    | undefined;
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -27,18 +35,32 @@ const DEFAULT_RETRY: RetryOptions = {
 };
 
 export class HttpError extends ResponseError {
-    constructor(response: Response, public readonly body: unknown, message?: string) {
-        super(response, message ?? `Request failed with status ${response.status}`);
+    constructor(
+        response: Response,
+        public readonly body: unknown,
+        message?: string,
+    ) {
+        super(
+            response,
+            message ?? `Request failed with status ${response.status}`,
+        );
     }
 }
 
 export class TooManyRequestsError extends HttpError {
-    constructor(response: Response, body: unknown, public readonly retryAfterMs: number, public readonly attempts: number) {
+    constructor(
+        response: Response,
+        body: unknown,
+        public readonly retryAfterMs: number,
+        public readonly attempts: number,
+    ) {
         super(response, body, 'Too many requests');
     }
 }
 
-export function createConfiguration(options: ClientOptions = {}): Configuration {
+export function createConfiguration(
+    options: ClientOptions = {},
+): Configuration {
     const config: ConfigurationParameters = {
         basePath: options.baseUrl,
         headers: options.defaultHeaders,
@@ -48,11 +70,16 @@ export function createConfiguration(options: ClientOptions = {}): Configuration 
     return new Configuration(config);
 }
 
-export function createAuthenticatedFetch(options: ClientOptions = {}): FetchAPI {
+export function createAuthenticatedFetch(
+    options: ClientOptions = {},
+): FetchAPI {
     const retry = applyRetryDefaults(options.retry ?? {});
     const fetchImpl = resolveFetchImplementation(options.fetch);
 
-    return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    return async (
+        input: RequestInfo | URL,
+        init?: RequestInit,
+    ): Promise<Response> => {
         const mergedInit: RequestInit = {
             credentials: 'include',
             ...init,
@@ -67,7 +94,10 @@ export function createAuthenticatedFetch(options: ClientOptions = {}): FetchAPI 
         if (!headers.has('Authorization')) {
             const bearer = await resolveToken(options.bearerToken);
             if (bearer) {
-                headers.set('Authorization', bearer.startsWith('Bearer ') ? bearer : `Bearer ${bearer}`);
+                headers.set(
+                    'Authorization',
+                    bearer.startsWith('Bearer ') ? bearer : `Bearer ${bearer}`,
+                );
             }
         }
 
@@ -108,7 +138,9 @@ function resolveFetchImplementation(provided?: FetchAPI): FetchAPI {
         return fetch.bind(globalThis);
     }
 
-    throw new Error('No fetch implementation available. Provide ClientOptions.fetch when using this SDK outside environments with a global fetch.');
+    throw new Error(
+        'No fetch implementation available. Provide ClientOptions.fetch when using this SDK outside environments with a global fetch.',
+    );
 }
 
 async function resolveToken(source: TokenSource): Promise<string | undefined> {
@@ -124,7 +156,10 @@ async function resolveToken(source: TokenSource): Promise<string | undefined> {
     return source;
 }
 
-function applyDefaultHeaders(headers: Headers, defaults: Record<string, string>): void {
+function applyDefaultHeaders(
+    headers: Headers,
+    defaults: Record<string, string>,
+): void {
     Object.entries(defaults).forEach(([key, value]) => {
         if (!headers.has(key) && value !== undefined) {
             headers.set(key, value);
@@ -183,7 +218,11 @@ function readCookie(name: string): string | undefined {
     return undefined;
 }
 
-async function fetchWithRetry(request: Request, fetchImpl: FetchAPI, retry: RetryOptions): Promise<Response> {
+async function fetchWithRetry(
+    request: Request,
+    fetchImpl: FetchAPI,
+    retry: RetryOptions,
+): Promise<Response> {
     let attempt = 0;
 
     while (attempt < retry.maxAttempts) {
@@ -195,10 +234,20 @@ async function fetchWithRetry(request: Request, fetchImpl: FetchAPI, retry: Retr
             if (attempt >= retry.maxAttempts) {
                 const body = await safeParseBody(response);
                 const retryAfterMs = parseRetryAfter(response);
-                throw new TooManyRequestsError(response, body, retryAfterMs, attempt);
+                throw new TooManyRequestsError(
+                    response,
+                    body,
+                    retryAfterMs,
+                    attempt,
+                );
             }
 
-            const delay = calculateBackoffDelay(retry.initialDelayMs, retry.maxDelayMs, attempt - 1, response);
+            const delay = calculateBackoffDelay(
+                retry.initialDelayMs,
+                retry.maxDelayMs,
+                attempt - 1,
+                response,
+            );
             await delayFor(delay, request.signal);
             continue;
         }
@@ -220,7 +269,12 @@ async function fetchWithRetry(request: Request, fetchImpl: FetchAPI, retry: Retr
     return fallbackResponse;
 }
 
-function calculateBackoffDelay(initial: number, max: number, attempt: number, response: Response): number {
+function calculateBackoffDelay(
+    initial: number,
+    max: number,
+    attempt: number,
+    response: Response,
+): number {
     const retryAfterMs = parseRetryAfter(response);
     if (retryAfterMs > 0) {
         return retryAfterMs;
@@ -270,7 +324,10 @@ async function safeParseBody(response: Response): Promise<unknown> {
     }
 }
 
-function delayFor(durationMs: number, signal?: AbortSignal | null): Promise<void> {
+function delayFor(
+    durationMs: number,
+    signal?: AbortSignal | null,
+): Promise<void> {
     if (durationMs <= 0) {
         return Promise.resolve();
     }

@@ -26,8 +26,12 @@ export function useCloseRfq() {
         },
         onSuccess: (_response, variables) => {
             const rfqId = String(variables.rfqId);
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.timeline(rfqId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.timeline(rfqId),
+            });
         },
     });
 }

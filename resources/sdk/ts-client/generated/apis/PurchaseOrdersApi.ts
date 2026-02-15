@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,54 +12,36 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  AcknowledgePurchaseOrderRequest,
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  CreatePurchaseOrderChangeOrderRequest,
-  CreatePurchaseOrdersFromAwards201Response,
-  CreatePurchaseOrdersFromAwardsRequest,
-  ExportPurchaseOrder200Response,
-  ListPurchaseOrderChangeOrders200Response,
-  ListPurchaseOrderEvents200Response,
-  ListPurchaseOrders200Response,
-  ListPurchaseOrdersStatusParameter,
-  SendPurchaseOrder200Response,
-  SendPurchaseOrderRequest,
-  ShowPurchaseOrder200Response,
+    AcknowledgePurchaseOrderRequest,
+    ApiSuccessResponse,
+    CreatePurchaseOrderChangeOrderRequest,
+    CreatePurchaseOrdersFromAwards201Response,
+    CreatePurchaseOrdersFromAwardsRequest,
+    ExportPurchaseOrder200Response,
+    ListPurchaseOrderChangeOrders200Response,
+    ListPurchaseOrderEvents200Response,
+    ListPurchaseOrders200Response,
+    ListPurchaseOrdersStatusParameter,
+    SendPurchaseOrder200Response,
+    SendPurchaseOrderRequest,
+    ShowPurchaseOrder200Response,
 } from '../models/index';
 import {
-    AcknowledgePurchaseOrderRequestFromJSON,
     AcknowledgePurchaseOrderRequestToJSON,
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
-    CreatePurchaseOrderChangeOrderRequestFromJSON,
     CreatePurchaseOrderChangeOrderRequestToJSON,
     CreatePurchaseOrdersFromAwards201ResponseFromJSON,
-    CreatePurchaseOrdersFromAwards201ResponseToJSON,
-    CreatePurchaseOrdersFromAwardsRequestFromJSON,
     CreatePurchaseOrdersFromAwardsRequestToJSON,
     ExportPurchaseOrder200ResponseFromJSON,
-    ExportPurchaseOrder200ResponseToJSON,
     ListPurchaseOrderChangeOrders200ResponseFromJSON,
-    ListPurchaseOrderChangeOrders200ResponseToJSON,
     ListPurchaseOrderEvents200ResponseFromJSON,
-    ListPurchaseOrderEvents200ResponseToJSON,
     ListPurchaseOrders200ResponseFromJSON,
-    ListPurchaseOrders200ResponseToJSON,
-    ListPurchaseOrdersStatusParameterFromJSON,
-    ListPurchaseOrdersStatusParameterToJSON,
     SendPurchaseOrder200ResponseFromJSON,
-    SendPurchaseOrder200ResponseToJSON,
-    SendPurchaseOrderRequestFromJSON,
     SendPurchaseOrderRequestToJSON,
     ShowPurchaseOrder200ResponseFromJSON,
-    ShowPurchaseOrder200ResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AcknowledgePurchaseOrderOperationRequest {
     purchaseOrderId: number;
@@ -126,250 +108,338 @@ export interface ShowPurchaseOrderRequest {
 
 /**
  * PurchaseOrdersApi - interface
- * 
+ *
  * @export
  * @interface PurchaseOrdersApiInterface
  */
 export interface PurchaseOrdersApiInterface {
     /**
-     * 
+     *
      * @summary Supplier acknowledges purchase order
-     * @param {number} purchaseOrderId 
-     * @param {AcknowledgePurchaseOrderRequest} acknowledgePurchaseOrderRequest 
+     * @param {number} purchaseOrderId
+     * @param {AcknowledgePurchaseOrderRequest} acknowledgePurchaseOrderRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    acknowledgePurchaseOrderRaw(requestParameters: AcknowledgePurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>>;
+    acknowledgePurchaseOrderRaw(
+        requestParameters: AcknowledgePurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>>;
 
     /**
      * Supplier acknowledges purchase order
      */
-    acknowledgePurchaseOrder(requestParameters: AcknowledgePurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowPurchaseOrder200Response>;
+    acknowledgePurchaseOrder(
+        requestParameters: AcknowledgePurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowPurchaseOrder200Response>;
 
     /**
-     * 
+     *
      * @summary Approve change order
-     * @param {number} changeOrderId 
+     * @param {number} changeOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    approvePurchaseOrderChangeOrderRaw(requestParameters: ApprovePurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    approvePurchaseOrderChangeOrderRaw(
+        requestParameters: ApprovePurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Approve change order
      */
-    approvePurchaseOrderChangeOrder(requestParameters: ApprovePurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    approvePurchaseOrderChangeOrder(
+        requestParameters: ApprovePurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Cancel purchase order
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    cancelPurchaseOrderRaw(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    cancelPurchaseOrderRaw(
+        requestParameters: CancelPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Cancel purchase order
      */
-    cancelPurchaseOrder(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    cancelPurchaseOrder(
+        requestParameters: CancelPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Propose change order
-     * @param {number} purchaseOrderId 
-     * @param {CreatePurchaseOrderChangeOrderRequest} createPurchaseOrderChangeOrderRequest 
+     * @param {number} purchaseOrderId
+     * @param {CreatePurchaseOrderChangeOrderRequest} createPurchaseOrderChangeOrderRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    createPurchaseOrderChangeOrderRaw(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    createPurchaseOrderChangeOrderRaw(
+        requestParameters: CreatePurchaseOrderChangeOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Propose change order
      */
-    createPurchaseOrderChangeOrder(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    createPurchaseOrderChangeOrder(
+        requestParameters: CreatePurchaseOrderChangeOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Convert awarded RFQ lines into draft purchase orders
-     * @param {CreatePurchaseOrdersFromAwardsRequest} createPurchaseOrdersFromAwardsRequest 
+     * @param {CreatePurchaseOrdersFromAwardsRequest} createPurchaseOrdersFromAwardsRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    createPurchaseOrdersFromAwardsRaw(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreatePurchaseOrdersFromAwards201Response>>;
+    createPurchaseOrdersFromAwardsRaw(
+        requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreatePurchaseOrdersFromAwards201Response>>;
 
     /**
      * Convert awarded RFQ lines into draft purchase orders
      */
-    createPurchaseOrdersFromAwards(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreatePurchaseOrdersFromAwards201Response>;
+    createPurchaseOrdersFromAwards(
+        requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreatePurchaseOrdersFromAwards201Response>;
 
     /**
-     * 
+     *
      * @summary Download purchase order PDF
-     * @param {number} purchaseOrderId 
-     * @param {number} documentId 
+     * @param {number} purchaseOrderId
+     * @param {number} documentId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    downloadPurchaseOrderDocumentRaw(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>>;
+    downloadPurchaseOrderDocumentRaw(
+        requestParameters: DownloadPurchaseOrderDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>>;
 
     /**
      * Download purchase order PDF
      */
-    downloadPurchaseOrderDocument(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob>;
+    downloadPurchaseOrderDocument(
+        requestParameters: DownloadPurchaseOrderDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob>;
 
     /**
-     * 
+     *
      * @summary Generate PDF for purchase order
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    exportPurchaseOrderRaw(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExportPurchaseOrder200Response>>;
+    exportPurchaseOrderRaw(
+        requestParameters: ExportPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ExportPurchaseOrder200Response>>;
 
     /**
      * Generate PDF for purchase order
      */
-    exportPurchaseOrder(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExportPurchaseOrder200Response>;
+    exportPurchaseOrder(
+        requestParameters: ExportPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ExportPurchaseOrder200Response>;
 
     /**
-     * 
+     *
      * @summary List change orders for purchase order
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    listPurchaseOrderChangeOrdersRaw(requestParameters: ListPurchaseOrderChangeOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPurchaseOrderChangeOrders200Response>>;
+    listPurchaseOrderChangeOrdersRaw(
+        requestParameters: ListPurchaseOrderChangeOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListPurchaseOrderChangeOrders200Response>>;
 
     /**
      * List change orders for purchase order
      */
-    listPurchaseOrderChangeOrders(requestParameters: ListPurchaseOrderChangeOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPurchaseOrderChangeOrders200Response>;
+    listPurchaseOrderChangeOrders(
+        requestParameters: ListPurchaseOrderChangeOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListPurchaseOrderChangeOrders200Response>;
 
     /**
-     * 
+     *
      * @summary List purchase order timeline events
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    listPurchaseOrderEventsRaw(requestParameters: ListPurchaseOrderEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPurchaseOrderEvents200Response>>;
+    listPurchaseOrderEventsRaw(
+        requestParameters: ListPurchaseOrderEventsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListPurchaseOrderEvents200Response>>;
 
     /**
      * List purchase order timeline events
      */
-    listPurchaseOrderEvents(requestParameters: ListPurchaseOrderEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPurchaseOrderEvents200Response>;
+    listPurchaseOrderEvents(
+        requestParameters: ListPurchaseOrderEventsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListPurchaseOrderEvents200Response>;
 
     /**
-     * 
+     *
      * @summary List shipments linked to purchase order
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    listPurchaseOrderShipmentsRaw(requestParameters: ListPurchaseOrderShipmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listPurchaseOrderShipmentsRaw(
+        requestParameters: ListPurchaseOrderShipmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List shipments linked to purchase order
      */
-    listPurchaseOrderShipments(requestParameters: ListPurchaseOrderShipmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listPurchaseOrderShipments(
+        requestParameters: ListPurchaseOrderShipmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List purchase orders
-     * @param {number} [perPage] 
-     * @param {number} [page] 
-     * @param {boolean} [supplier] 
-     * @param {ListPurchaseOrdersStatusParameter} [status] 
+     * @param {number} [perPage]
+     * @param {number} [page]
+     * @param {boolean} [supplier]
+     * @param {ListPurchaseOrdersStatusParameter} [status]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    listPurchaseOrdersRaw(requestParameters: ListPurchaseOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPurchaseOrders200Response>>;
+    listPurchaseOrdersRaw(
+        requestParameters: ListPurchaseOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListPurchaseOrders200Response>>;
 
     /**
      * List purchase orders
      */
-    listPurchaseOrders(requestParameters: ListPurchaseOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPurchaseOrders200Response>;
+    listPurchaseOrders(
+        requestParameters: ListPurchaseOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListPurchaseOrders200Response>;
 
     /**
-     * 
+     *
      * @summary Reject change order
-     * @param {number} changeOrderId 
+     * @param {number} changeOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    rejectPurchaseOrderChangeOrderRaw(requestParameters: RejectPurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    rejectPurchaseOrderChangeOrderRaw(
+        requestParameters: RejectPurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Reject change order
      */
-    rejectPurchaseOrderChangeOrder(requestParameters: RejectPurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    rejectPurchaseOrderChangeOrder(
+        requestParameters: RejectPurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Issue purchase order to supplier
-     * @param {number} purchaseOrderId 
-     * @param {SendPurchaseOrderRequest} sendPurchaseOrderRequest 
+     * @param {number} purchaseOrderId
+     * @param {SendPurchaseOrderRequest} sendPurchaseOrderRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    sendPurchaseOrderRaw(requestParameters: SendPurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SendPurchaseOrder200Response>>;
+    sendPurchaseOrderRaw(
+        requestParameters: SendPurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SendPurchaseOrder200Response>>;
 
     /**
      * Issue purchase order to supplier
      */
-    sendPurchaseOrder(requestParameters: SendPurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SendPurchaseOrder200Response>;
+    sendPurchaseOrder(
+        requestParameters: SendPurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SendPurchaseOrder200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve purchase order
-     * @param {number} purchaseOrderId 
+     * @param {number} purchaseOrderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PurchaseOrdersApiInterface
      */
-    showPurchaseOrderRaw(requestParameters: ShowPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>>;
+    showPurchaseOrderRaw(
+        requestParameters: ShowPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>>;
 
     /**
      * Retrieve purchase order
      */
-    showPurchaseOrder(requestParameters: ShowPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowPurchaseOrder200Response>;
-
+    showPurchaseOrder(
+        requestParameters: ShowPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowPurchaseOrder200Response>;
 }
 
 /**
- * 
+ *
  */
-export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrdersApiInterface {
-
+export class PurchaseOrdersApi
+    extends runtime.BaseAPI
+    implements PurchaseOrdersApiInterface
+{
     /**
      * Supplier acknowledges purchase order
      */
-    async acknowledgePurchaseOrderRaw(requestParameters: AcknowledgePurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>> {
+    async acknowledgePurchaseOrderRaw(
+        requestParameters: AcknowledgePurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling acknowledgePurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling acknowledgePurchaseOrder().',
             );
         }
 
         if (requestParameters['acknowledgePurchaseOrderRequest'] == null) {
             throw new runtime.RequiredError(
                 'acknowledgePurchaseOrderRequest',
-                'Required parameter "acknowledgePurchaseOrderRequest" was null or undefined when calling acknowledgePurchaseOrder().'
+                'Required parameter "acknowledgePurchaseOrderRequest" was null or undefined when calling acknowledgePurchaseOrder().',
             );
         }
 
@@ -380,48 +450,68 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/acknowledge`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AcknowledgePurchaseOrderRequestToJSON(requestParameters['acknowledgePurchaseOrderRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: AcknowledgePurchaseOrderRequestToJSON(
+                    requestParameters['acknowledgePurchaseOrderRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowPurchaseOrder200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowPurchaseOrder200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Supplier acknowledges purchase order
      */
-    async acknowledgePurchaseOrder(requestParameters: AcknowledgePurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowPurchaseOrder200Response> {
-        const response = await this.acknowledgePurchaseOrderRaw(requestParameters, initOverrides);
+    async acknowledgePurchaseOrder(
+        requestParameters: AcknowledgePurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowPurchaseOrder200Response> {
+        const response = await this.acknowledgePurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Approve change order
      */
-    async approvePurchaseOrderChangeOrderRaw(requestParameters: ApprovePurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async approvePurchaseOrderChangeOrderRaw(
+        requestParameters: ApprovePurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['changeOrderId'] == null) {
             throw new runtime.RequiredError(
                 'changeOrderId',
-                'Required parameter "changeOrderId" was null or undefined when calling approvePurchaseOrderChangeOrder().'
+                'Required parameter "changeOrderId" was null or undefined when calling approvePurchaseOrderChangeOrder().',
             );
         }
 
@@ -430,47 +520,65 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/change-orders/{changeOrderId}/approve`;
-        urlPath = urlPath.replace(`{${"changeOrderId"}}`, encodeURIComponent(String(requestParameters['changeOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'changeOrderId'}}`,
+            encodeURIComponent(String(requestParameters['changeOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Approve change order
      */
-    async approvePurchaseOrderChangeOrder(requestParameters: ApprovePurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.approvePurchaseOrderChangeOrderRaw(requestParameters, initOverrides);
+    async approvePurchaseOrderChangeOrder(
+        requestParameters: ApprovePurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.approvePurchaseOrderChangeOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Cancel purchase order
      */
-    async cancelPurchaseOrderRaw(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async cancelPurchaseOrderRaw(
+        requestParameters: CancelPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling cancelPurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling cancelPurchaseOrder().',
             );
         }
 
@@ -479,54 +587,74 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/cancel`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Cancel purchase order
      */
-    async cancelPurchaseOrder(requestParameters: CancelPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.cancelPurchaseOrderRaw(requestParameters, initOverrides);
+    async cancelPurchaseOrder(
+        requestParameters: CancelPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.cancelPurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Propose change order
      */
-    async createPurchaseOrderChangeOrderRaw(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async createPurchaseOrderChangeOrderRaw(
+        requestParameters: CreatePurchaseOrderChangeOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling createPurchaseOrderChangeOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling createPurchaseOrderChangeOrder().',
             );
         }
 
-        if (requestParameters['createPurchaseOrderChangeOrderRequest'] == null) {
+        if (
+            requestParameters['createPurchaseOrderChangeOrderRequest'] == null
+        ) {
             throw new runtime.RequiredError(
                 'createPurchaseOrderChangeOrderRequest',
-                'Required parameter "createPurchaseOrderChangeOrderRequest" was null or undefined when calling createPurchaseOrderChangeOrder().'
+                'Required parameter "createPurchaseOrderChangeOrderRequest" was null or undefined when calling createPurchaseOrderChangeOrder().',
             );
         }
 
@@ -537,48 +665,70 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/change-orders`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreatePurchaseOrderChangeOrderRequestToJSON(requestParameters['createPurchaseOrderChangeOrderRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreatePurchaseOrderChangeOrderRequestToJSON(
+                    requestParameters['createPurchaseOrderChangeOrderRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Propose change order
      */
-    async createPurchaseOrderChangeOrder(requestParameters: CreatePurchaseOrderChangeOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.createPurchaseOrderChangeOrderRaw(requestParameters, initOverrides);
+    async createPurchaseOrderChangeOrder(
+        requestParameters: CreatePurchaseOrderChangeOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.createPurchaseOrderChangeOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Convert awarded RFQ lines into draft purchase orders
      */
-    async createPurchaseOrdersFromAwardsRaw(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreatePurchaseOrdersFromAwards201Response>> {
-        if (requestParameters['createPurchaseOrdersFromAwardsRequest'] == null) {
+    async createPurchaseOrdersFromAwardsRaw(
+        requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreatePurchaseOrdersFromAwards201Response>> {
+        if (
+            requestParameters['createPurchaseOrdersFromAwardsRequest'] == null
+        ) {
             throw new runtime.RequiredError(
                 'createPurchaseOrdersFromAwardsRequest',
-                'Required parameter "createPurchaseOrdersFromAwardsRequest" was null or undefined when calling createPurchaseOrdersFromAwards().'
+                'Required parameter "createPurchaseOrdersFromAwardsRequest" was null or undefined when calling createPurchaseOrdersFromAwards().',
             );
         }
 
@@ -589,54 +739,71 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/pos/from-awards`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreatePurchaseOrdersFromAwardsRequestToJSON(requestParameters['createPurchaseOrdersFromAwardsRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: CreatePurchaseOrdersFromAwardsRequestToJSON(
+                    requestParameters['createPurchaseOrdersFromAwardsRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreatePurchaseOrdersFromAwards201ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreatePurchaseOrdersFromAwards201ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Convert awarded RFQ lines into draft purchase orders
      */
-    async createPurchaseOrdersFromAwards(requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreatePurchaseOrdersFromAwards201Response> {
-        const response = await this.createPurchaseOrdersFromAwardsRaw(requestParameters, initOverrides);
+    async createPurchaseOrdersFromAwards(
+        requestParameters: CreatePurchaseOrdersFromAwardsOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreatePurchaseOrdersFromAwards201Response> {
+        const response = await this.createPurchaseOrdersFromAwardsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Download purchase order PDF
      */
-    async downloadPurchaseOrderDocumentRaw(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+    async downloadPurchaseOrderDocumentRaw(
+        requestParameters: DownloadPurchaseOrderDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling downloadPurchaseOrderDocument().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling downloadPurchaseOrderDocument().',
             );
         }
 
         if (requestParameters['documentId'] == null) {
             throw new runtime.RequiredError(
                 'documentId',
-                'Required parameter "documentId" was null or undefined when calling downloadPurchaseOrderDocument().'
+                'Required parameter "documentId" was null or undefined when calling downloadPurchaseOrderDocument().',
             );
         }
 
@@ -645,28 +812,38 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/documents/{documentId}/download`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
-        urlPath = urlPath.replace(`{${"documentId"}}`, encodeURIComponent(String(requestParameters['documentId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
+        urlPath = urlPath.replace(
+            `{${'documentId'}}`,
+            encodeURIComponent(String(requestParameters['documentId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
         return new runtime.BlobApiResponse(response);
     }
@@ -674,19 +851,28 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
     /**
      * Download purchase order PDF
      */
-    async downloadPurchaseOrderDocument(requestParameters: DownloadPurchaseOrderDocumentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.downloadPurchaseOrderDocumentRaw(requestParameters, initOverrides);
+    async downloadPurchaseOrderDocument(
+        requestParameters: DownloadPurchaseOrderDocumentRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<Blob> {
+        const response = await this.downloadPurchaseOrderDocumentRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Generate PDF for purchase order
      */
-    async exportPurchaseOrderRaw(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExportPurchaseOrder200Response>> {
+    async exportPurchaseOrderRaw(
+        requestParameters: ExportPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ExportPurchaseOrder200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling exportPurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling exportPurchaseOrder().',
             );
         }
 
@@ -695,47 +881,65 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/export`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ExportPurchaseOrder200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ExportPurchaseOrder200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Generate PDF for purchase order
      */
-    async exportPurchaseOrder(requestParameters: ExportPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExportPurchaseOrder200Response> {
-        const response = await this.exportPurchaseOrderRaw(requestParameters, initOverrides);
+    async exportPurchaseOrder(
+        requestParameters: ExportPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ExportPurchaseOrder200Response> {
+        const response = await this.exportPurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List change orders for purchase order
      */
-    async listPurchaseOrderChangeOrdersRaw(requestParameters: ListPurchaseOrderChangeOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPurchaseOrderChangeOrders200Response>> {
+    async listPurchaseOrderChangeOrdersRaw(
+        requestParameters: ListPurchaseOrderChangeOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListPurchaseOrderChangeOrders200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling listPurchaseOrderChangeOrders().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling listPurchaseOrderChangeOrders().',
             );
         }
 
@@ -744,47 +948,65 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/change-orders`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListPurchaseOrderChangeOrders200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListPurchaseOrderChangeOrders200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List change orders for purchase order
      */
-    async listPurchaseOrderChangeOrders(requestParameters: ListPurchaseOrderChangeOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPurchaseOrderChangeOrders200Response> {
-        const response = await this.listPurchaseOrderChangeOrdersRaw(requestParameters, initOverrides);
+    async listPurchaseOrderChangeOrders(
+        requestParameters: ListPurchaseOrderChangeOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListPurchaseOrderChangeOrders200Response> {
+        const response = await this.listPurchaseOrderChangeOrdersRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List purchase order timeline events
      */
-    async listPurchaseOrderEventsRaw(requestParameters: ListPurchaseOrderEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPurchaseOrderEvents200Response>> {
+    async listPurchaseOrderEventsRaw(
+        requestParameters: ListPurchaseOrderEventsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListPurchaseOrderEvents200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling listPurchaseOrderEvents().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling listPurchaseOrderEvents().',
             );
         }
 
@@ -793,47 +1015,65 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/events`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListPurchaseOrderEvents200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListPurchaseOrderEvents200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List purchase order timeline events
      */
-    async listPurchaseOrderEvents(requestParameters: ListPurchaseOrderEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPurchaseOrderEvents200Response> {
-        const response = await this.listPurchaseOrderEventsRaw(requestParameters, initOverrides);
+    async listPurchaseOrderEvents(
+        requestParameters: ListPurchaseOrderEventsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListPurchaseOrderEvents200Response> {
+        const response = await this.listPurchaseOrderEventsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List shipments linked to purchase order
      */
-    async listPurchaseOrderShipmentsRaw(requestParameters: ListPurchaseOrderShipmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listPurchaseOrderShipmentsRaw(
+        requestParameters: ListPurchaseOrderShipmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling listPurchaseOrderShipments().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling listPurchaseOrderShipments().',
             );
         }
 
@@ -842,43 +1082,61 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/shipments`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List shipments linked to purchase order
      */
-    async listPurchaseOrderShipments(requestParameters: ListPurchaseOrderShipmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.listPurchaseOrderShipmentsRaw(requestParameters, initOverrides);
+    async listPurchaseOrderShipments(
+        requestParameters: ListPurchaseOrderShipmentsRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.listPurchaseOrderShipmentsRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List purchase orders
      */
-    async listPurchaseOrdersRaw(requestParameters: ListPurchaseOrdersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListPurchaseOrders200Response>> {
+    async listPurchaseOrdersRaw(
+        requestParameters: ListPurchaseOrdersRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListPurchaseOrders200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['perPage'] != null) {
@@ -900,46 +1158,61 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListPurchaseOrders200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListPurchaseOrders200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List purchase orders
      */
-    async listPurchaseOrders(requestParameters: ListPurchaseOrdersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListPurchaseOrders200Response> {
-        const response = await this.listPurchaseOrdersRaw(requestParameters, initOverrides);
+    async listPurchaseOrders(
+        requestParameters: ListPurchaseOrdersRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListPurchaseOrders200Response> {
+        const response = await this.listPurchaseOrdersRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Reject change order
      */
-    async rejectPurchaseOrderChangeOrderRaw(requestParameters: RejectPurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async rejectPurchaseOrderChangeOrderRaw(
+        requestParameters: RejectPurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['changeOrderId'] == null) {
             throw new runtime.RequiredError(
                 'changeOrderId',
-                'Required parameter "changeOrderId" was null or undefined when calling rejectPurchaseOrderChangeOrder().'
+                'Required parameter "changeOrderId" was null or undefined when calling rejectPurchaseOrderChangeOrder().',
             );
         }
 
@@ -948,54 +1221,72 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/change-orders/{changeOrderId}/reject`;
-        urlPath = urlPath.replace(`{${"changeOrderId"}}`, encodeURIComponent(String(requestParameters['changeOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'changeOrderId'}}`,
+            encodeURIComponent(String(requestParameters['changeOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Reject change order
      */
-    async rejectPurchaseOrderChangeOrder(requestParameters: RejectPurchaseOrderChangeOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.rejectPurchaseOrderChangeOrderRaw(requestParameters, initOverrides);
+    async rejectPurchaseOrderChangeOrder(
+        requestParameters: RejectPurchaseOrderChangeOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.rejectPurchaseOrderChangeOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Issue purchase order to supplier
      */
-    async sendPurchaseOrderRaw(requestParameters: SendPurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SendPurchaseOrder200Response>> {
+    async sendPurchaseOrderRaw(
+        requestParameters: SendPurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<SendPurchaseOrder200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling sendPurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling sendPurchaseOrder().',
             );
         }
 
         if (requestParameters['sendPurchaseOrderRequest'] == null) {
             throw new runtime.RequiredError(
                 'sendPurchaseOrderRequest',
-                'Required parameter "sendPurchaseOrderRequest" was null or undefined when calling sendPurchaseOrder().'
+                'Required parameter "sendPurchaseOrderRequest" was null or undefined when calling sendPurchaseOrder().',
             );
         }
 
@@ -1006,48 +1297,68 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/send`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: SendPurchaseOrderRequestToJSON(requestParameters['sendPurchaseOrderRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: SendPurchaseOrderRequestToJSON(
+                    requestParameters['sendPurchaseOrderRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SendPurchaseOrder200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            SendPurchaseOrder200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Issue purchase order to supplier
      */
-    async sendPurchaseOrder(requestParameters: SendPurchaseOrderOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SendPurchaseOrder200Response> {
-        const response = await this.sendPurchaseOrderRaw(requestParameters, initOverrides);
+    async sendPurchaseOrder(
+        requestParameters: SendPurchaseOrderOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<SendPurchaseOrder200Response> {
+        const response = await this.sendPurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve purchase order
      */
-    async showPurchaseOrderRaw(requestParameters: ShowPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>> {
+    async showPurchaseOrderRaw(
+        requestParameters: ShowPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ShowPurchaseOrder200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling showPurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling showPurchaseOrder().',
             );
         }
 
@@ -1056,37 +1367,51 @@ export class PurchaseOrdersApi extends runtime.BaseAPI implements PurchaseOrders
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ShowPurchaseOrder200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ShowPurchaseOrder200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve purchase order
      */
-    async showPurchaseOrder(requestParameters: ShowPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShowPurchaseOrder200Response> {
-        const response = await this.showPurchaseOrderRaw(requestParameters, initOverrides);
+    async showPurchaseOrder(
+        requestParameters: ShowPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ShowPurchaseOrder200Response> {
+        const response = await this.showPurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

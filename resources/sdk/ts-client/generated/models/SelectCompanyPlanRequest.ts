@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SelectCompanyPlanRequest
  */
 export interface SelectCompanyPlanRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SelectCompanyPlanRequest
      */
@@ -30,37 +29,46 @@ export interface SelectCompanyPlanRequest {
 /**
  * Check if a given object implements the SelectCompanyPlanRequest interface.
  */
-export function instanceOfSelectCompanyPlanRequest(value: object): value is SelectCompanyPlanRequest {
+export function instanceOfSelectCompanyPlanRequest(
+    value: object,
+): value is SelectCompanyPlanRequest {
     if (!('planCode' in value) || value['planCode'] === undefined) return false;
     return true;
 }
 
-export function SelectCompanyPlanRequestFromJSON(json: any): SelectCompanyPlanRequest {
+export function SelectCompanyPlanRequestFromJSON(
+    json: any,
+): SelectCompanyPlanRequest {
     return SelectCompanyPlanRequestFromJSONTyped(json, false);
 }
 
-export function SelectCompanyPlanRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): SelectCompanyPlanRequest {
+export function SelectCompanyPlanRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SelectCompanyPlanRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'planCode': json['plan_code'],
+        planCode: json['plan_code'],
     };
 }
 
-export function SelectCompanyPlanRequestToJSON(json: any): SelectCompanyPlanRequest {
+export function SelectCompanyPlanRequestToJSON(
+    json: any,
+): SelectCompanyPlanRequest {
     return SelectCompanyPlanRequestToJSONTyped(json, false);
 }
 
-export function SelectCompanyPlanRequestToJSONTyped(value?: SelectCompanyPlanRequest | null, ignoreDiscriminator: boolean = false): any {
+export function SelectCompanyPlanRequestToJSONTyped(
+    value?: SelectCompanyPlanRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'plan_code': value['planCode'],
+        plan_code: value['planCode'],
     };
 }
-

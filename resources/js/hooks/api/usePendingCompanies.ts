@@ -1,4 +1,11 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -30,24 +37,30 @@ export interface PendingCompaniesResult {
 export function usePendingCompanies(
     params: PendingCompaniesParams,
 ): UseQueryResult<PendingCompaniesResult, ApiError> {
-    return useQuery<PendingCompaniesResponse, ApiError, PendingCompaniesResult>({
-        queryKey: queryKeys.admin.companies(params),
-        queryFn: async () => {
-            const query = buildQuery(params);
-            return (await api.get<PendingCompaniesResponse>(
-                `/admin/companies${query}`,
-            )) as unknown as PendingCompaniesResponse;
+    return useQuery<PendingCompaniesResponse, ApiError, PendingCompaniesResult>(
+        {
+            queryKey: queryKeys.admin.companies(params),
+            queryFn: async () => {
+                const query = buildQuery(params);
+                return (await api.get<PendingCompaniesResponse>(
+                    `/admin/companies${query}`,
+                )) as unknown as PendingCompaniesResponse;
+            },
+            select: (response) => ({
+                items: response.items.map(mapCompany),
+                meta: response.meta,
+            }),
+            placeholderData: keepPreviousData,
+            staleTime: 15_000,
         },
-        select: (response) => ({
-            items: response.items.map(mapCompany),
-            meta: response.meta,
-        }),
-        placeholderData: keepPreviousData,
-        staleTime: 15_000,
-    });
+    );
 }
 
-export function useApproveCompany(): UseMutationResult<Company, ApiError, { companyId: number }> {
+export function useApproveCompany(): UseMutationResult<
+    Company,
+    ApiError,
+    { companyId: number }
+> {
     const queryClient = useQueryClient();
 
     return useMutation<Company, ApiError, { companyId: number }>({
@@ -76,7 +89,11 @@ export function useRejectCompany(): UseMutationResult<
 > {
     const queryClient = useQueryClient();
 
-    return useMutation<Company, ApiError, { companyId: number; reason: string }>({
+    return useMutation<
+        Company,
+        ApiError,
+        { companyId: number; reason: string }
+    >({
         mutationFn: async ({ companyId, reason }) => {
             const response = (await api.post<CompanyResponse>(
                 `/admin/companies/${companyId}/reject`,

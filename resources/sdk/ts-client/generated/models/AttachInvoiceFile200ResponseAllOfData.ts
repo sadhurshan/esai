@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { Invoice } from './Invoice';
-import {
-    InvoiceFromJSON,
-    InvoiceFromJSONTyped,
-    InvoiceToJSON,
-    InvoiceToJSONTyped,
-} from './Invoice';
 import type { DocumentAttachment } from './DocumentAttachment';
 import {
     DocumentAttachmentFromJSON,
-    DocumentAttachmentFromJSONTyped,
     DocumentAttachmentToJSON,
-    DocumentAttachmentToJSONTyped,
 } from './DocumentAttachment';
+import type { Invoice } from './Invoice';
+import { InvoiceFromJSON, InvoiceToJSON } from './Invoice';
 
 /**
- * 
+ *
  * @export
  * @interface AttachInvoiceFile200ResponseAllOfData
  */
 export interface AttachInvoiceFile200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Invoice}
      * @memberof AttachInvoiceFile200ResponseAllOfData
      */
     invoice?: Invoice;
     /**
-     * 
+     *
      * @type {DocumentAttachment}
      * @memberof AttachInvoiceFile200ResponseAllOfData
      */
@@ -51,38 +43,53 @@ export interface AttachInvoiceFile200ResponseAllOfData {
 /**
  * Check if a given object implements the AttachInvoiceFile200ResponseAllOfData interface.
  */
-export function instanceOfAttachInvoiceFile200ResponseAllOfData(value: object): value is AttachInvoiceFile200ResponseAllOfData {
+export function instanceOfAttachInvoiceFile200ResponseAllOfData(
+    value: object,
+): value is AttachInvoiceFile200ResponseAllOfData {
     return true;
 }
 
-export function AttachInvoiceFile200ResponseAllOfDataFromJSON(json: any): AttachInvoiceFile200ResponseAllOfData {
+export function AttachInvoiceFile200ResponseAllOfDataFromJSON(
+    json: any,
+): AttachInvoiceFile200ResponseAllOfData {
     return AttachInvoiceFile200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AttachInvoiceFile200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AttachInvoiceFile200ResponseAllOfData {
+export function AttachInvoiceFile200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AttachInvoiceFile200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'invoice': json['invoice'] == null ? undefined : InvoiceFromJSON(json['invoice']),
-        'attachment': json['attachment'] == null ? undefined : DocumentAttachmentFromJSON(json['attachment']),
+        invoice:
+            json['invoice'] == null
+                ? undefined
+                : InvoiceFromJSON(json['invoice']),
+        attachment:
+            json['attachment'] == null
+                ? undefined
+                : DocumentAttachmentFromJSON(json['attachment']),
     };
 }
 
-export function AttachInvoiceFile200ResponseAllOfDataToJSON(json: any): AttachInvoiceFile200ResponseAllOfData {
+export function AttachInvoiceFile200ResponseAllOfDataToJSON(
+    json: any,
+): AttachInvoiceFile200ResponseAllOfData {
     return AttachInvoiceFile200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AttachInvoiceFile200ResponseAllOfDataToJSONTyped(value?: AttachInvoiceFile200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AttachInvoiceFile200ResponseAllOfDataToJSONTyped(
+    value?: AttachInvoiceFile200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'invoice': InvoiceToJSON(value['invoice']),
-        'attachment': DocumentAttachmentToJSON(value['attachment']),
+        invoice: InvoiceToJSON(value['invoice']),
+        attachment: DocumentAttachmentToJSON(value['attachment']),
     };
 }
-

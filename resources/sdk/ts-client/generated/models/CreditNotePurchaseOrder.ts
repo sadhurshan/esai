@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreditNotePurchaseOrder
  */
 export interface CreditNotePurchaseOrder {
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNotePurchaseOrder
      */
     id?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNotePurchaseOrder
      */
@@ -36,38 +35,47 @@ export interface CreditNotePurchaseOrder {
 /**
  * Check if a given object implements the CreditNotePurchaseOrder interface.
  */
-export function instanceOfCreditNotePurchaseOrder(value: object): value is CreditNotePurchaseOrder {
+export function instanceOfCreditNotePurchaseOrder(
+    value: object,
+): value is CreditNotePurchaseOrder {
     return true;
 }
 
-export function CreditNotePurchaseOrderFromJSON(json: any): CreditNotePurchaseOrder {
+export function CreditNotePurchaseOrderFromJSON(
+    json: any,
+): CreditNotePurchaseOrder {
     return CreditNotePurchaseOrderFromJSONTyped(json, false);
 }
 
-export function CreditNotePurchaseOrderFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreditNotePurchaseOrder {
+export function CreditNotePurchaseOrderFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreditNotePurchaseOrder {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'poNumber': json['po_number'] == null ? undefined : json['po_number'],
+        id: json['id'] == null ? undefined : json['id'],
+        poNumber: json['po_number'] == null ? undefined : json['po_number'],
     };
 }
 
-export function CreditNotePurchaseOrderToJSON(json: any): CreditNotePurchaseOrder {
+export function CreditNotePurchaseOrderToJSON(
+    json: any,
+): CreditNotePurchaseOrder {
     return CreditNotePurchaseOrderToJSONTyped(json, false);
 }
 
-export function CreditNotePurchaseOrderToJSONTyped(value?: CreditNotePurchaseOrder | null, ignoreDiscriminator: boolean = false): any {
+export function CreditNotePurchaseOrderToJSONTyped(
+    value?: CreditNotePurchaseOrder | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'po_number': value['poNumber'],
+        id: value['id'],
+        po_number: value['poNumber'],
     };
 }
-

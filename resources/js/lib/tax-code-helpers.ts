@@ -1,4 +1,6 @@
-export function normalizeTaxCodeIds(values?: Array<string | number | null | undefined>): number[] {
+export function normalizeTaxCodeIds(
+    values?: Array<string | number | null | undefined>,
+): number[] {
     if (!values || values.length === 0) {
         return [];
     }
@@ -33,5 +35,7 @@ export function haveSameTaxCodeIds(
         return false;
     }
 
-    return normalizedLeft.every((value, index) => value === normalizedRight[index]);
+    return normalizedLeft.every(
+        (value, index) => value === normalizedRight[index],
+    );
 }

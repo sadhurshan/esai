@@ -44,15 +44,18 @@ export function FileDropzone({
         event.target.value = '';
     };
 
-    const acceptedDisplay = acceptLabel ??
-        (accept && accept.length > 0 && accept.length <= 6 ? accept.join(', ') : null);
+    const acceptedDisplay =
+        acceptLabel ??
+        (accept && accept.length > 0 && accept.length <= 6
+            ? accept.join(', ')
+            : null);
 
     return (
         <div
             role="group"
             aria-disabled={disabled}
             className={cn(
-                'relative flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-muted-foreground/40 bg-muted/40 p-6 text-center transition hover:border-muted-foreground/70 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/40',
+                'relative flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-muted-foreground/40 bg-muted/40 p-6 text-center transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/40 hover:border-muted-foreground/70',
                 disabled && 'cursor-not-allowed opacity-60',
                 className,
             )}
@@ -66,12 +69,17 @@ export function FileDropzone({
                 multiple={multiple}
                 disabled={disabled}
             />
-            <UploadCloud className="size-10 text-muted-foreground" aria-hidden />
+            <UploadCloud
+                className="size-10 text-muted-foreground"
+                aria-hidden
+            />
             <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">{label}</p>
                 <p className="text-xs text-muted-foreground">{description}</p>
                 {acceptedDisplay ? (
-                    <p className="text-xs text-muted-foreground">Accepted: {acceptedDisplay}</p>
+                    <p className="text-xs text-muted-foreground">
+                        Accepted: {acceptedDisplay}
+                    </p>
                 ) : null}
             </div>
             <Button

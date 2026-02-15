@@ -8,7 +8,10 @@ export interface UsePlanOptions {
     enabled?: boolean;
 }
 
-export function usePlan(planId: string | number | null | undefined, options: UsePlanOptions = {}): UseQueryResult<Plan> {
+export function usePlan(
+    planId: string | number | null | undefined,
+    options: UsePlanOptions = {},
+): UseQueryResult<Plan> {
     const adminApi = useSdkClient(AdminApi);
     const enabled = options.enabled ?? Boolean(planId);
 

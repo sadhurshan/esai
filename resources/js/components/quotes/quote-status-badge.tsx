@@ -7,14 +7,37 @@ interface QuoteStatusBadgeProps {
     className?: string;
 }
 
-const STATUS_PRESETS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const STATUS_PRESETS: Record<
+    string,
+    {
+        label: string;
+        variant: 'default' | 'secondary' | 'outline' | 'destructive';
+        className?: string;
+    }
+> = {
     draft: { label: 'Draft', variant: 'secondary' },
     submitted: { label: 'Submitted', variant: 'default' },
-    awarded: { label: 'Awarded', variant: 'default', className: 'bg-emerald-600 text-white' },
+    awarded: {
+        label: 'Awarded',
+        variant: 'default',
+        className: 'bg-emerald-600 text-white',
+    },
     withdrawn: { label: 'Withdrawn', variant: 'destructive' },
-    expired: { label: 'Expired', variant: 'outline', className: 'border-amber-500 text-amber-600' },
-    rejected: { label: 'Rejected', variant: 'outline', className: 'border-destructive/60 text-destructive' },
-    lost: { label: 'Lost', variant: 'outline', className: 'text-muted-foreground' },
+    expired: {
+        label: 'Expired',
+        variant: 'outline',
+        className: 'border-amber-500 text-amber-600',
+    },
+    rejected: {
+        label: 'Rejected',
+        variant: 'outline',
+        className: 'border-destructive/60 text-destructive',
+    },
+    lost: {
+        label: 'Lost',
+        variant: 'outline',
+        className: 'text-muted-foreground',
+    },
 };
 
 export function QuoteStatusBadge({ status, className }: QuoteStatusBadgeProps) {
@@ -25,7 +48,14 @@ export function QuoteStatusBadge({ status, className }: QuoteStatusBadgeProps) {
     };
 
     return (
-        <Badge variant={presentation.variant} className={cn('uppercase tracking-wide', presentation.className, className)}>
+        <Badge
+            variant={presentation.variant}
+            className={cn(
+                'tracking-wide uppercase',
+                presentation.className,
+                className,
+            )}
+        >
             {presentation.label}
         </Badge>
     );

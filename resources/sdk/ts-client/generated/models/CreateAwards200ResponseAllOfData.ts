@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RfqItemAwardSummary } from './RfqItemAwardSummary';
 import {
     RfqItemAwardSummaryFromJSON,
-    RfqItemAwardSummaryFromJSONTyped,
     RfqItemAwardSummaryToJSON,
-    RfqItemAwardSummaryToJSONTyped,
 } from './RfqItemAwardSummary';
 
 /**
- * 
+ *
  * @export
  * @interface CreateAwards200ResponseAllOfData
  */
 export interface CreateAwards200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<RfqItemAwardSummary>}
      * @memberof CreateAwards200ResponseAllOfData
      */
@@ -38,37 +35,46 @@ export interface CreateAwards200ResponseAllOfData {
 /**
  * Check if a given object implements the CreateAwards200ResponseAllOfData interface.
  */
-export function instanceOfCreateAwards200ResponseAllOfData(value: object): value is CreateAwards200ResponseAllOfData {
+export function instanceOfCreateAwards200ResponseAllOfData(
+    value: object,
+): value is CreateAwards200ResponseAllOfData {
     if (!('awards' in value) || value['awards'] === undefined) return false;
     return true;
 }
 
-export function CreateAwards200ResponseAllOfDataFromJSON(json: any): CreateAwards200ResponseAllOfData {
+export function CreateAwards200ResponseAllOfDataFromJSON(
+    json: any,
+): CreateAwards200ResponseAllOfData {
     return CreateAwards200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function CreateAwards200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateAwards200ResponseAllOfData {
+export function CreateAwards200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateAwards200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'awards': ((json['awards'] as Array<any>).map(RfqItemAwardSummaryFromJSON)),
+        awards: (json['awards'] as Array<any>).map(RfqItemAwardSummaryFromJSON),
     };
 }
 
-export function CreateAwards200ResponseAllOfDataToJSON(json: any): CreateAwards200ResponseAllOfData {
+export function CreateAwards200ResponseAllOfDataToJSON(
+    json: any,
+): CreateAwards200ResponseAllOfData {
     return CreateAwards200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function CreateAwards200ResponseAllOfDataToJSONTyped(value?: CreateAwards200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function CreateAwards200ResponseAllOfDataToJSONTyped(
+    value?: CreateAwards200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'awards': ((value['awards'] as Array<any>).map(RfqItemAwardSummaryToJSON)),
+        awards: (value['awards'] as Array<any>).map(RfqItemAwardSummaryToJSON),
     };
 }
-

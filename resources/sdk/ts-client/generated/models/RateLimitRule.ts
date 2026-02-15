@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RateLimitRule
  */
 export interface RateLimitRule {
     /**
-     * 
+     *
      * @type {number}
      * @memberof RateLimitRule
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RateLimitRule
      */
@@ -38,31 +37,31 @@ export interface RateLimitRule {
      */
     scope: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RateLimitRule
      */
     windowSeconds: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RateLimitRule
      */
     maxRequests: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof RateLimitRule
      */
     active?: boolean;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RateLimitRule
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof RateLimitRule
      */
@@ -75,8 +74,10 @@ export interface RateLimitRule {
 export function instanceOfRateLimitRule(value: object): value is RateLimitRule {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('scope' in value) || value['scope'] === undefined) return false;
-    if (!('windowSeconds' in value) || value['windowSeconds'] === undefined) return false;
-    if (!('maxRequests' in value) || value['maxRequests'] === undefined) return false;
+    if (!('windowSeconds' in value) || value['windowSeconds'] === undefined)
+        return false;
+    if (!('maxRequests' in value) || value['maxRequests'] === undefined)
+        return false;
     return true;
 }
 
@@ -84,20 +85,28 @@ export function RateLimitRuleFromJSON(json: any): RateLimitRule {
     return RateLimitRuleFromJSONTyped(json, false);
 }
 
-export function RateLimitRuleFromJSONTyped(json: any, ignoreDiscriminator: boolean): RateLimitRule {
+export function RateLimitRuleFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RateLimitRule {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'] == null ? undefined : json['company_id'],
-        'scope': json['scope'],
-        'windowSeconds': json['window_seconds'],
-        'maxRequests': json['max_requests'],
-        'active': json['active'] == null ? undefined : json['active'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'] == null ? undefined : json['company_id'],
+        scope: json['scope'],
+        windowSeconds: json['window_seconds'],
+        maxRequests: json['max_requests'],
+        active: json['active'] == null ? undefined : json['active'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -105,21 +114,28 @@ export function RateLimitRuleToJSON(json: any): RateLimitRule {
     return RateLimitRuleToJSONTyped(json, false);
 }
 
-export function RateLimitRuleToJSONTyped(value?: RateLimitRule | null, ignoreDiscriminator: boolean = false): any {
+export function RateLimitRuleToJSONTyped(
+    value?: RateLimitRule | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'scope': value['scope'],
-        'window_seconds': value['windowSeconds'],
-        'max_requests': value['maxRequests'],
-        'active': value['active'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        scope: value['scope'],
+        window_seconds: value['windowSeconds'],
+        max_requests: value['maxRequests'],
+        active: value['active'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
 import type { CreditNote } from './CreditNote';
-import {
-    CreditNoteFromJSON,
-    CreditNoteFromJSONTyped,
-    CreditNoteToJSON,
-    CreditNoteToJSONTyped,
-} from './CreditNote';
+import { CreditNoteFromJSON, CreditNoteToJSON } from './CreditNote';
+import type { PageMeta } from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 
 /**
- * 
+ *
  * @export
  * @interface CreditNoteCollection
  */
 export interface CreditNoteCollection {
     /**
-     * 
+     *
      * @type {Array<CreditNote>}
      * @memberof CreditNoteCollection
      */
     items: Array<CreditNote>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof CreditNoteCollection
      */
@@ -51,7 +40,9 @@ export interface CreditNoteCollection {
 /**
  * Check if a given object implements the CreditNoteCollection interface.
  */
-export function instanceOfCreditNoteCollection(value: object): value is CreditNoteCollection {
+export function instanceOfCreditNoteCollection(
+    value: object,
+): value is CreditNoteCollection {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
@@ -61,14 +52,16 @@ export function CreditNoteCollectionFromJSON(json: any): CreditNoteCollection {
     return CreditNoteCollectionFromJSONTyped(json, false);
 }
 
-export function CreditNoteCollectionFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreditNoteCollection {
+export function CreditNoteCollectionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreditNoteCollection {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(CreditNoteFromJSON)),
-        'meta': PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(CreditNoteFromJSON),
+        meta: PageMetaFromJSON(json['meta']),
     };
 }
 
@@ -76,15 +69,16 @@ export function CreditNoteCollectionToJSON(json: any): CreditNoteCollection {
     return CreditNoteCollectionToJSONTyped(json, false);
 }
 
-export function CreditNoteCollectionToJSONTyped(value?: CreditNoteCollection | null, ignoreDiscriminator: boolean = false): any {
+export function CreditNoteCollectionToJSONTyped(
+    value?: CreditNoteCollection | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(CreditNoteToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(CreditNoteToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

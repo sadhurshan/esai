@@ -1,7 +1,7 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSdkClient } from '@/contexts/api-client-context';
-import { DashboardApi, type DashboardMetricsResponse } from '@/sdk';
 import { queryKeys } from '@/lib/queryKeys';
+import { DashboardApi, type DashboardMetricsResponse } from '@/sdk';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 export interface DashboardMetrics {
     openRfqCount: number;
@@ -19,19 +19,27 @@ const FALLBACK_METRICS: DashboardMetrics = Object.freeze({
     lowStockPartCount: 0,
 });
 
-function normalizeMetrics(response?: DashboardMetricsResponse | null): DashboardMetrics {
+function normalizeMetrics(
+    response?: DashboardMetricsResponse | null,
+): DashboardMetrics {
     const payload = response?.data;
 
     return {
         openRfqCount: Number(payload?.open_rfq_count ?? 0),
-        quotesAwaitingReviewCount: Number(payload?.quotes_awaiting_review_count ?? 0),
-        posAwaitingAcknowledgementCount: Number(payload?.pos_awaiting_acknowledgement_count ?? 0),
+        quotesAwaitingReviewCount: Number(
+            payload?.quotes_awaiting_review_count ?? 0,
+        ),
+        posAwaitingAcknowledgementCount: Number(
+            payload?.pos_awaiting_acknowledgement_count ?? 0,
+        ),
         unpaidInvoiceCount: Number(payload?.unpaid_invoice_count ?? 0),
         lowStockPartCount: Number(payload?.low_stock_part_count ?? 0),
     } satisfies DashboardMetrics;
 }
 
-export function useDashboardMetrics(enabled: boolean): UseQueryResult<DashboardMetrics, unknown> {
+export function useDashboardMetrics(
+    enabled: boolean,
+): UseQueryResult<DashboardMetrics, unknown> {
     const dashboardApi = useSdkClient(DashboardApi);
 
     return useQuery<DashboardMetrics>({

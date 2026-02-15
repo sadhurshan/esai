@@ -1,6 +1,9 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
 import { parseEnvelope, sanitizeQuery } from './api-helpers';
 
@@ -80,7 +83,10 @@ export class ReceivingApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async showGrn(grnId: number, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+    async showGrn(
+        grnId: number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<Record<string, unknown>> {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -148,7 +154,10 @@ export class ReceivingApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async createNcr(payload: CreateNcrPayload, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+    async createNcr(
+        payload: CreateNcrPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<Record<string, unknown>> {
         const headers: HTTPHeaders = {
             'Content-Type': 'application/json',
         };
@@ -171,7 +180,10 @@ export class ReceivingApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async updateNcr(payload: UpdateNcrPayload, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+    async updateNcr(
+        payload: UpdateNcrPayload,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<Record<string, unknown>> {
         const headers: HTTPHeaders = {
             'Content-Type': 'application/json',
         };

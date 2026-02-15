@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,183 +12,168 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { CreditNotePurchaseOrder } from './CreditNotePurchaseOrder';
-import {
-    CreditNotePurchaseOrderFromJSON,
-    CreditNotePurchaseOrderFromJSONTyped,
-    CreditNotePurchaseOrderToJSON,
-    CreditNotePurchaseOrderToJSONTyped,
-} from './CreditNotePurchaseOrder';
-import type { CreditNoteLine } from './CreditNoteLine';
-import {
-    CreditNoteLineFromJSON,
-    CreditNoteLineFromJSONTyped,
-    CreditNoteLineToJSON,
-    CreditNoteLineToJSONTyped,
-} from './CreditNoteLine';
-import type { DocumentAttachment } from './DocumentAttachment';
-import {
-    DocumentAttachmentFromJSON,
-    DocumentAttachmentFromJSONTyped,
-    DocumentAttachmentToJSON,
-    DocumentAttachmentToJSONTyped,
-} from './DocumentAttachment';
-import type { CreditNoteInvoice } from './CreditNoteInvoice';
-import {
-    CreditNoteInvoiceFromJSON,
-    CreditNoteInvoiceFromJSONTyped,
-    CreditNoteInvoiceToJSON,
-    CreditNoteInvoiceToJSONTyped,
-} from './CreditNoteInvoice';
 import type { CreditNoteGoodsReceiptNote } from './CreditNoteGoodsReceiptNote';
 import {
     CreditNoteGoodsReceiptNoteFromJSON,
-    CreditNoteGoodsReceiptNoteFromJSONTyped,
     CreditNoteGoodsReceiptNoteToJSON,
-    CreditNoteGoodsReceiptNoteToJSONTyped,
 } from './CreditNoteGoodsReceiptNote';
+import type { CreditNoteInvoice } from './CreditNoteInvoice';
+import {
+    CreditNoteInvoiceFromJSON,
+    CreditNoteInvoiceToJSON,
+} from './CreditNoteInvoice';
+import type { CreditNoteLine } from './CreditNoteLine';
+import { CreditNoteLineFromJSON, CreditNoteLineToJSON } from './CreditNoteLine';
+import type { CreditNotePurchaseOrder } from './CreditNotePurchaseOrder';
+import {
+    CreditNotePurchaseOrderFromJSON,
+    CreditNotePurchaseOrderToJSON,
+} from './CreditNotePurchaseOrder';
+import type { DocumentAttachment } from './DocumentAttachment';
+import {
+    DocumentAttachmentFromJSON,
+    DocumentAttachmentToJSON,
+} from './DocumentAttachment';
 
 /**
- * 
+ *
  * @export
  * @interface CreditNote
  */
 export interface CreditNote {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     id: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     invoiceId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     purchaseOrderId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     grnId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     creditNumber: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     currency: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     amount: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     amountMinor: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     reason?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     status: CreditNoteStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNote
      */
     reviewComment?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     issuedBy?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNote
      */
     approvedBy?: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof CreditNote
      */
     approvedAt?: Date;
     /**
-     * 
+     *
      * @type {Array<DocumentAttachment>}
      * @memberof CreditNote
      */
     attachments?: Array<DocumentAttachment>;
     /**
-     * 
+     *
      * @type {Array<CreditNoteLine>}
      * @memberof CreditNote
      */
     lines?: Array<CreditNoteLine>;
     /**
-     * 
+     *
      * @type {CreditNoteInvoice}
      * @memberof CreditNote
      */
     invoice?: CreditNoteInvoice;
     /**
-     * 
+     *
      * @type {CreditNotePurchaseOrder}
      * @memberof CreditNote
      */
     purchaseOrder?: CreditNotePurchaseOrder;
     /**
-     * 
+     *
      * @type {CreditNoteGoodsReceiptNote}
      * @memberof CreditNote
      */
     goodsReceiptNote?: CreditNoteGoodsReceiptNote;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof CreditNote
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof CreditNote
      */
     updatedAt?: Date;
 }
-
 
 /**
  * @export
@@ -198,22 +183,26 @@ export const CreditNoteStatusEnum = {
     PendingReview: 'pending_review',
     Issued: 'issued',
     Approved: 'approved',
-    Rejected: 'rejected'
+    Rejected: 'rejected',
 } as const;
-export type CreditNoteStatusEnum = typeof CreditNoteStatusEnum[keyof typeof CreditNoteStatusEnum];
-
+export type CreditNoteStatusEnum =
+    (typeof CreditNoteStatusEnum)[keyof typeof CreditNoteStatusEnum];
 
 /**
  * Check if a given object implements the CreditNote interface.
  */
 export function instanceOfCreditNote(value: object): value is CreditNote {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
-    if (!('invoiceId' in value) || value['invoiceId'] === undefined) return false;
-    if (!('creditNumber' in value) || value['creditNumber'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
+    if (!('invoiceId' in value) || value['invoiceId'] === undefined)
+        return false;
+    if (!('creditNumber' in value) || value['creditNumber'] === undefined)
+        return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
     if (!('amount' in value) || value['amount'] === undefined) return false;
-    if (!('amountMinor' in value) || value['amountMinor'] === undefined) return false;
+    if (!('amountMinor' in value) || value['amountMinor'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -222,34 +211,69 @@ export function CreditNoteFromJSON(json: any): CreditNote {
     return CreditNoteFromJSONTyped(json, false);
 }
 
-export function CreditNoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreditNote {
+export function CreditNoteFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreditNote {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'invoiceId': json['invoice_id'],
-        'purchaseOrderId': json['purchase_order_id'] == null ? undefined : json['purchase_order_id'],
-        'grnId': json['grn_id'] == null ? undefined : json['grn_id'],
-        'creditNumber': json['credit_number'],
-        'currency': json['currency'],
-        'amount': json['amount'],
-        'amountMinor': json['amount_minor'],
-        'reason': json['reason'] == null ? undefined : json['reason'],
-        'status': json['status'],
-        'reviewComment': json['review_comment'] == null ? undefined : json['review_comment'],
-        'issuedBy': json['issued_by'] == null ? undefined : json['issued_by'],
-        'approvedBy': json['approved_by'] == null ? undefined : json['approved_by'],
-        'approvedAt': json['approved_at'] == null ? undefined : (new Date(json['approved_at'])),
-        'attachments': json['attachments'] == null ? undefined : ((json['attachments'] as Array<any>).map(DocumentAttachmentFromJSON)),
-        'lines': json['lines'] == null ? undefined : ((json['lines'] as Array<any>).map(CreditNoteLineFromJSON)),
-        'invoice': json['invoice'] == null ? undefined : CreditNoteInvoiceFromJSON(json['invoice']),
-        'purchaseOrder': json['purchase_order'] == null ? undefined : CreditNotePurchaseOrderFromJSON(json['purchase_order']),
-        'goodsReceiptNote': json['goods_receipt_note'] == null ? undefined : CreditNoteGoodsReceiptNoteFromJSON(json['goods_receipt_note']),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        invoiceId: json['invoice_id'],
+        purchaseOrderId:
+            json['purchase_order_id'] == null
+                ? undefined
+                : json['purchase_order_id'],
+        grnId: json['grn_id'] == null ? undefined : json['grn_id'],
+        creditNumber: json['credit_number'],
+        currency: json['currency'],
+        amount: json['amount'],
+        amountMinor: json['amount_minor'],
+        reason: json['reason'] == null ? undefined : json['reason'],
+        status: json['status'],
+        reviewComment:
+            json['review_comment'] == null ? undefined : json['review_comment'],
+        issuedBy: json['issued_by'] == null ? undefined : json['issued_by'],
+        approvedBy:
+            json['approved_by'] == null ? undefined : json['approved_by'],
+        approvedAt:
+            json['approved_at'] == null
+                ? undefined
+                : new Date(json['approved_at']),
+        attachments:
+            json['attachments'] == null
+                ? undefined
+                : (json['attachments'] as Array<any>).map(
+                      DocumentAttachmentFromJSON,
+                  ),
+        lines:
+            json['lines'] == null
+                ? undefined
+                : (json['lines'] as Array<any>).map(CreditNoteLineFromJSON),
+        invoice:
+            json['invoice'] == null
+                ? undefined
+                : CreditNoteInvoiceFromJSON(json['invoice']),
+        purchaseOrder:
+            json['purchase_order'] == null
+                ? undefined
+                : CreditNotePurchaseOrderFromJSON(json['purchase_order']),
+        goodsReceiptNote:
+            json['goods_receipt_note'] == null
+                ? undefined
+                : CreditNoteGoodsReceiptNoteFromJSON(
+                      json['goods_receipt_note'],
+                  ),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -257,35 +281,55 @@ export function CreditNoteToJSON(json: any): CreditNote {
     return CreditNoteToJSONTyped(json, false);
 }
 
-export function CreditNoteToJSONTyped(value?: CreditNote | null, ignoreDiscriminator: boolean = false): any {
+export function CreditNoteToJSONTyped(
+    value?: CreditNote | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'invoice_id': value['invoiceId'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'grn_id': value['grnId'],
-        'credit_number': value['creditNumber'],
-        'currency': value['currency'],
-        'amount': value['amount'],
-        'amount_minor': value['amountMinor'],
-        'reason': value['reason'],
-        'status': value['status'],
-        'review_comment': value['reviewComment'],
-        'issued_by': value['issuedBy'],
-        'approved_by': value['approvedBy'],
-        'approved_at': value['approvedAt'] == null ? value['approvedAt'] : value['approvedAt'].toISOString(),
-        'attachments': value['attachments'] == null ? undefined : ((value['attachments'] as Array<any>).map(DocumentAttachmentToJSON)),
-        'lines': value['lines'] == null ? undefined : ((value['lines'] as Array<any>).map(CreditNoteLineToJSON)),
-        'invoice': CreditNoteInvoiceToJSON(value['invoice']),
-        'purchase_order': CreditNotePurchaseOrderToJSON(value['purchaseOrder']),
-        'goods_receipt_note': CreditNoteGoodsReceiptNoteToJSON(value['goodsReceiptNote']),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        invoice_id: value['invoiceId'],
+        purchase_order_id: value['purchaseOrderId'],
+        grn_id: value['grnId'],
+        credit_number: value['creditNumber'],
+        currency: value['currency'],
+        amount: value['amount'],
+        amount_minor: value['amountMinor'],
+        reason: value['reason'],
+        status: value['status'],
+        review_comment: value['reviewComment'],
+        issued_by: value['issuedBy'],
+        approved_by: value['approvedBy'],
+        approved_at:
+            value['approvedAt'] == null
+                ? value['approvedAt']
+                : value['approvedAt'].toISOString(),
+        attachments:
+            value['attachments'] == null
+                ? undefined
+                : (value['attachments'] as Array<any>).map(
+                      DocumentAttachmentToJSON,
+                  ),
+        lines:
+            value['lines'] == null
+                ? undefined
+                : (value['lines'] as Array<any>).map(CreditNoteLineToJSON),
+        invoice: CreditNoteInvoiceToJSON(value['invoice']),
+        purchase_order: CreditNotePurchaseOrderToJSON(value['purchaseOrder']),
+        goods_receipt_note: CreditNoteGoodsReceiptNoteToJSON(
+            value['goodsReceiptNote'],
+        ),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

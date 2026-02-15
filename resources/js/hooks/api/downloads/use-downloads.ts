@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -9,7 +13,12 @@ import type {
     DownloadJobStatus,
 } from '@/types/downloads';
 
-import { mapDownloadJob, mapDownloadMeta, type DownloadJobResponseItem, type DownloadJobResponseMeta } from './mappers';
+import {
+    mapDownloadJob,
+    mapDownloadMeta,
+    type DownloadJobResponseItem,
+    type DownloadJobResponseMeta,
+} from './mappers';
 
 interface DownloadJobIndexResponse {
     items: DownloadJobResponseItem[];
@@ -63,7 +72,9 @@ export function useDownloads(
         queryKey: queryKeys.downloads.list(queryParams),
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            return (await api.get<DownloadJobIndexResponse>(`/downloads${query}`)) as unknown as DownloadJobIndexResponse;
+            return (await api.get<DownloadJobIndexResponse>(
+                `/downloads${query}`,
+            )) as unknown as DownloadJobIndexResponse;
         },
         select: (response) => ({
             items: (response.items ?? []).map(mapDownloadJob),

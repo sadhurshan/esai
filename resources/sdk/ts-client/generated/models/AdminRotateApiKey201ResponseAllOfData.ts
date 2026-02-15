@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,29 +12,23 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ApiKey } from './ApiKey';
-import {
-    ApiKeyFromJSON,
-    ApiKeyFromJSONTyped,
-    ApiKeyToJSON,
-    ApiKeyToJSONTyped,
-} from './ApiKey';
+import { ApiKeyFromJSON, ApiKeyToJSON } from './ApiKey';
 
 /**
- * 
+ *
  * @export
  * @interface AdminRotateApiKey201ResponseAllOfData
  */
 export interface AdminRotateApiKey201ResponseAllOfData {
     /**
-     * 
+     *
      * @type {ApiKey}
      * @memberof AdminRotateApiKey201ResponseAllOfData
      */
     apiKey?: ApiKey;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminRotateApiKey201ResponseAllOfData
      */
@@ -44,38 +38,50 @@ export interface AdminRotateApiKey201ResponseAllOfData {
 /**
  * Check if a given object implements the AdminRotateApiKey201ResponseAllOfData interface.
  */
-export function instanceOfAdminRotateApiKey201ResponseAllOfData(value: object): value is AdminRotateApiKey201ResponseAllOfData {
+export function instanceOfAdminRotateApiKey201ResponseAllOfData(
+    value: object,
+): value is AdminRotateApiKey201ResponseAllOfData {
     return true;
 }
 
-export function AdminRotateApiKey201ResponseAllOfDataFromJSON(json: any): AdminRotateApiKey201ResponseAllOfData {
+export function AdminRotateApiKey201ResponseAllOfDataFromJSON(
+    json: any,
+): AdminRotateApiKey201ResponseAllOfData {
     return AdminRotateApiKey201ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AdminRotateApiKey201ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminRotateApiKey201ResponseAllOfData {
+export function AdminRotateApiKey201ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminRotateApiKey201ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'apiKey': json['api_key'] == null ? undefined : ApiKeyFromJSON(json['api_key']),
-        'token': json['token'] == null ? undefined : json['token'],
+        apiKey:
+            json['api_key'] == null
+                ? undefined
+                : ApiKeyFromJSON(json['api_key']),
+        token: json['token'] == null ? undefined : json['token'],
     };
 }
 
-export function AdminRotateApiKey201ResponseAllOfDataToJSON(json: any): AdminRotateApiKey201ResponseAllOfData {
+export function AdminRotateApiKey201ResponseAllOfDataToJSON(
+    json: any,
+): AdminRotateApiKey201ResponseAllOfData {
     return AdminRotateApiKey201ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AdminRotateApiKey201ResponseAllOfDataToJSONTyped(value?: AdminRotateApiKey201ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminRotateApiKey201ResponseAllOfDataToJSONTyped(
+    value?: AdminRotateApiKey201ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'api_key': ApiKeyToJSON(value['apiKey']),
-        'token': value['token'],
+        api_key: ApiKeyToJSON(value['apiKey']),
+        token: value['token'],
     };
 }
-

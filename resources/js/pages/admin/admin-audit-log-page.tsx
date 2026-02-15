@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 
-import Heading from '@/components/heading';
 import { AuditLogTable } from '@/components/admin/audit-log-table';
+import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,9 @@ const DEFAULT_PAGE_SIZE = 25;
 
 export function AdminAuditLogPage() {
     const { isAdmin } = useAuth();
-    const [filters, setFilters] = useState<AuditLogFilters>({ perPage: DEFAULT_PAGE_SIZE });
+    const [filters, setFilters] = useState<AuditLogFilters>({
+        perPage: DEFAULT_PAGE_SIZE,
+    });
     const [formValues, setFormValues] = useState({
         actor: '',
         event: '',
@@ -29,7 +31,10 @@ export function AdminAuditLogPage() {
     const entries = data?.items ?? [];
     const meta = data?.meta;
 
-    const handleInputChange = (field: keyof typeof formValues, value: string) => {
+    const handleInputChange = (
+        field: keyof typeof formValues,
+        value: string,
+    ) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -68,12 +73,26 @@ export function AdminAuditLogPage() {
         if (exportDisabled || typeof window === 'undefined') {
             return;
         }
-        const header = ['timestamp', 'actor_name', 'actor_email', 'event', 'resource', 'ip_address', 'metadata'];
+        const header = [
+            'timestamp',
+            'actor_name',
+            'actor_email',
+            'event',
+            'resource',
+            'ip_address',
+            'metadata',
+        ];
         const rows = entries.map((entry) => {
-            const resourceLabel = entry.resource ? `${entry.resource.type}#${entry.resource.id}` : '';
-            const metadata = entry.metadata ? JSON.stringify(entry.metadata) : '';
+            const resourceLabel = entry.resource
+                ? `${entry.resource.type}#${entry.resource.id}`
+                : '';
+            const metadata = entry.metadata
+                ? JSON.stringify(entry.metadata)
+                : '';
             const actorName = entry.actor?.name ?? 'System event';
-            const actorEmail = entry.actor?.email ?? (entry.actor?.id ? `User #${entry.actor.id}` : '');
+            const actorEmail =
+                entry.actor?.email ??
+                (entry.actor?.id ? `User #${entry.actor.id}` : '');
             return [
                 entry.timestamp,
                 actorName,
@@ -85,7 +104,14 @@ export function AdminAuditLogPage() {
             ];
         });
         const csv = [header, ...rows]
-            .map((columns) => columns.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+            .map((columns) =>
+                columns
+                    .map(
+                        (value) =>
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
+                    )
+                    .join(','),
+            )
             .join('\n');
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -95,7 +121,7 @@ export function AdminAuditLogPage() {
         link.download = `audit-log-${Date.now()}.csv`;
         link.click();
         URL.revokeObjectURL(url);
-    }; 
+    };
 
     if (!isAdmin) {
         return <AccessDeniedPage />;
@@ -108,7 +134,12 @@ export function AdminAuditLogPage() {
                     title="Audit log"
                     description="Interrogate privileged actions across the tenant with full filtering and export options."
                 />
-                <Button type="button" variant="outline" disabled={exportDisabled} onClick={handleExport}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    disabled={exportDisabled}
+                    onClick={handleExport}
+                >
                     {exportDisabled ? 'Export CSV' : exportLabel}
                 </Button>
             </div>
@@ -118,14 +149,22 @@ export function AdminAuditLogPage() {
                     <CardTitle>Filters</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" onSubmit={applyFilters}>
+                    <form
+                        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+                        onSubmit={applyFilters}
+                    >
                         <div className="space-y-2">
                             <Label htmlFor="audit-actor">Actor</Label>
                             <Input
                                 id="audit-actor"
                                 placeholder="user@example.com"
                                 value={formValues.actor}
-                                onChange={(event) => handleInputChange('actor', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'actor',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
@@ -134,7 +173,12 @@ export function AdminAuditLogPage() {
                                 id="audit-event"
                                 placeholder="admin.role.updated"
                                 value={formValues.event}
-                                onChange={(event) => handleInputChange('event', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'event',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
@@ -143,7 +187,12 @@ export function AdminAuditLogPage() {
                                 id="audit-resource"
                                 placeholder="company:42"
                                 value={formValues.resource}
-                                onChange={(event) => handleInputChange('resource', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'resource',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
@@ -152,7 +201,12 @@ export function AdminAuditLogPage() {
                                 id="audit-from"
                                 type="datetime-local"
                                 value={formValues.from}
-                                onChange={(event) => handleInputChange('from', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange(
+                                        'from',
+                                        event.target.value,
+                                    )
+                                }
                             />
                         </div>
                         <div className="space-y-2">
@@ -161,11 +215,17 @@ export function AdminAuditLogPage() {
                                 id="audit-to"
                                 type="datetime-local"
                                 value={formValues.to}
-                                onChange={(event) => handleInputChange('to', event.target.value)}
+                                onChange={(event) =>
+                                    handleInputChange('to', event.target.value)
+                                }
                             />
                         </div>
                         <div className="flex items-end gap-2">
-                            <Button type="button" variant="outline" onClick={clearFilters}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={clearFilters}
+                            >
                                 Clear
                             </Button>
                             <Button type="submit">Apply</Button>

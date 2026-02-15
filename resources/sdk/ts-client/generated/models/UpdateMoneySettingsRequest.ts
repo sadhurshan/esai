@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,94 +12,109 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UpdateMoneySettingsRequest
  */
 export interface UpdateMoneySettingsRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateMoneySettingsRequest
      */
     baseCurrency?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateMoneySettingsRequest
      */
     pricingCurrency?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateMoneySettingsRequest
      */
     fxSource?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateMoneySettingsRequest
      */
     priceRoundRule?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateMoneySettingsRequest
      */
     taxRegime?: string;
     /**
-     * 
+     *
      * @type {{ [key: string]: any; }}
      * @memberof UpdateMoneySettingsRequest
      */
-    defaults?: { [key: string]: any; };
+    defaults?: { [key: string]: any };
 }
 
 /**
  * Check if a given object implements the UpdateMoneySettingsRequest interface.
  */
-export function instanceOfUpdateMoneySettingsRequest(value: object): value is UpdateMoneySettingsRequest {
+export function instanceOfUpdateMoneySettingsRequest(
+    value: object,
+): value is UpdateMoneySettingsRequest {
     return true;
 }
 
-export function UpdateMoneySettingsRequestFromJSON(json: any): UpdateMoneySettingsRequest {
+export function UpdateMoneySettingsRequestFromJSON(
+    json: any,
+): UpdateMoneySettingsRequest {
     return UpdateMoneySettingsRequestFromJSONTyped(json, false);
 }
 
-export function UpdateMoneySettingsRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateMoneySettingsRequest {
+export function UpdateMoneySettingsRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateMoneySettingsRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'baseCurrency': json['base_currency'] == null ? undefined : json['base_currency'],
-        'pricingCurrency': json['pricing_currency'] == null ? undefined : json['pricing_currency'],
-        'fxSource': json['fx_source'] == null ? undefined : json['fx_source'],
-        'priceRoundRule': json['price_round_rule'] == null ? undefined : json['price_round_rule'],
-        'taxRegime': json['tax_regime'] == null ? undefined : json['tax_regime'],
-        'defaults': json['defaults'] == null ? undefined : json['defaults'],
+        baseCurrency:
+            json['base_currency'] == null ? undefined : json['base_currency'],
+        pricingCurrency:
+            json['pricing_currency'] == null
+                ? undefined
+                : json['pricing_currency'],
+        fxSource: json['fx_source'] == null ? undefined : json['fx_source'],
+        priceRoundRule:
+            json['price_round_rule'] == null
+                ? undefined
+                : json['price_round_rule'],
+        taxRegime: json['tax_regime'] == null ? undefined : json['tax_regime'],
+        defaults: json['defaults'] == null ? undefined : json['defaults'],
     };
 }
 
-export function UpdateMoneySettingsRequestToJSON(json: any): UpdateMoneySettingsRequest {
+export function UpdateMoneySettingsRequestToJSON(
+    json: any,
+): UpdateMoneySettingsRequest {
     return UpdateMoneySettingsRequestToJSONTyped(json, false);
 }
 
-export function UpdateMoneySettingsRequestToJSONTyped(value?: UpdateMoneySettingsRequest | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateMoneySettingsRequestToJSONTyped(
+    value?: UpdateMoneySettingsRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'base_currency': value['baseCurrency'],
-        'pricing_currency': value['pricingCurrency'],
-        'fx_source': value['fxSource'],
-        'price_round_rule': value['priceRoundRule'],
-        'tax_regime': value['taxRegime'],
-        'defaults': value['defaults'],
+        base_currency: value['baseCurrency'],
+        pricing_currency: value['pricingCurrency'],
+        fx_source: value['fxSource'],
+        price_round_rule: value['priceRoundRule'],
+        tax_regime: value['taxRegime'],
+        defaults: value['defaults'],
     };
 }
-

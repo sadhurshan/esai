@@ -1,6 +1,9 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
 import { parseEnvelope, sanitizeQuery } from './api-helpers';
 
@@ -20,7 +23,10 @@ export class RiskModuleApi extends BaseAPI {
         super(configuration);
     }
 
-    async listScores(query: ListRiskScoresQuery = {}, initOverrides?: RequestInit | InitOverrideFunction) {
+    async listScores(
+        query: ListRiskScoresQuery = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -39,7 +45,10 @@ export class RiskModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async showScore(supplierId: string | number, initOverrides?: RequestInit | InitOverrideFunction) {
+    async showScore(
+        supplierId: string | number,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -53,7 +62,10 @@ export class RiskModuleApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async generateScores(payload: GenerateRiskScoresPayload = {}, initOverrides?: RequestInit | InitOverrideFunction) {
+    async generateScores(
+        payload: GenerateRiskScoresPayload = {},
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ) {
         const headers: HTTPHeaders = {
             'Content-Type': 'application/json',
         };

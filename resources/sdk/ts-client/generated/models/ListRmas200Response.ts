@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,68 +12,61 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListRmas200ResponseAllOfData } from './ListRmas200ResponseAllOfData';
 import {
     ListRmas200ResponseAllOfDataFromJSON,
-    ListRmas200ResponseAllOfDataFromJSONTyped,
     ListRmas200ResponseAllOfDataToJSON,
-    ListRmas200ResponseAllOfDataToJSONTyped,
 } from './ListRmas200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListRmas200Response
  */
 export interface ListRmas200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRmas200Response
      */
     status: ListRmas200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListRmas200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListRmas200ResponseAllOfData}
      * @memberof ListRmas200Response
      */
     data: ListRmas200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListRmas200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListRmas200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListRmas200ResponseStatusEnum = typeof ListRmas200ResponseStatusEnum[keyof typeof ListRmas200ResponseStatusEnum];
-
+export type ListRmas200ResponseStatusEnum =
+    (typeof ListRmas200ResponseStatusEnum)[keyof typeof ListRmas200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListRmas200Response interface.
  */
-export function instanceOfListRmas200Response(value: object): value is ListRmas200Response {
+export function instanceOfListRmas200Response(
+    value: object,
+): value is ListRmas200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
@@ -83,16 +76,21 @@ export function ListRmas200ResponseFromJSON(json: any): ListRmas200Response {
     return ListRmas200ResponseFromJSONTyped(json, false);
 }
 
-export function ListRmas200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRmas200Response {
+export function ListRmas200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRmas200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListRmas200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListRmas200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
@@ -100,17 +98,18 @@ export function ListRmas200ResponseToJSON(json: any): ListRmas200Response {
     return ListRmas200ResponseToJSONTyped(json, false);
 }
 
-export function ListRmas200ResponseToJSONTyped(value?: ListRmas200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListRmas200ResponseToJSONTyped(
+    value?: ListRmas200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListRmas200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListRmas200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

@@ -19,9 +19,15 @@ export function useInviteSuppliers() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ rfqId, supplierIds }: InviteSuppliersPayload): Promise<InviteSuppliersResult> => {
+        mutationFn: async ({
+            rfqId,
+            supplierIds,
+        }: InviteSuppliersPayload): Promise<InviteSuppliersResult> => {
             if (supplierIds.length === 0) {
-                return { invited: 0, responses: [] } satisfies InviteSuppliersResult;
+                return {
+                    invited: 0,
+                    responses: [],
+                } satisfies InviteSuppliersResult;
             }
 
             const uniqueSupplierIds = Array.from(
@@ -33,7 +39,10 @@ export function useInviteSuppliers() {
             );
 
             if (uniqueSupplierIds.length === 0) {
-                return { invited: 0, responses: [] } satisfies InviteSuppliersResult;
+                return {
+                    invited: 0,
+                    responses: [],
+                } satisfies InviteSuppliersResult;
             }
 
             const responses = await Promise.all(
@@ -53,7 +62,9 @@ export function useInviteSuppliers() {
             } satisfies InviteSuppliersResult;
         },
         onSuccess: (_result, variables) => {
-            queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.suppliers(variables.rfqId) });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.suppliers(variables.rfqId),
+            });
         },
     });
 }

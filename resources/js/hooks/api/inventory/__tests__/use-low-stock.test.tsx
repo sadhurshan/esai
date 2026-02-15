@@ -1,11 +1,11 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useLowStock } from '../use-low-stock';
 import { useSdkClient } from '@/contexts/api-client-context';
+import { useLowStock } from '../use-low-stock';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -23,7 +23,11 @@ function createWrapper() {
     });
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper };
@@ -68,9 +72,12 @@ describe('useLowStock', () => {
         listLowStock.mockResolvedValue(apiResponse);
 
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useLowStock({ perPage: 50, locationId: 'loc-1' }), {
-            wrapper: Wrapper,
-        });
+        const { result } = renderHook(
+            () => useLowStock({ perPage: 50, locationId: 'loc-1' }),
+            {
+                wrapper: Wrapper,
+            },
+        );
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
 

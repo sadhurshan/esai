@@ -1,46 +1,91 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Filter, Loader2, MapPin, RefreshCw, Search, Sparkles, Trash2 } from 'lucide-react';
+import {
+    BadgeCheck,
+    Filter,
+    Loader2,
+    MapPin,
+    RefreshCw,
+    Search,
+    Sparkles,
+    Trash2,
+} from 'lucide-react';
+import { FormEvent, useMemo, useState } from 'react';
 
+import { EmptyState } from '@/components/empty-state';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
-import { EmptyState } from '@/components/empty-state';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { useSupplierScrapeJobs } from '@/hooks/api/admin/use-supplier-scrape-jobs';
-import { useStartSupplierScrape } from '@/hooks/api/admin/use-start-supplier-scrape';
-import { useScrapedSuppliers } from '@/hooks/api/admin/use-scraped-suppliers';
 import { useApproveScrapedSupplier } from '@/hooks/api/admin/use-approve-scraped-supplier';
 import { useDiscardScrapedSupplier } from '@/hooks/api/admin/use-discard-scraped-supplier';
+import { useScrapedSuppliers } from '@/hooks/api/admin/use-scraped-suppliers';
+import { useStartSupplierScrape } from '@/hooks/api/admin/use-start-supplier-scrape';
+import { useSupplierScrapeJobs } from '@/hooks/api/admin/use-supplier-scrape-jobs';
+import { cn } from '@/lib/utils';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
 import type {
     ApproveScrapedSupplierPayload,
     ScrapedSupplier,
     ScrapedSupplierFilters,
     ScrapedSupplierStatus,
+    StartSupplierScrapePayload,
     SupplierScrapeJob,
     SupplierScrapeJobFilters,
-    StartSupplierScrapePayload,
 } from '@/types/admin';
 import type { SupplierDocumentType } from '@/types/sourcing';
-import { cn } from '@/lib/utils';
 
 const JOBS_PAGE_SIZE = 25;
 const RESULTS_PAGE_SIZE = 25;
 const SUPER_ADMIN_ROLE = 'platform_super';
-const SCRAPED_STATUS_OPTIONS: Array<{ label: string; value: ScrapedSupplierStatus | 'all' }> = [
+const SCRAPED_STATUS_OPTIONS: Array<{
+    label: string;
+    value: ScrapedSupplierStatus | 'all';
+}> = [
     { label: 'All', value: 'all' },
     { label: 'Pending', value: 'pending' },
     { label: 'Approved', value: 'approved' },
@@ -64,17 +109,18 @@ const SCRAPED_STATUS_VARIANTS: Record<string, string> = {
     approved: 'bg-emerald-100 text-emerald-800',
     discarded: 'bg-rose-100 text-rose-800',
 };
-const ATTACHMENT_TYPES: Array<{ label: string; value: SupplierDocumentType }> = [
-    { label: 'ISO 9001', value: 'iso9001' },
-    { label: 'ISO 14001', value: 'iso14001' },
-    { label: 'AS9100', value: 'as9100' },
-    { label: 'ITAR', value: 'itar' },
-    { label: 'REACH', value: 'reach' },
-    { label: 'ROHS', value: 'rohs' },
-    { label: 'Insurance', value: 'insurance' },
-    { label: 'NDA', value: 'nda' },
-    { label: 'Other', value: 'other' },
-];
+const ATTACHMENT_TYPES: Array<{ label: string; value: SupplierDocumentType }> =
+    [
+        { label: 'ISO 9001', value: 'iso9001' },
+        { label: 'ISO 14001', value: 'iso14001' },
+        { label: 'AS9100', value: 'as9100' },
+        { label: 'ITAR', value: 'itar' },
+        { label: 'REACH', value: 'reach' },
+        { label: 'ROHS', value: 'rohs' },
+        { label: 'Insurance', value: 'insurance' },
+        { label: 'NDA', value: 'nda' },
+        { label: 'Other', value: 'other' },
+    ];
 
 interface JobFilterFormState {
     status: string;
@@ -158,81 +204,94 @@ const EMPTY_REVIEW_FORM: ReviewFormState = {
     attachmentType: 'iso9001',
 };
 
+const buildReviewFormFromSupplier = (
+    supplier: ScrapedSupplier,
+): ReviewFormState => ({
+    name: supplier.name ?? '',
+    website: supplier.website ?? '',
+    email: supplier.email ?? '',
+    phone: supplier.phone ?? '',
+    address: supplier.address ?? '',
+    city: supplier.city ?? '',
+    state: supplier.state ?? '',
+    country: supplier.country ?? '',
+    productSummary: supplier.product_summary ?? supplier.description ?? '',
+    certifications: (supplier.certifications ?? []).join('\n'),
+    notes: supplier.review_notes ?? '',
+    leadTimeDays: '',
+    moq: '',
+    attachment: null,
+    attachmentType: 'iso9001',
+});
+
 export function AdminSupplierScrapePage() {
     const { state } = useAuth();
     const { formatDate, formatNumber } = useFormatting();
     const isSuperAdmin = state.user?.role === SUPER_ADMIN_ROLE;
 
     const [autoRefresh, setAutoRefresh] = useState(true);
-    const [filterForm, setFilterForm] = useState<JobFilterFormState>(DEFAULT_FILTER_FORM);
-    const [jobFilters, setJobFilters] = useState<SupplierScrapeJobFilters>(() => ({ ...BASE_JOB_FILTERS }));
-    const [startForm, setStartForm] = useState<StartFormState>(DEFAULT_START_FORM);
-    const [selectedJob, setSelectedJob] = useState<SupplierScrapeJob | null>(null);
-    const [resultFilterForm, setResultFilterForm] = useState<ResultFilterFormState>(DEFAULT_RESULT_FILTER_FORM);
-    const [resultFilters, setResultFilters] = useState<ScrapedSupplierFilters>({ perPage: RESULTS_PAGE_SIZE });
-    const [reviewForm, setReviewForm] = useState<ReviewFormState>(EMPTY_REVIEW_FORM);
-    const [reviewSupplier, setReviewSupplier] = useState<ScrapedSupplier | null>(null);
+    const [filterForm, setFilterForm] =
+        useState<JobFilterFormState>(DEFAULT_FILTER_FORM);
+    const [jobFilters, setJobFilters] = useState<SupplierScrapeJobFilters>(
+        () => ({ ...BASE_JOB_FILTERS }),
+    );
+    const [startForm, setStartForm] =
+        useState<StartFormState>(DEFAULT_START_FORM);
+    const [selectedJob, setSelectedJob] = useState<SupplierScrapeJob | null>(
+        null,
+    );
+    const [resultFilterForm, setResultFilterForm] =
+        useState<ResultFilterFormState>(DEFAULT_RESULT_FILTER_FORM);
+    const [resultFilters, setResultFilters] = useState<ScrapedSupplierFilters>({
+        perPage: RESULTS_PAGE_SIZE,
+    });
+    const [reviewForm, setReviewForm] =
+        useState<ReviewFormState>(EMPTY_REVIEW_FORM);
+    const [reviewSupplier, setReviewSupplier] =
+        useState<ScrapedSupplier | null>(null);
 
     const jobsQuery = useSupplierScrapeJobs(jobFilters, {
         enabled: isSuperAdmin,
         refetchInterval: isSuperAdmin && autoRefresh ? 15_000 : false,
     });
     const startMutation = useStartSupplierScrape();
-    const resultsQuery = useScrapedSuppliers(selectedJob?.id ?? null, resultFilters, {
-        enabled: Boolean(selectedJob),
-        refetchInterval: selectedJob && autoRefresh ? 20_000 : false,
-    });
+    const resultsQuery = useScrapedSuppliers(
+        selectedJob?.id ?? null,
+        resultFilters,
+        {
+            enabled: Boolean(selectedJob),
+            refetchInterval: selectedJob && autoRefresh ? 20_000 : false,
+        },
+    );
     const approveMutation = useApproveScrapedSupplier();
     const discardMutation = useDiscardScrapedSupplier();
 
     const jobs = jobsQuery.data?.items ?? [];
     const jobsMeta = jobsQuery.data?.meta;
-    const results = resultsQuery.data?.items ?? [];
+    const results = useMemo(
+        () => resultsQuery.data?.items ?? [],
+        [resultsQuery.data?.items],
+    );
     const resultsMeta = resultsQuery.data?.meta;
 
     const selectedJobStatus = selectedJob?.status ?? null;
-    const selectedJobScope = selectedJob?.company_id ? `Queued via company #${selectedJob.company_id}` : 'Queued without tenant scope';
+    const selectedJobScope = selectedJob?.company_id
+        ? `Queued via company #${selectedJob.company_id}`
+        : 'Queued without tenant scope';
     const emptyStateIcon = <Search className="h-10 w-10" aria-hidden />;
     const resultContext = useMemo(
         () => ({
-            pending: results.filter((supplier) => supplier.status === 'pending').length,
-            approved: results.filter((supplier) => supplier.status === 'approved').length,
-            discarded: results.filter((supplier) => supplier.status === 'discarded').length,
+            pending: results.filter((supplier) => supplier.status === 'pending')
+                .length,
+            approved: results.filter(
+                (supplier) => supplier.status === 'approved',
+            ).length,
+            discarded: results.filter(
+                (supplier) => supplier.status === 'discarded',
+            ).length,
         }),
         [results],
     );
-
-    useEffect(() => {
-        if (!selectedJob) {
-            setResultFilterForm(DEFAULT_RESULT_FILTER_FORM);
-            setResultFilters({ perPage: RESULTS_PAGE_SIZE });
-        }
-    }, [selectedJob]);
-
-    useEffect(() => {
-        if (!reviewSupplier) {
-            setReviewForm(EMPTY_REVIEW_FORM);
-            return;
-        }
-
-        setReviewForm({
-            name: reviewSupplier.name ?? '',
-            website: reviewSupplier.website ?? '',
-            email: reviewSupplier.email ?? '',
-            phone: reviewSupplier.phone ?? '',
-            address: reviewSupplier.address ?? '',
-            city: reviewSupplier.city ?? '',
-            state: reviewSupplier.state ?? '',
-            country: reviewSupplier.country ?? '',
-            productSummary: reviewSupplier.product_summary ?? reviewSupplier.description ?? '',
-            certifications: (reviewSupplier.certifications ?? []).join('\n'),
-            notes: reviewSupplier.review_notes ?? '',
-            leadTimeDays: '',
-            moq: '',
-            attachment: null,
-            attachmentType: 'iso9001',
-        });
-    }, [reviewSupplier]);
 
     if (!isSuperAdmin) {
         return <AccessDeniedPage />;
@@ -264,7 +323,11 @@ export function AdminSupplierScrapePage() {
         const maxResults = normalizeNumber(startForm.maxResults);
 
         if (!startForm.query.trim()) {
-            publishToast({ title: 'Search keywords required', description: 'Provide a query.', variant: 'destructive' });
+            publishToast({
+                title: 'Search keywords required',
+                description: 'Provide a query.',
+                variant: 'destructive',
+            });
             return;
         }
 
@@ -288,11 +351,14 @@ export function AdminSupplierScrapePage() {
 
     const openJobDetails = (job: SupplierScrapeJob) => {
         setSelectedJob(job);
+        setResultFilterForm(DEFAULT_RESULT_FILTER_FORM);
         setResultFilters({ perPage: RESULTS_PAGE_SIZE });
     };
 
     const closeJobDetails = () => {
         setSelectedJob(null);
+        setResultFilterForm(DEFAULT_RESULT_FILTER_FORM);
+        setResultFilters({ perPage: RESULTS_PAGE_SIZE });
     };
 
     const applyResultFilters = (event: FormEvent<HTMLFormElement>) => {
@@ -301,17 +367,29 @@ export function AdminSupplierScrapePage() {
         const maxValue = normalizeConfidence(resultFilterForm.maxConfidence);
 
         if (minValue !== null && (minValue < 0 || minValue > 1)) {
-            publishToast({ title: 'Min confidence invalid', description: 'Use a value between 0 and 1.', variant: 'destructive' });
+            publishToast({
+                title: 'Min confidence invalid',
+                description: 'Use a value between 0 and 1.',
+                variant: 'destructive',
+            });
             return;
         }
 
         if (maxValue !== null && (maxValue < 0 || maxValue > 1)) {
-            publishToast({ title: 'Max confidence invalid', description: 'Use a value between 0 and 1.', variant: 'destructive' });
+            publishToast({
+                title: 'Max confidence invalid',
+                description: 'Use a value between 0 and 1.',
+                variant: 'destructive',
+            });
             return;
         }
 
         if (minValue !== null && maxValue !== null && maxValue < minValue) {
-            publishToast({ title: 'Confidence range invalid', description: 'Max should be greater than min.', variant: 'destructive' });
+            publishToast({
+                title: 'Confidence range invalid',
+                description: 'Max should be greater than min.',
+                variant: 'destructive',
+            });
             return;
         }
 
@@ -319,7 +397,10 @@ export function AdminSupplierScrapePage() {
             perPage: RESULTS_PAGE_SIZE,
             cursor: null,
             search: resultFilterForm.search.trim() || undefined,
-            status: resultFilterForm.status !== 'all' ? resultFilterForm.status : undefined,
+            status:
+                resultFilterForm.status !== 'all'
+                    ? resultFilterForm.status
+                    : undefined,
             minConfidence: minValue ?? undefined,
             maxConfidence: maxValue ?? undefined,
         });
@@ -332,6 +413,7 @@ export function AdminSupplierScrapePage() {
 
     const openReviewModal = (supplier: ScrapedSupplier) => {
         setReviewSupplier(supplier);
+        setReviewForm(buildReviewFormFromSupplier(supplier));
     };
 
     const closeReviewModal = () => {
@@ -346,7 +428,11 @@ export function AdminSupplierScrapePage() {
         }
 
         if (!reviewForm.name.trim()) {
-            publishToast({ title: 'Name required', description: 'Provide a legal name.', variant: 'destructive' });
+            publishToast({
+                title: 'Name required',
+                description: 'Provide a legal name.',
+                variant: 'destructive',
+            });
             return;
         }
 
@@ -365,7 +451,9 @@ export function AdminSupplierScrapePage() {
             leadTimeDays: normalizeNumber(reviewForm.leadTimeDays) ?? undefined,
             moq: normalizeNumber(reviewForm.moq) ?? undefined,
             attachment: reviewForm.attachment,
-            attachmentType: reviewForm.attachment ? reviewForm.attachmentType : undefined,
+            attachmentType: reviewForm.attachment
+                ? reviewForm.attachmentType
+                : undefined,
         };
 
         approveMutation.mutate(
@@ -386,16 +474,22 @@ export function AdminSupplierScrapePage() {
         if (!selectedJob) {
             return;
         }
-        const confirmed = window.confirm(`Discard ${supplier.name ?? 'this supplier'}?`);
+        const confirmed = window.confirm(
+            `Discard ${supplier.name ?? 'this supplier'}?`,
+        );
         if (!confirmed) {
             return;
         }
 
-        discardMutation.mutate({ jobId: selectedJob.id, scrapedSupplierId: supplier.id });
+        discardMutation.mutate({
+            jobId: selectedJob.id,
+            scrapedSupplierId: supplier.id,
+        });
     };
 
     const reviewing = Boolean(reviewSupplier);
-    const disableActions = approveMutation.isPending || discardMutation.isPending;
+    const disableActions =
+        approveMutation.isPending || discardMutation.isPending;
 
     return (
         <div className="space-y-8">
@@ -405,17 +499,36 @@ export function AdminSupplierScrapePage() {
                     description="Launch scrape jobs across tenants or globally, then triage AI-enriched supplier leads."
                 />
                 <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="uppercase tracking-wide">
+                    <Badge
+                        variant="outline"
+                        className="tracking-wide uppercase"
+                    >
                         Super admin
                     </Badge>
                     <div className="flex items-center gap-2 rounded-md border px-3 py-1 text-sm">
-                        <Checkbox id="auto-refresh" checked={autoRefresh} onCheckedChange={(value) => setAutoRefresh(Boolean(value))} />
-                        <Label htmlFor="auto-refresh" className="cursor-pointer select-none text-xs font-semibold uppercase tracking-wide">
+                        <Checkbox
+                            id="auto-refresh"
+                            checked={autoRefresh}
+                            onCheckedChange={(value) =>
+                                setAutoRefresh(Boolean(value))
+                            }
+                        />
+                        <Label
+                            htmlFor="auto-refresh"
+                            className="cursor-pointer text-xs font-semibold tracking-wide uppercase select-none"
+                        >
                             Auto-refresh 15s
                         </Label>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => jobsQuery.refetch()} disabled={jobsQuery.isFetching}>
-                        <RefreshCw className="mr-2 h-4 w-4" aria-hidden /> Refresh
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => jobsQuery.refetch()}
+                        disabled={jobsQuery.isFetching}
+                    >
+                        <RefreshCw className="mr-2 h-4 w-4" aria-hidden />{' '}
+                        Refresh
                     </Button>
                 </div>
             </div>
@@ -424,26 +537,43 @@ export function AdminSupplierScrapePage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Start supplier scrape</CardTitle>
-                        <CardDescription>Provide the keywords to queue a new discovery job.</CardDescription>
+                        <CardDescription>
+                            Provide the keywords to queue a new discovery job.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form className="grid gap-4" onSubmit={handleStartSubmit}>
+                        <form
+                            className="grid gap-4"
+                            onSubmit={handleStartSubmit}
+                        >
                             <div className="space-y-2">
                                 <Label htmlFor="start-region">Region</Label>
                                 <Input
                                     id="start-region"
                                     placeholder="North America"
                                     value={startForm.region}
-                                    onChange={(event) => setStartForm((prev) => ({ ...prev, region: event.target.value }))}
+                                    onChange={(event) =>
+                                        setStartForm((prev) => ({
+                                            ...prev,
+                                            region: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="start-query">Search keywords</Label>
+                                <Label htmlFor="start-query">
+                                    Search keywords
+                                </Label>
                                 <Input
                                     id="start-query"
                                     placeholder="precision cnc machining aerospace"
                                     value={startForm.query}
-                                    onChange={(event) => setStartForm((prev) => ({ ...prev, query: event.target.value }))}
+                                    onChange={(event) =>
+                                        setStartForm((prev) => ({
+                                            ...prev,
+                                            query: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -454,18 +584,38 @@ export function AdminSupplierScrapePage() {
                                     min={1}
                                     max={25}
                                     value={startForm.maxResults}
-                                    onChange={(event) => setStartForm((prev) => ({ ...prev, maxResults: event.target.value }))}
+                                    onChange={(event) =>
+                                        setStartForm((prev) => ({
+                                            ...prev,
+                                            maxResults: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                <Button type="reset" variant="ghost" onClick={() => setStartForm(DEFAULT_START_FORM)}>
+                                <Button
+                                    type="reset"
+                                    variant="ghost"
+                                    onClick={() =>
+                                        setStartForm(DEFAULT_START_FORM)
+                                    }
+                                >
                                     Clear
                                 </Button>
-                                <Button type="submit" disabled={startMutation.isPending}>
+                                <Button
+                                    type="submit"
+                                    disabled={startMutation.isPending}
+                                >
                                     {startMutation.isPending ? (
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                                        <Loader2
+                                            className="mr-2 h-4 w-4 animate-spin"
+                                            aria-hidden
+                                        />
                                     ) : (
-                                        <Sparkles className="mr-2 h-4 w-4" aria-hidden />
+                                        <Sparkles
+                                            className="mr-2 h-4 w-4"
+                                            aria-hidden
+                                        />
                                     )}
                                     Start scrape
                                 </Button>
@@ -477,72 +627,122 @@ export function AdminSupplierScrapePage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Job filters</CardTitle>
-                        <CardDescription>Scope job history by keyword, region, or date range.</CardDescription>
+                        <CardDescription>
+                            Scope job history by keyword, region, or date range.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form className="grid gap-4" onSubmit={applyJobFilters}>
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-status">Status</Label>
+                                    <Label htmlFor="filter-status">
+                                        Status
+                                    </Label>
                                     <Select
                                         value={filterForm.status}
-                                        onValueChange={(value) => setFilterForm((prev) => ({ ...prev, status: value }))}
+                                        onValueChange={(value) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                status: value,
+                                            }))
+                                        }
                                     >
                                         <SelectTrigger id="filter-status">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {JOB_STATUS_OPTIONS.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
+                                            {JOB_STATUS_OPTIONS.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-query">Keywords</Label>
+                                    <Label htmlFor="filter-query">
+                                        Keywords
+                                    </Label>
                                     <Input
                                         id="filter-query"
                                         placeholder="Additive manufacturing"
                                         value={filterForm.query}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, query: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                query: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-region">Region</Label>
+                                    <Label htmlFor="filter-region">
+                                        Region
+                                    </Label>
                                     <Input
                                         id="filter-region"
                                         placeholder="EMEA"
                                         value={filterForm.region}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, region: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                region: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-created-from">Created from</Label>
+                                    <Label htmlFor="filter-created-from">
+                                        Created from
+                                    </Label>
                                     <Input
                                         id="filter-created-from"
                                         type="date"
                                         value={filterForm.createdFrom}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, createdFrom: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                createdFrom: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-created-to">Created to</Label>
+                                    <Label htmlFor="filter-created-to">
+                                        Created to
+                                    </Label>
                                     <Input
                                         id="filter-created-to"
                                         type="date"
                                         value={filterForm.createdTo}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, createdTo: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                createdTo: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                <Button type="button" variant="ghost" onClick={resetJobFilters}>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={resetJobFilters}
+                                >
                                     Clear
                                 </Button>
                                 <Button type="submit">
-                                    <Filter className="mr-2 h-4 w-4" aria-hidden /> Apply filters
+                                    <Filter
+                                        className="mr-2 h-4 w-4"
+                                        aria-hidden
+                                    />{' '}
+                                    Apply filters
                                 </Button>
                             </div>
                         </form>
@@ -553,7 +753,9 @@ export function AdminSupplierScrapePage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Scrape jobs</CardTitle>
-                    <CardDescription>Monitor pending jobs and review completion metrics.</CardDescription>
+                    <CardDescription>
+                        Monitor pending jobs and review completion metrics.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {jobsQuery.isLoading ? (
@@ -571,44 +773,102 @@ export function AdminSupplierScrapePage() {
                                             <TableHead>Status</TableHead>
                                             <TableHead>Started</TableHead>
                                             <TableHead>Finished</TableHead>
-                                            <TableHead className="text-right">Results</TableHead>
+                                            <TableHead className="text-right">
+                                                Results
+                                            </TableHead>
                                             <TableHead>
-                                                <span className="sr-only">Actions</span>
+                                                <span className="sr-only">
+                                                    Actions
+                                                </span>
                                             </TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {jobs.map((job) => (
-                                            <TableRow key={job.id} className={cn(selectedJob?.id === job.id ? 'bg-muted/30' : undefined)}>
+                                            <TableRow
+                                                key={job.id}
+                                                className={cn(
+                                                    selectedJob?.id === job.id
+                                                        ? 'bg-muted/30'
+                                                        : undefined,
+                                                )}
+                                            >
                                                 <TableCell>
-                                                    <div className="font-medium">{job.query}</div>
-                                                    <div className="text-xs text-muted-foreground">#{job.id}</div>
+                                                    <div className="font-medium">
+                                                        {job.query}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        #{job.id}
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     {job.region ? (
                                                         <div className="flex items-center gap-1 text-sm">
-                                                            <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden />
+                                                            <MapPin
+                                                                className="h-4 w-4 text-muted-foreground"
+                                                                aria-hidden
+                                                            />
                                                             {job.region}
                                                         </div>
                                                     ) : (
-                                                        <span className="text-sm text-muted-foreground">—</span>
+                                                        <span className="text-sm text-muted-foreground">
+                                                            —
+                                                        </span>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className={cn('capitalize', STATUS_VARIANTS[job.status ?? ''] ?? 'bg-muted')}>
-                                                        {job.status ?? 'unknown'}
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={cn(
+                                                            'capitalize',
+                                                            STATUS_VARIANTS[
+                                                                job.status ?? ''
+                                                            ] ?? 'bg-muted',
+                                                        )}
+                                                    >
+                                                        {job.status ??
+                                                            'unknown'}
                                                     </Badge>
                                                     {job.error_message ? (
-                                                        <p className="text-xs text-red-600">{job.error_message}</p>
+                                                        <p className="text-xs text-red-600">
+                                                            {job.error_message}
+                                                        </p>
                                                     ) : null}
                                                 </TableCell>
-                                                <TableCell>{formatDate(job.started_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}</TableCell>
-                                                <TableCell>{formatDate(job.finished_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}</TableCell>
+                                                <TableCell>
+                                                    {formatDate(
+                                                        job.started_at,
+                                                        {
+                                                            dateStyle: 'medium',
+                                                            timeStyle: 'short',
+                                                        },
+                                                    ) ?? '—'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {formatDate(
+                                                        job.finished_at,
+                                                        {
+                                                            dateStyle: 'medium',
+                                                            timeStyle: 'short',
+                                                        },
+                                                    ) ?? '—'}
+                                                </TableCell>
                                                 <TableCell className="text-right text-sm font-medium">
-                                                    {job.result_count != null ? formatNumber(job.result_count) : '—'}
+                                                    {job.result_count != null
+                                                        ? formatNumber(
+                                                              job.result_count,
+                                                          )
+                                                        : '—'}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button type="button" variant="outline" size="sm" onClick={() => openJobDetails(job)}>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            openJobDetails(job)
+                                                        }
+                                                    >
                                                         View results
                                                     </Button>
                                                 </TableCell>
@@ -639,9 +899,14 @@ export function AdminSupplierScrapePage() {
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                                setJobFilters((prev) => ({ ...prev, cursor: jobsMeta.prevCursor ?? null }))
+                                setJobFilters((prev) => ({
+                                    ...prev,
+                                    cursor: jobsMeta.prevCursor ?? null,
+                                }))
                             }
-                            disabled={!jobsMeta.prevCursor || jobsQuery.isFetching}
+                            disabled={
+                                !jobsMeta.prevCursor || jobsQuery.isFetching
+                            }
                         >
                             Previous
                         </Button>
@@ -650,9 +915,14 @@ export function AdminSupplierScrapePage() {
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                                setJobFilters((prev) => ({ ...prev, cursor: jobsMeta.nextCursor ?? null }))
+                                setJobFilters((prev) => ({
+                                    ...prev,
+                                    cursor: jobsMeta.nextCursor ?? null,
+                                }))
                             }
-                            disabled={!jobsMeta.nextCursor || jobsQuery.isFetching}
+                            disabled={
+                                !jobsMeta.nextCursor || jobsQuery.isFetching
+                            }
                         >
                             Next
                         </Button>
@@ -660,237 +930,424 @@ export function AdminSupplierScrapePage() {
                 ) : null}
             </Card>
 
-            <Sheet open={Boolean(selectedJob)} onOpenChange={(open) => (open ? null : closeJobDetails())}>
-                <SheetContent side="right" className="w-full max-w-4xl">
+            <Sheet
+                open={Boolean(selectedJob)}
+                onOpenChange={(open) => (open ? null : closeJobDetails())}
+            >
+                <SheetContent side="right" className="w-full sm:max-w-5xl">
                     <SheetHeader>
                         <SheetTitle>Scraped suppliers</SheetTitle>
                         <SheetDescription>
-                            {selectedJob ? `Job #${selectedJob.id} • ${selectedJob.query}` : 'Select a job to view details.'}
+                            {selectedJob
+                                ? `Job #${selectedJob.id} • ${selectedJob.query}`
+                                : 'Select a job to view details.'}
                         </SheetDescription>
                     </SheetHeader>
                     {selectedJob ? (
-                        <div className="mt-4 flex h-[calc(100vh-6rem)] flex-col gap-4">
-                            <Card>
-                                <CardHeader className="space-y-1">
-                                    <CardTitle>Job summary</CardTitle>
-                                    <CardDescription>{selectedJobScope}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid gap-2 text-sm">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant="outline" className={cn('capitalize', STATUS_VARIANTS[selectedJobStatus ?? ''] ?? 'bg-muted')}>
-                                            {selectedJobStatus ?? 'unknown'}
-                                        </Badge>
-                                        <Badge variant="secondary">{selectedJob.result_count ?? 0} candidates</Badge>
-                                    </div>
-                                    <div className="text-muted-foreground">
-                                        Started {formatDate(selectedJob.started_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'} | Finished{' '}
-                                        {formatDate(selectedJob.finished_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Result filters</CardTitle>
-                                    <CardDescription>Search scraped candidates and filter by review status.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <form className="grid gap-4" onSubmit={applyResultFilters}>
-                                        <div className="grid gap-3 sm:grid-cols-2">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="result-search">Search</Label>
-                                                <Input
-                                                    id="result-search"
-                                                    placeholder="supplier or website"
-                                                    value={resultFilterForm.search}
-                                                    onChange={(event) => setResultFilterForm((prev) => ({ ...prev, search: event.target.value }))}
-                                                />
+                        <div className="mt-4 grid h-[calc(100vh-6rem)] gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+                            <div className="flex flex-col gap-4">
+                                <Card>
+                                    <CardHeader className="space-y-1">
+                                        <CardTitle>Job summary</CardTitle>
+                                        <CardDescription>
+                                            {selectedJobScope}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="grid gap-2 text-sm">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    'capitalize',
+                                                    STATUS_VARIANTS[
+                                                        selectedJobStatus ?? ''
+                                                    ] ?? 'bg-muted',
+                                                )}
+                                            >
+                                                {selectedJobStatus ?? 'unknown'}
+                                            </Badge>
+                                            <Badge variant="secondary">
+                                                {selectedJob.result_count ?? 0}{' '}
+                                                candidates
+                                            </Badge>
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            Started{' '}
+                                            {formatDate(selectedJob.started_at, {
+                                                dateStyle: 'medium',
+                                                timeStyle: 'short',
+                                            }) ?? '—'}{' '}
+                                            | Finished{' '}
+                                            {formatDate(selectedJob.finished_at, {
+                                                dateStyle: 'medium',
+                                                timeStyle: 'short',
+                                            }) ?? '—'}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Result filters</CardTitle>
+                                        <CardDescription>
+                                            Search scraped candidates and filter by
+                                            review status.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <form
+                                            className="grid gap-4"
+                                            onSubmit={applyResultFilters}
+                                        >
+                                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="result-search">
+                                                        Search
+                                                    </Label>
+                                                    <Input
+                                                        id="result-search"
+                                                        placeholder="supplier or website"
+                                                        value={
+                                                            resultFilterForm.search
+                                                        }
+                                                        onChange={(event) =>
+                                                            setResultFilterForm(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    search: event
+                                                                        .target
+                                                                        .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="result-status">
+                                                        Status
+                                                    </Label>
+                                                    <Select
+                                                        value={
+                                                            resultFilterForm.status
+                                                        }
+                                                        onValueChange={(value) =>
+                                                            setResultFilterForm(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    status: value,
+                                                                }),
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger id="result-status">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {SCRAPED_STATUS_OPTIONS.map(
+                                                                (option) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            option.value
+                                                                        }
+                                                                        value={
+                                                                            option.value
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            option.label
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="result-min-confidence">
+                                                        Min confidence
+                                                    </Label>
+                                                    <Input
+                                                        id="result-min-confidence"
+                                                        type="number"
+                                                        step="0.1"
+                                                        min={0}
+                                                        max={1}
+                                                        value={
+                                                            resultFilterForm.minConfidence
+                                                        }
+                                                        onChange={(event) =>
+                                                            setResultFilterForm(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    minConfidence:
+                                                                        event.target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="result-max-confidence">
+                                                        Max confidence
+                                                    </Label>
+                                                    <Input
+                                                        id="result-max-confidence"
+                                                        type="number"
+                                                        step="0.1"
+                                                        min={0}
+                                                        max={1}
+                                                        value={
+                                                            resultFilterForm.maxConfidence
+                                                        }
+                                                        onChange={(event) =>
+                                                            setResultFilterForm(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    maxConfidence:
+                                                                        event.target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="result-status">Status</Label>
-                                                <Select
-                                                    value={resultFilterForm.status}
-                                                    onValueChange={(value) => setResultFilterForm((prev) => ({ ...prev, status: value }))}
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={resetResultFilters}
                                                 >
-                                                    <SelectTrigger id="result-status">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {SCRAPED_STATUS_OPTIONS.map((option) => (
-                                                            <SelectItem key={option.value} value={option.value}>
-                                                                {option.label}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                    Clear
+                                                </Button>
+                                                <Button type="submit" size="sm">
+                                                    Apply
+                                                </Button>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="result-min-confidence">Min confidence</Label>
-                                                <Input
-                                                    id="result-min-confidence"
-                                                    type="number"
-                                                    step="0.1"
-                                                    min={0}
-                                                    max={1}
-                                                    value={resultFilterForm.minConfidence}
-                                                    onChange={(event) =>
-                                                        setResultFilterForm((prev) => ({ ...prev, minConfidence: event.target.value }))
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="result-max-confidence">Max confidence</Label>
-                                                <Input
-                                                    id="result-max-confidence"
-                                                    type="number"
-                                                    step="0.1"
-                                                    min={0}
-                                                    max={1}
-                                                    value={resultFilterForm.maxConfidence}
-                                                    onChange={(event) =>
-                                                        setResultFilterForm((prev) => ({ ...prev, maxConfidence: event.target.value }))
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button type="button" variant="ghost" onClick={resetResultFilters}>
-                                                Clear
-                                            </Button>
-                                            <Button type="submit" size="sm">
-                                                Apply
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </CardContent>
-                            </Card>
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <Badge>Pending {resultContext.pending}</Badge>
-                                <Badge variant="secondary">Approved {resultContext.approved}</Badge>
-                                <Badge variant="outline">Discarded {resultContext.discarded}</Badge>
-                            </div>
-                            <ScrollArea className="flex-1 rounded-md border p-4">
-                                {resultsQuery.isLoading ? (
-                                    <div className="flex justify-center py-8">
-                                        <Spinner />
-                                    </div>
-                                ) : results.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {results.map((supplier) => (
-                                            <div key={supplier.id} className="rounded-lg border p-4 shadow-sm">
-                                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-lg font-semibold">{supplier.name ?? 'Untitled candidate'}</span>
-                                                            <Badge
-                                                                className={cn(
-                                                                    'capitalize',
-                                                                    SCRAPED_STATUS_VARIANTS[supplier.status ?? 'pending'] ?? 'bg-muted',
-                                                                )}
-                                                            >
-                                                                {supplier.status ?? 'pending'}
-                                                            </Badge>
-                                                        </div>
-                                                        {supplier.website ? (
-                                                            <a
-                                                                href={supplier.website}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="text-sm text-primary underline"
-                                                            >
-                                                                {supplier.website}
-                                                            </a>
-                                                        ) : null}
-                                                    </div>
-                                                    <div className="text-right text-sm">
-                                                        <div className="font-semibold">
-                                                            Confidence {supplier.confidence != null ? `${Math.round(supplier.confidence * 100)}%` : '—'}
-                                                        </div>
-                                                        <div className="text-xs text-muted-foreground">
-                                                            Source {supplier.source_url ?? 'N/A'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {supplier.product_summary || supplier.description ? (
-                                                    <p className="mt-2 text-sm text-muted-foreground">
-                                                        {supplier.product_summary ?? supplier.description}
-                                                    </p>
-                                                ) : null}
-                                                {supplier.industry_tags && supplier.industry_tags.length > 0 ? (
-                                                    <div className="mt-3 flex flex-wrap gap-2">
-                                                        {supplier.industry_tags.map((tag) => (
-                                                            <Badge key={tag} variant="outline">
-                                                                {tag}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                ) : null}
-                                                <div className="mt-4 flex flex-wrap gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        onClick={() => openReviewModal(supplier)}
-                                                        disabled={supplier.status !== 'pending'}
-                                                    >
-                                                        <BadgeCheck className="mr-2 h-4 w-4" aria-hidden /> Review & onboard
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() => handleDiscard(supplier)}
-                                                        disabled={supplier.status !== 'pending' || discardMutation.isPending}
-                                                    >
-                                                        <Trash2 className="mr-2 h-4 w-4" aria-hidden />
-                                                        Discard
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <EmptyState
-                                        icon={emptyStateIcon}
-                                        title="No scraped suppliers"
-                                        description="Rerun the scrape or adjust filters."
-                                    />
-                                )}
-                            </ScrollArea>
-                            {resultsMeta && (resultsMeta.nextCursor || resultsMeta.prevCursor) ? (
-                                <div className="flex justify-between">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setResultFilters((prev) => ({ ...prev, cursor: resultsMeta.prevCursor ?? null }))}
-                                        disabled={!resultsMeta.prevCursor || resultsQuery.isFetching}
-                                    >
-                                        Previous
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setResultFilters((prev) => ({ ...prev, cursor: resultsMeta.nextCursor ?? null }))}
-                                        disabled={!resultsMeta.nextCursor || resultsQuery.isFetching}
-                                    >
-                                        Next
-                                    </Button>
+                                        </form>
+                                    </CardContent>
+                                </Card>
+                                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                                    <Badge>Pending {resultContext.pending}</Badge>
+                                    <Badge variant="secondary">
+                                        Approved {resultContext.approved}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                        Discarded {resultContext.discarded}
+                                    </Badge>
                                 </div>
-                            ) : null}
+                            </div>
+                            <div className="flex min-h-0 flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle>Scraped suppliers</CardTitle>
+                                    {resultsMeta &&
+                                    (resultsMeta.nextCursor ||
+                                        resultsMeta.prevCursor) ? (
+                                        <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setResultFilters((prev) => ({
+                                                        ...prev,
+                                                        cursor:
+                                                            resultsMeta.prevCursor ??
+                                                            null,
+                                                    }))
+                                                }
+                                                disabled={
+                                                    !resultsMeta.prevCursor ||
+                                                    resultsQuery.isFetching
+                                                }
+                                            >
+                                                Previous
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setResultFilters((prev) => ({
+                                                        ...prev,
+                                                        cursor:
+                                                            resultsMeta.nextCursor ??
+                                                            null,
+                                                    }))
+                                                }
+                                                disabled={
+                                                    !resultsMeta.nextCursor ||
+                                                    resultsQuery.isFetching
+                                                }
+                                            >
+                                                Next
+                                            </Button>
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <ScrollArea className="flex-1 rounded-md border p-4">
+                                    {resultsQuery.isLoading ? (
+                                        <div className="flex justify-center py-8">
+                                            <Spinner />
+                                        </div>
+                                    ) : results.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {results.map((supplier) => (
+                                                <div
+                                                    key={supplier.id}
+                                                    className="rounded-lg border p-4 shadow-sm"
+                                                >
+                                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-lg font-semibold">
+                                                                    {supplier.name ??
+                                                                        'Untitled candidate'}
+                                                                </span>
+                                                                <Badge
+                                                                    className={cn(
+                                                                        'capitalize',
+                                                                        SCRAPED_STATUS_VARIANTS[
+                                                                            supplier.status ??
+                                                                                'pending'
+                                                                        ] ??
+                                                                            'bg-muted',
+                                                                    )}
+                                                                >
+                                                                    {supplier.status ??
+                                                                        'pending'}
+                                                                </Badge>
+                                                            </div>
+                                                            {supplier.website ? (
+                                                                <a
+                                                                    href={
+                                                                        supplier.website
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="text-sm text-primary underline"
+                                                                >
+                                                                    {
+                                                                        supplier.website
+                                                                    }
+                                                                </a>
+                                                            ) : null}
+                                                        </div>
+                                                        <div className="text-right text-sm">
+                                                            <div className="font-semibold">
+                                                                Confidence{' '}
+                                                                {supplier.confidence !=
+                                                                null
+                                                                    ? `${Math.round(supplier.confidence * 100)}%`
+                                                                    : '—'}
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground">
+                                                                Source{' '}
+                                                                {supplier.source_url ??
+                                                                    'N/A'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {supplier.product_summary ||
+                                                    supplier.description ? (
+                                                        <p className="mt-2 text-sm text-muted-foreground">
+                                                            {supplier.product_summary ??
+                                                                supplier.description}
+                                                        </p>
+                                                    ) : null}
+                                                    {supplier.industry_tags &&
+                                                    supplier.industry_tags.length >
+                                                        0 ? (
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {supplier.industry_tags.map(
+                                                                (tag) => (
+                                                                    <Badge
+                                                                        key={tag}
+                                                                        variant="outline"
+                                                                    >
+                                                                        {tag}
+                                                                    </Badge>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    ) : null}
+                                                    <div className="mt-4 flex flex-wrap gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                openReviewModal(
+                                                                    supplier,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                supplier.status !==
+                                                                'pending'
+                                                            }
+                                                        >
+                                                            <BadgeCheck
+                                                                className="mr-2 h-4 w-4"
+                                                                aria-hidden
+                                                            />{' '}
+                                                            Review & onboard
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                handleDiscard(
+                                                                    supplier,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                supplier.status !==
+                                                                    'pending' ||
+                                                                discardMutation.isPending
+                                                            }
+                                                        >
+                                                            <Trash2
+                                                                className="mr-2 h-4 w-4"
+                                                                aria-hidden
+                                                            />
+                                                            Discard
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <EmptyState
+                                            icon={emptyStateIcon}
+                                            title="No scraped suppliers"
+                                            description="Rerun the scrape or adjust filters."
+                                        />
+                                    )}
+                                </ScrollArea>
+                            </div>
                         </div>
                     ) : (
                         <div className="flex flex-1 items-center justify-center">
-                            <EmptyState icon={emptyStateIcon} title="Select a job" description="Choose a job to inspect the scraped suppliers." />
+                            <EmptyState
+                                icon={emptyStateIcon}
+                                title="Select a job"
+                                description="Choose a job to inspect the scraped suppliers."
+                            />
                         </div>
                     )}
                 </SheetContent>
             </Sheet>
 
-            <Dialog open={reviewing} onOpenChange={(open) => (open ? null : closeReviewModal())}>
+            <Dialog
+                open={reviewing}
+                onOpenChange={(open) => (open ? null : closeReviewModal())}
+            >
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Review scraped supplier</DialogTitle>
-                        <DialogDescription>Verify the extracted fields before onboarding.</DialogDescription>
+                        <DialogDescription>
+                            Verify the extracted fields before onboarding.
+                        </DialogDescription>
                     </DialogHeader>
                     <form className="space-y-4" onSubmit={handleApproveSubmit}>
                         <div className="grid gap-4 md:grid-cols-2">
@@ -900,7 +1357,12 @@ export function AdminSupplierScrapePage() {
                                     id="review-name"
                                     required
                                     value={reviewForm.name}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, name: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            name: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -908,7 +1370,12 @@ export function AdminSupplierScrapePage() {
                                 <Input
                                     id="review-website"
                                     value={reviewForm.website}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, website: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            website: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -916,7 +1383,12 @@ export function AdminSupplierScrapePage() {
                                 <Input
                                     id="review-email"
                                     value={reviewForm.email}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, email: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            email: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -924,7 +1396,12 @@ export function AdminSupplierScrapePage() {
                                 <Input
                                     id="review-phone"
                                     value={reviewForm.phone}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, phone: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            phone: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -932,7 +1409,12 @@ export function AdminSupplierScrapePage() {
                                 <Input
                                     id="review-address"
                                     value={reviewForm.address}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, address: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            address: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -940,53 +1422,94 @@ export function AdminSupplierScrapePage() {
                                 <Input
                                     id="review-city"
                                     value={reviewForm.city}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, city: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            city: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="review-state">State / Province</Label>
+                                <Label htmlFor="review-state">
+                                    State / Province
+                                </Label>
                                 <Input
                                     id="review-state"
                                     value={reviewForm.state}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, state: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            state: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="review-country">Country (ISO)</Label>
+                                <Label htmlFor="review-country">
+                                    Country (ISO)
+                                </Label>
                                 <Input
                                     id="review-country"
                                     maxLength={2}
                                     value={reviewForm.country}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, country: event.target.value.toUpperCase() }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            country:
+                                                event.target.value.toUpperCase(),
+                                        }))
+                                    }
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="review-summary">Product summary</Label>
+                            <Label htmlFor="review-summary">
+                                Product summary
+                            </Label>
                             <Textarea
                                 id="review-summary"
                                 rows={3}
                                 value={reviewForm.productSummary}
-                                onChange={(event) => setReviewForm((prev) => ({ ...prev, productSummary: event.target.value }))}
+                                onChange={(event) =>
+                                    setReviewForm((prev) => ({
+                                        ...prev,
+                                        productSummary: event.target.value,
+                                    }))
+                                }
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="review-certifications">Certifications (one per line)</Label>
+                            <Label htmlFor="review-certifications">
+                                Certifications (one per line)
+                            </Label>
                             <Textarea
                                 id="review-certifications"
                                 rows={3}
                                 value={reviewForm.certifications}
-                                onChange={(event) => setReviewForm((prev) => ({ ...prev, certifications: event.target.value }))}
+                                onChange={(event) =>
+                                    setReviewForm((prev) => ({
+                                        ...prev,
+                                        certifications: event.target.value,
+                                    }))
+                                }
                             />
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="review-lead-time">Lead time (days)</Label>
+                                <Label htmlFor="review-lead-time">
+                                    Lead time (days)
+                                </Label>
                                 <Input
                                     id="review-lead-time"
                                     type="number"
                                     value={reviewForm.leadTimeDays}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, leadTimeDays: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            leadTimeDays: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -995,7 +1518,12 @@ export function AdminSupplierScrapePage() {
                                     id="review-moq"
                                     type="number"
                                     value={reviewForm.moq}
-                                    onChange={(event) => setReviewForm((prev) => ({ ...prev, moq: event.target.value }))}
+                                    onChange={(event) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            moq: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
                         </div>
@@ -1005,28 +1533,44 @@ export function AdminSupplierScrapePage() {
                                 id="review-notes"
                                 rows={3}
                                 value={reviewForm.notes}
-                                onChange={(event) => setReviewForm((prev) => ({ ...prev, notes: event.target.value }))}
+                                onChange={(event) =>
+                                    setReviewForm((prev) => ({
+                                        ...prev,
+                                        notes: event.target.value,
+                                    }))
+                                }
                             />
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="review-attachment">Attachment</Label>
+                                <Label htmlFor="review-attachment">
+                                    Attachment
+                                </Label>
                                 <Input
                                     id="review-attachment"
                                     type="file"
                                     onChange={(event) =>
                                         setReviewForm((prev) => ({
                                             ...prev,
-                                            attachment: event.target.files?.[0] ?? null,
+                                            attachment:
+                                                event.target.files?.[0] ?? null,
                                         }))
                                     }
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="review-attachment-type">Attachment type</Label>
+                                <Label htmlFor="review-attachment-type">
+                                    Attachment type
+                                </Label>
                                 <Select
                                     value={reviewForm.attachmentType}
-                                    onValueChange={(value) => setReviewForm((prev) => ({ ...prev, attachmentType: value as SupplierDocumentType }))}
+                                    onValueChange={(value) =>
+                                        setReviewForm((prev) => ({
+                                            ...prev,
+                                            attachmentType:
+                                                value as SupplierDocumentType,
+                                        }))
+                                    }
                                     disabled={!reviewForm.attachment}
                                 >
                                     <SelectTrigger id="review-attachment-type">
@@ -1034,7 +1578,10 @@ export function AdminSupplierScrapePage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {ATTACHMENT_TYPES.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         ))}
@@ -1043,14 +1590,24 @@ export function AdminSupplierScrapePage() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={closeReviewModal}>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={closeReviewModal}
+                            >
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={disableActions}>
                                 {approveMutation.isPending ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                                    <Loader2
+                                        className="mr-2 h-4 w-4 animate-spin"
+                                        aria-hidden
+                                    />
                                 ) : (
-                                    <BadgeCheck className="mr-2 h-4 w-4" aria-hidden />
+                                    <BadgeCheck
+                                        className="mr-2 h-4 w-4"
+                                        aria-hidden
+                                    />
                                 )}
                                 Approve & onboard
                             </Button>

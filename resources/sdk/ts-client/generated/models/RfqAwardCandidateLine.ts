@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,84 +12,79 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RfqAwardCandidateBestPrice } from './RfqAwardCandidateBestPrice';
 import {
     RfqAwardCandidateBestPriceFromJSON,
-    RfqAwardCandidateBestPriceFromJSONTyped,
     RfqAwardCandidateBestPriceToJSON,
-    RfqAwardCandidateBestPriceToJSONTyped,
 } from './RfqAwardCandidateBestPrice';
 import type { RfqAwardCandidateOption } from './RfqAwardCandidateOption';
 import {
     RfqAwardCandidateOptionFromJSON,
-    RfqAwardCandidateOptionFromJSONTyped,
     RfqAwardCandidateOptionToJSON,
-    RfqAwardCandidateOptionToJSONTyped,
 } from './RfqAwardCandidateOption';
 
 /**
- * 
+ *
  * @export
  * @interface RfqAwardCandidateLine
  */
 export interface RfqAwardCandidateLine {
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateLine
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateLine
      */
     lineNo: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateLine
      */
     partName: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateLine
      */
     spec?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateLine
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateLine
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateLine
      */
     currency: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateLine
      */
     targetPriceMinor?: number;
     /**
-     * 
+     *
      * @type {Array<RfqAwardCandidateOption>}
      * @memberof RfqAwardCandidateLine
      */
     candidates: Array<RfqAwardCandidateOption>;
     /**
-     * 
+     *
      * @type {RfqAwardCandidateBestPrice}
      * @memberof RfqAwardCandidateLine
      */
@@ -99,36 +94,51 @@ export interface RfqAwardCandidateLine {
 /**
  * Check if a given object implements the RfqAwardCandidateLine interface.
  */
-export function instanceOfRfqAwardCandidateLine(value: object): value is RfqAwardCandidateLine {
+export function instanceOfRfqAwardCandidateLine(
+    value: object,
+): value is RfqAwardCandidateLine {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('lineNo' in value) || value['lineNo'] === undefined) return false;
     if (!('partName' in value) || value['partName'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
-    if (!('candidates' in value) || value['candidates'] === undefined) return false;
+    if (!('candidates' in value) || value['candidates'] === undefined)
+        return false;
     return true;
 }
 
-export function RfqAwardCandidateLineFromJSON(json: any): RfqAwardCandidateLine {
+export function RfqAwardCandidateLineFromJSON(
+    json: any,
+): RfqAwardCandidateLine {
     return RfqAwardCandidateLineFromJSONTyped(json, false);
 }
 
-export function RfqAwardCandidateLineFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqAwardCandidateLine {
+export function RfqAwardCandidateLineFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqAwardCandidateLine {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'lineNo': json['line_no'],
-        'partName': json['part_name'],
-        'spec': json['spec'] == null ? undefined : json['spec'],
-        'quantity': json['quantity'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'currency': json['currency'],
-        'targetPriceMinor': json['target_price_minor'] == null ? undefined : json['target_price_minor'],
-        'candidates': ((json['candidates'] as Array<any>).map(RfqAwardCandidateOptionFromJSON)),
-        'bestPrice': json['best_price'] == null ? undefined : RfqAwardCandidateBestPriceFromJSON(json['best_price']),
+        id: json['id'],
+        lineNo: json['line_no'],
+        partName: json['part_name'],
+        spec: json['spec'] == null ? undefined : json['spec'],
+        quantity: json['quantity'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        currency: json['currency'],
+        targetPriceMinor:
+            json['target_price_minor'] == null
+                ? undefined
+                : json['target_price_minor'],
+        candidates: (json['candidates'] as Array<any>).map(
+            RfqAwardCandidateOptionFromJSON,
+        ),
+        bestPrice:
+            json['best_price'] == null
+                ? undefined
+                : RfqAwardCandidateBestPriceFromJSON(json['best_price']),
     };
 }
 
@@ -136,23 +146,26 @@ export function RfqAwardCandidateLineToJSON(json: any): RfqAwardCandidateLine {
     return RfqAwardCandidateLineToJSONTyped(json, false);
 }
 
-export function RfqAwardCandidateLineToJSONTyped(value?: RfqAwardCandidateLine | null, ignoreDiscriminator: boolean = false): any {
+export function RfqAwardCandidateLineToJSONTyped(
+    value?: RfqAwardCandidateLine | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'line_no': value['lineNo'],
-        'part_name': value['partName'],
-        'spec': value['spec'],
-        'quantity': value['quantity'],
-        'uom': value['uom'],
-        'currency': value['currency'],
-        'target_price_minor': value['targetPriceMinor'],
-        'candidates': ((value['candidates'] as Array<any>).map(RfqAwardCandidateOptionToJSON)),
-        'best_price': RfqAwardCandidateBestPriceToJSON(value['bestPrice']),
+        id: value['id'],
+        line_no: value['lineNo'],
+        part_name: value['partName'],
+        spec: value['spec'],
+        quantity: value['quantity'],
+        uom: value['uom'],
+        currency: value['currency'],
+        target_price_minor: value['targetPriceMinor'],
+        candidates: (value['candidates'] as Array<any>).map(
+            RfqAwardCandidateOptionToJSON,
+        ),
+        best_price: RfqAwardCandidateBestPriceToJSON(value['bestPrice']),
     };
 }
-

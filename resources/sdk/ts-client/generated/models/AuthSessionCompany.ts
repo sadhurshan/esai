@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AuthSessionCompany
  */
 export interface AuthSessionCompany {
     /**
-     * 
+     *
      * @type {number}
      * @memberof AuthSessionCompany
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthSessionCompany
      */
@@ -48,7 +47,9 @@ export interface AuthSessionCompany {
 /**
  * Check if a given object implements the AuthSessionCompany interface.
  */
-export function instanceOfAuthSessionCompany(value: object): value is AuthSessionCompany {
+export function instanceOfAuthSessionCompany(
+    value: object,
+): value is AuthSessionCompany {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
@@ -59,16 +60,18 @@ export function AuthSessionCompanyFromJSON(json: any): AuthSessionCompany {
     return AuthSessionCompanyFromJSONTyped(json, false);
 }
 
-export function AuthSessionCompanyFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthSessionCompany {
+export function AuthSessionCompanyFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthSessionCompany {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'name': json['name'],
-        'status': json['status'],
-        'plan': json['plan'] == null ? undefined : json['plan'],
+        id: json['id'],
+        name: json['name'],
+        status: json['status'],
+        plan: json['plan'] == null ? undefined : json['plan'],
     };
 }
 
@@ -76,17 +79,18 @@ export function AuthSessionCompanyToJSON(json: any): AuthSessionCompany {
     return AuthSessionCompanyToJSONTyped(json, false);
 }
 
-export function AuthSessionCompanyToJSONTyped(value?: AuthSessionCompany | null, ignoreDiscriminator: boolean = false): any {
+export function AuthSessionCompanyToJSONTyped(
+    value?: AuthSessionCompany | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
-        'status': value['status'],
-        'plan': value['plan'],
+        id: value['id'],
+        name: value['name'],
+        status: value['status'],
+        plan: value['plan'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,56 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RfqAwardCandidateBestPrice
  */
 export interface RfqAwardCandidateBestPrice {
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateBestPrice
      */
     quoteId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateBestPrice
      */
     quoteItemId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateBestPrice
      */
     supplierId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateBestPrice
      */
     supplierName?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateBestPrice
      */
     unitPriceMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateBestPrice
      */
     unitPriceCurrency?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof RfqAwardCandidateBestPrice
      */
     convertedUnitPriceMinor?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RfqAwardCandidateBestPrice
      */
@@ -72,50 +71,74 @@ export interface RfqAwardCandidateBestPrice {
 /**
  * Check if a given object implements the RfqAwardCandidateBestPrice interface.
  */
-export function instanceOfRfqAwardCandidateBestPrice(value: object): value is RfqAwardCandidateBestPrice {
+export function instanceOfRfqAwardCandidateBestPrice(
+    value: object,
+): value is RfqAwardCandidateBestPrice {
     return true;
 }
 
-export function RfqAwardCandidateBestPriceFromJSON(json: any): RfqAwardCandidateBestPrice {
+export function RfqAwardCandidateBestPriceFromJSON(
+    json: any,
+): RfqAwardCandidateBestPrice {
     return RfqAwardCandidateBestPriceFromJSONTyped(json, false);
 }
 
-export function RfqAwardCandidateBestPriceFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqAwardCandidateBestPrice {
+export function RfqAwardCandidateBestPriceFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqAwardCandidateBestPrice {
     if (json == null) {
         return json;
     }
     return {
-        
-        'quoteId': json['quote_id'] == null ? undefined : json['quote_id'],
-        'quoteItemId': json['quote_item_id'] == null ? undefined : json['quote_item_id'],
-        'supplierId': json['supplier_id'] == null ? undefined : json['supplier_id'],
-        'supplierName': json['supplier_name'] == null ? undefined : json['supplier_name'],
-        'unitPriceMinor': json['unit_price_minor'] == null ? undefined : json['unit_price_minor'],
-        'unitPriceCurrency': json['unit_price_currency'] == null ? undefined : json['unit_price_currency'],
-        'convertedUnitPriceMinor': json['converted_unit_price_minor'] == null ? undefined : json['converted_unit_price_minor'],
-        'convertedCurrency': json['converted_currency'] == null ? undefined : json['converted_currency'],
+        quoteId: json['quote_id'] == null ? undefined : json['quote_id'],
+        quoteItemId:
+            json['quote_item_id'] == null ? undefined : json['quote_item_id'],
+        supplierId:
+            json['supplier_id'] == null ? undefined : json['supplier_id'],
+        supplierName:
+            json['supplier_name'] == null ? undefined : json['supplier_name'],
+        unitPriceMinor:
+            json['unit_price_minor'] == null
+                ? undefined
+                : json['unit_price_minor'],
+        unitPriceCurrency:
+            json['unit_price_currency'] == null
+                ? undefined
+                : json['unit_price_currency'],
+        convertedUnitPriceMinor:
+            json['converted_unit_price_minor'] == null
+                ? undefined
+                : json['converted_unit_price_minor'],
+        convertedCurrency:
+            json['converted_currency'] == null
+                ? undefined
+                : json['converted_currency'],
     };
 }
 
-export function RfqAwardCandidateBestPriceToJSON(json: any): RfqAwardCandidateBestPrice {
+export function RfqAwardCandidateBestPriceToJSON(
+    json: any,
+): RfqAwardCandidateBestPrice {
     return RfqAwardCandidateBestPriceToJSONTyped(json, false);
 }
 
-export function RfqAwardCandidateBestPriceToJSONTyped(value?: RfqAwardCandidateBestPrice | null, ignoreDiscriminator: boolean = false): any {
+export function RfqAwardCandidateBestPriceToJSONTyped(
+    value?: RfqAwardCandidateBestPrice | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'quote_id': value['quoteId'],
-        'quote_item_id': value['quoteItemId'],
-        'supplier_id': value['supplierId'],
-        'supplier_name': value['supplierName'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'unit_price_currency': value['unitPriceCurrency'],
-        'converted_unit_price_minor': value['convertedUnitPriceMinor'],
-        'converted_currency': value['convertedCurrency'],
+        quote_id: value['quoteId'],
+        quote_item_id: value['quoteItemId'],
+        supplier_id: value['supplierId'],
+        supplier_name: value['supplierName'],
+        unit_price_minor: value['unitPriceMinor'],
+        unit_price_currency: value['unitPriceCurrency'],
+        converted_unit_price_minor: value['convertedUnitPriceMinor'],
+        converted_currency: value['convertedCurrency'],
     };
 }
-

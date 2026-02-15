@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,125 +12,122 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { InvoiceLineTaxesInner } from './InvoiceLineTaxesInner';
 import {
     InvoiceLineTaxesInnerFromJSON,
-    InvoiceLineTaxesInnerFromJSONTyped,
     InvoiceLineTaxesInnerToJSON,
-    InvoiceLineTaxesInnerToJSONTyped,
 } from './InvoiceLineTaxesInner';
 
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrderLine
  */
 export interface PurchaseOrderLine {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     lineNo: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderLine
      */
     description?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderLine
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderLine
      */
     currency?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     unitPriceMinor: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     lineSubtotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     lineSubtotalMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     taxTotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     taxTotalMinor?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     lineTotal?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     lineTotalMinor: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderLine
      */
     deliveryDate?: Date;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     invoicedQuantity?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderLine
      */
     remainingQuantity?: number;
     /**
-     * 
+     *
      * @type {Array<InvoiceLineTaxesInner>}
      * @memberof PurchaseOrderLine
      */
@@ -140,12 +137,16 @@ export interface PurchaseOrderLine {
 /**
  * Check if a given object implements the PurchaseOrderLine interface.
  */
-export function instanceOfPurchaseOrderLine(value: object): value is PurchaseOrderLine {
+export function instanceOfPurchaseOrderLine(
+    value: object,
+): value is PurchaseOrderLine {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('lineNo' in value) || value['lineNo'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
-    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined) return false;
-    if (!('lineTotalMinor' in value) || value['lineTotalMinor'] === undefined) return false;
+    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined)
+        return false;
+    if (!('lineTotalMinor' in value) || value['lineTotalMinor'] === undefined)
+        return false;
     return true;
 }
 
@@ -153,30 +154,54 @@ export function PurchaseOrderLineFromJSON(json: any): PurchaseOrderLine {
     return PurchaseOrderLineFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderLineFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrderLine {
+export function PurchaseOrderLineFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrderLine {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'lineNo': json['line_no'],
-        'description': json['description'] == null ? undefined : json['description'],
-        'quantity': json['quantity'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'currency': json['currency'] == null ? undefined : json['currency'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'unitPriceMinor': json['unit_price_minor'],
-        'lineSubtotal': json['line_subtotal'] == null ? undefined : json['line_subtotal'],
-        'lineSubtotalMinor': json['line_subtotal_minor'] == null ? undefined : json['line_subtotal_minor'],
-        'taxTotal': json['tax_total'] == null ? undefined : json['tax_total'],
-        'taxTotalMinor': json['tax_total_minor'] == null ? undefined : json['tax_total_minor'],
-        'lineTotal': json['line_total'] == null ? undefined : json['line_total'],
-        'lineTotalMinor': json['line_total_minor'],
-        'deliveryDate': json['delivery_date'] == null ? undefined : (new Date(json['delivery_date'])),
-        'invoicedQuantity': json['invoiced_quantity'] == null ? undefined : json['invoiced_quantity'],
-        'remainingQuantity': json['remaining_quantity'] == null ? undefined : json['remaining_quantity'],
-        'taxes': json['taxes'] == null ? undefined : ((json['taxes'] as Array<any>).map(InvoiceLineTaxesInnerFromJSON)),
+        id: json['id'],
+        lineNo: json['line_no'],
+        description:
+            json['description'] == null ? undefined : json['description'],
+        quantity: json['quantity'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        currency: json['currency'] == null ? undefined : json['currency'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        unitPriceMinor: json['unit_price_minor'],
+        lineSubtotal:
+            json['line_subtotal'] == null ? undefined : json['line_subtotal'],
+        lineSubtotalMinor:
+            json['line_subtotal_minor'] == null
+                ? undefined
+                : json['line_subtotal_minor'],
+        taxTotal: json['tax_total'] == null ? undefined : json['tax_total'],
+        taxTotalMinor:
+            json['tax_total_minor'] == null
+                ? undefined
+                : json['tax_total_minor'],
+        lineTotal: json['line_total'] == null ? undefined : json['line_total'],
+        lineTotalMinor: json['line_total_minor'],
+        deliveryDate:
+            json['delivery_date'] == null
+                ? undefined
+                : new Date(json['delivery_date']),
+        invoicedQuantity:
+            json['invoiced_quantity'] == null
+                ? undefined
+                : json['invoiced_quantity'],
+        remainingQuantity:
+            json['remaining_quantity'] == null
+                ? undefined
+                : json['remaining_quantity'],
+        taxes:
+            json['taxes'] == null
+                ? undefined
+                : (json['taxes'] as Array<any>).map(
+                      InvoiceLineTaxesInnerFromJSON,
+                  ),
     };
 }
 
@@ -184,31 +209,40 @@ export function PurchaseOrderLineToJSON(json: any): PurchaseOrderLine {
     return PurchaseOrderLineToJSONTyped(json, false);
 }
 
-export function PurchaseOrderLineToJSONTyped(value?: PurchaseOrderLine | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderLineToJSONTyped(
+    value?: PurchaseOrderLine | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'line_no': value['lineNo'],
-        'description': value['description'],
-        'quantity': value['quantity'],
-        'uom': value['uom'],
-        'currency': value['currency'],
-        'unit_price': value['unitPrice'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'line_subtotal': value['lineSubtotal'],
-        'line_subtotal_minor': value['lineSubtotalMinor'],
-        'tax_total': value['taxTotal'],
-        'tax_total_minor': value['taxTotalMinor'],
-        'line_total': value['lineTotal'],
-        'line_total_minor': value['lineTotalMinor'],
-        'delivery_date': value['deliveryDate'] == null ? value['deliveryDate'] : value['deliveryDate'].toISOString().substring(0,10),
-        'invoiced_quantity': value['invoicedQuantity'],
-        'remaining_quantity': value['remainingQuantity'],
-        'taxes': value['taxes'] == null ? undefined : ((value['taxes'] as Array<any>).map(InvoiceLineTaxesInnerToJSON)),
+        id: value['id'],
+        line_no: value['lineNo'],
+        description: value['description'],
+        quantity: value['quantity'],
+        uom: value['uom'],
+        currency: value['currency'],
+        unit_price: value['unitPrice'],
+        unit_price_minor: value['unitPriceMinor'],
+        line_subtotal: value['lineSubtotal'],
+        line_subtotal_minor: value['lineSubtotalMinor'],
+        tax_total: value['taxTotal'],
+        tax_total_minor: value['taxTotalMinor'],
+        line_total: value['lineTotal'],
+        line_total_minor: value['lineTotalMinor'],
+        delivery_date:
+            value['deliveryDate'] == null
+                ? value['deliveryDate']
+                : value['deliveryDate'].toISOString().substring(0, 10),
+        invoiced_quantity: value['invoicedQuantity'],
+        remaining_quantity: value['remainingQuantity'],
+        taxes:
+            value['taxes'] == null
+                ? undefined
+                : (value['taxes'] as Array<any>).map(
+                      InvoiceLineTaxesInnerToJSON,
+                  ),
     };
 }
-

@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -29,11 +33,27 @@ export interface UseInvoicesResult {
     meta: InvoiceListResponse['meta'];
 }
 
-export function useInvoices(params: UseInvoicesParams = {}): UseQueryResult<UseInvoicesResult, ApiError> {
-    const { page = 1, perPage = 20, status = 'all', supplierId, issuedFrom, issuedTo } = params;
+export function useInvoices(
+    params: UseInvoicesParams = {},
+): UseQueryResult<UseInvoicesResult, ApiError> {
+    const {
+        page = 1,
+        perPage = 20,
+        status = 'all',
+        supplierId,
+        issuedFrom,
+        issuedTo,
+    } = params;
 
     const query = useQuery<InvoiceListResponse, ApiError, UseInvoicesResult>({
-        queryKey: queryKeys.invoices.list({ page, perPage, status, supplierId, issuedFrom, issuedTo }),
+        queryKey: queryKeys.invoices.list({
+            page,
+            perPage,
+            status,
+            supplierId,
+            issuedFrom,
+            issuedTo,
+        }),
         queryFn: async () => {
             const requestParams = {
                 page,
@@ -45,7 +65,9 @@ export function useInvoices(params: UseInvoicesParams = {}): UseQueryResult<UseI
             } satisfies Record<string, unknown>;
 
             const queryString = buildQuery(requestParams);
-            const response = (await api.get<InvoiceListResponse>(`/invoices${queryString}`)) as unknown as InvoiceListResponse;
+            const response = (await api.get<InvoiceListResponse>(
+                `/invoices${queryString}`,
+            )) as unknown as InvoiceListResponse;
 
             return response;
         },

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\CompanySupplierStatus;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
+use App\Services\CostBandEstimator;
 use App\Support\CompanyContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -13,10 +14,10 @@ use Illuminate\Support\Facades\DB;
 
 class SupplierController extends ApiController
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, CostBandEstimator $costBandEstimator): JsonResponse
     {
         try {
-            return CompanyContext::bypass(function () use ($request): JsonResponse {
+            return CompanyContext::bypass(function () use ($request, $costBandEstimator): JsonResponse {
                 $query = Supplier::query()
                     ->with(['company.profile'])
                     ->withCount($this->certificateCountAggregates())
@@ -117,6 +118,22 @@ class SupplierController extends ApiController
                 $paginator = $query->cursorPaginate($this->perPage($request));
 
                 ['items' => $items, 'meta' => $meta] = $this->paginate($paginator, $request, SupplierResource::class);
+
+                $user = $this->resolveRequestUser($request);
+                $companyId = $user ? $this->resolveUserCompanyId($user) : null;
+
+                if ($companyId !== null) {
+                    $estimate = $costBandEstimator->estimateForFilters([
+                        'capability' => $request->query('capability'),
+                        'material' => $request->query('material'),
+                        'finish' => $request->query('finish'),
+                        'location' => $request->query('location'),
+                    ], $companyId);
+
+                    if ($estimate !== null) {
+                        $meta['data']['cost_band_estimate'] = $estimate;
+                    }
+                }
 
                 return $this->ok([
                     'items' => $items,

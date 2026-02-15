@@ -1,6 +1,18 @@
 <?php
 
 use App\Console\Commands\AiAuditPermissionsCommand;
+use App\Console\Commands\CopilotLatencyEvidenceCommand;
+use App\Console\Commands\CopilotLatencyBreakdownCommand;
+use App\Console\Commands\CopilotLatencyTraceAttributionCommand;
+use App\Console\Commands\CopilotTelemetryProbeCommand;
+use App\Console\Commands\CopilotEnableRolloutFlagsCommand;
+use App\Console\Commands\CopilotRecordSignoffCommand;
+use App\Console\Commands\CopilotSignoffHandoffCommand;
+use App\Console\Commands\CopilotBulkSignoffCommand;
+use App\Console\Commands\CopilotFinalizeLaunchCommand;
+use App\Console\Commands\CopilotVerifyReadinessArtifactCommand;
+use App\Console\Commands\CopilotLaunchReadinessCommand;
+use App\Console\Commands\CopilotRuntimeGatesCommand;
 use App\Console\Commands\ApiSpecBuildCommand;
 use App\Console\Commands\ApiSpecPostmanCommand;
 use App\Console\Commands\ApiSpecSdkTypescriptCommand;
@@ -70,6 +82,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ApiSpecSdkTypescriptCommand::class,
         BackfillSupplierPersonas::class,
         AiAuditPermissionsCommand::class,
+        CopilotRuntimeGatesCommand::class,
+        CopilotLatencyEvidenceCommand::class,
+        CopilotLatencyBreakdownCommand::class,
+        CopilotLatencyTraceAttributionCommand::class,
+        CopilotTelemetryProbeCommand::class,
+        CopilotEnableRolloutFlagsCommand::class,
+        CopilotRecordSignoffCommand::class,
+        CopilotSignoffHandoffCommand::class,
+        CopilotBulkSignoffCommand::class,
+        CopilotFinalizeLaunchCommand::class,
+        CopilotVerifyReadinessArtifactCommand::class,
+        CopilotLaunchReadinessCommand::class,
     ])
     ->withBroadcasting(__DIR__.'/../routes/channels.php')
     ->withMiddleware(function (Middleware $middleware): void {

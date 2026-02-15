@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListPurchaseOrderEvents200ResponseAllOfData } from './ListPurchaseOrderEvents200ResponseAllOfData';
 import {
     ListPurchaseOrderEvents200ResponseAllOfDataFromJSON,
-    ListPurchaseOrderEvents200ResponseAllOfDataFromJSONTyped,
     ListPurchaseOrderEvents200ResponseAllOfDataToJSON,
-    ListPurchaseOrderEvents200ResponseAllOfDataToJSONTyped,
 } from './ListPurchaseOrderEvents200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListPurchaseOrderEvents200Response
  */
 export interface ListPurchaseOrderEvents200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListPurchaseOrderEvents200Response
      */
     status: ListPurchaseOrderEvents200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListPurchaseOrderEvents200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListPurchaseOrderEvents200ResponseAllOfData}
      * @memberof ListPurchaseOrderEvents200Response
      */
     data: ListPurchaseOrderEvents200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListPurchaseOrderEvents200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListPurchaseOrderEvents200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListPurchaseOrderEvents200ResponseStatusEnum = typeof ListPurchaseOrderEvents200ResponseStatusEnum[keyof typeof ListPurchaseOrderEvents200ResponseStatusEnum];
-
+export type ListPurchaseOrderEvents200ResponseStatusEnum =
+    (typeof ListPurchaseOrderEvents200ResponseStatusEnum)[keyof typeof ListPurchaseOrderEvents200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListPurchaseOrderEvents200Response interface.
  */
-export function instanceOfListPurchaseOrderEvents200Response(value: object): value is ListPurchaseOrderEvents200Response {
+export function instanceOfListPurchaseOrderEvents200Response(
+    value: object,
+): value is ListPurchaseOrderEvents200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListPurchaseOrderEvents200ResponseFromJSON(json: any): ListPurchaseOrderEvents200Response {
+export function ListPurchaseOrderEvents200ResponseFromJSON(
+    json: any,
+): ListPurchaseOrderEvents200Response {
     return ListPurchaseOrderEvents200ResponseFromJSONTyped(json, false);
 }
 
-export function ListPurchaseOrderEvents200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListPurchaseOrderEvents200Response {
+export function ListPurchaseOrderEvents200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListPurchaseOrderEvents200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListPurchaseOrderEvents200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListPurchaseOrderEvents200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListPurchaseOrderEvents200ResponseToJSON(json: any): ListPurchaseOrderEvents200Response {
+export function ListPurchaseOrderEvents200ResponseToJSON(
+    json: any,
+): ListPurchaseOrderEvents200Response {
     return ListPurchaseOrderEvents200ResponseToJSONTyped(json, false);
 }
 
-export function ListPurchaseOrderEvents200ResponseToJSONTyped(value?: ListPurchaseOrderEvents200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListPurchaseOrderEvents200ResponseToJSONTyped(
+    value?: ListPurchaseOrderEvents200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListPurchaseOrderEvents200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListPurchaseOrderEvents200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

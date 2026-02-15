@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -44,12 +48,16 @@ const mapRFQ = (payload: RFQListResponse['items'][number]): RFQ => ({
 
 type RFQListResult = { items: RFQ[]; meta: RFQListResponse['meta'] };
 
-export function useRFQs(params: RFQListParams = {}): UseQueryResult<RFQListResult, ApiError> {
+export function useRFQs(
+    params: RFQListParams = {},
+): UseQueryResult<RFQListResult, ApiError> {
     return useQuery<RFQListResult, ApiError, RFQListResult>({
         queryKey: queryKeys.rfqs.list(params),
         queryFn: async () => {
             const query = buildQuery(params);
-            const response = (await api.get<RFQListResponse>(`/rfqs${query}`)) as unknown as RFQListResponse;
+            const response = (await api.get<RFQListResponse>(
+                `/rfqs${query}`,
+            )) as unknown as RFQListResponse;
 
             return {
                 items: response.items.map(mapRFQ),

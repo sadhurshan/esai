@@ -1,5 +1,12 @@
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import type { CompanyAddress } from '@/types/settings';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 
@@ -11,7 +18,10 @@ interface AddressEditorProps<TFieldValues extends FieldValues> {
     disabled?: boolean;
 }
 
-function composeName<TFieldValues extends FieldValues>(name: FieldPath<TFieldValues>, key: keyof CompanyAddress) {
+function composeName<TFieldValues extends FieldValues>(
+    name: FieldPath<TFieldValues>,
+    key: keyof CompanyAddress,
+) {
     return `${name}.${key}` as FieldPath<TFieldValues>;
 }
 
@@ -26,7 +36,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
         <div className="space-y-4 rounded-lg border p-4">
             <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">{title}</p>
-                {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+                {description ? (
+                    <p className="text-sm text-muted-foreground">
+                        {description}
+                    </p>
+                ) : null}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
                 <FormField
@@ -36,7 +50,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>Attention</FormLabel>
                             <FormControl>
-                                <Input placeholder="Accounts payable" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="Accounts payable"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -49,7 +67,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>Address line 1</FormLabel>
                             <FormControl>
-                                <Input placeholder="1234 Market St" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="1234 Market St"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -62,7 +84,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>Address line 2</FormLabel>
                             <FormControl>
-                                <Input placeholder="Suite 500" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="Suite 500"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -75,7 +101,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>City</FormLabel>
                             <FormControl>
-                                <Input placeholder="San Francisco" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="San Francisco"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -88,7 +118,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>State / Region</FormLabel>
                             <FormControl>
-                                <Input placeholder="CA" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="CA"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -100,9 +134,15 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Postal code</FormLabel>
-                            <FormDescription>Use company formatting conventions.</FormDescription>
+                            <FormDescription>
+                                Use company formatting conventions.
+                            </FormDescription>
                             <FormControl>
-                                <Input placeholder="94103" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="94103"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -115,7 +155,11 @@ export function AddressEditor<TFieldValues extends FieldValues>({
                         <FormItem>
                             <FormLabel>Country (2-letter code)</FormLabel>
                             <FormControl>
-                                <Input placeholder="US" {...field} disabled={disabled} />
+                                <Input
+                                    placeholder="US"
+                                    {...field}
+                                    disabled={disabled}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

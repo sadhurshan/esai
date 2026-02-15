@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UpdateInvoiceRequestLinesInner
  */
 export interface UpdateInvoiceRequestLinesInner {
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateInvoiceRequestLinesInner
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateInvoiceRequestLinesInner
      */
     description?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateInvoiceRequestLinesInner
      */
     quantity?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateInvoiceRequestLinesInner
      */
     unitPrice?: number;
     /**
-     * 
+     *
      * @type {Array<number>}
      * @memberof UpdateInvoiceRequestLinesInner
      */
@@ -54,45 +53,56 @@ export interface UpdateInvoiceRequestLinesInner {
 /**
  * Check if a given object implements the UpdateInvoiceRequestLinesInner interface.
  */
-export function instanceOfUpdateInvoiceRequestLinesInner(value: object): value is UpdateInvoiceRequestLinesInner {
+export function instanceOfUpdateInvoiceRequestLinesInner(
+    value: object,
+): value is UpdateInvoiceRequestLinesInner {
     if (!('id' in value) || value['id'] === undefined) return false;
     return true;
 }
 
-export function UpdateInvoiceRequestLinesInnerFromJSON(json: any): UpdateInvoiceRequestLinesInner {
+export function UpdateInvoiceRequestLinesInnerFromJSON(
+    json: any,
+): UpdateInvoiceRequestLinesInner {
     return UpdateInvoiceRequestLinesInnerFromJSONTyped(json, false);
 }
 
-export function UpdateInvoiceRequestLinesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateInvoiceRequestLinesInner {
+export function UpdateInvoiceRequestLinesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateInvoiceRequestLinesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'description': json['description'] == null ? undefined : json['description'],
-        'quantity': json['quantity'] == null ? undefined : json['quantity'],
-        'unitPrice': json['unit_price'] == null ? undefined : json['unit_price'],
-        'taxCodeIds': json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
+        id: json['id'],
+        description:
+            json['description'] == null ? undefined : json['description'],
+        quantity: json['quantity'] == null ? undefined : json['quantity'],
+        unitPrice: json['unit_price'] == null ? undefined : json['unit_price'],
+        taxCodeIds:
+            json['tax_code_ids'] == null ? undefined : json['tax_code_ids'],
     };
 }
 
-export function UpdateInvoiceRequestLinesInnerToJSON(json: any): UpdateInvoiceRequestLinesInner {
+export function UpdateInvoiceRequestLinesInnerToJSON(
+    json: any,
+): UpdateInvoiceRequestLinesInner {
     return UpdateInvoiceRequestLinesInnerToJSONTyped(json, false);
 }
 
-export function UpdateInvoiceRequestLinesInnerToJSONTyped(value?: UpdateInvoiceRequestLinesInner | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateInvoiceRequestLinesInnerToJSONTyped(
+    value?: UpdateInvoiceRequestLinesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'description': value['description'],
-        'quantity': value['quantity'],
-        'unit_price': value['unitPrice'],
-        'tax_code_ids': value['taxCodeIds'],
+        id: value['id'],
+        description: value['description'],
+        quantity: value['quantity'],
+        unit_price: value['unitPrice'],
+        tax_code_ids: value['taxCodeIds'],
     };
 }
-

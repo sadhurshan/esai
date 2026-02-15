@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PlanCatalogEntry } from './PlanCatalogEntry';
 import {
     PlanCatalogEntryFromJSON,
-    PlanCatalogEntryFromJSONTyped,
     PlanCatalogEntryToJSON,
-    PlanCatalogEntryToJSONTyped,
 } from './PlanCatalogEntry';
 
 /**
- * 
+ *
  * @export
  * @interface ListPlansCatalog200ResponseAllOfData
  */
 export interface ListPlansCatalog200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<PlanCatalogEntry>}
      * @memberof ListPlansCatalog200ResponseAllOfData
      */
@@ -38,36 +35,51 @@ export interface ListPlansCatalog200ResponseAllOfData {
 /**
  * Check if a given object implements the ListPlansCatalog200ResponseAllOfData interface.
  */
-export function instanceOfListPlansCatalog200ResponseAllOfData(value: object): value is ListPlansCatalog200ResponseAllOfData {
+export function instanceOfListPlansCatalog200ResponseAllOfData(
+    value: object,
+): value is ListPlansCatalog200ResponseAllOfData {
     return true;
 }
 
-export function ListPlansCatalog200ResponseAllOfDataFromJSON(json: any): ListPlansCatalog200ResponseAllOfData {
+export function ListPlansCatalog200ResponseAllOfDataFromJSON(
+    json: any,
+): ListPlansCatalog200ResponseAllOfData {
     return ListPlansCatalog200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListPlansCatalog200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListPlansCatalog200ResponseAllOfData {
+export function ListPlansCatalog200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListPlansCatalog200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PlanCatalogEntryFromJSON)),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(PlanCatalogEntryFromJSON),
     };
 }
 
-export function ListPlansCatalog200ResponseAllOfDataToJSON(json: any): ListPlansCatalog200ResponseAllOfData {
+export function ListPlansCatalog200ResponseAllOfDataToJSON(
+    json: any,
+): ListPlansCatalog200ResponseAllOfData {
     return ListPlansCatalog200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListPlansCatalog200ResponseAllOfDataToJSONTyped(value?: ListPlansCatalog200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListPlansCatalog200ResponseAllOfDataToJSONTyped(
+    value?: ListPlansCatalog200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(PlanCatalogEntryToJSON)),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(PlanCatalogEntryToJSON),
     };
 }
-

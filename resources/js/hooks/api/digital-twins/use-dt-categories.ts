@@ -1,4 +1,8 @@
-import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
+import {
+    useQuery,
+    type UseQueryOptions,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
@@ -9,7 +13,9 @@ export type UseDigitalTwinCategoriesOptions = Pick<
     'enabled' | 'staleTime' | 'gcTime' | 'refetchOnWindowFocus'
 >;
 
-export type UseDigitalTwinCategoriesResult = UseQueryResult<DigitalTwinCategoryNode[]> & {
+export type UseDigitalTwinCategoriesResult = UseQueryResult<
+    DigitalTwinCategoryNode[]
+> & {
     categories: DigitalTwinCategoryNode[];
 };
 

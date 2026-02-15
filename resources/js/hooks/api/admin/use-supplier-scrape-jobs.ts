@@ -1,9 +1,16 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { AdminConsoleApi } from '@/sdk';
-import type { SupplierScrapeJobFilters, SupplierScrapeJobListResponse } from '@/types/admin';
+import type {
+    SupplierScrapeJobFilters,
+    SupplierScrapeJobListResponse,
+} from '@/types/admin';
 
 export interface UseSupplierScrapeJobsOptions {
     enabled?: boolean;
@@ -26,7 +33,9 @@ export function useSupplierScrapeJobs(
         refetchInterval: options.refetchInterval,
         queryFn: async () => {
             if (!filters) {
-                throw new Error('Filters must be provided to list supplier scrape jobs.');
+                throw new Error(
+                    'Filters must be provided to list supplier scrape jobs.',
+                );
             }
             return adminConsoleApi.listSupplierScrapeJobs(filters);
         },

@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { QuoteCompareTable } from '../quote-compare-table';
 import type { Quote, RfqItem } from '@/sdk';
 import type { QuoteComparisonRow } from '@/types/quotes';
+import { QuoteCompareTable } from '../quote-compare-table';
 
 const useQuoteComparisonMock = vi.fn();
 const navigateMock = vi.fn();
@@ -32,8 +32,12 @@ vi.mock('@/contexts/formatting-context', () => ({
             currency: { primary: 'USD', displayFx: false },
             uom: { baseUom: 'EA', maps: {} },
         },
-        formatNumber: (value: number | string | null | undefined) => (value ?? '—').toString(),
-        formatMoney: (value: number | string | null | undefined, options?: { currency?: string }) => {
+        formatNumber: (value: number | string | null | undefined) =>
+            (value ?? '—').toString(),
+        formatMoney: (
+            value: number | string | null | undefined,
+            options?: { currency?: string },
+        ) => {
             const amount = value ?? '—';
             const currency = options?.currency ?? 'USD';
             return `${amount} ${currency}`;
@@ -43,15 +47,31 @@ vi.mock('@/contexts/formatting-context', () => ({
 }));
 
 vi.mock('@/components/ui/sheet', () => ({
-    Sheet: ({ children }: { children: ReactNode }) => <div data-testid="sheet">{children}</div>,
-    SheetContent: ({ children }: { children: ReactNode }) => <div data-testid="sheet-content">{children}</div>,
-    SheetHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    Sheet: ({ children }: { children: ReactNode }) => (
+        <div data-testid="sheet">{children}</div>
+    ),
+    SheetContent: ({ children }: { children: ReactNode }) => (
+        <div data-testid="sheet-content">{children}</div>
+    ),
+    SheetHeader: ({ children }: { children: ReactNode }) => (
+        <div>{children}</div>
+    ),
     SheetTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
-    SheetDescription: ({ children }: { children: ReactNode }) => <p>{children}</p>,
+    SheetDescription: ({ children }: { children: ReactNode }) => (
+        <p>{children}</p>
+    ),
 }));
 
 vi.mock('@/components/quotes/money-cell', () => ({
-    MoneyCell: ({ amountMinor, currency, label }: { amountMinor?: number | null; currency?: string | null; label?: string }) => (
+    MoneyCell: ({
+        amountMinor,
+        currency,
+        label,
+    }: {
+        amountMinor?: number | null;
+        currency?: string | null;
+        label?: string;
+    }) => (
         <div data-testid={`money-cell-${label ?? 'total'}`}>
             {label}: {amountMinor ?? 0} {currency ?? 'USD'}
         </div>
@@ -59,13 +79,17 @@ vi.mock('@/components/quotes/money-cell', () => ({
 }));
 
 vi.mock('@/components/quotes/delivery-leadtime-chip', () => ({
-    DeliveryLeadTimeChip: ({ leadTimeDays }: { leadTimeDays?: number | null }) => (
-        <span data-testid="lead-chip">Lead {leadTimeDays ?? '—'} days</span>
-    ),
+    DeliveryLeadTimeChip: ({
+        leadTimeDays,
+    }: {
+        leadTimeDays?: number | null;
+    }) => <span data-testid="lead-chip">Lead {leadTimeDays ?? '—'} days</span>,
 }));
 
 vi.mock('@/components/quotes/quote-status-badge', () => ({
-    QuoteStatusBadge: ({ status }: { status: string }) => <span data-testid="status">{status}</span>,
+    QuoteStatusBadge: ({ status }: { status: string }) => (
+        <span data-testid="status">{status}</span>
+    ),
 }));
 
 const onOpenChange = vi.fn();
@@ -159,7 +183,10 @@ const betaQuote: Quote = {
     ],
 };
 
-function toComparisonRow(quote: Quote, overrides?: Partial<QuoteComparisonRow>): QuoteComparisonRow {
+function toComparisonRow(
+    quote: Quote,
+    overrides?: Partial<QuoteComparisonRow>,
+): QuoteComparisonRow {
     return {
         quoteId: quote.id,
         rfqId: quote.rfqId,
@@ -213,16 +240,32 @@ describe('QuoteCompareTable', () => {
             />,
         );
 
-        expect(screen.getByText(/Select at least two quotes/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/Select at least two quotes/i),
+        ).toBeInTheDocument();
     });
 
     it('renders normalized comparison cards and RFQ line coverage', () => {
         const comparisonRows: QuoteComparisonRow[] = [
             toComparisonRow(alphaQuote, {
-                scores: { composite: 0.9, price: 0.95, leadTime: 0.8, risk: 0.9, fit: 0.85, rank: 1 },
+                scores: {
+                    composite: 0.9,
+                    price: 0.95,
+                    leadTime: 0.8,
+                    risk: 0.9,
+                    fit: 0.85,
+                    rank: 1,
+                },
             }),
             toComparisonRow(betaQuote, {
-                scores: { composite: 0.6, price: 0.55, leadTime: 0.4, risk: 0.45, fit: 0.35, rank: 2 },
+                scores: {
+                    composite: 0.6,
+                    price: 0.55,
+                    leadTime: 0.4,
+                    risk: 0.45,
+                    fit: 0.35,
+                    rank: 2,
+                },
             }),
         ];
 
@@ -246,16 +289,24 @@ describe('QuoteCompareTable', () => {
             />,
         );
 
-        expect(screen.getAllByText('Alpha Fabrication').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Beta Manufacturing').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Alpha Fabrication').length).toBeGreaterThan(
+            0,
+        );
+        expect(
+            screen.getAllByText('Beta Manufacturing').length,
+        ).toBeGreaterThan(0);
         expect(screen.getByText('Shortlisted')).toBeInTheDocument();
         expect(screen.getByText(/Rank #1/)).toBeInTheDocument();
-        expect(screen.getAllByText(/Composite score/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Composite score/i).length).toBeGreaterThan(
+            0,
+        );
 
         expect(screen.getByText('Line 1 · Bracket')).toBeInTheDocument();
         expect(screen.getByText(/Qty 25 ea/i)).toBeInTheDocument();
         expect(screen.getByText('Line 2 · Spacer')).toBeInTheDocument();
-        expect(screen.getByText('Line — · Line line-extra')).toBeInTheDocument();
+        expect(
+            screen.getByText('Line — · Line line-extra'),
+        ).toBeInTheDocument();
 
         const grandTotals = screen.getAllByTestId('money-cell-Grand total');
         expect(grandTotals).toHaveLength(2);
@@ -271,10 +322,24 @@ describe('QuoteCompareTable', () => {
     it('surfaces commercial metadata for each quote', () => {
         const comparisonRows: QuoteComparisonRow[] = [
             toComparisonRow(alphaQuote, {
-                scores: { composite: 0.9, price: 0.95, leadTime: 0.8, risk: 0.9, fit: 0.85, rank: 1 },
+                scores: {
+                    composite: 0.9,
+                    price: 0.95,
+                    leadTime: 0.8,
+                    risk: 0.9,
+                    fit: 0.85,
+                    rank: 1,
+                },
             }),
             toComparisonRow(betaQuote, {
-                scores: { composite: 0.6, price: 0.55, leadTime: 0.4, risk: 0.45, fit: 0.35, rank: 2 },
+                scores: {
+                    composite: 0.6,
+                    price: 0.55,
+                    leadTime: 0.4,
+                    risk: 0.45,
+                    fit: 0.35,
+                    rank: 2,
+                },
             }),
         ];
 
@@ -299,24 +364,42 @@ describe('QuoteCompareTable', () => {
         );
 
         expect(
-            screen.getByText((_, node) => (node?.textContent ?? '').trim() === 'Incoterm: FOB', {
-                selector: 'div',
-            }),
+            screen.getByText(
+                (_, node) =>
+                    (node?.textContent ?? '').trim() === 'Incoterm: FOB',
+                {
+                    selector: 'div',
+                },
+            ),
         ).toBeInTheDocument();
         expect(
-            screen.getByText((_, node) => (node?.textContent ?? '').trim() === 'Incoterm: CIF', {
-                selector: 'div',
-            }),
+            screen.getByText(
+                (_, node) =>
+                    (node?.textContent ?? '').trim() === 'Incoterm: CIF',
+                {
+                    selector: 'div',
+                },
+            ),
         ).toBeInTheDocument();
         expect(
-            screen.getByText((_, node) => (node?.textContent ?? '').trim() === 'Payment terms: Net 30', {
-                selector: 'div',
-            }),
+            screen.getByText(
+                (_, node) =>
+                    (node?.textContent ?? '').trim() ===
+                    'Payment terms: Net 30',
+                {
+                    selector: 'div',
+                },
+            ),
         ).toBeInTheDocument();
         expect(
-            screen.getByText((_, node) => (node?.textContent ?? '').trim() === 'Payment terms: 50% upfront', {
-                selector: 'div',
-            }),
+            screen.getByText(
+                (_, node) =>
+                    (node?.textContent ?? '').trim() ===
+                    'Payment terms: 50% upfront',
+                {
+                    selector: 'div',
+                },
+            ),
         ).toBeInTheDocument();
     });
 
@@ -325,10 +408,24 @@ describe('QuoteCompareTable', () => {
 
         const comparisonRows: QuoteComparisonRow[] = [
             toComparisonRow(alphaQuote, {
-                scores: { composite: 0.92, price: 0.9, leadTime: 0.8, risk: 0.88, fit: 0.82, rank: 1 },
+                scores: {
+                    composite: 0.92,
+                    price: 0.9,
+                    leadTime: 0.8,
+                    risk: 0.88,
+                    fit: 0.82,
+                    rank: 1,
+                },
             }),
             toComparisonRow(betaQuote, {
-                scores: { composite: 0.5, price: 0.45, leadTime: 0.55, risk: 0.4, fit: 0.5, rank: 4 },
+                scores: {
+                    composite: 0.5,
+                    price: 0.45,
+                    leadTime: 0.55,
+                    risk: 0.4,
+                    fit: 0.5,
+                    rank: 4,
+                },
             }),
         ];
 
@@ -352,9 +449,13 @@ describe('QuoteCompareTable', () => {
             />,
         );
 
-        const searchInput = screen.getByPlaceholderText(/Filter suppliers by name/i);
+        const searchInput = screen.getByPlaceholderText(
+            /Filter suppliers by name/i,
+        );
         await user.type(searchInput, 'Gamma');
-        expect(screen.getByText(/No quotes match the current filters/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/No quotes match the current filters/i),
+        ).toBeInTheDocument();
 
         await user.clear(searchInput);
         await user.type(searchInput, 'Beta');
@@ -362,13 +463,19 @@ describe('QuoteCompareTable', () => {
 
         await user.clear(searchInput);
 
-        const shortlistButton = screen.getByRole('button', { name: /Shortlist only/i });
+        const shortlistButton = screen.getByRole('button', {
+            name: /Shortlist only/i,
+        });
         await user.click(shortlistButton);
         expect(screen.queryByText('Alpha Fabrication')).not.toBeInTheDocument();
 
-        const resetButton = await screen.findByRole('button', { name: /Reset filters/i });
+        const resetButton = await screen.findByRole('button', {
+            name: /Reset filters/i,
+        });
         await user.click(resetButton);
-        expect(screen.getAllByText('Alpha Fabrication').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Alpha Fabrication').length).toBeGreaterThan(
+            0,
+        );
     });
 
     it('offers a CTA to launch the award flow with selected quote context', async () => {
@@ -376,10 +483,24 @@ describe('QuoteCompareTable', () => {
 
         const comparisonRows: QuoteComparisonRow[] = [
             toComparisonRow(alphaQuote, {
-                scores: { composite: 0.9, price: 0.95, leadTime: 0.8, risk: 0.9, fit: 0.85, rank: 1 },
+                scores: {
+                    composite: 0.9,
+                    price: 0.95,
+                    leadTime: 0.8,
+                    risk: 0.9,
+                    fit: 0.85,
+                    rank: 1,
+                },
             }),
             toComparisonRow(betaQuote, {
-                scores: { composite: 0.6, price: 0.55, leadTime: 0.4, risk: 0.45, fit: 0.35, rank: 2 },
+                scores: {
+                    composite: 0.6,
+                    price: 0.55,
+                    leadTime: 0.4,
+                    risk: 0.45,
+                    fit: 0.35,
+                    rank: 2,
+                },
             }),
         ];
 
@@ -409,7 +530,10 @@ describe('QuoteCompareTable', () => {
         await user.click(cta);
 
         expect(navigateMock).toHaveBeenCalledWith('/app/rfqs/rfq-1/awards', {
-            state: { quoteIds: ['quote-alpha', 'quote-beta'], source: 'compare' },
+            state: {
+                quoteIds: ['quote-alpha', 'quote-beta'],
+                source: 'compare',
+            },
         });
     });
 });

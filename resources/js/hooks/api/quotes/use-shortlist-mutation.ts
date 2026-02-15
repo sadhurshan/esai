@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type QueryClient,
+} from '@tanstack/react-query';
 
 import { useApiClientContext } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
@@ -36,7 +40,12 @@ export function useQuoteShortlistMutation() {
     const fetchApi = configuration.fetchApi ?? fetch;
     const queryClient = useQueryClient();
 
-    return useMutation<Quote, HttpError | Error, QuoteShortlistMutationInput, ShortlistMutationContext>({
+    return useMutation<
+        Quote,
+        HttpError | Error,
+        QuoteShortlistMutationInput,
+        ShortlistMutationContext
+    >({
         mutationFn: async ({ quoteId, shortlist }) => {
             const baseUrl = (configuration.basePath ?? '').replace(/\/$/, '');
             const url = `${baseUrl}/api/quotes/${quoteId}/shortlist`;
@@ -58,11 +67,17 @@ export function useQuoteShortlistMutation() {
             }
 
             const payload = (await response.json()) as QuoteShortlistEnvelope;
-            const normalizedQuote = payload.data?.quote ? normalizeQuotePayload(payload.data.quote) : undefined;
-            const parsed = normalizedQuote ? QuoteFromJSON(normalizedQuote) : undefined;
+            const normalizedQuote = payload.data?.quote
+                ? normalizeQuotePayload(payload.data.quote)
+                : undefined;
+            const parsed = normalizedQuote
+                ? QuoteFromJSON(normalizedQuote)
+                : undefined;
 
             if (!parsed) {
-                throw new Error('Shortlist response did not contain quote details.');
+                throw new Error(
+                    'Shortlist response did not contain quote details.',
+                );
             }
 
             return parsed;
@@ -89,31 +104,47 @@ export function useQuoteShortlistMutation() {
                 const compareKey = queryKeys.quotes.compare(String(rfqId));
                 context.compare = {
                     key: compareKey,
-                    snapshot: queryClient.getQueryData<QuoteComparisonRow[]>(compareKey),
+                    snapshot:
+                        queryClient.getQueryData<QuoteComparisonRow[]>(
+                            compareKey,
+                        ),
                 };
 
                 if (context.compare.snapshot) {
-                    queryClient.setQueryData<QuoteComparisonRow[]>(compareKey, (current) =>
-                        current?.map((row) =>
-                            matchesQuote(row.quote.id, quoteId)
-                                ? {
-                                      ...row,
-                                      quote: {
-                                          ...row.quote,
-                                          isShortlisted: shortlist,
-                                      },
-                                  }
-                                : row,
-                        ) ?? current,
+                    queryClient.setQueryData<QuoteComparisonRow[]>(
+                        compareKey,
+                        (current) =>
+                            current?.map((row) =>
+                                matchesQuote(row.quote.id, quoteId)
+                                    ? {
+                                          ...row,
+                                          quote: {
+                                              ...row.quote,
+                                              isShortlisted: shortlist,
+                                          },
+                                      }
+                                    : row,
+                            ) ?? current,
                     );
                 }
 
-                const listEntries = queryClient.getQueriesData<UseQuotesResult>({
-                    predicate: (query) => isQuoteListQueryKey(query.queryKey, String(rfqId)),
-                });
+                const listEntries = queryClient.getQueriesData<UseQuotesResult>(
+                    {
+                        predicate: (query) =>
+                            isQuoteListQueryKey(query.queryKey, String(rfqId)),
+                    },
+                );
 
-                context.lists = listEntries.map(([key, snapshot]) => ({ key, snapshot }));
-                applyListOptimisticUpdate(queryClient, listEntries, quoteId, shortlist);
+                context.lists = listEntries.map(([key, snapshot]) => ({
+                    key,
+                    snapshot,
+                }));
+                applyListOptimisticUpdate(
+                    queryClient,
+                    listEntries,
+                    quoteId,
+                    shortlist,
+                );
             }
 
             return context;
@@ -124,7 +155,10 @@ export function useQuoteShortlistMutation() {
             }
 
             if (context.detail?.snapshot) {
-                queryClient.setQueryData(context.detail.key, context.detail.snapshot);
+                queryClient.setQueryData(
+                    context.detail.key,
+                    context.detail.snapshot,
+                );
             }
 
             context.lists?.forEach(({ key, snapshot }) => {
@@ -132,7 +166,10 @@ export function useQuoteShortlistMutation() {
             });
 
             if (context.compare?.snapshot) {
-                queryClient.setQueryData(context.compare.key, context.compare.snapshot);
+                queryClient.setQueryData(
+                    context.compare.key,
+                    context.compare.snapshot,
+                );
             }
         },
         onSuccess: (quote) => {
@@ -163,7 +200,8 @@ function syncQuoteCaches(queryClient: QueryClient, updated: Quote): void {
 
     queryClient.setQueriesData<UseQuotesResult>(
         {
-            predicate: (query) => isQuoteListQueryKey(query.queryKey, String(updated.rfqId)),
+            predicate: (query) =>
+                isQuoteListQueryKey(query.queryKey, String(updated.rfqId)),
         },
         (current) => {
             if (!current) {
@@ -175,32 +213,42 @@ function syncQuoteCaches(queryClient: QueryClient, updated: Quote): void {
                 return current;
             }
 
-            const nextItems = items.map((quote) => (quote.id === updated.id ? { ...quote, ...updated } : quote));
+            const nextItems = items.map((quote) =>
+                quote.id === updated.id ? { ...quote, ...updated } : quote,
+            );
             return { ...current, items: nextItems };
         },
     );
 
-    queryClient.invalidateQueries({ predicate: (query) => isQuoteListQueryKey(query.queryKey, String(updated.rfqId)) });
-
-    queryClient.setQueryData<QuoteComparisonRow[]>(queryKeys.quotes.compare(String(updated.rfqId)), (current) => {
-        if (!current) {
-            return current;
-        }
-
-        return current.map((row) =>
-            row.quote.id === updated.id
-                ? {
-                      ...row,
-                      quote: {
-                          ...row.quote,
-                          ...updated,
-                      },
-                  }
-                : row,
-        );
+    queryClient.invalidateQueries({
+        predicate: (query) =>
+            isQuoteListQueryKey(query.queryKey, String(updated.rfqId)),
     });
 
-    queryClient.invalidateQueries({ queryKey: queryKeys.quotes.compare(String(updated.rfqId)) });
+    queryClient.setQueryData<QuoteComparisonRow[]>(
+        queryKeys.quotes.compare(String(updated.rfqId)),
+        (current) => {
+            if (!current) {
+                return current;
+            }
+
+            return current.map((row) =>
+                row.quote.id === updated.id
+                    ? {
+                          ...row,
+                          quote: {
+                              ...row.quote,
+                              ...updated,
+                          },
+                      }
+                    : row,
+            );
+        },
+    );
+
+    queryClient.invalidateQueries({
+        queryKey: queryKeys.quotes.compare(String(updated.rfqId)),
+    });
 }
 
 function normalizeQuotePayload(raw: unknown): unknown {
@@ -223,7 +271,13 @@ function isQuoteListQueryKey(key: unknown, rfqId: string): boolean {
         return false;
     }
 
-    return key.length >= 4 && key[0] === queryKeys.quotes.root()[0] && key[1] === 'rfq' && key[2] === rfqId && key[3] === 'list';
+    return (
+        key.length >= 4 &&
+        key[0] === queryKeys.quotes.root()[0] &&
+        key[1] === 'rfq' &&
+        key[2] === rfqId &&
+        key[3] === 'list'
+    );
 }
 
 function applyListOptimisticUpdate(
@@ -256,6 +310,9 @@ function applyListOptimisticUpdate(
     });
 }
 
-function matchesQuote(candidateId: string | number, targetId: string | number): boolean {
+function matchesQuote(
+    candidateId: string | number,
+    targetId: string | number,
+): boolean {
     return String(candidateId) === String(targetId);
 }

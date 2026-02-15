@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AuthSessionUser
  */
 export interface AuthSessionUser {
     /**
-     * 
+     *
      * @type {number}
      * @memberof AuthSessionUser
      */
     id: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthSessionUser
      */
     name: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthSessionUser
      */
@@ -44,7 +43,7 @@ export interface AuthSessionUser {
      */
     role: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AuthSessionUser
      */
@@ -54,7 +53,9 @@ export interface AuthSessionUser {
 /**
  * Check if a given object implements the AuthSessionUser interface.
  */
-export function instanceOfAuthSessionUser(value: object): value is AuthSessionUser {
+export function instanceOfAuthSessionUser(
+    value: object,
+): value is AuthSessionUser {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('email' in value) || value['email'] === undefined) return false;
@@ -66,17 +67,19 @@ export function AuthSessionUserFromJSON(json: any): AuthSessionUser {
     return AuthSessionUserFromJSONTyped(json, false);
 }
 
-export function AuthSessionUserFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthSessionUser {
+export function AuthSessionUserFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthSessionUser {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'name': json['name'],
-        'email': json['email'],
-        'role': json['role'],
-        'companyId': json['company_id'] == null ? undefined : json['company_id'],
+        id: json['id'],
+        name: json['name'],
+        email: json['email'],
+        role: json['role'],
+        companyId: json['company_id'] == null ? undefined : json['company_id'],
     };
 }
 
@@ -84,18 +87,19 @@ export function AuthSessionUserToJSON(json: any): AuthSessionUser {
     return AuthSessionUserToJSONTyped(json, false);
 }
 
-export function AuthSessionUserToJSONTyped(value?: AuthSessionUser | null, ignoreDiscriminator: boolean = false): any {
+export function AuthSessionUserToJSONTyped(
+    value?: AuthSessionUser | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'name': value['name'],
-        'email': value['email'],
-        'role': value['role'],
-        'company_id': value['companyId'],
+        id: value['id'],
+        name: value['name'],
+        email: value['email'],
+        role: value['role'],
+        company_id: value['companyId'],
     };
 }
-

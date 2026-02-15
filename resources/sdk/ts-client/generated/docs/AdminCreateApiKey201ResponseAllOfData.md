@@ -1,36 +1,34 @@
-
 # AdminCreateApiKey201ResponseAllOfData
-
 
 ## Properties
 
-Name | Type
------------- | -------------
-`apiKey` | [ApiKey](ApiKey.md)
-`token` | string
+| Name     | Type                |
+| -------- | ------------------- |
+| `apiKey` | [ApiKey](ApiKey.md) |
+| `token`  | string              |
 
 ## Example
 
 ```typescript
-import type { AdminCreateApiKey201ResponseAllOfData } from ''
+import type { AdminCreateApiKey201ResponseAllOfData } from '';
 
 // TODO: Update the object below with actual values
 const example = {
-  "apiKey": null,
-  "token": null,
-} satisfies AdminCreateApiKey201ResponseAllOfData
+    apiKey: null,
+    token: null,
+} satisfies AdminCreateApiKey201ResponseAllOfData;
 
-console.log(example)
+console.log(example);
 
 // Convert the instance to a JSON string
-const exampleJSON: string = JSON.stringify(example)
-console.log(exampleJSON)
+const exampleJSON: string = JSON.stringify(example);
+console.log(exampleJSON);
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as AdminCreateApiKey201ResponseAllOfData
-console.log(exampleParsed)
+const exampleParsed = JSON.parse(
+    exampleJSON,
+) as AdminCreateApiKey201ResponseAllOfData;
+console.log(exampleParsed);
 ```
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-

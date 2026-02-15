@@ -1,12 +1,18 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Award, Trash2 } from 'lucide-react';
-import type { RfqAwardCandidateLine, RfqItemAwardSummary } from '@/sdk';
-import type { AwardLineFormValue } from '@/pages/awards/award-form-schema';
-import { Fragment, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import type { AwardLineFormValue } from '@/pages/awards/award-form-schema';
+import type { RfqAwardCandidateLine, RfqItemAwardSummary } from '@/sdk';
+import { AlertCircle, Award, Trash2 } from 'lucide-react';
+import { Fragment, useMemo } from 'react';
 
 interface AwardSummaryCardProps {
     lines: RfqAwardCandidateLine[];
@@ -34,7 +40,12 @@ interface SupplierSummary {
 }
 
 function formatMinorCurrency(value?: number | null, currency?: string): string {
-    if (value === undefined || value === null || Number.isNaN(value) || !currency) {
+    if (
+        value === undefined ||
+        value === null ||
+        Number.isNaN(value) ||
+        !currency
+    ) {
         return '—';
     }
 
@@ -74,15 +85,29 @@ export function AwardSummaryCard({
                 return;
             }
 
-            const candidate = line.candidates.find((option) => option.quoteItemId === selection.quoteItemId);
+            const candidate = line.candidates.find(
+                (option) => option.quoteItemId === selection.quoteItemId,
+            );
             if (!candidate) {
                 return;
             }
 
-            const supplierKey = String(candidate.supplierId ?? candidate.quoteItemId);
-            const currency = candidate.convertedCurrency ?? candidate.unitPriceCurrency ?? companyCurrency ?? 'USD';
-            const quantity = selection.awardedQty && selection.awardedQty > 0 ? selection.awardedQty : line.quantity;
-            const unitMinor = candidate.convertedUnitPriceMinor ?? candidate.unitPriceMinor ?? 0;
+            const supplierKey = String(
+                candidate.supplierId ?? candidate.quoteItemId,
+            );
+            const currency =
+                candidate.convertedCurrency ??
+                candidate.unitPriceCurrency ??
+                companyCurrency ??
+                'USD';
+            const quantity =
+                selection.awardedQty && selection.awardedQty > 0
+                    ? selection.awardedQty
+                    : line.quantity;
+            const unitMinor =
+                candidate.convertedUnitPriceMinor ??
+                candidate.unitPriceMinor ??
+                0;
             const existing = bySupplier.get(supplierKey);
 
             if (!existing) {
@@ -105,15 +130,24 @@ export function AwardSummaryCard({
                 existing.mixedCurrency = true;
             }
             if (candidate.leadTimeDays != null) {
-                existing.minLead = existing.minLead == null ? candidate.leadTimeDays : Math.min(existing.minLead, candidate.leadTimeDays);
-                existing.maxLead = existing.maxLead == null ? candidate.leadTimeDays : Math.max(existing.maxLead, candidate.leadTimeDays);
+                existing.minLead =
+                    existing.minLead == null
+                        ? candidate.leadTimeDays
+                        : Math.min(existing.minLead, candidate.leadTimeDays);
+                existing.maxLead =
+                    existing.maxLead == null
+                        ? candidate.leadTimeDays
+                        : Math.max(existing.maxLead, candidate.leadTimeDays);
             }
         });
 
         return Array.from(bySupplier.values());
     }, [companyCurrency, lines, selections]);
 
-    const totalSelections = summary.reduce((acc, supplier) => acc + supplier.lineCount, 0);
+    const totalSelections = summary.reduce(
+        (acc, supplier) => acc + supplier.lineCount,
+        0,
+    );
     const missingSelections = lines.length - totalSelections;
     const hasMixedCurrency = summary.some((supplier) => supplier.mixedCurrency);
 
@@ -125,48 +159,78 @@ export function AwardSummaryCard({
                     Award summary
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                    Confirm winning quotes per RFQ line, then create awards and convert them into purchase orders per supplier.
+                    Confirm winning quotes per RFQ line, then create awards and
+                    convert them into purchase orders per supplier.
                 </p>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="rounded-md border bg-muted/40 p-3 text-sm">
-                    <p className="font-semibold text-foreground">{totalSelections} of {lines.length} lines selected</p>
+                    <p className="font-semibold text-foreground">
+                        {totalSelections} of {lines.length} lines selected
+                    </p>
                     {missingSelections > 0 ? (
-                        <p className="text-xs text-muted-foreground">Select winners for the remaining {missingSelections} line(s) to maximise award coverage.</p>
+                        <p className="text-xs text-muted-foreground">
+                            Select winners for the remaining {missingSelections}{' '}
+                            line(s) to maximise award coverage.
+                        </p>
                     ) : (
-                        <p className="text-xs text-muted-foreground">All lines have a selected supplier. You can still adjust quantities line-by-line.</p>
+                        <p className="text-xs text-muted-foreground">
+                            All lines have a selected supplier. You can still
+                            adjust quantities line-by-line.
+                        </p>
                     )}
                 </div>
 
                 <div className="space-y-3">
                     {summary.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Pick at least one supplier to see a per-supplier award breakdown.</p>
+                        <p className="text-sm text-muted-foreground">
+                            Pick at least one supplier to see a per-supplier
+                            award breakdown.
+                        </p>
                     ) : (
                         summary.map((supplier, index) => (
-                            <Fragment key={`${supplier.supplierId ?? supplier.supplierName ?? index}`}>
+                            <Fragment
+                                key={`${supplier.supplierId ?? supplier.supplierName ?? index}`}
+                            >
                                 <div className="flex flex-col gap-1 rounded-md border p-3 text-sm">
                                     <div className="flex flex-col">
                                         <span className="font-semibold text-foreground">
-                                            {supplier.supplierName ?? `Supplier #${supplier.supplierId ?? '—'}`}
+                                            {supplier.supplierName ??
+                                                `Supplier #${supplier.supplierId ?? '—'}`}
                                         </span>
                                         <span className="text-xs text-muted-foreground">
-                                            {supplier.lineCount} line{supplier.lineCount === 1 ? '' : 's'} • {formatMinorCurrency(supplier.totalMinor, supplier.currency)}
+                                            {supplier.lineCount} line
+                                            {supplier.lineCount === 1
+                                                ? ''
+                                                : 's'}{' '}
+                                            •{' '}
+                                            {formatMinorCurrency(
+                                                supplier.totalMinor,
+                                                supplier.currency,
+                                            )}
                                         </span>
                                         {supplier.minLead != null ? (
                                             <span className="text-xs text-muted-foreground">
                                                 Lead time {supplier.minLead}
-                                                {supplier.maxLead != null && supplier.maxLead !== supplier.minLead
+                                                {supplier.maxLead != null &&
+                                                supplier.maxLead !==
+                                                    supplier.minLead
                                                     ? `–${supplier.maxLead}`
                                                     : ''}{' '}
                                                 days
                                             </span>
                                         ) : null}
                                         {supplier.mixedCurrency ? (
-                                            <span className="text-xs text-amber-600">Multiple currencies detected for this supplier.</span>
+                                            <span className="text-xs text-amber-600">
+                                                Multiple currencies detected for
+                                                this supplier.
+                                            </span>
                                         ) : null}
                                     </div>
                                 </div>
-                                {index < summary.length - 1 ? <Separator /> : null}
+                                {index < summary.length - 1 ? (
+                                    <Separator />
+                                ) : null}
                             </Fragment>
                         ))
                     )}
@@ -174,19 +238,30 @@ export function AwardSummaryCard({
 
                 {awards.length > 0 ? (
                     <div>
-                        <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Persisted awards</p>
+                        <p className="mb-2 text-xs font-semibold text-muted-foreground uppercase">
+                            Persisted awards
+                        </p>
                         <div className="space-y-2">
                             {awards.map((award) => (
-                                <div key={award.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
+                                <div
+                                    key={award.id}
+                                    className="flex items-center justify-between rounded-md border p-2 text-sm"
+                                >
                                     <div className="flex flex-col">
                                         <span className="font-medium text-foreground">
                                             RFQ line #{award.rfqItemId}{' '}
-                                            <Badge variant="outline" className="ml-1 text-xs capitalize">
+                                            <Badge
+                                                variant="outline"
+                                                className="ml-1 text-xs capitalize"
+                                            >
                                                 {award.status}
                                             </Badge>
                                         </span>
                                         <span className="text-xs text-muted-foreground">
-                                            Supplier {award.supplierName ?? award.supplierId} • Qty {award.awardedQty ?? '—'}
+                                            Supplier{' '}
+                                            {award.supplierName ??
+                                                award.supplierId}{' '}
+                                            • Qty {award.awardedQty ?? '—'}
                                         </span>
                                     </div>
                                     <Button
@@ -194,12 +269,24 @@ export function AwardSummaryCard({
                                         variant="ghost"
                                         size="icon"
                                         className="text-muted-foreground"
-                                        onClick={() => onDeleteAward?.(award.id)}
-                                        disabled={isSaving || deletingAwardId === award.id || Boolean(award.poId)}
-                                        title={award.poId ? 'Award already converted to PO' : 'Delete award'}
+                                        onClick={() =>
+                                            onDeleteAward?.(award.id)
+                                        }
+                                        disabled={
+                                            isSaving ||
+                                            deletingAwardId === award.id ||
+                                            Boolean(award.poId)
+                                        }
+                                        title={
+                                            award.poId
+                                                ? 'Award already converted to PO'
+                                                : 'Delete award'
+                                        }
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                        <span className="sr-only">Delete award</span>
+                                        <span className="sr-only">
+                                            Delete award
+                                        </span>
                                     </Button>
                                 </div>
                             ))}
@@ -212,13 +299,22 @@ export function AwardSummaryCard({
                         <AlertCircle className="mt-0.5 h-4 w-4" />
                         <div>
                             <p className="font-semibold">Review currency mix</p>
-                            <p className="text-xs">Some suppliers have quotes in multiple currencies. Confirm your FX rules before converting to PO.</p>
+                            <p className="text-xs">
+                                Some suppliers have quotes in multiple
+                                currencies. Confirm your FX rules before
+                                converting to PO.
+                            </p>
                         </div>
                     </div>
                 ) : null}
             </CardContent>
             <CardFooter className="flex flex-col gap-3 border-t bg-muted/40 p-4">
-                <Button type="button" onClick={onPersist} disabled={isSaving} className="w-full">
+                <Button
+                    type="button"
+                    onClick={onPersist}
+                    disabled={isSaving}
+                    className="w-full"
+                >
                     {isSaving ? 'Saving awards…' : 'Create awards'}
                 </Button>
                 <Button
@@ -226,7 +322,12 @@ export function AwardSummaryCard({
                     variant="secondary"
                     disabled={!canConvert || isConverting}
                     onClick={onOpenConvert}
-                    className={cn('w-full', !canConvert ? 'cursor-not-allowed opacity-70' : undefined)}
+                    className={cn(
+                        'w-full',
+                        !canConvert
+                            ? 'cursor-not-allowed opacity-70'
+                            : undefined,
+                    )}
                 >
                     {isConverting ? 'Converting…' : 'Convert to PO'}
                 </Button>

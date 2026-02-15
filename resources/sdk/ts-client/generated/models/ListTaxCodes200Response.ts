@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,106 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { CursorMeta } from './CursorMeta';
-import {
-    CursorMetaFromJSON,
-    CursorMetaFromJSONTyped,
-    CursorMetaToJSON,
-    CursorMetaToJSONTyped,
-} from './CursorMeta';
+import { CursorMetaFromJSON, CursorMetaToJSON } from './CursorMeta';
 import type { ListTaxCodes200ResponseAllOfData } from './ListTaxCodes200ResponseAllOfData';
 import {
     ListTaxCodes200ResponseAllOfDataFromJSON,
-    ListTaxCodes200ResponseAllOfDataFromJSONTyped,
     ListTaxCodes200ResponseAllOfDataToJSON,
-    ListTaxCodes200ResponseAllOfDataToJSONTyped,
 } from './ListTaxCodes200ResponseAllOfData';
 
 /**
- * 
+ *
  * @export
  * @interface ListTaxCodes200Response
  */
 export interface ListTaxCodes200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListTaxCodes200Response
      */
     status: ListTaxCodes200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListTaxCodes200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListTaxCodes200ResponseAllOfData}
      * @memberof ListTaxCodes200Response
      */
     data: ListTaxCodes200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {CursorMeta}
      * @memberof ListTaxCodes200Response
      */
     meta?: CursorMeta;
 }
 
-
 /**
  * @export
  */
 export const ListTaxCodes200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListTaxCodes200ResponseStatusEnum = typeof ListTaxCodes200ResponseStatusEnum[keyof typeof ListTaxCodes200ResponseStatusEnum];
-
+export type ListTaxCodes200ResponseStatusEnum =
+    (typeof ListTaxCodes200ResponseStatusEnum)[keyof typeof ListTaxCodes200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListTaxCodes200Response interface.
  */
-export function instanceOfListTaxCodes200Response(value: object): value is ListTaxCodes200Response {
+export function instanceOfListTaxCodes200Response(
+    value: object,
+): value is ListTaxCodes200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListTaxCodes200ResponseFromJSON(json: any): ListTaxCodes200Response {
+export function ListTaxCodes200ResponseFromJSON(
+    json: any,
+): ListTaxCodes200Response {
     return ListTaxCodes200ResponseFromJSONTyped(json, false);
 }
 
-export function ListTaxCodes200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListTaxCodes200Response {
+export function ListTaxCodes200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListTaxCodes200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListTaxCodes200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : CursorMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListTaxCodes200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null ? undefined : CursorMetaFromJSON(json['meta']),
     };
 }
 
-export function ListTaxCodes200ResponseToJSON(json: any): ListTaxCodes200Response {
+export function ListTaxCodes200ResponseToJSON(
+    json: any,
+): ListTaxCodes200Response {
     return ListTaxCodes200ResponseToJSONTyped(json, false);
 }
 
-export function ListTaxCodes200ResponseToJSONTyped(value?: ListTaxCodes200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListTaxCodes200ResponseToJSONTyped(
+    value?: ListTaxCodes200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListTaxCodes200ResponseAllOfDataToJSON(value['data']),
-        'meta': CursorMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListTaxCodes200ResponseAllOfDataToJSON(value['data']),
+        meta: CursorMetaToJSON(value['meta']),
     };
 }
-

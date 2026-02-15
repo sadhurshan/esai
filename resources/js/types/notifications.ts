@@ -33,7 +33,11 @@ export interface NotificationListFilters {
     per_page?: number;
 }
 
-export type EventDeliveryStatus = 'pending' | 'success' | 'failed' | 'dead_letter';
+export type EventDeliveryStatus =
+    | 'pending'
+    | 'success'
+    | 'failed'
+    | 'dead_letter';
 
 export interface EventDeliveryItem {
     id: number;
@@ -96,7 +100,9 @@ export interface NotificationPreferenceSetting {
     digest: NotificationDigestFrequency;
 }
 
-export type NotificationPreferenceMap = Partial<Record<NotificationEventType, NotificationPreferenceSetting>>;
+export type NotificationPreferenceMap = Partial<
+    Record<NotificationEventType, NotificationPreferenceSetting>
+>;
 
 export interface NotificationPreferenceResponseItem {
     event_type: NotificationEventType;

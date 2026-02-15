@@ -4,6 +4,7 @@ namespace App\Support\Documents;
 
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentKind;
+use App\Jobs\ParseCadDocumentJob;
 use App\Models\Document;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
@@ -148,8 +149,32 @@ class DocumentStorer
 
             $this->refreshAttachmentCount($documentableType, $documentableId);
 
+            if ($this->isCadCandidate($file, $document)) {
+                DB::afterCommit(function () use ($document): void {
+                    ParseCadDocumentJob::dispatch(
+                        companyId: (int) $document->company_id,
+                        documentId: (int) $document->getKey(),
+                        documentVersion: (int) $document->version_number,
+                    );
+                });
+            }
+
             return $document;
         });
+    }
+
+    private function isCadCandidate(UploadedFile $file, Document $document): bool
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: '');
+        $cadExtensions = ['step', 'stp', 'iges', 'igs', 'dwg', 'dxf', 'sldprt', 'stl', '3mf'];
+
+        if (in_array($extension, $cadExtensions, true)) {
+            return true;
+        }
+
+        $mime = strtolower((string) ($document->mime ?? ''));
+
+        return str_contains($mime, 'cad') || str_contains($mime, 'step');
     }
 
     private function assertCategory(string $category): void

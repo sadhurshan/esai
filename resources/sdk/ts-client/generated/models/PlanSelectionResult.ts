@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,31 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PlanSelectionResultCompany } from './PlanSelectionResultCompany';
-import {
-    PlanSelectionResultCompanyFromJSON,
-    PlanSelectionResultCompanyFromJSONTyped,
-    PlanSelectionResultCompanyToJSON,
-    PlanSelectionResultCompanyToJSONTyped,
-} from './PlanSelectionResultCompany';
 import type { PlanCatalogEntry } from './PlanCatalogEntry';
 import {
     PlanCatalogEntryFromJSON,
-    PlanCatalogEntryFromJSONTyped,
     PlanCatalogEntryToJSON,
-    PlanCatalogEntryToJSONTyped,
 } from './PlanCatalogEntry';
+import type { PlanSelectionResultCompany } from './PlanSelectionResultCompany';
+import {
+    PlanSelectionResultCompanyFromJSON,
+    PlanSelectionResultCompanyToJSON,
+} from './PlanSelectionResultCompany';
 
 /**
- * 
+ *
  * @export
  * @interface PlanSelectionResult
  */
 export interface PlanSelectionResult {
     /**
-     * 
+     *
      * @type {PlanSelectionResultCompany}
      * @memberof PlanSelectionResult
      */
     company: PlanSelectionResultCompany;
     /**
-     * 
+     *
      * @type {PlanCatalogEntry}
      * @memberof PlanSelectionResult
      */
@@ -51,7 +46,9 @@ export interface PlanSelectionResult {
 /**
  * Check if a given object implements the PlanSelectionResult interface.
  */
-export function instanceOfPlanSelectionResult(value: object): value is PlanSelectionResult {
+export function instanceOfPlanSelectionResult(
+    value: object,
+): value is PlanSelectionResult {
     if (!('company' in value) || value['company'] === undefined) return false;
     if (!('plan' in value) || value['plan'] === undefined) return false;
     return true;
@@ -61,14 +58,16 @@ export function PlanSelectionResultFromJSON(json: any): PlanSelectionResult {
     return PlanSelectionResultFromJSONTyped(json, false);
 }
 
-export function PlanSelectionResultFromJSONTyped(json: any, ignoreDiscriminator: boolean): PlanSelectionResult {
+export function PlanSelectionResultFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PlanSelectionResult {
     if (json == null) {
         return json;
     }
     return {
-        
-        'company': PlanSelectionResultCompanyFromJSON(json['company']),
-        'plan': PlanCatalogEntryFromJSON(json['plan']),
+        company: PlanSelectionResultCompanyFromJSON(json['company']),
+        plan: PlanCatalogEntryFromJSON(json['plan']),
     };
 }
 
@@ -76,15 +75,16 @@ export function PlanSelectionResultToJSON(json: any): PlanSelectionResult {
     return PlanSelectionResultToJSONTyped(json, false);
 }
 
-export function PlanSelectionResultToJSONTyped(value?: PlanSelectionResult | null, ignoreDiscriminator: boolean = false): any {
+export function PlanSelectionResultToJSONTyped(
+    value?: PlanSelectionResult | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'company': PlanSelectionResultCompanyToJSON(value['company']),
-        'plan': PlanCatalogEntryToJSON(value['plan']),
+        company: PlanSelectionResultCompanyToJSON(value['company']),
+        plan: PlanCatalogEntryToJSON(value['plan']),
     };
 }
-

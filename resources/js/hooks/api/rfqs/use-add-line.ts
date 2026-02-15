@@ -1,8 +1,18 @@
-import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type QueryKey,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { RFQsApi, type RequestMeta, type Rfq, type RfqItem, type RfqLinePayload } from '@/sdk';
+import {
+    RFQsApi,
+    type RequestMeta,
+    type Rfq,
+    type RfqItem,
+    type RfqLinePayload,
+} from '@/sdk';
 
 export interface AddRfqLinePayload {
     rfqId: string | number;
@@ -24,7 +34,12 @@ function computeNextLineNo(items: RfqItem[], fallback = 1): number {
         return fallback;
     }
 
-    return items.reduce((highest, item) => Math.max(highest, item.lineNo ?? 0), 0) + 1;
+    return (
+        items.reduce(
+            (highest, item) => Math.max(highest, item.lineNo ?? 0),
+            0,
+        ) + 1
+    );
 }
 
 export function useAddLine() {
@@ -44,12 +59,20 @@ export function useAddLine() {
             const rfqId = String(variables.rfqId);
             const linePrefix = queryKeys.rfqs.lines(rfqId);
             await queryClient.cancelQueries({ queryKey: linePrefix });
-            await queryClient.cancelQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
+            await queryClient.cancelQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
 
-            const previousLines = queryClient.getQueriesData<LinesCache>({ queryKey: linePrefix });
-            const previousRfq = queryClient.getQueryData<Rfq>(queryKeys.rfqs.detail(rfqId));
+            const previousLines = queryClient.getQueriesData<LinesCache>({
+                queryKey: linePrefix,
+            });
+            const previousRfq = queryClient.getQueryData<Rfq>(
+                queryKeys.rfqs.detail(rfqId),
+            );
 
-            const baselineItems = Array.from(previousLines[0]?.[1]?.items ?? []);
+            const baselineItems = Array.from(
+                previousLines[0]?.[1]?.items ?? [],
+            );
             const optimisticLine: RfqItem = {
                 id: `optimistic-${Date.now()}`,
                 lineNo: computeNextLineNo(baselineItems),
@@ -89,15 +112,23 @@ export function useAddLine() {
             });
 
             if (context.previousRfq) {
-                queryClient.setQueryData(queryKeys.rfqs.detail(variables.rfqId), context.previousRfq);
+                queryClient.setQueryData(
+                    queryKeys.rfqs.detail(variables.rfqId),
+                    context.previousRfq,
+                );
             }
         },
         onSettled: (_response, _error, variables) => {
             const rfqId = String(variables.rfqId);
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.lines(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.timeline(rfqId) });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.lines(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.timeline(rfqId),
+            });
         },
     });
 }
-

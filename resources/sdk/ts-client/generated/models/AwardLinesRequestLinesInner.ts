@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AwardLinesRequestLinesInner
  */
 export interface AwardLinesRequestLinesInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AwardLinesRequestLinesInner
      */
     rfqItemId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AwardLinesRequestLinesInner
      */
     quoteId: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AwardLinesRequestLinesInner
      */
@@ -42,43 +41,53 @@ export interface AwardLinesRequestLinesInner {
 /**
  * Check if a given object implements the AwardLinesRequestLinesInner interface.
  */
-export function instanceOfAwardLinesRequestLinesInner(value: object): value is AwardLinesRequestLinesInner {
-    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined) return false;
+export function instanceOfAwardLinesRequestLinesInner(
+    value: object,
+): value is AwardLinesRequestLinesInner {
+    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined)
+        return false;
     if (!('quoteId' in value) || value['quoteId'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     return true;
 }
 
-export function AwardLinesRequestLinesInnerFromJSON(json: any): AwardLinesRequestLinesInner {
+export function AwardLinesRequestLinesInnerFromJSON(
+    json: any,
+): AwardLinesRequestLinesInner {
     return AwardLinesRequestLinesInnerFromJSONTyped(json, false);
 }
 
-export function AwardLinesRequestLinesInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): AwardLinesRequestLinesInner {
+export function AwardLinesRequestLinesInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AwardLinesRequestLinesInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfqItemId': json['rfq_item_id'],
-        'quoteId': json['quote_id'],
-        'quantity': json['quantity'],
+        rfqItemId: json['rfq_item_id'],
+        quoteId: json['quote_id'],
+        quantity: json['quantity'],
     };
 }
 
-export function AwardLinesRequestLinesInnerToJSON(json: any): AwardLinesRequestLinesInner {
+export function AwardLinesRequestLinesInnerToJSON(
+    json: any,
+): AwardLinesRequestLinesInner {
     return AwardLinesRequestLinesInnerToJSONTyped(json, false);
 }
 
-export function AwardLinesRequestLinesInnerToJSONTyped(value?: AwardLinesRequestLinesInner | null, ignoreDiscriminator: boolean = false): any {
+export function AwardLinesRequestLinesInnerToJSONTyped(
+    value?: AwardLinesRequestLinesInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq_item_id': value['rfqItemId'],
-        'quote_id': value['quoteId'],
-        'quantity': value['quantity'],
+        rfq_item_id: value['rfqItemId'],
+        quote_id: value['quoteId'],
+        quantity: value['quantity'],
     };
 }
-

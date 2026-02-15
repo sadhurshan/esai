@@ -1,6 +1,10 @@
 import type { Configuration } from '../../sdk/ts-client/generated';
+import type {
+    HTTPHeaders,
+    HTTPQuery,
+    InitOverrideFunction,
+} from '../../sdk/ts-client/generated/runtime';
 import { BaseAPI } from '../../sdk/ts-client/generated/runtime';
-import type { HTTPHeaders, HTTPQuery, InitOverrideFunction } from '../../sdk/ts-client/generated/runtime';
 
 export interface ListCreditNotesQuery {
     page?: number;
@@ -98,13 +102,25 @@ async function parseEnvelope<T>(response: Response): Promise<T> {
     return payload as T;
 }
 
-function appendAttachment(formData: FormData, attachment: File | Blob | { file: File | Blob; filename?: string }, index: number): void {
+function appendAttachment(
+    formData: FormData,
+    attachment: File | Blob | { file: File | Blob; filename?: string },
+    index: number,
+): void {
     if ('file' in attachment) {
-        formData.append(`attachments[${index}]`, attachment.file, attachment.filename);
+        formData.append(
+            `attachments[${index}]`,
+            attachment.file,
+            attachment.filename,
+        );
         return;
     }
 
-    formData.append(`attachments[${index}]`, attachment, attachment instanceof File ? attachment.name : undefined);
+    formData.append(
+        `attachments[${index}]`,
+        attachment,
+        attachment instanceof File ? attachment.name : undefined,
+    );
 }
 
 export class CreditApi extends BaseAPI {
@@ -139,7 +155,10 @@ export class CreditApi extends BaseAPI {
         return parseEnvelope(response);
     }
 
-    async getCreditNote(creditNoteId: number | string, initOverrides?: RequestInit | InitOverrideFunction): Promise<Record<string, unknown>> {
+    async getCreditNote(
+        creditNoteId: number | string,
+        initOverrides?: RequestInit | InitOverrideFunction,
+    ): Promise<Record<string, unknown>> {
         const headers: HTTPHeaders = {};
         const response = await this.request(
             {
@@ -169,7 +188,10 @@ export class CreditApi extends BaseAPI {
         }
 
         if (payload.purchaseOrderId !== undefined) {
-            formData.append('purchase_order_id', String(payload.purchaseOrderId));
+            formData.append(
+                'purchase_order_id',
+                String(payload.purchaseOrderId),
+            );
         }
 
         if (payload.grnId !== undefined) {
@@ -270,12 +292,13 @@ export class CreditApi extends BaseAPI {
         };
 
         const body = {
-            lines: payload.lines?.map((line) => ({
-                invoice_line_id: line.invoiceLineId,
-                qty_to_credit: line.qtyToCredit,
-                description: line.description ?? undefined,
-                uom: line.uom ?? undefined,
-            })) ?? [],
+            lines:
+                payload.lines?.map((line) => ({
+                    invoice_line_id: line.invoiceLineId,
+                    qty_to_credit: line.qtyToCredit,
+                    description: line.description ?? undefined,
+                    uom: line.uom ?? undefined,
+                })) ?? [],
         };
 
         const response = await this.request(

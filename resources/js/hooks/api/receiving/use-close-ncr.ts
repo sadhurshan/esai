@@ -29,8 +29,12 @@ export function useCloseNcr() {
                 description: 'The NCR has been marked as resolved.',
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.receiving.detail(variables.grnId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.receiving.list() });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.receiving.detail(variables.grnId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.receiving.list(),
+            });
         },
     });
 }

@@ -1,29 +1,40 @@
+import { formatDistanceToNow } from 'date-fns';
+import { Inbox, Mail, RefreshCcw } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
-import { Inbox, Mail, RefreshCcw } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 import { EmptyState } from '@/components/empty-state';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
-import { useNotifications } from '@/hooks/api/notifications/use-notifications';
 import { useMarkRead } from '@/hooks/api/notifications/use-mark-read';
-import type { NotificationListItem } from '@/types/notifications';
+import { useNotifications } from '@/hooks/api/notifications/use-notifications';
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import type { NotificationListItem } from '@/types/notifications';
 
 const PER_PAGE = 25;
 const EMPTY_NOTIFICATIONS: NotificationListItem[] = [];
-const LINK_META_KEYS: Array<keyof NotificationListItem['meta']> = ['href', 'url', 'route', 'path'];
+const LINK_META_KEYS: Array<keyof NotificationListItem['meta']> = [
+    'href',
+    'url',
+    'route',
+    'path',
+];
 
 type StatusFilter = 'all' | 'read' | 'unread';
 
@@ -78,21 +89,24 @@ export function NotificationCenterPage() {
         return next;
     }, [filteredItems, selectedIds]);
 
-    const resolveLink = useCallback((item: NotificationListItem): string | null => {
-        for (const key of LINK_META_KEYS) {
-            const raw = item.meta?.[key];
-            if (typeof raw === 'string' && raw.length > 0) {
-                return raw;
+    const resolveLink = useCallback(
+        (item: NotificationListItem): string | null => {
+            for (const key of LINK_META_KEYS) {
+                const raw = item.meta?.[key];
+                if (typeof raw === 'string' && raw.length > 0) {
+                    return raw;
+                }
             }
-        }
 
-        const fallback = item.meta?.link;
-        if (typeof fallback === 'string' && fallback.length > 0) {
-            return fallback;
-        }
+            const fallback = item.meta?.link;
+            if (typeof fallback === 'string' && fallback.length > 0) {
+                return fallback;
+            }
 
-        return null;
-    }, []);
+            return null;
+        },
+        [],
+    );
 
     const handleRowNavigate = useCallback(
         (item: NotificationListItem) => {
@@ -143,7 +157,9 @@ export function NotificationCenterPage() {
         });
     };
 
-    const allSelected = filteredItems.length > 0 && filteredItems.every((item) => visibleSelectedIds.has(item.id));
+    const allSelected =
+        filteredItems.length > 0 &&
+        filteredItems.every((item) => visibleSelectedIds.has(item.id));
     const indeterminate = visibleSelectedIds.size > 0 && !allSelected;
 
     const handleSelectAll = (checked: boolean) => {
@@ -162,31 +178,53 @@ export function NotificationCenterPage() {
 
         try {
             await markRead.mutateAsync({ ids: Array.from(visibleSelectedIds) });
-            publishToast({ title: 'Notifications updated', description: 'Selected notifications marked as read.', variant: 'success' });
+            publishToast({
+                title: 'Notifications updated',
+                description: 'Selected notifications marked as read.',
+                variant: 'success',
+            });
             setSelectedIds(new Set());
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unable to mark notifications as read.';
-            publishToast({ title: 'Request failed', description: message, variant: 'destructive' });
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unable to mark notifications as read.';
+            publishToast({
+                title: 'Request failed',
+                description: message,
+                variant: 'destructive',
+            });
         }
     };
 
     const handleMarkSingle = async (id: number) => {
         try {
             await markRead.mutateAsync({ ids: [id] });
-            publishToast({ title: 'Notification marked as read', variant: 'success' });
+            publishToast({
+                title: 'Notification marked as read',
+                variant: 'success',
+            });
             setSelectedIds((prev) => {
                 const next = new Set(prev);
                 next.delete(id);
                 return next;
             });
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unable to mark notification as read.';
-            publishToast({ title: 'Request failed', description: message, variant: 'destructive' });
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unable to mark notification as read.';
+            publishToast({
+                title: 'Request failed',
+                description: message,
+                variant: 'destructive',
+            });
         }
     };
 
     const isLoading = notificationsQuery.isLoading;
-    const isRefreshing = notificationsQuery.isFetching && !notificationsQuery.isLoading;
+    const isRefreshing =
+        notificationsQuery.isFetching && !notificationsQuery.isLoading;
     const showEmpty = !isLoading && filteredItems.length === 0;
 
     return (
@@ -198,15 +236,22 @@ export function NotificationCenterPage() {
 
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Engagement</p>
-                    <h1 className="text-2xl font-semibold text-foreground">Notification center</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Engagement
+                    </p>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Notification center
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Review alerts from RFQs, quotes, purchase orders, receiving, billing, and system events in one place.
+                        Review alerts from RFQs, quotes, purchase orders,
+                        receiving, billing, and system events in one place.
                     </p>
                 </div>
                 <div className="flex flex-col gap-2 text-right text-sm">
                     <span className="text-muted-foreground">Unread</span>
-                    <span className="text-2xl font-semibold text-foreground">{unreadCount}</span>
+                    <span className="text-2xl font-semibold text-foreground">
+                        {unreadCount}
+                    </span>
                 </div>
             </div>
 
@@ -218,10 +263,14 @@ export function NotificationCenterPage() {
                             id="notification-search"
                             placeholder="Search title, message, or entity"
                             value={searchTerm}
-                            onChange={(event) => setSearchTerm(event.target.value)}
+                            onChange={(event) =>
+                                setSearchTerm(event.target.value)
+                            }
                             autoComplete="off"
                         />
-                        <p className="text-xs text-muted-foreground">Search applies to the current page of notifications.</p>
+                        <p className="text-xs text-muted-foreground">
+                            Search applies to the current page of notifications.
+                        </p>
                     </div>
                     <div className="space-y-2">
                         <Label>Status</Label>
@@ -237,13 +286,20 @@ export function NotificationCenterPage() {
                             </SelectTrigger>
                             <SelectContent align="start">
                                 <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="unread">Unread only</SelectItem>
+                                <SelectItem value="unread">
+                                    Unread only
+                                </SelectItem>
                                 <SelectItem value="read">Read only</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label className="sr-only" htmlFor="notification-refresh">Refresh</Label>
+                        <Label
+                            className="sr-only"
+                            htmlFor="notification-refresh"
+                        >
+                            Refresh
+                        </Label>
                         <Button
                             id="notification-refresh"
                             type="button"
@@ -252,14 +308,23 @@ export function NotificationCenterPage() {
                             onClick={() => notificationsQuery.refetch()}
                             disabled={isRefreshing}
                         >
-                            <RefreshCcw className={cn('mr-2 h-4 w-4', isRefreshing && 'animate-spin')} /> Refresh
+                            <RefreshCcw
+                                className={cn(
+                                    'mr-2 h-4 w-4',
+                                    isRefreshing && 'animate-spin',
+                                )}
+                            />{' '}
+                            Refresh
                         </Button>
                         <Button
                             type="button"
                             variant="default"
                             className="w-full"
                             onClick={handleBulkMarkRead}
-                            disabled={visibleSelectedIds.size === 0 || markRead.isPending}
+                            disabled={
+                                visibleSelectedIds.size === 0 ||
+                                markRead.isPending
+                            }
                         >
                             Mark selected read
                         </Button>
@@ -271,12 +336,22 @@ export function NotificationCenterPage() {
                 <div className="flex items-center justify-between border-b px-4 py-3">
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Checkbox
-                            checked={allSelected ? true : indeterminate ? 'indeterminate' : false}
-                            onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                            checked={
+                                allSelected
+                                    ? true
+                                    : indeterminate
+                                      ? 'indeterminate'
+                                      : false
+                            }
+                            onCheckedChange={(checked) =>
+                                handleSelectAll(Boolean(checked))
+                            }
                             aria-label="Select all notifications"
                         />
                         <span className="text-foreground">
-                            {visibleSelectedIds.size > 0 ? `${visibleSelectedIds.size} selected` : `${filteredItems.length} on this page`}
+                            {visibleSelectedIds.size > 0
+                                ? `${visibleSelectedIds.size} selected`
+                                : `${filteredItems.length} on this page`}
                         </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -285,21 +360,28 @@ export function NotificationCenterPage() {
                 </div>
                 <div className="max-h-[60vh] overflow-auto">
                     <table className="min-w-full divide-y">
-                        <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+                        <thead className="bg-muted/40 text-left text-xs text-muted-foreground uppercase">
                             <tr>
                                 <th className="w-12 px-4 py-3">Select</th>
-                                <th className="min-w-[220px] px-4 py-3">Notification</th>
+                                <th className="min-w-[220px] px-4 py-3">
+                                    Notification
+                                </th>
                                 <th className="px-4 py-3">Entity</th>
                                 <th className="px-4 py-3">Channel</th>
                                 <th className="px-4 py-3">Sent</th>
                                 <th className="px-4 py-3">Status</th>
-                                <th className="w-[160px] px-4 py-3 text-right">Actions</th>
+                                <th className="w-[160px] px-4 py-3 text-right">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y text-sm">
                             {isLoading &&
                                 Array.from({ length: 6 }).map((_, index) => (
-                                    <tr key={`notification-skeleton-${index}`} className="animate-pulse">
+                                    <tr
+                                        key={`notification-skeleton-${index}`}
+                                        className="animate-pulse"
+                                    >
                                         <td className="px-4 py-4">
                                             <Skeleton className="h-4 w-4" />
                                         </td>
@@ -325,80 +407,136 @@ export function NotificationCenterPage() {
                                     </tr>
                                 ))}
 
-                            {!isLoading && filteredItems.map((item) => {
-                                const link = resolveLink(item);
-                                const isSelected = selectedIds.has(item.id);
-                                const isUnread = !item.readAt;
-                                const channelLabel = item.channel === 'both' ? 'Push + Email' : item.channel;
-                                const entityLabel = item.entityType
-                                    ? `${item.entityType}${item.entityId ? ` #${item.entityId}` : ''}`
-                                    : 'General';
+                            {!isLoading &&
+                                filteredItems.map((item) => {
+                                    const link = resolveLink(item);
+                                    const isSelected = selectedIds.has(item.id);
+                                    const isUnread = !item.readAt;
+                                    const channelLabel =
+                                        item.channel === 'both'
+                                            ? 'Push + Email'
+                                            : item.channel;
+                                    const entityLabel = item.entityType
+                                        ? `${item.entityType}${item.entityId ? ` #${item.entityId}` : ''}`
+                                        : 'General';
 
-                                return (
-                                    <tr key={item.id} className={cn(isUnread && 'bg-primary/5')}> 
-                                        <td className="px-4 py-4 align-top">
-                                            <Checkbox
-                                                checked={isSelected}
-                                                onCheckedChange={(checked) => toggleSelection(item.id, Boolean(checked))}
-                                                aria-label={`Select notification ${item.title}`}
-                                            />
-                                        </td>
-                                        <td className="px-4 py-4 align-top">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-foreground">{item.title}</p>
-                                                    <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">
-                                                        {formatEventType(item.eventType)}
-                                                    </Badge>
+                                    return (
+                                        <tr
+                                            key={item.id}
+                                            className={cn(
+                                                isUnread && 'bg-primary/5',
+                                            )}
+                                        >
+                                            <td className="px-4 py-4 align-top">
+                                                <Checkbox
+                                                    checked={isSelected}
+                                                    onCheckedChange={(
+                                                        checked,
+                                                    ) =>
+                                                        toggleSelection(
+                                                            item.id,
+                                                            Boolean(checked),
+                                                        )
+                                                    }
+                                                    aria-label={`Select notification ${item.title}`}
+                                                />
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-foreground">
+                                                            {item.title}
+                                                        </p>
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="text-[10px] tracking-wider uppercase"
+                                                        >
+                                                            {formatEventType(
+                                                                item.eventType,
+                                                            )}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {item.body}
+                                                    </p>
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">{item.body}</p>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 align-top">
-                                            <p className="text-sm font-medium text-foreground">{entityLabel}</p>
-                                        </td>
-                                        <td className="px-4 py-4 align-top">
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                                                {item.channel !== 'push' && <Mail className="h-3.5 w-3.5" aria-hidden="true" />} {channelLabel}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-4 align-top">
-                                            <p className="text-sm text-muted-foreground">{formatTimestamp(item.createdAt)}</p>
-                                        </td>
-                                        <td className="px-4 py-4 align-top">
-                                            <Badge variant={isUnread ? 'destructive' : 'secondary'}>
-                                                {isUnread ? 'Unread' : 'Read'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-4 align-top">
-                                            <div className="flex flex-col items-end gap-2">
-                                                {link && (
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="w-full"
-                                                        onClick={() => handleRowNavigate(item)}
-                                                    >
-                                                        Open
-                                                    </Button>
-                                                )}
-                                                {isUnread && (
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => handleMarkSingle(item.id)}
-                                                        disabled={markRead.isPending}
-                                                    >
-                                                        Mark read
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <p className="text-sm font-medium text-foreground">
+                                                    {entityLabel}
+                                                </p>
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                                    {item.channel !==
+                                                        'push' && (
+                                                        <Mail
+                                                            className="h-3.5 w-3.5"
+                                                            aria-hidden="true"
+                                                        />
+                                                    )}{' '}
+                                                    {channelLabel}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <p className="text-sm text-muted-foreground">
+                                                    {formatTimestamp(
+                                                        item.createdAt,
+                                                    )}
+                                                </p>
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <Badge
+                                                    variant={
+                                                        isUnread
+                                                            ? 'destructive'
+                                                            : 'secondary'
+                                                    }
+                                                >
+                                                    {isUnread
+                                                        ? 'Unread'
+                                                        : 'Read'}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <div className="flex flex-col items-end gap-2">
+                                                    {link && (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="w-full"
+                                                            onClick={() =>
+                                                                handleRowNavigate(
+                                                                    item,
+                                                                )
+                                                            }
+                                                        >
+                                                            Open
+                                                        </Button>
+                                                    )}
+                                                    {isUnread && (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() =>
+                                                                handleMarkSingle(
+                                                                    item.id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                markRead.isPending
+                                                            }
+                                                        >
+                                                            Mark read
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
 
                             {showEmpty && (
                                 <tr>
@@ -423,7 +561,9 @@ export function NotificationCenterPage() {
                             type="button"
                             size="sm"
                             variant="outline"
-                            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                            onClick={() =>
+                                setPage((prev) => Math.max(prev - 1, 1))
+                            }
                             disabled={currentPage <= 1 || isLoading}
                         >
                             Previous

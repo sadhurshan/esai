@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,68 +12,58 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 import type { Rma } from './Rma';
-import {
-    RmaFromJSON,
-    RmaFromJSONTyped,
-    RmaToJSON,
-    RmaToJSONTyped,
-} from './Rma';
+import { RmaFromJSON, RmaToJSON } from './Rma';
 
 /**
- * 
+ *
  * @export
  * @interface ShowRma200Response
  */
 export interface ShowRma200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ShowRma200Response
      */
     status: ShowRma200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ShowRma200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {Rma}
      * @memberof ShowRma200Response
      */
     data: Rma;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ShowRma200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ShowRma200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ShowRma200ResponseStatusEnum = typeof ShowRma200ResponseStatusEnum[keyof typeof ShowRma200ResponseStatusEnum];
-
+export type ShowRma200ResponseStatusEnum =
+    (typeof ShowRma200ResponseStatusEnum)[keyof typeof ShowRma200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ShowRma200Response interface.
  */
-export function instanceOfShowRma200Response(value: object): value is ShowRma200Response {
+export function instanceOfShowRma200Response(
+    value: object,
+): value is ShowRma200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
@@ -83,16 +73,21 @@ export function ShowRma200ResponseFromJSON(json: any): ShowRma200Response {
     return ShowRma200ResponseFromJSONTyped(json, false);
 }
 
-export function ShowRma200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ShowRma200Response {
+export function ShowRma200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ShowRma200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': RmaFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: RmaFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
@@ -100,17 +95,18 @@ export function ShowRma200ResponseToJSON(json: any): ShowRma200Response {
     return ShowRma200ResponseToJSONTyped(json, false);
 }
 
-export function ShowRma200ResponseToJSONTyped(value?: ShowRma200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ShowRma200ResponseToJSONTyped(
+    value?: ShowRma200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': RmaToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: RmaToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

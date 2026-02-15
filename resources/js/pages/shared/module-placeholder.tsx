@@ -1,11 +1,11 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EmptyState } from '@/components/empty-state';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Branding } from '@/config/branding';
 import { useModuleBootstrap } from '@/hooks/api/use-module-bootstrap';
 import { FileQuestion } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
 import { type ReactNode } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 interface ModulePlaceholderProps {
     moduleKey: string;
@@ -16,8 +16,16 @@ interface ModulePlaceholderProps {
     onCtaClick?: () => void;
 }
 
-export function ModulePlaceholder({ moduleKey, title, description, hero, ctaLabel, onCtaClick }: ModulePlaceholderProps) {
-    const { data, isFetching, isLoading, isError, error } = useModuleBootstrap(moduleKey);
+export function ModulePlaceholder({
+    moduleKey,
+    title,
+    description,
+    hero,
+    ctaLabel,
+    onCtaClick,
+}: ModulePlaceholderProps) {
+    const { data, isFetching, isLoading, isError, error } =
+        useModuleBootstrap(moduleKey);
     const loading = isLoading || isFetching;
 
     return (
@@ -28,7 +36,9 @@ export function ModulePlaceholder({ moduleKey, title, description, hero, ctaLabe
                 </title>
             </Helmet>
             <header className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                    {title}
+                </h1>
                 <p className="text-sm text-muted-foreground">{description}</p>
             </header>
 
@@ -45,7 +55,8 @@ export function ModulePlaceholder({ moduleKey, title, description, hero, ctaLabe
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load module data</AlertTitle>
                     <AlertDescription>
-                        {(error as Error)?.message ?? 'We hit an unexpected issue while contacting the API. Please refresh and try again.'}
+                        {(error as Error)?.message ??
+                            'We hit an unexpected issue while contacting the API. Please refresh and try again.'}
                     </AlertDescription>
                 </Alert>
             ) : null}
@@ -60,7 +71,11 @@ export function ModulePlaceholder({ moduleKey, title, description, hero, ctaLabe
                     }
                     icon={hero ?? <FileQuestion className="h-12 w-12" />}
                     ctaLabel={ctaLabel}
-                    ctaProps={ctaLabel && onCtaClick ? { onClick: onCtaClick } : undefined}
+                    ctaProps={
+                        ctaLabel && onCtaClick
+                            ? { onClick: onCtaClick }
+                            : undefined
+                    }
                     className="bg-background"
                 />
             ) : null}

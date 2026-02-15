@@ -1,25 +1,31 @@
+import { Factory, Filter, RotateCcw, Wallet, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
-import { Factory, Filter, RotateCcw, Wallet, X } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
-import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/empty-state';
+import { Pagination } from '@/components/pagination';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { MoneyCell } from '@/components/quotes/money-cell';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { SupplierDirectoryPicker } from '@/components/rfqs/supplier-directory-picker';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/contexts/auth-context';
 import { useInvoices } from '@/hooks/api/invoices/use-invoices';
-import type { InvoiceSummary, Supplier } from '@/types/sourcing';
 import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import type { InvoiceSummary, Supplier } from '@/types/sourcing';
 
 const STATUS_FILTERS = [
     { value: 'all', label: 'All statuses' },
@@ -33,10 +39,19 @@ const STATUS_FILTERS = [
 
 type BadgeVariant = 'default' | 'secondary' | 'outline' | 'destructive';
 
-const STATUS_BADGES: Record<string, { variant: BadgeVariant; className?: string }> = {
+const STATUS_BADGES: Record<
+    string,
+    { variant: BadgeVariant; className?: string }
+> = {
     draft: { variant: 'secondary' },
-    submitted: { variant: 'outline', className: 'border-amber-200 bg-amber-50 text-amber-800' },
-    buyer_review: { variant: 'outline', className: 'border-amber-200 bg-amber-50 text-amber-800' },
+    submitted: {
+        variant: 'outline',
+        className: 'border-amber-200 bg-amber-50 text-amber-800',
+    },
+    buyer_review: {
+        variant: 'outline',
+        className: 'border-amber-200 bg-amber-50 text-amber-800',
+    },
     approved: { variant: 'default' },
     rejected: { variant: 'destructive' },
     paid: { variant: 'default' },
@@ -52,13 +67,16 @@ const PER_PAGE = 20;
 export function InvoiceListPage() {
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const invoicesEnabled = hasFeature('invoices_enabled');
 
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [supplierFilter, setSupplierFilter] = useState('');
-    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+        null,
+    );
     const [supplierPickerOpen, setSupplierPickerOpen] = useState(false);
     const [issuedFrom, setIssuedFrom] = useState('');
     const [issuedTo, setIssuedTo] = useState('');
@@ -85,24 +103,35 @@ export function InvoiceListPage() {
                 key: 'invoiceNumber',
                 title: 'Invoice #',
                 render: (invoice) => {
-                    const supplierSubmitted = invoice.createdByType === 'supplier' || Boolean(invoice.supplierCompanyId);
+                    const supplierSubmitted =
+                        invoice.createdByType === 'supplier' ||
+                        Boolean(invoice.supplierCompanyId);
                     const needsReview = REVIEW_STATUSES.has(invoice.status);
 
                     return (
                         <div className="flex flex-col gap-1">
-                            <Link className="font-semibold text-primary" to={`/app/invoices/${invoice.id}`}>
+                            <Link
+                                className="font-semibold text-primary"
+                                to={`/app/invoices/${invoice.id}`}
+                            >
                                 {invoice.invoiceNumber}
                             </Link>
                             <div className="flex flex-wrap items-center gap-2 text-xs">
                                 {supplierSubmitted ? (
                                     <span className="flex items-center gap-1 text-amber-700">
-                                        <Factory className="h-3 w-3" /> Supplier submitted
+                                        <Factory className="h-3 w-3" /> Supplier
+                                        submitted
                                     </span>
                                 ) : (
-                                    <span className="text-muted-foreground">Buyer created</span>
+                                    <span className="text-muted-foreground">
+                                        Buyer created
+                                    </span>
                                 )}
                                 {needsReview ? (
-                                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                                    <Badge
+                                        variant="outline"
+                                        className="border-amber-200 bg-amber-50 text-amber-800"
+                                    >
                                         Review pending
                                     </Badge>
                                 ) : null}
@@ -116,9 +145,13 @@ export function InvoiceListPage() {
                 title: 'Supplier',
                 render: (invoice) => (
                     <div className="flex flex-col text-sm">
-                        <span className="font-medium text-foreground">{invoice.supplier?.name ?? '—'}</span>
+                        <span className="font-medium text-foreground">
+                            {invoice.supplier?.name ?? '—'}
+                        </span>
                         {invoice.supplierCompany?.name ? (
-                            <span className="text-xs text-muted-foreground">{invoice.supplierCompany.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                                {invoice.supplierCompany.name}
+                            </span>
                         ) : null}
                     </div>
                 ),
@@ -131,15 +164,20 @@ export function InvoiceListPage() {
             {
                 key: 'submittedAt',
                 title: 'Submitted',
-                render: (invoice) => formatDate(invoice.submittedAt ?? invoice.createdAt),
+                render: (invoice) =>
+                    formatDate(invoice.submittedAt ?? invoice.createdAt),
             },
             {
                 key: 'poNumber',
                 title: 'PO #',
                 render: (invoice) =>
                     invoice.purchaseOrder ? (
-                        <Link className="text-primary" to={`/app/purchase-orders/${invoice.purchaseOrder.id}`}>
-                            {invoice.purchaseOrder.poNumber ?? `PO-${invoice.purchaseOrder.id}`}
+                        <Link
+                            className="text-primary"
+                            to={`/app/purchase-orders/${invoice.purchaseOrder.id}`}
+                        >
+                            {invoice.purchaseOrder.poNumber ??
+                                `PO-${invoice.purchaseOrder.id}`}
                         </Link>
                     ) : (
                         '—'
@@ -155,7 +193,10 @@ export function InvoiceListPage() {
                 title: 'Total',
                 render: (invoice) => (
                     <MoneyCell
-                        amountMinor={invoice.totalMinor ?? Math.round((invoice.total ?? 0) * 100)}
+                        amountMinor={
+                            invoice.totalMinor ??
+                            Math.round((invoice.total ?? 0) * 100)
+                        }
                         currency={invoice.currency}
                         label="Invoice total"
                     />
@@ -166,12 +207,17 @@ export function InvoiceListPage() {
                 title: 'Status',
                 align: 'right',
                 render: (invoice) => {
-                    const style = STATUS_BADGES[invoice.status] ?? { variant: 'outline' };
+                    const style = STATUS_BADGES[invoice.status] ?? {
+                        variant: 'outline',
+                    };
                     return (
-                        <div className="flex flex-col gap-1 items-end">
+                        <div className="flex flex-col items-end gap-1">
                             <Badge
                                 variant={style.variant}
-                                className={cn('uppercase tracking-wide', style.className)}
+                                className={cn(
+                                    'tracking-wide uppercase',
+                                    style.className,
+                                )}
                             >
                                 {formatStatus(invoice.status)}
                             </Badge>
@@ -228,7 +274,9 @@ export function InvoiceListPage() {
                     description="Upgrade your Elements Supply plan to unlock invoice tracking and matching."
                     icon={<Wallet className="h-10 w-10" />}
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -245,13 +293,22 @@ export function InvoiceListPage() {
 
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Finance</p>
-                    <h1 className="text-2xl font-semibold text-foreground">Invoices</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Finance
+                    </p>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Invoices
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Track invoice submissions tied to purchase orders and monitor approval status.
+                        Track invoice submissions tied to purchase orders and
+                        monitor approval status.
                     </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/app/purchase-orders')}>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/app/purchase-orders')}
+                >
                     Go to purchase orders
                 </Button>
             </div>
@@ -259,7 +316,9 @@ export function InvoiceListPage() {
             <Card className="border-border/70">
                 <CardContent className="grid gap-4 py-6 md:grid-cols-5">
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Status</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Status
+                        </label>
                         <Select
                             value={statusFilter}
                             onValueChange={(value) => {
@@ -272,7 +331,10 @@ export function InvoiceListPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 {STATUS_FILTERS.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
+                                    <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                    >
                                         {option.label}
                                     </SelectItem>
                                 ))}
@@ -280,7 +342,9 @@ export function InvoiceListPage() {
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Supplier</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Supplier
+                        </label>
                         <div className="flex items-center gap-2">
                             <Button
                                 type="button"
@@ -288,7 +352,11 @@ export function InvoiceListPage() {
                                 className="flex-1 justify-between"
                                 onClick={() => setSupplierPickerOpen(true)}
                             >
-                                <span>{selectedSupplier ? selectedSupplier.name : 'Browse supplier directory'}</span>
+                                <span>
+                                    {selectedSupplier
+                                        ? selectedSupplier.name
+                                        : 'Browse supplier directory'}
+                                </span>
                             </Button>
                             {selectedSupplier ? (
                                 <Button
@@ -303,11 +371,14 @@ export function InvoiceListPage() {
                             ) : null}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            Filter invoices by supplier from your approved directory.
+                            Filter invoices by supplier from your approved
+                            directory.
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Issued from</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Issued from
+                        </label>
                         <Input
                             type="date"
                             value={issuedFrom}
@@ -318,7 +389,9 @@ export function InvoiceListPage() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase text-muted-foreground">Issued to</label>
+                        <label className="text-xs font-medium text-muted-foreground uppercase">
+                            Issued to
+                        </label>
                         <Input
                             type="date"
                             value={issuedTo}
@@ -328,12 +401,23 @@ export function InvoiceListPage() {
                             }}
                         />
                     </div>
-                    <div className="md:col-span-5 flex flex-wrap gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
+                    <div className="flex flex-wrap gap-2 md:col-span-5">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleResetFilters}
+                        >
                             <RotateCcw className="mr-2 h-4 w-4" /> Reset filters
                         </Button>
-                        <Button type="button" variant="ghost" size="sm" disabled>
-                            <Filter className="mr-2 h-4 w-4" /> Advanced filters (coming soon)
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled
+                        >
+                            <Filter className="mr-2 h-4 w-4" /> Advanced filters
+                            (coming soon)
                         </Button>
                     </div>
                 </CardContent>
@@ -347,16 +431,28 @@ export function InvoiceListPage() {
                     <EmptyState
                         title="No invoices yet"
                         description="Convert purchase orders into payable invoices to see them listed here."
-                        icon={<Wallet className="h-10 w-10 text-muted-foreground" />}
+                        icon={
+                            <Wallet className="h-10 w-10 text-muted-foreground" />
+                        }
                         ctaLabel="Browse purchase orders"
-                        ctaProps={{ onClick: () => navigate('/app/purchase-orders') }}
+                        ctaProps={{
+                            onClick: () => navigate('/app/purchase-orders'),
+                        }}
                     />
                 }
             />
 
-            <Pagination meta={paginationMeta} onPageChange={setPage} isLoading={invoicesQuery.isLoading} />
+            <Pagination
+                meta={paginationMeta}
+                onPageChange={setPage}
+                isLoading={invoicesQuery.isLoading}
+            />
 
-            <SupplierDirectoryPicker open={supplierPickerOpen} onOpenChange={setSupplierPickerOpen} onSelect={handleSupplierSelected} />
+            <SupplierDirectoryPicker
+                open={supplierPickerOpen}
+                onOpenChange={setSupplierPickerOpen}
+                onSelect={handleSupplierSelected}
+            />
         </div>
     );
 }

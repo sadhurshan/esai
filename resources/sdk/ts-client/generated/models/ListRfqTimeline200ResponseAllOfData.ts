@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RfqTimelineEntry } from './RfqTimelineEntry';
 import {
     RfqTimelineEntryFromJSON,
-    RfqTimelineEntryFromJSONTyped,
     RfqTimelineEntryToJSON,
-    RfqTimelineEntryToJSONTyped,
 } from './RfqTimelineEntry';
 
 /**
- * 
+ *
  * @export
  * @interface ListRfqTimeline200ResponseAllOfData
  */
 export interface ListRfqTimeline200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<RfqTimelineEntry>}
      * @memberof ListRfqTimeline200ResponseAllOfData
      */
@@ -38,37 +35,46 @@ export interface ListRfqTimeline200ResponseAllOfData {
 /**
  * Check if a given object implements the ListRfqTimeline200ResponseAllOfData interface.
  */
-export function instanceOfListRfqTimeline200ResponseAllOfData(value: object): value is ListRfqTimeline200ResponseAllOfData {
+export function instanceOfListRfqTimeline200ResponseAllOfData(
+    value: object,
+): value is ListRfqTimeline200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     return true;
 }
 
-export function ListRfqTimeline200ResponseAllOfDataFromJSON(json: any): ListRfqTimeline200ResponseAllOfData {
+export function ListRfqTimeline200ResponseAllOfDataFromJSON(
+    json: any,
+): ListRfqTimeline200ResponseAllOfData {
     return ListRfqTimeline200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListRfqTimeline200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRfqTimeline200ResponseAllOfData {
+export function ListRfqTimeline200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRfqTimeline200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(RfqTimelineEntryFromJSON)),
+        items: (json['items'] as Array<any>).map(RfqTimelineEntryFromJSON),
     };
 }
 
-export function ListRfqTimeline200ResponseAllOfDataToJSON(json: any): ListRfqTimeline200ResponseAllOfData {
+export function ListRfqTimeline200ResponseAllOfDataToJSON(
+    json: any,
+): ListRfqTimeline200ResponseAllOfData {
     return ListRfqTimeline200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListRfqTimeline200ResponseAllOfDataToJSONTyped(value?: ListRfqTimeline200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListRfqTimeline200ResponseAllOfDataToJSONTyped(
+    value?: ListRfqTimeline200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(RfqTimelineEntryToJSON)),
+        items: (value['items'] as Array<any>).map(RfqTimelineEntryToJSON),
     };
 }
-

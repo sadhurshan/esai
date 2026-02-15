@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth-context';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth-context';
 
 export function PlanUpgradeBanner() {
     const { state, clearPlanLimit } = useAuth();
@@ -9,7 +9,8 @@ export function PlanUpgradeBanner() {
 
     const supplierStatus = state.company?.supplier_status ?? null;
     const isSupplierStart =
-        state.company?.start_mode === 'supplier' || (supplierStatus && supplierStatus !== 'none');
+        state.company?.start_mode === 'supplier' ||
+        (supplierStatus && supplierStatus !== 'none');
 
     if (!state.planLimit || isSupplierStart) {
         return null;
@@ -20,7 +21,7 @@ export function PlanUpgradeBanner() {
         'You have reached the current plan limit for this feature. Upgrade to continue.';
 
     return (
-        <div className="flex items-center justify-between gap-4 border-b border-dashed border-brand-accent bg-brand-background/70 px-4 py-2 text-sm text-brand-primary">
+        <div className="border-brand-accent bg-brand-background/70 text-brand-primary flex items-center justify-between gap-4 border-b border-dashed px-4 py-2 text-sm">
             <div className="flex flex-col">
                 <span className="font-medium">Upgrade Required</span>
                 <span className="text-xs text-muted-foreground">{message}</span>
@@ -33,7 +34,11 @@ export function PlanUpgradeBanner() {
                 >
                     View plans
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => clearPlanLimit()}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => clearPlanLimit()}
+                >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Dismiss upgrade banner</span>
                 </Button>

@@ -1,7 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+const STATUS_VARIANTS: Record<
+    string,
+    'default' | 'secondary' | 'outline' | 'destructive'
+> = {
     draft: 'secondary',
     inspecting: 'outline',
     accepted: 'default',
@@ -20,7 +23,10 @@ export function GrnStatusBadge({ status, className }: GrnStatusBadgeProps) {
     const variant = STATUS_VARIANTS[normalized] ?? 'outline';
 
     return (
-        <Badge variant={variant} className={cn('uppercase tracking-wide', className)}>
+        <Badge
+            variant={variant}
+            className={cn('tracking-wide uppercase', className)}
+        >
             {status}
         </Badge>
     );

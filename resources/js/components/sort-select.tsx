@@ -21,10 +21,20 @@ interface SortSelectProps {
     disabled?: boolean;
 }
 
-export function SortSelect({ id, label, value, options, onChange, disabled = false }: SortSelectProps) {
+export function SortSelect({
+    id,
+    label,
+    value,
+    options,
+    onChange,
+    disabled = false,
+}: SortSelectProps) {
     return (
         <div className="flex flex-col gap-1 text-sm">
-            <Label htmlFor={id} className="text-xs uppercase tracking-wide text-muted-foreground">
+            <Label
+                htmlFor={id}
+                className="text-xs tracking-wide text-muted-foreground uppercase"
+            >
                 {label}
             </Label>
             <Select value={value} onValueChange={onChange} disabled={disabled}>

@@ -39,6 +39,7 @@ export type AiGateReason =
     | 'loading'
     | 'missing-role'
     | 'supplier-context'
+    | 'admin-console'
     | 'plan-disabled'
     | 'permission-denied';
 
@@ -77,7 +78,11 @@ export function canUseAiCopilot({
     }
 
     const normalizedRole = userRole.toLowerCase();
-    const isSupplierContext = personaType === 'supplier' || normalizedRole.startsWith('supplier_');
+    if (normalizedRole === 'platform_super') {
+        return { allowed: false, reason: 'admin-console' };
+    }
+    const isSupplierContext =
+        personaType === 'supplier' || normalizedRole.startsWith('supplier_');
     if (isSupplierContext) {
         return { allowed: false, reason: 'supplier-context' };
     }
@@ -96,8 +101,12 @@ export function canUseAiCopilot({
 
     const permissions = extractPermissions(authState.user);
     const hasExplicitPermission =
-        permissions.length > 0 && COPILOT_PERMISSION_KEYS.some((permission) => permissions.includes(permission));
-    const fallbackRoleAllowed = permissions.length === 0 && COPILOT_ROLE_FALLBACK.has(normalizedRole);
+        permissions.length > 0 &&
+        COPILOT_PERMISSION_KEYS.some((permission) =>
+            permissions.includes(permission),
+        );
+    const fallbackRoleAllowed =
+        permissions.length === 0 && COPILOT_ROLE_FALLBACK.has(normalizedRole);
 
     if (!hasExplicitPermission && !fallbackRoleAllowed) {
         return { allowed: false, reason: 'permission-denied' };
@@ -114,7 +123,10 @@ function extractPermissions(user: AuthUserLike | null | undefined): string[] {
     const value = (user as { permissions?: unknown }).permissions;
 
     if (Array.isArray(value)) {
-        return value.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.length > 0);
+        return value.filter(
+            (entry: unknown): entry is string =>
+                typeof entry === 'string' && entry.length > 0,
+        );
     }
 
     if (value && typeof value === 'object') {

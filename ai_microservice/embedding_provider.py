@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Iterable, List, Sequence
 
+import httpx
+
 Vector = List[float]
 
 
@@ -49,8 +51,38 @@ class DummyEmbeddingProvider(EmbeddingProvider):
 class OpenAIEmbeddingProvider(EmbeddingProvider):
     """Placeholder OpenAI provider."""
 
+    def __init__(self) -> None:
+        self.api_key = os.getenv("AI_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+        self.base_url = os.getenv("AI_OPENAI_BASE_URL", "https://api.openai.com/v1")
+        self.model = os.getenv("AI_EMBEDDING_MODEL", "text-embedding-3-small")
+
     def embed_texts(self, texts: Sequence[str]) -> List[Vector]:
-        raise NotImplementedError("OpenAI embedding provider not implemented yet")
+        if not self.api_key:
+            raise ValueError("OpenAI API key is not configured for embeddings")
+
+        payload = {
+            "model": self.model,
+            "input": list(texts),
+        }
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                f"{self.base_url.rstrip('/')}/embeddings",
+                headers=headers,
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        embeddings = [item.get("embedding") for item in data.get("data", [])]
+        if len(embeddings) != len(texts):
+            raise ValueError("Embedding response size mismatch")
+
+        return embeddings  # type: ignore[return-value]
 
 
 class LocalEmbeddingProvider(EmbeddingProvider):

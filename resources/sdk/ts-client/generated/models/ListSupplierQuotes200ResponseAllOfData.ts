@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ListSupplierQuotes200ResponseAllOfDataMeta } from './ListSupplierQuotes200ResponseAllOfDataMeta';
 import {
     ListSupplierQuotes200ResponseAllOfDataMetaFromJSON,
-    ListSupplierQuotes200ResponseAllOfDataMetaFromJSONTyped,
     ListSupplierQuotes200ResponseAllOfDataMetaToJSON,
-    ListSupplierQuotes200ResponseAllOfDataMetaToJSONTyped,
 } from './ListSupplierQuotes200ResponseAllOfDataMeta';
 import type { Quote } from './Quote';
-import {
-    QuoteFromJSON,
-    QuoteFromJSONTyped,
-    QuoteToJSON,
-    QuoteToJSONTyped,
-} from './Quote';
+import { QuoteFromJSON, QuoteToJSON } from './Quote';
 
 /**
- * 
+ *
  * @export
  * @interface ListSupplierQuotes200ResponseAllOfData
  */
 export interface ListSupplierQuotes200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<Quote>}
      * @memberof ListSupplierQuotes200ResponseAllOfData
      */
     items: Array<Quote>;
     /**
-     * 
+     *
      * @type {ListSupplierQuotes200ResponseAllOfDataMeta}
      * @memberof ListSupplierQuotes200ResponseAllOfData
      */
@@ -51,40 +43,49 @@ export interface ListSupplierQuotes200ResponseAllOfData {
 /**
  * Check if a given object implements the ListSupplierQuotes200ResponseAllOfData interface.
  */
-export function instanceOfListSupplierQuotes200ResponseAllOfData(value: object): value is ListSupplierQuotes200ResponseAllOfData {
+export function instanceOfListSupplierQuotes200ResponseAllOfData(
+    value: object,
+): value is ListSupplierQuotes200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function ListSupplierQuotes200ResponseAllOfDataFromJSON(json: any): ListSupplierQuotes200ResponseAllOfData {
+export function ListSupplierQuotes200ResponseAllOfDataFromJSON(
+    json: any,
+): ListSupplierQuotes200ResponseAllOfData {
     return ListSupplierQuotes200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListSupplierQuotes200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListSupplierQuotes200ResponseAllOfData {
+export function ListSupplierQuotes200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListSupplierQuotes200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(QuoteFromJSON)),
-        'meta': ListSupplierQuotes200ResponseAllOfDataMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(QuoteFromJSON),
+        meta: ListSupplierQuotes200ResponseAllOfDataMetaFromJSON(json['meta']),
     };
 }
 
-export function ListSupplierQuotes200ResponseAllOfDataToJSON(json: any): ListSupplierQuotes200ResponseAllOfData {
+export function ListSupplierQuotes200ResponseAllOfDataToJSON(
+    json: any,
+): ListSupplierQuotes200ResponseAllOfData {
     return ListSupplierQuotes200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListSupplierQuotes200ResponseAllOfDataToJSONTyped(value?: ListSupplierQuotes200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListSupplierQuotes200ResponseAllOfDataToJSONTyped(
+    value?: ListSupplierQuotes200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(QuoteToJSON)),
-        'meta': ListSupplierQuotes200ResponseAllOfDataMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(QuoteToJSON),
+        meta: ListSupplierQuotes200ResponseAllOfDataMetaToJSON(value['meta']),
     };
 }
-

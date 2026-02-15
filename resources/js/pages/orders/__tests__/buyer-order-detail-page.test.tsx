@@ -1,13 +1,13 @@
-import { ReactNode } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useBuyerOrder } from '@/hooks/api/orders/use-buyer-order';
 import { BuyerOrderDetailPage } from '@/pages/orders/buyer-order-detail-page';
 import type { SalesOrderDetail } from '@/types/orders';
-import { useBuyerOrder } from '@/hooks/api/orders/use-buyer-order';
 
 vi.mock('@/components/breadcrumbs', () => ({
     WorkspaceBreadcrumbs: () => <div data-testid="breadcrumbs" />,
@@ -28,8 +28,10 @@ vi.mock('@/components/orders/order-timeline', () => ({
 vi.mock('@/contexts/formatting-context', () => ({
     useFormatting: () => ({
         formatDate: (value?: string | null) => (value ? `date:${value}` : '—'),
-        formatMoney: (value?: number | null) => (value === null || value === undefined ? '—' : `$${value}`),
-        formatNumber: (value?: number | null) => (value === null || value === undefined ? '0' : value.toString()),
+        formatMoney: (value?: number | null) =>
+            value === null || value === undefined ? '—' : `$${value}`,
+        formatNumber: (value?: number | null) =>
+            value === null || value === undefined ? '0' : value.toString(),
     }),
 }));
 
@@ -103,6 +105,8 @@ describe('BuyerOrderDetailPage', () => {
         await user.click(screen.getByRole('tab', { name: /Shipments/i }));
 
         expect(await screen.findByText(/Shipment SHP-1/i)).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: /1Z123/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: /1Z123/i }),
+        ).toBeInTheDocument();
     });
 });

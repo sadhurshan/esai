@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ListUoms200ResponseAllOfDataMeta
  */
 export interface ListUoms200ResponseAllOfDataMeta {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ListUoms200ResponseAllOfDataMeta
      */
@@ -30,36 +29,45 @@ export interface ListUoms200ResponseAllOfDataMeta {
 /**
  * Check if a given object implements the ListUoms200ResponseAllOfDataMeta interface.
  */
-export function instanceOfListUoms200ResponseAllOfDataMeta(value: object): value is ListUoms200ResponseAllOfDataMeta {
+export function instanceOfListUoms200ResponseAllOfDataMeta(
+    value: object,
+): value is ListUoms200ResponseAllOfDataMeta {
     return true;
 }
 
-export function ListUoms200ResponseAllOfDataMetaFromJSON(json: any): ListUoms200ResponseAllOfDataMeta {
+export function ListUoms200ResponseAllOfDataMetaFromJSON(
+    json: any,
+): ListUoms200ResponseAllOfDataMeta {
     return ListUoms200ResponseAllOfDataMetaFromJSONTyped(json, false);
 }
 
-export function ListUoms200ResponseAllOfDataMetaFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListUoms200ResponseAllOfDataMeta {
+export function ListUoms200ResponseAllOfDataMetaFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListUoms200ResponseAllOfDataMeta {
     if (json == null) {
         return json;
     }
     return {
-        
-        'total': json['total'] == null ? undefined : json['total'],
+        total: json['total'] == null ? undefined : json['total'],
     };
 }
 
-export function ListUoms200ResponseAllOfDataMetaToJSON(json: any): ListUoms200ResponseAllOfDataMeta {
+export function ListUoms200ResponseAllOfDataMetaToJSON(
+    json: any,
+): ListUoms200ResponseAllOfDataMeta {
     return ListUoms200ResponseAllOfDataMetaToJSONTyped(json, false);
 }
 
-export function ListUoms200ResponseAllOfDataMetaToJSONTyped(value?: ListUoms200ResponseAllOfDataMeta | null, ignoreDiscriminator: boolean = false): any {
+export function ListUoms200ResponseAllOfDataMetaToJSONTyped(
+    value?: ListUoms200ResponseAllOfDataMeta | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'total': value['total'],
+        total: value['total'],
     };
 }
-

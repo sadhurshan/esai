@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SupplierApplicationPayloadGeo
  */
 export interface SupplierApplicationPayloadGeo {
     /**
-     * 
+     *
      * @type {number}
      * @memberof SupplierApplicationPayloadGeo
      */
     lat?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof SupplierApplicationPayloadGeo
      */
@@ -36,38 +35,47 @@ export interface SupplierApplicationPayloadGeo {
 /**
  * Check if a given object implements the SupplierApplicationPayloadGeo interface.
  */
-export function instanceOfSupplierApplicationPayloadGeo(value: object): value is SupplierApplicationPayloadGeo {
+export function instanceOfSupplierApplicationPayloadGeo(
+    value: object,
+): value is SupplierApplicationPayloadGeo {
     return true;
 }
 
-export function SupplierApplicationPayloadGeoFromJSON(json: any): SupplierApplicationPayloadGeo {
+export function SupplierApplicationPayloadGeoFromJSON(
+    json: any,
+): SupplierApplicationPayloadGeo {
     return SupplierApplicationPayloadGeoFromJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadGeoFromJSONTyped(json: any, ignoreDiscriminator: boolean): SupplierApplicationPayloadGeo {
+export function SupplierApplicationPayloadGeoFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SupplierApplicationPayloadGeo {
     if (json == null) {
         return json;
     }
     return {
-        
-        'lat': json['lat'] == null ? undefined : json['lat'],
-        'lng': json['lng'] == null ? undefined : json['lng'],
+        lat: json['lat'] == null ? undefined : json['lat'],
+        lng: json['lng'] == null ? undefined : json['lng'],
     };
 }
 
-export function SupplierApplicationPayloadGeoToJSON(json: any): SupplierApplicationPayloadGeo {
+export function SupplierApplicationPayloadGeoToJSON(
+    json: any,
+): SupplierApplicationPayloadGeo {
     return SupplierApplicationPayloadGeoToJSONTyped(json, false);
 }
 
-export function SupplierApplicationPayloadGeoToJSONTyped(value?: SupplierApplicationPayloadGeo | null, ignoreDiscriminator: boolean = false): any {
+export function SupplierApplicationPayloadGeoToJSONTyped(
+    value?: SupplierApplicationPayloadGeo | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'lat': value['lat'],
-        'lng': value['lng'],
+        lat: value['lat'],
+        lng: value['lng'],
     };
 }
-

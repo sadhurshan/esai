@@ -10,6 +10,7 @@ use App\Models\RFQ;
 use App\Models\RfqClarification;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Support\Audit\AuditLogger;
 use App\Support\CompanyContext;
 use App\Support\ActivePersonaContext;
@@ -36,6 +37,7 @@ class RfqClarificationService
         private readonly AuditLogger $auditLogger,
         private readonly NotificationService $notifications,
         private readonly DocumentStorer $documentStorer,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {
     }
 
@@ -183,6 +185,8 @@ class RfqClarificationService
                     'current_revision_id' => $clarification->id,
                 ]);
             }
+
+            $this->digitalTwinLinkService->recordClarification($rfq, $clarification, $user);
 
             return $clarification->fresh(['user']);
         });

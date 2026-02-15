@@ -12,7 +12,10 @@ interface AppErrorBoundaryState {
     error?: Error;
 }
 
-export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
+export class AppErrorBoundary extends Component<
+    AppErrorBoundaryProps,
+    AppErrorBoundaryState
+> {
     override state: AppErrorBoundaryState = {
         hasError: false,
         error: undefined,
@@ -44,13 +47,19 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
                     <title>Unexpected Error • {Branding.name}</title>
                 </Helmet>
                 <div className="w-full max-w-md rounded-xl border border-border bg-background p-8 text-center shadow-sm">
-                    <h1 className="text-2xl font-semibold text-foreground">Something went wrong</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Something went wrong
+                    </h1>
                     <p className="mt-3 text-sm text-muted-foreground">
-                        An unexpected error occurred while rendering this page. Please try reloading, or reach out to support if the
+                        An unexpected error occurred while rendering this page.
+                        Please try reloading, or reach out to support if the
                         problem continues.
                     </p>
                     {this.state.error?.message ? (
-                        <p className="mt-4 truncate text-xs text-muted-foreground" title={this.state.error.message}>
+                        <p
+                            className="mt-4 truncate text-xs text-muted-foreground"
+                            title={this.state.error.message}
+                        >
                             {this.state.error.message}
                         </p>
                     ) : null}

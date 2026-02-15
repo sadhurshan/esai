@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminCreateApiKeyRequest
  */
 export interface AdminCreateApiKeyRequest {
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminCreateApiKeyRequest
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminCreateApiKeyRequest
      */
     name: string;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof AdminCreateApiKeyRequest
      */
     scopes?: Array<string>;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof AdminCreateApiKeyRequest
      */
@@ -48,44 +47,60 @@ export interface AdminCreateApiKeyRequest {
 /**
  * Check if a given object implements the AdminCreateApiKeyRequest interface.
  */
-export function instanceOfAdminCreateApiKeyRequest(value: object): value is AdminCreateApiKeyRequest {
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+export function instanceOfAdminCreateApiKeyRequest(
+    value: object,
+): value is AdminCreateApiKeyRequest {
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     return true;
 }
 
-export function AdminCreateApiKeyRequestFromJSON(json: any): AdminCreateApiKeyRequest {
+export function AdminCreateApiKeyRequestFromJSON(
+    json: any,
+): AdminCreateApiKeyRequest {
     return AdminCreateApiKeyRequestFromJSONTyped(json, false);
 }
 
-export function AdminCreateApiKeyRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminCreateApiKeyRequest {
+export function AdminCreateApiKeyRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminCreateApiKeyRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'companyId': json['company_id'],
-        'name': json['name'],
-        'scopes': json['scopes'] == null ? undefined : json['scopes'],
-        'expiresAt': json['expires_at'] == null ? undefined : (new Date(json['expires_at'])),
+        companyId: json['company_id'],
+        name: json['name'],
+        scopes: json['scopes'] == null ? undefined : json['scopes'],
+        expiresAt:
+            json['expires_at'] == null
+                ? undefined
+                : new Date(json['expires_at']),
     };
 }
 
-export function AdminCreateApiKeyRequestToJSON(json: any): AdminCreateApiKeyRequest {
+export function AdminCreateApiKeyRequestToJSON(
+    json: any,
+): AdminCreateApiKeyRequest {
     return AdminCreateApiKeyRequestToJSONTyped(json, false);
 }
 
-export function AdminCreateApiKeyRequestToJSONTyped(value?: AdminCreateApiKeyRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminCreateApiKeyRequestToJSONTyped(
+    value?: AdminCreateApiKeyRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'company_id': value['companyId'],
-        'name': value['name'],
-        'scopes': value['scopes'],
-        'expires_at': value['expiresAt'] == null ? value['expiresAt'] : value['expiresAt'].toISOString(),
+        company_id: value['companyId'],
+        name: value['name'],
+        scopes: value['scopes'],
+        expires_at:
+            value['expiresAt'] == null
+                ? value['expiresAt']
+                : value['expiresAt'].toISOString(),
     };
 }
-

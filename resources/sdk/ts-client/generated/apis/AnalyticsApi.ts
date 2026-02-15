@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,24 +12,18 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  GetDashboardMetrics200Response,
+    ApiSuccessResponse,
+    GetDashboardMetrics200Response,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
     GetDashboardMetrics200ResponseFromJSON,
-    GetDashboardMetrics200ResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AnalyticsGenerateRequest {
-    requestBody: { [key: string]: any; };
+    requestBody: { [key: string]: any };
 }
 
 export interface RunAnalyticsReportRequest {
@@ -43,39 +37,49 @@ export interface ShowAnalyticsReportRequest {
 
 /**
  * AnalyticsApi - interface
- * 
+ *
  * @export
  * @interface AnalyticsApiInterface
  */
 export interface AnalyticsApiInterface {
     /**
-     * 
+     *
      * @summary Generate ad-hoc analytics export
-     * @param {{ [key: string]: any; }} requestBody 
+     * @param {{ [key: string]: any; }} requestBody
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AnalyticsApiInterface
      */
-    analyticsGenerateRaw(requestParameters: AnalyticsGenerateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    analyticsGenerateRaw(
+        requestParameters: AnalyticsGenerateRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Generate ad-hoc analytics export
      */
-    analyticsGenerate(requestParameters: AnalyticsGenerateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    analyticsGenerate(
+        requestParameters: AnalyticsGenerateRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Fetch analytics overview dashboard
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AnalyticsApiInterface
      */
-    analyticsOverviewRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    analyticsOverviewRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Fetch analytics overview dashboard
      */
-    analyticsOverview(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    analyticsOverview(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
      * Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
@@ -84,74 +88,98 @@ export interface AnalyticsApiInterface {
      * @throws {RequiredError}
      * @memberof AnalyticsApiInterface
      */
-    getDashboardMetricsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetDashboardMetrics200Response>>;
+    getDashboardMetricsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<GetDashboardMetrics200Response>>;
 
     /**
      * Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
      * Retrieve dashboard KPI metrics
      */
-    getDashboardMetrics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetDashboardMetrics200Response>;
+    getDashboardMetrics(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<GetDashboardMetrics200Response>;
 
     /**
-     * 
+     *
      * @summary List analytics reports
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AnalyticsApiInterface
      */
-    listAnalyticsReportsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    listAnalyticsReportsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * List analytics reports
      */
-    listAnalyticsReports(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    listAnalyticsReports(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Run analytics report
-     * @param {string} reportKey 
-     * @param {object} [body] 
+     * @param {string} reportKey
+     * @param {object} [body]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AnalyticsApiInterface
      */
-    runAnalyticsReportRaw(requestParameters: RunAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    runAnalyticsReportRaw(
+        requestParameters: RunAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Run analytics report
      */
-    runAnalyticsReport(requestParameters: RunAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    runAnalyticsReport(
+        requestParameters: RunAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary Show report configuration
-     * @param {string} reportKey 
+     * @param {string} reportKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AnalyticsApiInterface
      */
-    showAnalyticsReportRaw(requestParameters: ShowAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    showAnalyticsReportRaw(
+        requestParameters: ShowAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Show report configuration
      */
-    showAnalyticsReport(requestParameters: ShowAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
-
+    showAnalyticsReport(
+        requestParameters: ShowAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 }
 
 /**
- * 
+ *
  */
-export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterface {
-
+export class AnalyticsApi
+    extends runtime.BaseAPI
+    implements AnalyticsApiInterface
+{
     /**
      * Generate ad-hoc analytics export
      */
-    async analyticsGenerateRaw(requestParameters: AnalyticsGenerateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async analyticsGenerateRaw(
+        requestParameters: AnalyticsGenerateRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['requestBody'] == null) {
             throw new runtime.RequiredError(
                 'requestBody',
-                'Required parameter "requestBody" was null or undefined when calling analyticsGenerate().'
+                'Required parameter "requestBody" was null or undefined when calling analyticsGenerate().',
             );
         }
 
@@ -162,76 +190,98 @@ export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/analytics/generate`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['requestBody'],
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['requestBody'],
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Generate ad-hoc analytics export
      */
-    async analyticsGenerate(requestParameters: AnalyticsGenerateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.analyticsGenerateRaw(requestParameters, initOverrides);
+    async analyticsGenerate(
+        requestParameters: AnalyticsGenerateRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.analyticsGenerateRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Fetch analytics overview dashboard
      */
-    async analyticsOverviewRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async analyticsOverviewRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/analytics/overview`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Fetch analytics overview dashboard
      */
-    async analyticsOverview(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async analyticsOverview(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.analyticsOverviewRaw(initOverrides);
         return await response.value();
     }
@@ -240,41 +290,51 @@ export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterfa
      * Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
      * Retrieve dashboard KPI metrics
      */
-    async getDashboardMetricsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetDashboardMetrics200Response>> {
+    async getDashboardMetricsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<GetDashboardMetrics200Response>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/dashboard/metrics`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => GetDashboardMetrics200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            GetDashboardMetrics200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Returns key sourcing and downstream execution counts for the authenticated company. Requires analytics plan access.
      * Retrieve dashboard KPI metrics
      */
-    async getDashboardMetrics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetDashboardMetrics200Response> {
+    async getDashboardMetrics(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<GetDashboardMetrics200Response> {
         const response = await this.getDashboardMetricsRaw(initOverrides);
         return await response.value();
     }
@@ -282,40 +342,50 @@ export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterfa
     /**
      * List analytics reports
      */
-    async listAnalyticsReportsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async listAnalyticsReportsRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/analytics/reports`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List analytics reports
      */
-    async listAnalyticsReports(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
+    async listAnalyticsReports(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
         const response = await this.listAnalyticsReportsRaw(initOverrides);
         return await response.value();
     }
@@ -323,11 +393,14 @@ export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterfa
     /**
      * Run analytics report
      */
-    async runAnalyticsReportRaw(requestParameters: RunAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async runAnalyticsReportRaw(
+        requestParameters: RunAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['reportKey'] == null) {
             throw new runtime.RequiredError(
                 'reportKey',
-                'Required parameter "reportKey" was null or undefined when calling runAnalyticsReport().'
+                'Required parameter "reportKey" was null or undefined when calling runAnalyticsReport().',
             );
         }
 
@@ -338,48 +411,66 @@ export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterfa
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/analytics/reports/{reportKey}/run`;
-        urlPath = urlPath.replace(`{${"reportKey"}}`, encodeURIComponent(String(requestParameters['reportKey'])));
+        urlPath = urlPath.replace(
+            `{${'reportKey'}}`,
+            encodeURIComponent(String(requestParameters['reportKey'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters['body'] as any,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: requestParameters['body'] as any,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Run analytics report
      */
-    async runAnalyticsReport(requestParameters: RunAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.runAnalyticsReportRaw(requestParameters, initOverrides);
+    async runAnalyticsReport(
+        requestParameters: RunAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.runAnalyticsReportRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Show report configuration
      */
-    async showAnalyticsReportRaw(requestParameters: ShowAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async showAnalyticsReportRaw(
+        requestParameters: ShowAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['reportKey'] == null) {
             throw new runtime.RequiredError(
                 'reportKey',
-                'Required parameter "reportKey" was null or undefined when calling showAnalyticsReport().'
+                'Required parameter "reportKey" was null or undefined when calling showAnalyticsReport().',
             );
         }
 
@@ -388,37 +479,51 @@ export class AnalyticsApi extends runtime.BaseAPI implements AnalyticsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/analytics/reports/{reportKey}`;
-        urlPath = urlPath.replace(`{${"reportKey"}}`, encodeURIComponent(String(requestParameters['reportKey'])));
+        urlPath = urlPath.replace(
+            `{${'reportKey'}}`,
+            encodeURIComponent(String(requestParameters['reportKey'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Show report configuration
      */
-    async showAnalyticsReport(requestParameters: ShowAnalyticsReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.showAnalyticsReportRaw(requestParameters, initOverrides);
+    async showAnalyticsReport(
+        requestParameters: ShowAnalyticsReportRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.showAnalyticsReportRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }

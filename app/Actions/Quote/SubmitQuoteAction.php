@@ -5,7 +5,9 @@ namespace App\Actions\Quote;
 use App\Enums\MoneyRoundRule;
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Models\RFQ;
 use App\Models\RfqItem;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Services\LineTaxSyncService;
 use App\Services\TotalsCalculator;
 use App\Support\Audit\AuditLogger;
@@ -23,7 +25,8 @@ class SubmitQuoteAction
         private readonly AuditLogger $auditLogger,
         private readonly DocumentStorer $documentStorer,
         private readonly TotalsCalculator $totalsCalculator,
-        private readonly LineTaxSyncService $lineTaxSync
+        private readonly LineTaxSyncService $lineTaxSync,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {}
 
     /**
@@ -187,6 +190,12 @@ class SubmitQuoteAction
             }
 
             $this->auditLogger->created($quote);
+
+            $rfq = CompanyContext::bypass(static fn () => RFQ::query()->find($quote->rfq_id));
+
+            if ($rfq instanceof RFQ) {
+                $this->digitalTwinLinkService->linkQuoteSubmission($rfq, $quote, auth()->user());
+            }
 
             return $quote->load(['items.taxes.taxCode', 'items.rfqItem', 'documents']);
         });

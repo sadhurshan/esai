@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import type { RfqMethod } from '@/constants/rfq';
 import { useApiClientContext } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { type CreateRfq201Response, CreateRfq201ResponseFromJSON } from '@/sdk';
-import type { RfqMethod } from '@/constants/rfq';
 
 export interface UseUpdateRfqOptions {
     onSuccess?: (response: CreateRfq201Response) => void;
@@ -44,7 +44,9 @@ export function useUpdateRfq(options: UseUpdateRfqOptions = {}) {
         onSuccess: (response: CreateRfq201Response) => {
             const rfqId = response.data.id;
             queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.root() });
-            queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
             if (options.onSuccess) {
                 options.onSuccess(response);
             }
@@ -52,7 +54,9 @@ export function useUpdateRfq(options: UseUpdateRfqOptions = {}) {
     });
 }
 
-function serializeUpdatePayload(payload: UpdateRfqPayload): Record<string, unknown> {
+function serializeUpdatePayload(
+    payload: UpdateRfqPayload,
+): Record<string, unknown> {
     const body: Record<string, unknown> = {};
 
     if (payload.title !== undefined) {
@@ -75,7 +79,10 @@ function serializeUpdatePayload(payload: UpdateRfqPayload): Record<string, unkno
         if (payload.dueAt === null) {
             body.due_at = null;
         } else {
-            const value = payload.dueAt instanceof Date ? payload.dueAt.toISOString() : payload.dueAt;
+            const value =
+                payload.dueAt instanceof Date
+                    ? payload.dueAt.toISOString()
+                    : payload.dueAt;
             body.due_at = value;
             body.close_at = value;
         }

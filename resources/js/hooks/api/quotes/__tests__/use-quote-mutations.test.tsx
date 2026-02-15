@@ -1,11 +1,8 @@
-import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useReviseQuote } from '../use-revise-quote';
-import { useSubmitQuote } from '../use-submit-quote';
-import { useWithdrawQuote } from '../use-withdraw-quote';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import {
@@ -15,6 +12,9 @@ import {
     type SubmitQuote201Response,
     type SubmitQuoteRevisionRequest,
 } from '@/sdk';
+import { useReviseQuote } from '../use-revise-quote';
+import { useSubmitQuote } from '../use-submit-quote';
+import { useWithdrawQuote } from '../use-withdraw-quote';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -37,7 +37,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -71,28 +75,46 @@ describe('quote mutation hooks', () => {
         useSdkClientMock.mockReturnValue({ submitDraftQuote });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useSubmitQuote(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useSubmitQuote(), {
+            wrapper: Wrapper,
+        });
 
-        await result.current.mutateAsync({ quoteId: quote.id, rfqId: quote.rfqId });
+        await result.current.mutateAsync({
+            quoteId: quote.id,
+            rfqId: quote.rfqId,
+        });
 
         expect(submitDraftQuote).toHaveBeenCalledWith({ quoteId: quote.id });
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.quotes.detail(quote.id) }),
+            expect.objectContaining({
+                queryKey: queryKeys.quotes.detail(quote.id),
+            }),
         );
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.rfqs.quotes(quote.rfqId) }),
+            expect.objectContaining({
+                queryKey: queryKeys.rfqs.quotes(quote.rfqId),
+            }),
         );
     });
 
     it('withdraws a quote with a reason and refreshes related caches', async () => {
-        const response: ApiSuccessResponse = { status: 'success', message: 'ok' } as ApiSuccessResponse;
+        const response: ApiSuccessResponse = {
+            status: 'success',
+            message: 'ok',
+        } as ApiSuccessResponse;
         const withdrawQuote = vi.fn().mockResolvedValue(response);
         useSdkClientMock.mockReturnValue({ withdrawQuote });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useWithdrawQuote(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useWithdrawQuote(), {
+            wrapper: Wrapper,
+        });
 
-        await result.current.mutateAsync({ quoteId: 'quote-xyz', rfqId: 'rfq-42', reason: 'Pricing update' });
+        await result.current.mutateAsync({
+            quoteId: 'quote-xyz',
+            rfqId: 'rfq-42',
+            reason: 'Pricing update',
+        });
 
         expect(withdrawQuote).toHaveBeenCalledWith({
             quoteId: 'quote-xyz',
@@ -100,7 +122,9 @@ describe('quote mutation hooks', () => {
             withdrawQuoteRequest: { reason: 'Pricing update' },
         });
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.quotes.detail('quote-xyz') }),
+            expect.objectContaining({
+                queryKey: queryKeys.quotes.detail('quote-xyz'),
+            }),
         );
     });
 
@@ -109,11 +133,15 @@ describe('quote mutation hooks', () => {
             note: 'Update unit prices',
             items: [],
         };
-        const submitQuoteRevision = vi.fn().mockResolvedValue({ status: 'success' });
+        const submitQuoteRevision = vi
+            .fn()
+            .mockResolvedValue({ status: 'success' });
         useSdkClientMock.mockReturnValue({ submitQuoteRevision });
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useReviseQuote(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useReviseQuote(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync({
             quoteId: 'quote-abc',
@@ -127,7 +155,9 @@ describe('quote mutation hooks', () => {
             submitQuoteRevisionRequest: revisionPayload,
         });
         expect(invalidateSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ queryKey: queryKeys.quotes.revisions('rfq-abc', 'quote-abc') }),
+            expect.objectContaining({
+                queryKey: queryKeys.quotes.revisions('rfq-abc', 'quote-abc'),
+            }),
         );
     });
 });

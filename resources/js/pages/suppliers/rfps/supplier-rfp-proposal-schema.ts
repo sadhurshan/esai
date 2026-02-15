@@ -28,9 +28,14 @@ export const supplierRfpProposalSchema = z.object({
             (value) => !value || !Number.isNaN(Number(value)),
             'Enter a valid numeric price (e.g. 12500.00)',
         )
-        .refine((value) => !value || Number(value) >= 0, 'Price must be zero or positive'),
+        .refine(
+            (value) => !value || Number(value) >= 0,
+            'Price must be zero or positive',
+        ),
     leadTimeDays: leadTimeField,
-    approachSummary: z.string().min(20, 'Describe your approach (20+ characters)'),
+    approachSummary: z
+        .string()
+        .min(20, 'Describe your approach (20+ characters)'),
     scheduleSummary: z.string().min(10, 'Provide a short schedule summary'),
     valueAddSummary: z
         .string()
@@ -39,4 +44,6 @@ export const supplierRfpProposalSchema = z.object({
         .or(z.literal('')),
 });
 
-export type SupplierRfpProposalFormValues = z.infer<typeof supplierRfpProposalSchema>;
+export type SupplierRfpProposalFormValues = z.infer<
+    typeof supplierRfpProposalSchema
+>;

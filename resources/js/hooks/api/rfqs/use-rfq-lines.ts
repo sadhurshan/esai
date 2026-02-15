@@ -1,5 +1,5 @@
-﻿import { useMemo } from 'react';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+﻿import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';

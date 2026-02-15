@@ -1,9 +1,16 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
 import { AdminConsoleApi } from '@/sdk';
-import type { SupplierApplicationFilters, SupplierApplicationResponse } from '@/types/admin';
+import type {
+    SupplierApplicationFilters,
+    SupplierApplicationResponse,
+} from '@/types/admin';
 
 export function useAdminSupplierApplications(
     params: SupplierApplicationFilters = {},

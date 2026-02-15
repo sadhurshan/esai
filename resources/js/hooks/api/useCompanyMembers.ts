@@ -7,7 +7,7 @@ import {
     type UseQueryResult,
 } from '@tanstack/react-query';
 
-import { api, type ApiError, buildQuery } from '@/lib/api';
+import { api, buildQuery, type ApiError } from '@/lib/api';
 import { toCursorMeta } from '@/lib/pagination';
 import { queryKeys } from '@/lib/queryKeys';
 import type {
@@ -81,20 +81,34 @@ function mapMember(payload: ApiCompanyMember): CompanyMember {
     };
 }
 
-function mapRoleConflict(conflictPayload: ApiCompanyMember['role_conflict'], fallbackRole: CompanyUserRole): CompanyMemberRoleConflict {
-    const rolesSource = Array.isArray(conflictPayload?.distinct_roles) ? conflictPayload.distinct_roles : null;
-    const distinctRoles = rolesSource?.filter((role): role is CompanyUserRole => Boolean(role)) ?? [];
+function mapRoleConflict(
+    conflictPayload: ApiCompanyMember['role_conflict'],
+    fallbackRole: CompanyUserRole,
+): CompanyMemberRoleConflict {
+    const rolesSource = Array.isArray(conflictPayload?.distinct_roles)
+        ? conflictPayload.distinct_roles
+        : null;
+    const distinctRoles =
+        rolesSource?.filter((role): role is CompanyUserRole => Boolean(role)) ??
+        [];
 
     return {
         hasConflict: Boolean(conflictPayload?.has_conflict),
-        buyerSupplierConflict: Boolean(conflictPayload?.buyer_supplier_conflict),
+        buyerSupplierConflict: Boolean(
+            conflictPayload?.buyer_supplier_conflict,
+        ),
         totalCompanies: conflictPayload?.total_companies ?? 1,
-        distinctRoles: distinctRoles.length > 0 ? distinctRoles : [fallbackRole],
+        distinctRoles:
+            distinctRoles.length > 0 ? distinctRoles : [fallbackRole],
     };
 }
 
-function normalizeCollection(response: CompanyMemberCollectionResponse): CompanyMemberCollection {
-    const items = Array.isArray(response.items) ? response.items.map(mapMember) : [];
+function normalizeCollection(
+    response: CompanyMemberCollectionResponse,
+): CompanyMemberCollection {
+    const items = Array.isArray(response.items)
+        ? response.items.map(mapMember)
+        : [];
     const meta = toCursorMeta(response.meta ?? undefined);
 
     return {
@@ -103,7 +117,9 @@ function normalizeCollection(response: CompanyMemberCollectionResponse): Company
     };
 }
 
-export function useCompanyMembers(params?: CompanyMemberListParams): UseQueryResult<CompanyMemberCollection, ApiError> {
+export function useCompanyMembers(
+    params?: CompanyMemberListParams,
+): UseQueryResult<CompanyMemberCollection, ApiError> {
     const queryParams = {
         cursor: params?.cursor,
         per_page: params?.perPage,
@@ -113,28 +129,43 @@ export function useCompanyMembers(params?: CompanyMemberListParams): UseQueryRes
         queryKey: queryKeys.companyMembers.list(queryParams),
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            const response = (await api.get<CompanyMemberCollectionResponse>(`/company-members${query}`)) as unknown as CompanyMemberCollectionResponse;
+            const response = (await api.get<CompanyMemberCollectionResponse>(
+                `/company-members${query}`,
+            )) as unknown as CompanyMemberCollectionResponse;
             return normalizeCollection(response);
         },
         placeholderData: keepPreviousData,
     });
 }
 
-export function useUpdateCompanyMember(): UseMutationResult<CompanyMember, ApiError, UpdateCompanyMemberPayload> {
+export function useUpdateCompanyMember(): UseMutationResult<
+    CompanyMember,
+    ApiError,
+    UpdateCompanyMemberPayload
+> {
     const queryClient = useQueryClient();
 
     return useMutation<CompanyMember, ApiError, UpdateCompanyMemberPayload>({
         mutationFn: async ({ memberId, role }) => {
-            const response = (await api.patch<ApiCompanyMember>(`/company-members/${memberId}`, { role })) as unknown as ApiCompanyMember;
+            const response = (await api.patch<ApiCompanyMember>(
+                `/company-members/${memberId}`,
+                { role },
+            )) as unknown as ApiCompanyMember;
             return mapMember(response);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['company-members', 'list'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['company-members', 'list'],
+            });
         },
     });
 }
 
-export function useRemoveCompanyMember(): UseMutationResult<void, ApiError, number> {
+export function useRemoveCompanyMember(): UseMutationResult<
+    void,
+    ApiError,
+    number
+> {
     const queryClient = useQueryClient();
 
     return useMutation<void, ApiError, number>({
@@ -142,7 +173,9 @@ export function useRemoveCompanyMember(): UseMutationResult<void, ApiError, numb
             await api.delete(`/company-members/${memberId}`);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['company-members', 'list'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['company-members', 'list'],
+            });
         },
     });
 }

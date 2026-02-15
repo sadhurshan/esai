@@ -37,23 +37,34 @@ interface ExtendDeadlineResponse {
 export function useExtendRfqDeadline() {
     const queryClient = useQueryClient();
 
-    return useMutation<ExtendDeadlineResponse, ApiError, ExtendDeadlinePayload>({
-        mutationFn: async ({ rfqId, newDueAt, reason, notifySuppliers }) => {
-            const response = await api.post<ExtendDeadlineResponse>(
-                `/rfqs/${rfqId}/extend-deadline`,
-                {
-                    new_due_at: newDueAt.toISOString(),
-                    reason,
-                    notify_suppliers: notifySuppliers,
-                },
-            );
+    return useMutation<ExtendDeadlineResponse, ApiError, ExtendDeadlinePayload>(
+        {
+            mutationFn: async ({
+                rfqId,
+                newDueAt,
+                reason,
+                notifySuppliers,
+            }) => {
+                const response = await api.post<ExtendDeadlineResponse>(
+                    `/rfqs/${rfqId}/extend-deadline`,
+                    {
+                        new_due_at: newDueAt.toISOString(),
+                        reason,
+                        notify_suppliers: notifySuppliers,
+                    },
+                );
 
-            return response.data;
+                return response.data;
+            },
+            onSuccess: (_data, variables) => {
+                const { rfqId } = variables;
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.rfqs.detail(rfqId),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: queryKeys.rfqs.timeline(rfqId),
+                });
+            },
         },
-        onSuccess: (_data, variables) => {
-            const { rfqId } = variables;
-            queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.timeline(rfqId) });
-        },
-    });
+    );
 }

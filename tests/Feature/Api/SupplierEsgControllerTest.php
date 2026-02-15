@@ -200,6 +200,7 @@ it('generates a scope-3 support pack and stores the export as a document', funct
         'supplier_id' => $supplier->id,
         'category' => 'policy',
         'name' => 'Sustainability charter',
+        'created_at' => $periodStart->copy()->addDays(5),
     ]);
 
     SupplierEsgRecord::factory()->create([
@@ -208,6 +209,7 @@ it('generates a scope-3 support pack and stores the export as a document', funct
         'category' => 'emission',
         'name' => 'Scope-3 data',
         'data_json' => ['co2e' => 42.5],
+        'created_at' => $periodStart->copy()->addDays(10),
     ]);
 
     $response = $this->postJson("/api/suppliers/{$supplier->id}/esg/export", [
@@ -217,16 +219,24 @@ it('generates a scope-3 support pack and stores the export as a document', funct
 
     $response->assertOk()
         ->assertJsonPath('status', 'success')
-        ->assertJsonPath('data.kind', 'esg_pack')
-        ->assertJsonPath('data.documentable_id', $supplier->id);
+        ->assertJsonPath('data.pdf.kind', 'esg_pack')
+        ->assertJsonPath('data.pdf.documentable_id', $supplier->id)
+        ->assertJsonPath('data.csv.kind', 'esg_pack')
+        ->assertJsonPath('data.csv.documentable_id', $supplier->id);
 
-    $documentId = $response->json('data.id');
+    $pdfId = $response->json('data.pdf.id');
+    $csvId = $response->json('data.csv.id');
 
-    $document = Document::find($documentId);
+    $pdfDocument = Document::find($pdfId);
+    $csvDocument = Document::find($csvId);
 
-    expect($document)->not->toBeNull()
-        ->and($document->meta['records_included'] ?? null)->toBeGreaterThanOrEqual(2)
-        ->and(Storage::disk('s3')->exists($document->path))->toBeTrue();
+    expect($pdfDocument)->not->toBeNull()
+        ->and($pdfDocument->meta['records_included'] ?? null)->toBeGreaterThanOrEqual(2)
+        ->and(Storage::disk('s3')->exists($pdfDocument->path))->toBeTrue();
+
+    expect($csvDocument)->not->toBeNull()
+        ->and($csvDocument->meta['records_included'] ?? null)->toBeGreaterThanOrEqual(2)
+        ->and(Storage::disk('s3')->exists($csvDocument->path))->toBeTrue();
 });
 
 it('blocks ESG endpoints when plan does not include risk and ESG features', function (): void {

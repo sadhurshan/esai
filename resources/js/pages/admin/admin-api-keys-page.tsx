@@ -6,10 +6,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ApiKeyCard } from '@/components/admin/api-key-card';
-import Heading from '@/components/heading';
 import { EmptyState } from '@/components/empty-state';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import Heading from '@/components/heading';
+import { errorToast, successToast } from '@/components/toasts';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
     Dialog,
     DialogContent,
@@ -20,9 +23,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { successToast, errorToast } from '@/components/toasts';
 import { useApiKeys } from '@/hooks/api/admin/use-api-keys';
 import { useCreateApiKey } from '@/hooks/api/admin/use-create-api-key';
 import { useRevokeApiKey } from '@/hooks/api/admin/use-revoke-api-key';
@@ -49,7 +49,8 @@ const DEFAULT_SCOPE_OPTIONS: ScopeOption[] = [
     {
         value: 'webhooks.manage',
         label: 'Webhook management',
-        description: 'Create and update webhook subscriptions programmatically.',
+        description:
+            'Create and update webhook subscriptions programmatically.',
     },
     {
         value: 'analytics.read',
@@ -79,8 +80,12 @@ export function AdminApiKeysPage() {
     const revokeApiKey = useRevokeApiKey();
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [tokenReveal, setTokenReveal] = useState<ApiKeyIssueResult | null>(null);
-    const [revokeTarget, setRevokeTarget] = useState<ApiKeyListItem | null>(null);
+    const [tokenReveal, setTokenReveal] = useState<ApiKeyIssueResult | null>(
+        null,
+    );
+    const [revokeTarget, setRevokeTarget] = useState<ApiKeyListItem | null>(
+        null,
+    );
 
     const form = useForm<CreateKeyFormValues>({
         resolver: zodResolver(createKeySchema),
@@ -112,7 +117,9 @@ export function AdminApiKeysPage() {
     }, [apiKeys]);
 
     const handleCreate = form.handleSubmit(async (values) => {
-        const expiresAt = values.expiresAt ? new Date(values.expiresAt) : undefined;
+        const expiresAt = values.expiresAt
+            ? new Date(values.expiresAt)
+            : undefined;
         const result = await createApiKey.mutateAsync({
             name: values.name.trim(),
             scopes: values.scopes,
@@ -135,14 +142,20 @@ export function AdminApiKeysPage() {
 
     const handleCopyToken = async (token: string) => {
         try {
-            if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+            if (
+                typeof navigator !== 'undefined' &&
+                navigator.clipboard?.writeText
+            ) {
                 await navigator.clipboard.writeText(token);
                 successToast('Token copied');
             } else {
                 throw new Error('Clipboard unavailable');
             }
         } catch {
-            errorToast('Clipboard unavailable', `Copy this token manually: ${token}`);
+            errorToast(
+                'Clipboard unavailable',
+                `Copy this token manually: ${token}`,
+            );
         }
     };
 
@@ -163,7 +176,10 @@ export function AdminApiKeysPage() {
             {isLoading ? (
                 <div className="grid gap-4 md:grid-cols-2">
                     {Array.from({ length: 4 }).map((_, index) => (
-                        <div key={index} className="h-56 animate-pulse rounded-xl border border-dashed border-muted" />
+                        <div
+                            key={index}
+                            className="h-56 animate-pulse rounded-xl border border-dashed border-muted"
+                        />
                     ))}
                 </div>
             ) : apiKeys.length === 0 ? (
@@ -177,7 +193,11 @@ export function AdminApiKeysPage() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                     {apiKeys.map((apiKey) => (
-                        <ApiKeyCard key={apiKey.id} apiKey={apiKey} onRevoke={setRevokeTarget} />
+                        <ApiKeyCard
+                            key={apiKey.id}
+                            apiKey={apiKey}
+                            onRevoke={setRevokeTarget}
+                        />
                     ))}
                 </div>
             )}
@@ -206,9 +226,15 @@ export function AdminApiKeysPage() {
 
             <ConfirmDialog
                 open={Boolean(revokeTarget)}
-                onOpenChange={(open) => setRevokeTarget(open ? revokeTarget : null)}
+                onOpenChange={(open) =>
+                    setRevokeTarget(open ? revokeTarget : null)
+                }
                 title="Revoke API key?"
-                description={revokeTarget ? `This will permanently revoke ${revokeTarget.name}. Applications using it will fail immediately.` : ''}
+                description={
+                    revokeTarget
+                        ? `This will permanently revoke ${revokeTarget.name}. Applications using it will fail immediately.`
+                        : ''
+                }
                 confirmLabel="Revoke"
                 isProcessing={revokeApiKey.isPending}
                 onConfirm={handleRevoke}
@@ -226,7 +252,14 @@ interface CreateDialogProps {
     scopeOptions: ScopeOption[];
 }
 
-function CreateApiKeyDialog({ open, onOpenChange, onSubmit, isSubmitting, form, scopeOptions }: CreateDialogProps) {
+function CreateApiKeyDialog({
+    open,
+    onOpenChange,
+    onSubmit,
+    isSubmitting,
+    form,
+    scopeOptions,
+}: CreateDialogProps) {
     const selectedScopes = form.watch('scopes') ?? [];
 
     const toggleScope = (scope: string, checked: boolean) => {
@@ -245,7 +278,8 @@ function CreateApiKeyDialog({ open, onOpenChange, onSubmit, isSubmitting, form, 
                 <DialogHeader>
                     <DialogTitle>Issue API key</DialogTitle>
                     <DialogDescription>
-                        Keys are scoped credentials. You can set an optional expiry to rotate automatically.
+                        Keys are scoped credentials. You can set an optional
+                        expiry to rotate automatically.
                     </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-6" onSubmit={onSubmit}>
@@ -258,7 +292,9 @@ function CreateApiKeyDialog({ open, onOpenChange, onSubmit, isSubmitting, form, 
                             aria-invalid={Boolean(form.formState.errors.name)}
                         />
                         {form.formState.errors.name ? (
-                            <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+                            <p className="text-sm text-destructive">
+                                {form.formState.errors.name.message}
+                            </p>
                         ) : null}
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -266,41 +302,65 @@ function CreateApiKeyDialog({ open, onOpenChange, onSubmit, isSubmitting, form, 
                             <Label>Scopes</Label>
                             <div className="space-y-3">
                                 {scopeOptions.map((scope) => {
-                                    const checked = selectedScopes?.includes(scope.value) ?? false;
+                                    const checked =
+                                        selectedScopes?.includes(scope.value) ??
+                                        false;
                                     return (
-                                        <label key={scope.value} className="flex items-start gap-3">
+                                        <label
+                                            key={scope.value}
+                                            className="flex items-start gap-3"
+                                        >
                                             <Checkbox
                                                 checked={checked}
-                                                onCheckedChange={(state) => toggleScope(scope.value, Boolean(state))}
+                                                onCheckedChange={(state) =>
+                                                    toggleScope(
+                                                        scope.value,
+                                                        Boolean(state),
+                                                    )
+                                                }
                                             />
                                             <span>
-                                                <span className="block text-sm font-medium text-foreground">{scope.label}</span>
-                                                <span className="text-xs text-muted-foreground">{scope.description}</span>
+                                                <span className="block text-sm font-medium text-foreground">
+                                                    {scope.label}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {scope.description}
+                                                </span>
                                             </span>
                                         </label>
                                     );
                                 })}
                             </div>
                             {form.formState.errors.scopes ? (
-                                <p className="text-sm text-destructive">{form.formState.errors.scopes.message}</p>
+                                <p className="text-sm text-destructive">
+                                    {form.formState.errors.scopes.message}
+                                </p>
                             ) : null}
                         </div>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="api-key-expiry">Expires at</Label>
+                                <Label htmlFor="api-key-expiry">
+                                    Expires at
+                                </Label>
                                 <Input
                                     id="api-key-expiry"
                                     type="datetime-local"
                                     {...form.register('expiresAt')}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Leave blank for a non-expiring key. Use UTC timestamps.
+                                    Leave blank for a non-expiring key. Use UTC
+                                    timestamps.
                                 </p>
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            disabled={isSubmitting}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
@@ -321,12 +381,20 @@ interface TokenDialogProps {
     onCopy: (token: string) => void;
 }
 
-function TokenRevealDialog({ token, apiKey, open, onClose, onCopy }: TokenDialogProps) {
+function TokenRevealDialog({
+    token,
+    apiKey,
+    open,
+    onClose,
+    onCopy,
+}: TokenDialogProps) {
     if (!token || !apiKey) {
         return null;
     }
 
-    const createdAt = apiKey.createdAt ? format(new Date(apiKey.createdAt), 'PPpp') : null;
+    const createdAt = apiKey.createdAt
+        ? format(new Date(apiKey.createdAt), 'PPpp')
+        : null;
 
     return (
         <Dialog open={open} onOpenChange={(next) => (!next ? onClose() : null)}>
@@ -334,12 +402,15 @@ function TokenRevealDialog({ token, apiKey, open, onClose, onCopy }: TokenDialog
                 <DialogHeader>
                     <DialogTitle>Copy this token now</DialogTitle>
                     <DialogDescription>
-                        This value is only shown once. Store it securely and treat it like a password.
+                        This value is only shown once. Store it securely and
+                        treat it like a password.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                     <div className="rounded-lg border border-dashed border-muted bg-muted/40 p-4">
-                        <code className="block break-all font-mono text-sm text-foreground">{token}</code>
+                        <code className="block font-mono text-sm break-all text-foreground">
+                            {token}
+                        </code>
                     </div>
                     <div className="space-y-1 text-sm text-muted-foreground">
                         <p>Key name: {apiKey.name}</p>

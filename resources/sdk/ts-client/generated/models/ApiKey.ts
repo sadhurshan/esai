@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ApiKey
  */
 export interface ApiKey {
     /**
-     * 
+     *
      * @type {number}
      * @memberof ApiKey
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ApiKey
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof ApiKey
      */
     ownerUserId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ApiKey
      */
@@ -50,37 +49,37 @@ export interface ApiKey {
      */
     tokenPrefix: string;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof ApiKey
      */
     scopes?: Array<string>;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof ApiKey
      */
     active?: boolean;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ApiKey
      */
     lastUsedAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ApiKey
      */
     expiresAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ApiKey
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof ApiKey
      */
@@ -92,9 +91,11 @@ export interface ApiKey {
  */
 export function instanceOfApiKey(value: object): value is ApiKey {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('tokenPrefix' in value) || value['tokenPrefix'] === undefined) return false;
+    if (!('tokenPrefix' in value) || value['tokenPrefix'] === undefined)
+        return false;
     return true;
 }
 
@@ -102,23 +103,38 @@ export function ApiKeyFromJSON(json: any): ApiKey {
     return ApiKeyFromJSONTyped(json, false);
 }
 
-export function ApiKeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiKey {
+export function ApiKeyFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ApiKey {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'ownerUserId': json['owner_user_id'] == null ? undefined : json['owner_user_id'],
-        'name': json['name'],
-        'tokenPrefix': json['token_prefix'],
-        'scopes': json['scopes'] == null ? undefined : json['scopes'],
-        'active': json['active'] == null ? undefined : json['active'],
-        'lastUsedAt': json['last_used_at'] == null ? undefined : (new Date(json['last_used_at'])),
-        'expiresAt': json['expires_at'] == null ? undefined : (new Date(json['expires_at'])),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        ownerUserId:
+            json['owner_user_id'] == null ? undefined : json['owner_user_id'],
+        name: json['name'],
+        tokenPrefix: json['token_prefix'],
+        scopes: json['scopes'] == null ? undefined : json['scopes'],
+        active: json['active'] == null ? undefined : json['active'],
+        lastUsedAt:
+            json['last_used_at'] == null
+                ? undefined
+                : new Date(json['last_used_at']),
+        expiresAt:
+            json['expires_at'] == null
+                ? undefined
+                : new Date(json['expires_at']),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -126,24 +142,37 @@ export function ApiKeyToJSON(json: any): ApiKey {
     return ApiKeyToJSONTyped(json, false);
 }
 
-export function ApiKeyToJSONTyped(value?: ApiKey | null, ignoreDiscriminator: boolean = false): any {
+export function ApiKeyToJSONTyped(
+    value?: ApiKey | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'owner_user_id': value['ownerUserId'],
-        'name': value['name'],
-        'token_prefix': value['tokenPrefix'],
-        'scopes': value['scopes'],
-        'active': value['active'],
-        'last_used_at': value['lastUsedAt'] == null ? value['lastUsedAt'] : value['lastUsedAt'].toISOString(),
-        'expires_at': value['expiresAt'] == null ? value['expiresAt'] : value['expiresAt'].toISOString(),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        owner_user_id: value['ownerUserId'],
+        name: value['name'],
+        token_prefix: value['tokenPrefix'],
+        scopes: value['scopes'],
+        active: value['active'],
+        last_used_at:
+            value['lastUsedAt'] == null
+                ? value['lastUsedAt']
+                : value['lastUsedAt'].toISOString(),
+        expires_at:
+            value['expiresAt'] == null
+                ? value['expiresAt']
+                : value['expiresAt'].toISOString(),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

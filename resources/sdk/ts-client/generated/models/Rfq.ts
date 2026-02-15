@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,159 +12,147 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { QuoteSummary } from './QuoteSummary';
-import {
-    QuoteSummaryFromJSON,
-    QuoteSummaryFromJSONTyped,
-    QuoteSummaryToJSON,
-    QuoteSummaryToJSONTyped,
-} from './QuoteSummary';
+import { QuoteSummaryFromJSON, QuoteSummaryToJSON } from './QuoteSummary';
 import type { RfqItem } from './RfqItem';
-import {
-    RfqItemFromJSON,
-    RfqItemFromJSONTyped,
-    RfqItemToJSON,
-    RfqItemToJSONTyped,
-} from './RfqItem';
+import { RfqItemFromJSON, RfqItemToJSON } from './RfqItem';
 
 /**
- * 
+ *
  * @export
  * @interface Rfq
  */
 export interface Rfq {
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     number: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     itemName: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     type: RfqTypeEnum;
     /**
-     * 
+     *
      * @type {number}
      * @memberof Rfq
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     material: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     method: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     tolerance?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     finish?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     clientCompany?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     status: RfqStatusEnum;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Rfq
      */
     deadlineAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Rfq
      */
     sentAt?: Date;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Rfq
      */
     isOpenBidding: boolean;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     notes?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Rfq
      */
     cadPath?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Rfq
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof Rfq
      */
     updatedAt?: Date;
     /**
-     * 
+     *
      * @type {Array<RfqItem>}
      * @memberof Rfq
      */
     items?: Array<RfqItem>;
     /**
-     * 
+     *
      * @type {Array<QuoteSummary>}
      * @memberof Rfq
      */
     quotes?: Array<QuoteSummary>;
 }
 
-
 /**
  * @export
  */
 export const RfqTypeEnum = {
     ReadyMade: 'ready_made',
-    Manufacture: 'manufacture'
+    Manufacture: 'manufacture',
 } as const;
-export type RfqTypeEnum = typeof RfqTypeEnum[keyof typeof RfqTypeEnum];
+export type RfqTypeEnum = (typeof RfqTypeEnum)[keyof typeof RfqTypeEnum];
 
 /**
  * @export
@@ -174,10 +162,9 @@ export const RfqStatusEnum = {
     Open: 'open',
     Closed: 'closed',
     Awarded: 'awarded',
-    Cancelled: 'cancelled'
+    Cancelled: 'cancelled',
 } as const;
-export type RfqStatusEnum = typeof RfqStatusEnum[keyof typeof RfqStatusEnum];
-
+export type RfqStatusEnum = (typeof RfqStatusEnum)[keyof typeof RfqStatusEnum];
 
 /**
  * Check if a given object implements the Rfq interface.
@@ -191,7 +178,8 @@ export function instanceOfRfq(value: object): value is Rfq {
     if (!('material' in value) || value['material'] === undefined) return false;
     if (!('method' in value) || value['method'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
-    if (!('isOpenBidding' in value) || value['isOpenBidding'] === undefined) return false;
+    if (!('isOpenBidding' in value) || value['isOpenBidding'] === undefined)
+        return false;
     return true;
 }
 
@@ -204,27 +192,42 @@ export function RfqFromJSONTyped(json: any, ignoreDiscriminator: boolean): Rfq {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'number': json['number'],
-        'itemName': json['item_name'],
-        'type': json['type'],
-        'quantity': json['quantity'],
-        'material': json['material'],
-        'method': json['method'],
-        'tolerance': json['tolerance'] == null ? undefined : json['tolerance'],
-        'finish': json['finish'] == null ? undefined : json['finish'],
-        'clientCompany': json['client_company'] == null ? undefined : json['client_company'],
-        'status': json['status'],
-        'deadlineAt': json['deadline_at'] == null ? undefined : (new Date(json['deadline_at'])),
-        'sentAt': json['sent_at'] == null ? undefined : (new Date(json['sent_at'])),
-        'isOpenBidding': json['is_open_bidding'],
-        'notes': json['notes'] == null ? undefined : json['notes'],
-        'cadPath': json['cad_path'] == null ? undefined : json['cad_path'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(RfqItemFromJSON)),
-        'quotes': json['quotes'] == null ? undefined : ((json['quotes'] as Array<any>).map(QuoteSummaryFromJSON)),
+        id: json['id'],
+        number: json['number'],
+        itemName: json['item_name'],
+        type: json['type'],
+        quantity: json['quantity'],
+        material: json['material'],
+        method: json['method'],
+        tolerance: json['tolerance'] == null ? undefined : json['tolerance'],
+        finish: json['finish'] == null ? undefined : json['finish'],
+        clientCompany:
+            json['client_company'] == null ? undefined : json['client_company'],
+        status: json['status'],
+        deadlineAt:
+            json['deadline_at'] == null
+                ? undefined
+                : new Date(json['deadline_at']),
+        sentAt: json['sent_at'] == null ? undefined : new Date(json['sent_at']),
+        isOpenBidding: json['is_open_bidding'],
+        notes: json['notes'] == null ? undefined : json['notes'],
+        cadPath: json['cad_path'] == null ? undefined : json['cad_path'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(RfqItemFromJSON),
+        quotes:
+            json['quotes'] == null
+                ? undefined
+                : (json['quotes'] as Array<any>).map(QuoteSummaryFromJSON),
     };
 }
 
@@ -232,33 +235,52 @@ export function RfqToJSON(json: any): Rfq {
     return RfqToJSONTyped(json, false);
 }
 
-export function RfqToJSONTyped(value?: Rfq | null, ignoreDiscriminator: boolean = false): any {
+export function RfqToJSONTyped(
+    value?: Rfq | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'number': value['number'],
-        'item_name': value['itemName'],
-        'type': value['type'],
-        'quantity': value['quantity'],
-        'material': value['material'],
-        'method': value['method'],
-        'tolerance': value['tolerance'],
-        'finish': value['finish'],
-        'client_company': value['clientCompany'],
-        'status': value['status'],
-        'deadline_at': value['deadlineAt'] == null ? value['deadlineAt'] : value['deadlineAt'].toISOString(),
-        'sent_at': value['sentAt'] == null ? value['sentAt'] : value['sentAt'].toISOString(),
-        'is_open_bidding': value['isOpenBidding'],
-        'notes': value['notes'],
-        'cad_path': value['cadPath'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(RfqItemToJSON)),
-        'quotes': value['quotes'] == null ? undefined : ((value['quotes'] as Array<any>).map(QuoteSummaryToJSON)),
+        id: value['id'],
+        number: value['number'],
+        item_name: value['itemName'],
+        type: value['type'],
+        quantity: value['quantity'],
+        material: value['material'],
+        method: value['method'],
+        tolerance: value['tolerance'],
+        finish: value['finish'],
+        client_company: value['clientCompany'],
+        status: value['status'],
+        deadline_at:
+            value['deadlineAt'] == null
+                ? value['deadlineAt']
+                : value['deadlineAt'].toISOString(),
+        sent_at:
+            value['sentAt'] == null
+                ? value['sentAt']
+                : value['sentAt'].toISOString(),
+        is_open_bidding: value['isOpenBidding'],
+        notes: value['notes'],
+        cad_path: value['cadPath'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(RfqItemToJSON),
+        quotes:
+            value['quotes'] == null
+                ? undefined
+                : (value['quotes'] as Array<any>).map(QuoteSummaryToJSON),
     };
 }
-

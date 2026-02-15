@@ -38,7 +38,9 @@ export interface DownloadJobResponseMeta {
     prev_cursor?: string | null;
 }
 
-export const mapDownloadJob = (payload: DownloadJobResponseItem): DownloadJobSummary => ({
+export const mapDownloadJob = (
+    payload: DownloadJobResponseItem,
+): DownloadJobSummary => ({
     id: payload.id,
     documentType: payload.document_type,
     documentId: payload.document_id,
@@ -57,13 +59,17 @@ export const mapDownloadJob = (payload: DownloadJobResponseItem): DownloadJobSum
     downloadUrl: payload.download_url ?? null,
 });
 
-export const mapDownloadMeta = (meta?: DownloadJobResponseMeta | null): DownloadJobListMeta => ({
+export const mapDownloadMeta = (
+    meta?: DownloadJobResponseMeta | null,
+): DownloadJobListMeta => ({
     perPage: meta?.per_page,
     nextCursor: meta?.next_cursor ?? null,
     prevCursor: meta?.prev_cursor ?? null,
 });
 
-const normalizeUser = (user?: DownloadJobResponseUser | null): DownloadJobUser | null => {
+const normalizeUser = (
+    user?: DownloadJobResponseUser | null,
+): DownloadJobUser | null => {
     if (!user) {
         return null;
     }

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,116 +12,113 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PurchaseOrderLatestDeliverySentBy } from './PurchaseOrderLatestDeliverySentBy';
 import {
     PurchaseOrderLatestDeliverySentByFromJSON,
-    PurchaseOrderLatestDeliverySentByFromJSONTyped,
     PurchaseOrderLatestDeliverySentByToJSON,
-    PurchaseOrderLatestDeliverySentByToJSONTyped,
 } from './PurchaseOrderLatestDeliverySentBy';
 
 /**
- * 
+ *
  * @export
  * @interface PurchaseOrderDelivery
  */
 export interface PurchaseOrderDelivery {
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderDelivery
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof PurchaseOrderDelivery
      */
     purchaseOrderId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderDelivery
      */
     channel: PurchaseOrderDeliveryChannelEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderDelivery
      */
     status: PurchaseOrderDeliveryStatusEnum;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof PurchaseOrderDelivery
      */
     recipientsTo?: Array<string>;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof PurchaseOrderDelivery
      */
     recipientsCc?: Array<string>;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderDelivery
      */
     message?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderDelivery
      */
     deliveryReference?: string;
     /**
-     * 
+     *
      * @type {object}
      * @memberof PurchaseOrderDelivery
      */
     responseMeta?: object;
     /**
-     * 
+     *
      * @type {string}
      * @memberof PurchaseOrderDelivery
      */
     errorReason?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderDelivery
      */
     sentAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderDelivery
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof PurchaseOrderDelivery
      */
     updatedAt?: Date;
     /**
-     * 
+     *
      * @type {PurchaseOrderLatestDeliverySentBy}
      * @memberof PurchaseOrderDelivery
      */
     sentBy?: PurchaseOrderLatestDeliverySentBy;
 }
 
-
 /**
  * @export
  */
 export const PurchaseOrderDeliveryChannelEnum = {
     Email: 'email',
-    Webhook: 'webhook'
+    Webhook: 'webhook',
 } as const;
-export type PurchaseOrderDeliveryChannelEnum = typeof PurchaseOrderDeliveryChannelEnum[keyof typeof PurchaseOrderDeliveryChannelEnum];
+export type PurchaseOrderDeliveryChannelEnum =
+    (typeof PurchaseOrderDeliveryChannelEnum)[keyof typeof PurchaseOrderDeliveryChannelEnum];
 
 /**
  * @export
@@ -129,46 +126,69 @@ export type PurchaseOrderDeliveryChannelEnum = typeof PurchaseOrderDeliveryChann
 export const PurchaseOrderDeliveryStatusEnum = {
     Queued: 'queued',
     Sent: 'sent',
-    Failed: 'failed'
+    Failed: 'failed',
 } as const;
-export type PurchaseOrderDeliveryStatusEnum = typeof PurchaseOrderDeliveryStatusEnum[keyof typeof PurchaseOrderDeliveryStatusEnum];
-
+export type PurchaseOrderDeliveryStatusEnum =
+    (typeof PurchaseOrderDeliveryStatusEnum)[keyof typeof PurchaseOrderDeliveryStatusEnum];
 
 /**
  * Check if a given object implements the PurchaseOrderDelivery interface.
  */
-export function instanceOfPurchaseOrderDelivery(value: object): value is PurchaseOrderDelivery {
+export function instanceOfPurchaseOrderDelivery(
+    value: object,
+): value is PurchaseOrderDelivery {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined) return false;
+    if (!('purchaseOrderId' in value) || value['purchaseOrderId'] === undefined)
+        return false;
     if (!('channel' in value) || value['channel'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
-export function PurchaseOrderDeliveryFromJSON(json: any): PurchaseOrderDelivery {
+export function PurchaseOrderDeliveryFromJSON(
+    json: any,
+): PurchaseOrderDelivery {
     return PurchaseOrderDeliveryFromJSONTyped(json, false);
 }
 
-export function PurchaseOrderDeliveryFromJSONTyped(json: any, ignoreDiscriminator: boolean): PurchaseOrderDelivery {
+export function PurchaseOrderDeliveryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): PurchaseOrderDelivery {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'purchaseOrderId': json['purchase_order_id'],
-        'channel': json['channel'],
-        'status': json['status'],
-        'recipientsTo': json['recipients_to'] == null ? undefined : json['recipients_to'],
-        'recipientsCc': json['recipients_cc'] == null ? undefined : json['recipients_cc'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'deliveryReference': json['delivery_reference'] == null ? undefined : json['delivery_reference'],
-        'responseMeta': json['response_meta'] == null ? undefined : json['response_meta'],
-        'errorReason': json['error_reason'] == null ? undefined : json['error_reason'],
-        'sentAt': json['sent_at'] == null ? undefined : (new Date(json['sent_at'])),
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
-        'sentBy': json['sent_by'] == null ? undefined : PurchaseOrderLatestDeliverySentByFromJSON(json['sent_by']),
+        id: json['id'],
+        purchaseOrderId: json['purchase_order_id'],
+        channel: json['channel'],
+        status: json['status'],
+        recipientsTo:
+            json['recipients_to'] == null ? undefined : json['recipients_to'],
+        recipientsCc:
+            json['recipients_cc'] == null ? undefined : json['recipients_cc'],
+        message: json['message'] == null ? undefined : json['message'],
+        deliveryReference:
+            json['delivery_reference'] == null
+                ? undefined
+                : json['delivery_reference'],
+        responseMeta:
+            json['response_meta'] == null ? undefined : json['response_meta'],
+        errorReason:
+            json['error_reason'] == null ? undefined : json['error_reason'],
+        sentAt: json['sent_at'] == null ? undefined : new Date(json['sent_at']),
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
+        sentBy:
+            json['sent_by'] == null
+                ? undefined
+                : PurchaseOrderLatestDeliverySentByFromJSON(json['sent_by']),
     };
 }
 
@@ -176,27 +196,37 @@ export function PurchaseOrderDeliveryToJSON(json: any): PurchaseOrderDelivery {
     return PurchaseOrderDeliveryToJSONTyped(json, false);
 }
 
-export function PurchaseOrderDeliveryToJSONTyped(value?: PurchaseOrderDelivery | null, ignoreDiscriminator: boolean = false): any {
+export function PurchaseOrderDeliveryToJSONTyped(
+    value?: PurchaseOrderDelivery | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'channel': value['channel'],
-        'status': value['status'],
-        'recipients_to': value['recipientsTo'],
-        'recipients_cc': value['recipientsCc'],
-        'message': value['message'],
-        'delivery_reference': value['deliveryReference'],
-        'response_meta': value['responseMeta'],
-        'error_reason': value['errorReason'],
-        'sent_at': value['sentAt'] == null ? value['sentAt'] : value['sentAt'].toISOString(),
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
-        'sent_by': PurchaseOrderLatestDeliverySentByToJSON(value['sentBy']),
+        id: value['id'],
+        purchase_order_id: value['purchaseOrderId'],
+        channel: value['channel'],
+        status: value['status'],
+        recipients_to: value['recipientsTo'],
+        recipients_cc: value['recipientsCc'],
+        message: value['message'],
+        delivery_reference: value['deliveryReference'],
+        response_meta: value['responseMeta'],
+        error_reason: value['errorReason'],
+        sent_at:
+            value['sentAt'] == null
+                ? value['sentAt']
+                : value['sentAt'].toISOString(),
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
+        sent_by: PurchaseOrderLatestDeliverySentByToJSON(value['sentBy']),
     };
 }
-

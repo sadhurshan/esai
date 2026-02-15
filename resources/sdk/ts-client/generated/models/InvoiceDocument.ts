@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InvoiceDocument
  */
 export interface InvoiceDocument {
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceDocument
      */
     id?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceDocument
      */
     filename?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceDocument
      */
     mime?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceDocument
      */
     sizeBytes?: number;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof InvoiceDocument
      */
@@ -54,7 +53,9 @@ export interface InvoiceDocument {
 /**
  * Check if a given object implements the InvoiceDocument interface.
  */
-export function instanceOfInvoiceDocument(value: object): value is InvoiceDocument {
+export function instanceOfInvoiceDocument(
+    value: object,
+): value is InvoiceDocument {
     return true;
 }
 
@@ -62,17 +63,22 @@ export function InvoiceDocumentFromJSON(json: any): InvoiceDocument {
     return InvoiceDocumentFromJSONTyped(json, false);
 }
 
-export function InvoiceDocumentFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceDocument {
+export function InvoiceDocumentFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceDocument {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'] == null ? undefined : json['id'],
-        'filename': json['filename'] == null ? undefined : json['filename'],
-        'mime': json['mime'] == null ? undefined : json['mime'],
-        'sizeBytes': json['size_bytes'] == null ? undefined : json['size_bytes'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
+        id: json['id'] == null ? undefined : json['id'],
+        filename: json['filename'] == null ? undefined : json['filename'],
+        mime: json['mime'] == null ? undefined : json['mime'],
+        sizeBytes: json['size_bytes'] == null ? undefined : json['size_bytes'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
     };
 }
 
@@ -80,18 +86,22 @@ export function InvoiceDocumentToJSON(json: any): InvoiceDocument {
     return InvoiceDocumentToJSONTyped(json, false);
 }
 
-export function InvoiceDocumentToJSONTyped(value?: InvoiceDocument | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceDocumentToJSONTyped(
+    value?: InvoiceDocument | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'filename': value['filename'],
-        'mime': value['mime'],
-        'size_bytes': value['sizeBytes'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
+        id: value['id'],
+        filename: value['filename'],
+        mime: value['mime'],
+        size_bytes: value['sizeBytes'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,24 +12,16 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { UomMappings } from './UomMappings';
-import {
-    UomMappingsFromJSON,
-    UomMappingsFromJSONTyped,
-    UomMappingsToJSON,
-    UomMappingsToJSONTyped,
-} from './UomMappings';
 import type { CurrencyPreferences } from './CurrencyPreferences';
 import {
     CurrencyPreferencesFromJSON,
-    CurrencyPreferencesFromJSONTyped,
     CurrencyPreferencesToJSON,
-    CurrencyPreferencesToJSONTyped,
 } from './CurrencyPreferences';
+import type { UomMappings } from './UomMappings';
+import { UomMappingsFromJSON, UomMappingsToJSON } from './UomMappings';
 
 /**
- * 
+ *
  * @export
  * @interface LocalizationSettings
  */
@@ -59,13 +51,13 @@ export interface LocalizationSettings {
      */
     numberFormat: string;
     /**
-     * 
+     *
      * @type {CurrencyPreferences}
      * @memberof LocalizationSettings
      */
     currency: CurrencyPreferences;
     /**
-     * 
+     *
      * @type {UomMappings}
      * @memberof LocalizationSettings
      */
@@ -75,11 +67,15 @@ export interface LocalizationSettings {
 /**
  * Check if a given object implements the LocalizationSettings interface.
  */
-export function instanceOfLocalizationSettings(value: object): value is LocalizationSettings {
+export function instanceOfLocalizationSettings(
+    value: object,
+): value is LocalizationSettings {
     if (!('timezone' in value) || value['timezone'] === undefined) return false;
     if (!('locale' in value) || value['locale'] === undefined) return false;
-    if (!('dateFormat' in value) || value['dateFormat'] === undefined) return false;
-    if (!('numberFormat' in value) || value['numberFormat'] === undefined) return false;
+    if (!('dateFormat' in value) || value['dateFormat'] === undefined)
+        return false;
+    if (!('numberFormat' in value) || value['numberFormat'] === undefined)
+        return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
     if (!('uom' in value) || value['uom'] === undefined) return false;
     return true;
@@ -89,18 +85,20 @@ export function LocalizationSettingsFromJSON(json: any): LocalizationSettings {
     return LocalizationSettingsFromJSONTyped(json, false);
 }
 
-export function LocalizationSettingsFromJSONTyped(json: any, ignoreDiscriminator: boolean): LocalizationSettings {
+export function LocalizationSettingsFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): LocalizationSettings {
     if (json == null) {
         return json;
     }
     return {
-        
-        'timezone': json['timezone'],
-        'locale': json['locale'],
-        'dateFormat': json['date_format'],
-        'numberFormat': json['number_format'],
-        'currency': CurrencyPreferencesFromJSON(json['currency']),
-        'uom': UomMappingsFromJSON(json['uom']),
+        timezone: json['timezone'],
+        locale: json['locale'],
+        dateFormat: json['date_format'],
+        numberFormat: json['number_format'],
+        currency: CurrencyPreferencesFromJSON(json['currency']),
+        uom: UomMappingsFromJSON(json['uom']),
     };
 }
 
@@ -108,19 +106,20 @@ export function LocalizationSettingsToJSON(json: any): LocalizationSettings {
     return LocalizationSettingsToJSONTyped(json, false);
 }
 
-export function LocalizationSettingsToJSONTyped(value?: LocalizationSettings | null, ignoreDiscriminator: boolean = false): any {
+export function LocalizationSettingsToJSONTyped(
+    value?: LocalizationSettings | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'timezone': value['timezone'],
-        'locale': value['locale'],
-        'date_format': value['dateFormat'],
-        'number_format': value['numberFormat'],
-        'currency': CurrencyPreferencesToJSON(value['currency']),
-        'uom': UomMappingsToJSON(value['uom']),
+        timezone: value['timezone'],
+        locale: value['locale'],
+        date_format: value['dateFormat'],
+        number_format: value['numberFormat'],
+        currency: CurrencyPreferencesToJSON(value['currency']),
+        uom: UomMappingsToJSON(value['uom']),
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AuthLoginRequest
  */
 export interface AuthLoginRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthLoginRequest
      */
     email: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthLoginRequest
      */
@@ -42,7 +41,9 @@ export interface AuthLoginRequest {
 /**
  * Check if a given object implements the AuthLoginRequest interface.
  */
-export function instanceOfAuthLoginRequest(value: object): value is AuthLoginRequest {
+export function instanceOfAuthLoginRequest(
+    value: object,
+): value is AuthLoginRequest {
     if (!('email' in value) || value['email'] === undefined) return false;
     if (!('password' in value) || value['password'] === undefined) return false;
     return true;
@@ -52,15 +53,17 @@ export function AuthLoginRequestFromJSON(json: any): AuthLoginRequest {
     return AuthLoginRequestFromJSONTyped(json, false);
 }
 
-export function AuthLoginRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthLoginRequest {
+export function AuthLoginRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthLoginRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'email': json['email'],
-        'password': json['password'],
-        'remember': json['remember'] == null ? undefined : json['remember'],
+        email: json['email'],
+        password: json['password'],
+        remember: json['remember'] == null ? undefined : json['remember'],
     };
 }
 
@@ -68,16 +71,17 @@ export function AuthLoginRequestToJSON(json: any): AuthLoginRequest {
     return AuthLoginRequestToJSONTyped(json, false);
 }
 
-export function AuthLoginRequestToJSONTyped(value?: AuthLoginRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AuthLoginRequestToJSONTyped(
+    value?: AuthLoginRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'email': value['email'],
-        'password': value['password'],
-        'remember': value['remember'],
+        email: value['email'],
+        password: value['password'],
+        remember: value['remember'],
     };
 }
-

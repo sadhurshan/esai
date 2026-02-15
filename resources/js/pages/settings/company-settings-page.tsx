@@ -1,40 +1,70 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useForm, useFieldArray, useWatch, type Control, type FieldArray, type FieldPath, type UseFieldArrayReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
+import {
+    useFieldArray,
+    useForm,
+    useWatch,
+    type Control,
+    type FieldArray,
+    type FieldPath,
+    type UseFieldArrayReturn,
+} from 'react-hook-form';
 import { z } from 'zod';
 
+import { AddressEditor } from '@/components/settings/address-editor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form } from '@/components/ui/form';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
-import { AddressEditor } from '@/components/settings/address-editor';
 import { useAuth } from '@/contexts/auth-context';
 import {
-    useCompanySettings,
-    useUpdateCompanySettings,
     useCompanyAiSettings,
+    useCompanySettings,
     useUpdateCompanyAiSettings,
+    useUpdateCompanySettings,
     type UpdateCompanySettingsInput,
 } from '@/hooks/api/settings';
-import type { CompanyAddress, CompanySettings } from '@/types/settings';
 import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import type { CompanyAddress, CompanySettings } from '@/types/settings';
 
 const MAX_BRAND_ASSET_SIZE = 4 * 1024 * 1024; // 4 MB
-const ACCEPTED_BRAND_FILE_TYPES = 'image/png,image/jpeg,image/webp,image/svg+xml';
+const ACCEPTED_BRAND_FILE_TYPES =
+    'image/png,image/jpeg,image/webp,image/svg+xml';
 
-const isFile = (value: unknown): value is File => typeof File !== 'undefined' && value instanceof File;
+const isFile = (value: unknown): value is File =>
+    typeof File !== 'undefined' && value instanceof File;
 
 const brandFileSchema = z
-    .custom<File>((value) => (value === undefined || value === null ? true : isFile(value)), {
-        message: 'Upload must be an image file.',
-    })
-    .refine((value) => !value || value.size <= MAX_BRAND_ASSET_SIZE, 'Brand asset must be 4 MB or smaller.');
+    .custom<File>(
+        (value) =>
+            value === undefined || value === null ? true : isFile(value),
+        {
+            message: 'Upload must be an image file.',
+        },
+    )
+    .refine(
+        (value) => !value || value.size <= MAX_BRAND_ASSET_SIZE,
+        'Brand asset must be 4 MB or smaller.',
+    );
 
 const addressSchema = z.object({
     attention: z.string().optional().nullable(),
@@ -59,8 +89,18 @@ const companySchema = z.object({
     phones: z.array(contactSchema).min(1, 'Add at least one phone number.'),
     billTo: addressSchema,
     shipFrom: addressSchema,
-    logoUrl: z.string().url('Enter a valid URL.').optional().or(z.literal('')).nullable(),
-    markUrl: z.string().url('Enter a valid URL.').optional().or(z.literal('')).nullable(),
+    logoUrl: z
+        .string()
+        .url('Enter a valid URL.')
+        .optional()
+        .or(z.literal(''))
+        .nullable(),
+    markUrl: z
+        .string()
+        .url('Enter a valid URL.')
+        .optional()
+        .or(z.literal(''))
+        .nullable(),
     logoFile: brandFileSchema.optional().nullable(),
     markFile: brandFileSchema.optional().nullable(),
 });
@@ -83,8 +123,12 @@ function toFormValues(settings?: CompanySettings): CompanyFormValues {
         displayName: settings?.displayName ?? '',
         registrationNumber: settings?.registrationNumber ?? '',
         taxId: settings?.taxId ?? '',
-        emails: (settings?.emails?.length ? settings.emails : ['']).map((value: string) => ({ value })),
-        phones: (settings?.phones?.length ? settings.phones : ['']).map((value: string) => ({ value })),
+        emails: (settings?.emails?.length ? settings.emails : ['']).map(
+            (value: string) => ({ value }),
+        ),
+        phones: (settings?.phones?.length ? settings.phones : ['']).map(
+            (value: string) => ({ value }),
+        ),
         billTo: { ...emptyAddress, ...settings?.billTo },
         shipFrom: { ...emptyAddress, ...settings?.shipFrom },
         logoUrl: settings?.logoUrl ?? '',
@@ -97,7 +141,10 @@ function toFormValues(settings?: CompanySettings): CompanyFormValues {
 function sanitizeContacts(values: Array<{ value?: string | null }>): string[] {
     return values
         .map((entry) => entry.value?.trim() ?? '')
-        .filter((value, index, arr) => value.length > 0 && arr.indexOf(value) === index);
+        .filter(
+            (value, index, arr) =>
+                value.length > 0 && arr.indexOf(value) === index,
+        );
 }
 
 function sanitizeAddress(address: CompanyAddress): CompanyAddress {
@@ -112,7 +159,9 @@ function sanitizeAddress(address: CompanyAddress): CompanyAddress {
     };
 }
 
-function buildCompanyPayload(values: CompanyFormValues): UpdateCompanySettingsInput {
+function buildCompanyPayload(
+    values: CompanyFormValues,
+): UpdateCompanySettingsInput {
     const trimmedLogo = values.logoUrl?.trim() ?? '';
     const trimmedMark = values.markUrl?.trim() ?? '';
 
@@ -145,8 +194,14 @@ export function CompanySettingsPage() {
         defaultValues: toFormValues(companyQuery.data),
     });
 
-    const emailFields = useFieldArray({ control: form.control, name: 'emails' });
-    const phoneFields = useFieldArray({ control: form.control, name: 'phones' });
+    const emailFields = useFieldArray({
+        control: form.control,
+        name: 'emails',
+    });
+    const phoneFields = useFieldArray({
+        control: form.control,
+        name: 'phones',
+    });
 
     useEffect(() => {
         if (companyQuery.data) {
@@ -159,38 +214,36 @@ export function CompanySettingsPage() {
     const logoFile = useWatch({ control: form.control, name: 'logoFile' });
     const markFile = useWatch({ control: form.control, name: 'markFile' });
 
-    const [logoFilePreview, setLogoFilePreview] = useState<string | null>(null);
-    const [markFilePreview, setMarkFilePreview] = useState<string | null>(null);
+    const logoFilePreview = useMemo(
+        () =>
+            logoFile && isFile(logoFile) ? URL.createObjectURL(logoFile) : null,
+        [logoFile],
+    );
+    const markFilePreview = useMemo(
+        () =>
+            markFile && isFile(markFile) ? URL.createObjectURL(markFile) : null,
+        [markFile],
+    );
 
     const aiSettings = aiSettingsQuery.data;
     const aiSettingsLoading = aiSettingsQuery.isLoading && !aiSettings;
     const aiToggleInFlight = updateAiSettings.isPending;
 
     useEffect(() => {
-        if (!logoFile || !isFile(logoFile)) {
-            setLogoFilePreview(null);
-
+        if (!logoFilePreview) {
             return;
         }
 
-        const objectUrl = URL.createObjectURL(logoFile);
-        setLogoFilePreview(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [logoFile]);
+        return () => URL.revokeObjectURL(logoFilePreview);
+    }, [logoFilePreview]);
 
     useEffect(() => {
-        if (!markFile || !isFile(markFile)) {
-            setMarkFilePreview(null);
-
+        if (!markFilePreview) {
             return;
         }
 
-        const objectUrl = URL.createObjectURL(markFile);
-        setMarkFilePreview(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [markFile]);
+        return () => URL.revokeObjectURL(markFilePreview);
+    }, [markFilePreview]);
 
     const handleSubmit = form.handleSubmit(async (values) => {
         try {
@@ -198,14 +251,16 @@ export function CompanySettingsPage() {
             publishToast({
                 variant: 'success',
                 title: 'Company profile saved',
-                description: 'Workspace branding and addresses now reflect the latest information.',
+                description:
+                    'Workspace branding and addresses now reflect the latest information.',
             });
         } catch (error) {
             void error;
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to save company profile',
-                description: 'Please review the highlighted fields and try again.',
+                description:
+                    'Please review the highlighted fields and try again.',
             });
         }
     });
@@ -228,10 +283,14 @@ export function CompanySettingsPage() {
         const nextValue = !aiSettings.llmAnswersEnabled;
 
         try {
-            await updateAiSettings.mutateAsync({ llmAnswersEnabled: nextValue });
+            await updateAiSettings.mutateAsync({
+                llmAnswersEnabled: nextValue,
+            });
             publishToast({
                 variant: 'success',
-                title: nextValue ? 'LLM answers enabled' : 'LLM answers disabled',
+                title: nextValue
+                    ? 'LLM answers enabled'
+                    : 'LLM answers disabled',
                 description: nextValue
                     ? 'Copilot will call OpenAI with hashed safety identifiers and cite every source.'
                     : 'Copilot will remain on deterministic summaries with no external LLM usage.',
@@ -241,7 +300,8 @@ export function CompanySettingsPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to update AI settings',
-                description: 'Please try again or contact support if the issue persists.',
+                description:
+                    'Please try again or contact support if the issue persists.',
             });
         }
     };
@@ -251,7 +311,9 @@ export function CompanySettingsPage() {
     const canRemoveLogo = Boolean(logoFile || logoUrl);
     const canRemoveMark = Boolean(markFile || markUrl);
 
-    const watchedValues = (useWatch<CompanyFormValues>({ control: form.control }) ?? form.getValues()) as CompanyFormValues;
+    const watchedValues = (useWatch<CompanyFormValues>({
+        control: form.control,
+    }) ?? form.getValues()) as CompanyFormValues;
 
     const preview = useMemo(() => {
         return {
@@ -276,17 +338,25 @@ export function CompanySettingsPage() {
                 <title>Company settings · Elements Supply</title>
             </Helmet>
             <div>
-                <p className="text-sm text-muted-foreground">Workspace · Settings</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Company profile</h1>
                 <p className="text-sm text-muted-foreground">
-                    Update legal identity, billing addresses, and brand assets used across RFQs, POs, invoices, and PDFs.
+                    Workspace · Settings
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Company profile
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Update legal identity, billing addresses, and brand assets
+                    used across RFQs, POs, invoices, and PDFs.
                 </p>
             </div>
             {isLoading ? (
                 <Skeleton className="h-96 w-full" />
             ) : (
                 <Form {...form}>
-                    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid gap-6 lg:grid-cols-[2fr_1fr]"
+                    >
                         <div className="space-y-6">
                             <Card>
                                 <CardHeader>
@@ -299,9 +369,14 @@ export function CompanySettingsPage() {
                                             name="legalName"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Legal name</FormLabel>
+                                                    <FormLabel>
+                                                        Legal name
+                                                    </FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Elements Supply Inc." {...field} />
+                                                        <Input
+                                                            placeholder="Elements Supply Inc."
+                                                            {...field}
+                                                        />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -312,9 +387,14 @@ export function CompanySettingsPage() {
                                             name="displayName"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Display name</FormLabel>
+                                                    <FormLabel>
+                                                        Display name
+                                                    </FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Elements Supply" {...field} />
+                                                        <Input
+                                                            placeholder="Elements Supply"
+                                                            {...field}
+                                                        />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -327,15 +407,24 @@ export function CompanySettingsPage() {
                                             name="registrationNumber"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Registration number</FormLabel>
+                                                    <FormLabel>
+                                                        Registration number
+                                                    </FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             placeholder="123456789"
                                                             name={field.name}
                                                             ref={field.ref}
-                                                            onBlur={field.onBlur}
-                                                            onChange={field.onChange}
-                                                            value={field.value ?? ''}
+                                                            onBlur={
+                                                                field.onBlur
+                                                            }
+                                                            onChange={
+                                                                field.onChange
+                                                            }
+                                                            value={
+                                                                field.value ??
+                                                                ''
+                                                            }
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -347,16 +436,25 @@ export function CompanySettingsPage() {
                                             name="taxId"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Tax ID</FormLabel>
+                                                    <FormLabel>
+                                                        Tax ID
+                                                    </FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             placeholder="US-99-9999999"
                                                             autoComplete="off"
                                                             name={field.name}
                                                             ref={field.ref}
-                                                            onBlur={field.onBlur}
-                                                            onChange={field.onChange}
-                                                            value={field.value ?? ''}
+                                                            onBlur={
+                                                                field.onBlur
+                                                            }
+                                                            onChange={
+                                                                field.onChange
+                                                            }
+                                                            value={
+                                                                field.value ??
+                                                                ''
+                                                            }
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -369,29 +467,57 @@ export function CompanySettingsPage() {
                                             <FormField
                                                 control={form.control}
                                                 name="logoUrl"
-                                                render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />}
+                                                render={({ field }) => (
+                                                    <input
+                                                        type="hidden"
+                                                        {...field}
+                                                        value={
+                                                            field.value ?? ''
+                                                        }
+                                                    />
+                                                )}
                                             />
                                             <FormField
                                                 control={form.control}
                                                 name="logoFile"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Primary logo</FormLabel>
+                                                        <FormLabel>
+                                                            Primary logo
+                                                        </FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 type="file"
-                                                                name={field.name}
-                                                                accept={ACCEPTED_BRAND_FILE_TYPES}
-                                                                onChange={(event) => {
-                                                                    const file = event.target.files?.[0] ?? null;
-                                                                    field.onChange(file);
-                                                                    event.target.value = '';
+                                                                name={
+                                                                    field.name
+                                                                }
+                                                                accept={
+                                                                    ACCEPTED_BRAND_FILE_TYPES
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    const file =
+                                                                        event
+                                                                            .target
+                                                                            .files?.[0] ??
+                                                                        null;
+                                                                    field.onChange(
+                                                                        file,
+                                                                    );
+                                                                    event.target.value =
+                                                                        '';
                                                                 }}
-                                                                onBlur={field.onBlur}
+                                                                onBlur={
+                                                                    field.onBlur
+                                                                }
                                                                 ref={field.ref}
                                                             />
                                                         </FormControl>
-                                                        <FormDescription>SVG, PNG, JPG, or WebP up to 4 MB.</FormDescription>
+                                                        <FormDescription>
+                                                            SVG, PNG, JPG, or
+                                                            WebP up to 4 MB.
+                                                        </FormDescription>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
@@ -399,12 +525,24 @@ export function CompanySettingsPage() {
                                             <div className="flex flex-col items-center gap-2">
                                                 <div className="flex h-24 w-full items-center justify-center rounded-lg border bg-muted/30">
                                                     {logoPreview ? (
-                                                        <img src={logoPreview} alt="Primary logo preview" className="max-h-20" />
+                                                        <img
+                                                            src={logoPreview}
+                                                            alt="Primary logo preview"
+                                                            className="max-h-20"
+                                                        />
                                                     ) : (
-                                                        <p className="text-xs text-muted-foreground">No logo uploaded</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            No logo uploaded
+                                                        </p>
                                                     )}
                                                 </div>
-                                                <Button type="button" variant="ghost" size="sm" disabled={!canRemoveLogo} onClick={handleRemoveLogo}>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    disabled={!canRemoveLogo}
+                                                    onClick={handleRemoveLogo}
+                                                >
                                                     Remove logo
                                                 </Button>
                                             </div>
@@ -413,29 +551,58 @@ export function CompanySettingsPage() {
                                             <FormField
                                                 control={form.control}
                                                 name="markUrl"
-                                                render={({ field }) => <input type="hidden" {...field} value={field.value ?? ''} />}
+                                                render={({ field }) => (
+                                                    <input
+                                                        type="hidden"
+                                                        {...field}
+                                                        value={
+                                                            field.value ?? ''
+                                                        }
+                                                    />
+                                                )}
                                             />
                                             <FormField
                                                 control={form.control}
                                                 name="markFile"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Symbol / mark</FormLabel>
+                                                        <FormLabel>
+                                                            Symbol / mark
+                                                        </FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 type="file"
-                                                                name={field.name}
-                                                                accept={ACCEPTED_BRAND_FILE_TYPES}
-                                                                onChange={(event) => {
-                                                                    const file = event.target.files?.[0] ?? null;
-                                                                    field.onChange(file);
-                                                                    event.target.value = '';
+                                                                name={
+                                                                    field.name
+                                                                }
+                                                                accept={
+                                                                    ACCEPTED_BRAND_FILE_TYPES
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    const file =
+                                                                        event
+                                                                            .target
+                                                                            .files?.[0] ??
+                                                                        null;
+                                                                    field.onChange(
+                                                                        file,
+                                                                    );
+                                                                    event.target.value =
+                                                                        '';
                                                                 }}
-                                                                onBlur={field.onBlur}
+                                                                onBlur={
+                                                                    field.onBlur
+                                                                }
                                                                 ref={field.ref}
                                                             />
                                                         </FormControl>
-                                                        <FormDescription>Square version for compact placements (max 4 MB).</FormDescription>
+                                                        <FormDescription>
+                                                            Square version for
+                                                            compact placements
+                                                            (max 4 MB).
+                                                        </FormDescription>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
@@ -443,12 +610,24 @@ export function CompanySettingsPage() {
                                             <div className="flex flex-col items-center gap-2">
                                                 <div className="flex h-24 w-full items-center justify-center rounded-lg border bg-muted/30">
                                                     {markPreview ? (
-                                                        <img src={markPreview} alt="Mark preview" className="max-h-20" />
+                                                        <img
+                                                            src={markPreview}
+                                                            alt="Mark preview"
+                                                            className="max-h-20"
+                                                        />
                                                     ) : (
-                                                        <p className="text-xs text-muted-foreground">No symbol uploaded</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            No symbol uploaded
+                                                        </p>
                                                     )}
                                                 </div>
-                                                <Button type="button" variant="ghost" size="sm" disabled={!canRemoveMark} onClick={handleRemoveMark}>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    disabled={!canRemoveMark}
+                                                    onClick={handleRemoveMark}
+                                                >
                                                     Remove symbol
                                                 </Button>
                                             </div>
@@ -484,7 +663,12 @@ export function CompanySettingsPage() {
                                     <CardTitle>Addresses</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
-                                    <AddressEditor control={form.control} name="billTo" title="Bill to" description="Printed on invoices and credit notes." />
+                                    <AddressEditor
+                                        control={form.control}
+                                        name="billTo"
+                                        title="Bill to"
+                                        description="Printed on invoices and credit notes."
+                                    />
                                     <AddressEditor
                                         control={form.control}
                                         name="shipFrom"
@@ -493,8 +677,13 @@ export function CompanySettingsPage() {
                                     />
                                 </CardContent>
                                 <CardFooter className="justify-end">
-                                    <Button type="submit" disabled={updateCompany.isPending}>
-                                        {updateCompany.isPending ? 'Saving…' : 'Save company profile'}
+                                    <Button
+                                        type="submit"
+                                        disabled={updateCompany.isPending}
+                                    >
+                                        {updateCompany.isPending
+                                            ? 'Saving…'
+                                            : 'Save company profile'}
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -503,12 +692,22 @@ export function CompanySettingsPage() {
                                     <div>
                                         <CardTitle>Copilot answers</CardTitle>
                                         <p className="text-sm text-muted-foreground">
-                                            Decide whether grounded answers can call OpenAI or stay on deterministic summaries.
+                                            Decide whether grounded answers can
+                                            call OpenAI or stay on deterministic
+                                            summaries.
                                         </p>
                                     </div>
                                     {aiSettings && (
-                                        <Badge variant={aiSettings.llmAnswersEnabled ? 'default' : 'secondary'}>
-                                            {aiSettings.llmAnswersEnabled ? 'OpenAI live' : 'Deterministic only'}
+                                        <Badge
+                                            variant={
+                                                aiSettings.llmAnswersEnabled
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            }
+                                        >
+                                            {aiSettings.llmAnswersEnabled
+                                                ? 'OpenAI live'
+                                                : 'Deterministic only'}
                                         </Badge>
                                     )}
                                 </CardHeader>
@@ -524,8 +723,15 @@ export function CompanySettingsPage() {
                                             </p>
                                             <Button
                                                 type="button"
-                                                variant={aiSettings?.llmAnswersEnabled ? 'outline' : 'default'}
-                                                disabled={!aiSettings || aiToggleInFlight}
+                                                variant={
+                                                    aiSettings?.llmAnswersEnabled
+                                                        ? 'outline'
+                                                        : 'default'
+                                                }
+                                                disabled={
+                                                    !aiSettings ||
+                                                    aiToggleInFlight
+                                                }
                                                 onClick={handleToggleAiSettings}
                                             >
                                                 {aiSettings
@@ -539,7 +745,9 @@ export function CompanySettingsPage() {
                                 </CardContent>
                                 <CardFooter>
                                     <p className="text-xs text-muted-foreground">
-                                        Every toggle is recorded in AI events so you can audit who changed provider access and when.
+                                        Every toggle is recorded in AI events so
+                                        you can audit who changed provider
+                                        access and when.
                                     </p>
                                 </CardFooter>
                             </Card>
@@ -551,24 +759,45 @@ export function CompanySettingsPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <p className="text-2xl font-semibold">{preview.displayName || 'Display name'}</p>
-                                        <p className="text-sm text-muted-foreground">{preview.legalName || 'Legal name'}</p>
+                                        <p className="text-2xl font-semibold">
+                                            {preview.displayName ||
+                                                'Display name'}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {preview.legalName || 'Legal name'}
+                                        </p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Emails</Label>
-                                        <p className="text-sm">{preview.emails.join(', ') || '—'}</p>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Emails
+                                        </Label>
+                                        <p className="text-sm">
+                                            {preview.emails.join(', ') || '—'}
+                                        </p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Phones</Label>
-                                        <p className="text-sm">{preview.phones.join(', ') || '—'}</p>
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Phones
+                                        </Label>
+                                        <p className="text-sm">
+                                            {preview.phones.join(', ') || '—'}
+                                        </p>
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Bill to</Label>
-                                        <AddressPreview address={preview.billTo} />
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Bill to
+                                        </Label>
+                                        <AddressPreview
+                                            address={preview.billTo}
+                                        />
                                     </div>
                                     <div>
-                                        <Label className="text-xs uppercase text-muted-foreground">Ship from</Label>
-                                        <AddressPreview address={preview.shipFrom} />
+                                        <Label className="text-xs text-muted-foreground uppercase">
+                                            Ship from
+                                        </Label>
+                                        <AddressPreview
+                                            address={preview.shipFrom}
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -589,19 +818,33 @@ interface ContactListProps<TName extends 'emails' | 'phones'> {
     fields: UseFieldArrayReturn<CompanyFormValues, TName>;
 }
 
-function ContactList<TName extends 'emails' | 'phones'>({ control, name, label, placeholder, type, fields }: ContactListProps<TName>) {
+function ContactList<TName extends 'emails' | 'phones'>({
+    control,
+    name,
+    label,
+    placeholder,
+    type,
+    fields,
+}: ContactListProps<TName>) {
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="font-medium text-sm">{label}</p>
-                    <p className="text-xs text-muted-foreground">These appear on documents and outbound emails.</p>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground">
+                        These appear on documents and outbound emails.
+                    </p>
                 </div>
                 <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => fields.append({ value: '' } as FieldArray<CompanyFormValues, TName>)}
+                    onClick={() =>
+                        fields.append({ value: '' } as FieldArray<
+                            CompanyFormValues,
+                            TName
+                        >)
+                    }
                 >
                     Add
                 </Button>
@@ -611,21 +854,30 @@ function ContactList<TName extends 'emails' | 'phones'>({ control, name, label, 
                     <FormField
                         key={field.id}
                         control={control}
-                        name={`${name}.${index}.value` as FieldPath<CompanyFormValues>}
+                        name={
+                            `${name}.${index}.value` as FieldPath<CompanyFormValues>
+                        }
                         render={({ field: formField }) => (
                             <FormItem>
-                                <FormLabel className="sr-only">{label}</FormLabel>
+                                <FormLabel className="sr-only">
+                                    {label}
+                                </FormLabel>
                                 <div className="flex gap-2">
                                     <FormControl>
-                                            <Input
-                                                type={type}
-                                                placeholder={placeholder}
-                                                name={formField.name}
-                                                ref={formField.ref}
-                                                onBlur={formField.onBlur}
-                                                onChange={formField.onChange}
-                                                value={typeof formField.value === 'string' ? formField.value : ''}
-                                            />
+                                        <Input
+                                            type={type}
+                                            placeholder={placeholder}
+                                            name={formField.name}
+                                            ref={formField.ref}
+                                            onBlur={formField.onBlur}
+                                            onChange={formField.onChange}
+                                            value={
+                                                typeof formField.value ===
+                                                'string'
+                                                    ? formField.value
+                                                    : ''
+                                            }
+                                        />
                                     </FormControl>
                                     <Button
                                         type="button"
@@ -646,7 +898,11 @@ function ContactList<TName extends 'emails' | 'phones'>({ control, name, label, 
     );
 }
 
-function AddressPreview({ address }: { address?: Partial<CompanyAddress> | null }) {
+function AddressPreview({
+    address,
+}: {
+    address?: Partial<CompanyAddress> | null;
+}) {
     if (!address || Object.values(address).every((value) => !value)) {
         return <p className="text-sm text-muted-foreground">Not set</p>;
     }
@@ -657,7 +913,9 @@ function AddressPreview({ address }: { address?: Partial<CompanyAddress> | null 
             {address.line1 ? <p>{address.line1}</p> : null}
             {address.line2 ? <p>{address.line2}</p> : null}
             <p>
-                {[address.city, address.state, address.postalCode].filter((part) => part && part.length > 0).join(', ')}
+                {[address.city, address.state, address.postalCode]
+                    .filter((part) => part && part.length > 0)
+                    .join(', ')}
             </p>
             <p>{address.country}</p>
         </div>

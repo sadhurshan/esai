@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,39 +12,38 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface Uom
  */
 export interface Uom {
     /**
-     * 
+     *
      * @type {string}
      * @memberof Uom
      */
     code: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Uom
      */
     name: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Uom
      */
     dimension: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Uom
      */
     symbol: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof Uom
      */
@@ -57,7 +56,8 @@ export interface Uom {
 export function instanceOfUom(value: object): value is Uom {
     if (!('code' in value) || value['code'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('dimension' in value) || value['dimension'] === undefined) return false;
+    if (!('dimension' in value) || value['dimension'] === undefined)
+        return false;
     if (!('symbol' in value) || value['symbol'] === undefined) return false;
     if (!('siBase' in value) || value['siBase'] === undefined) return false;
     return true;
@@ -72,12 +72,11 @@ export function UomFromJSONTyped(json: any, ignoreDiscriminator: boolean): Uom {
         return json;
     }
     return {
-        
-        'code': json['code'],
-        'name': json['name'],
-        'dimension': json['dimension'],
-        'symbol': json['symbol'],
-        'siBase': json['si_base'],
+        code: json['code'],
+        name: json['name'],
+        dimension: json['dimension'],
+        symbol: json['symbol'],
+        siBase: json['si_base'],
     };
 }
 
@@ -85,18 +84,19 @@ export function UomToJSON(json: any): Uom {
     return UomToJSONTyped(json, false);
 }
 
-export function UomToJSONTyped(value?: Uom | null, ignoreDiscriminator: boolean = false): any {
+export function UomToJSONTyped(
+    value?: Uom | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'code': value['code'],
-        'name': value['name'],
-        'dimension': value['dimension'],
-        'symbol': value['symbol'],
-        'si_base': value['siBase'],
+        code: value['code'],
+        name: value['name'],
+        dimension: value['dimension'],
+        symbol: value['symbol'],
+        si_base: value['siBase'],
     };
 }
-

@@ -125,6 +125,7 @@ class DevTenantSeeder extends Seeder
                     'password' => Hash::make($buyerPassword),
                 'role' => 'buyer_admin',
                 'company_id' => $companyId,
+                'email_verified_at' => $now,
                 'remember_token' => Str::random(10),
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -136,6 +137,7 @@ class DevTenantSeeder extends Seeder
                 'role' => 'buyer_admin',
                 'company_id' => $companyId,
                     'password' => Hash::make($buyerPassword),
+                'email_verified_at' => $now,
                 'updated_at' => $now,
             ]);
         }
@@ -259,6 +261,7 @@ class DevTenantSeeder extends Seeder
                     'password' => Hash::make($supplierPassword),
                 'role' => 'supplier_estimator',
                 'company_id' => $companyId,
+                'email_verified_at' => $now,
                 'remember_token' => Str::random(10),
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -270,6 +273,7 @@ class DevTenantSeeder extends Seeder
                 'role' => 'supplier_estimator',
                 'company_id' => $companyId,
                     'password' => Hash::make($supplierPassword),
+                'email_verified_at' => $now,
                 'updated_at' => $now,
             ]);
         }

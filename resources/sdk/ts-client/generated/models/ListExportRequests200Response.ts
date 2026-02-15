@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { ListExportRequests200ResponseAllOfData } from './ListExportRequests200ResponseAllOfData';
 import {
     ListExportRequests200ResponseAllOfDataFromJSON,
-    ListExportRequests200ResponseAllOfDataFromJSONTyped,
     ListExportRequests200ResponseAllOfDataToJSON,
-    ListExportRequests200ResponseAllOfDataToJSONTyped,
 } from './ListExportRequests200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ListExportRequests200Response
  */
 export interface ListExportRequests200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListExportRequests200Response
      */
     status: ListExportRequests200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ListExportRequests200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {ListExportRequests200ResponseAllOfData}
      * @memberof ListExportRequests200Response
      */
     data: ListExportRequests200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ListExportRequests200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ListExportRequests200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ListExportRequests200ResponseStatusEnum = typeof ListExportRequests200ResponseStatusEnum[keyof typeof ListExportRequests200ResponseStatusEnum];
-
+export type ListExportRequests200ResponseStatusEnum =
+    (typeof ListExportRequests200ResponseStatusEnum)[keyof typeof ListExportRequests200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ListExportRequests200Response interface.
  */
-export function instanceOfListExportRequests200Response(value: object): value is ListExportRequests200Response {
+export function instanceOfListExportRequests200Response(
+    value: object,
+): value is ListExportRequests200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ListExportRequests200ResponseFromJSON(json: any): ListExportRequests200Response {
+export function ListExportRequests200ResponseFromJSON(
+    json: any,
+): ListExportRequests200Response {
     return ListExportRequests200ResponseFromJSONTyped(json, false);
 }
 
-export function ListExportRequests200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListExportRequests200Response {
+export function ListExportRequests200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListExportRequests200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': ListExportRequests200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: ListExportRequests200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ListExportRequests200ResponseToJSON(json: any): ListExportRequests200Response {
+export function ListExportRequests200ResponseToJSON(
+    json: any,
+): ListExportRequests200Response {
     return ListExportRequests200ResponseToJSONTyped(json, false);
 }
 
-export function ListExportRequests200ResponseToJSONTyped(value?: ListExportRequests200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ListExportRequests200ResponseToJSONTyped(
+    value?: ListExportRequests200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': ListExportRequests200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: ListExportRequests200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

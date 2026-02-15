@@ -1,9 +1,13 @@
+import {
+    useQuery,
+    type UseQueryOptions,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import { queryKeys } from '@/lib/queryKeys';
 import { toCursorMeta, type CursorPaginationMeta } from '@/lib/pagination';
+import { queryKeys } from '@/lib/queryKeys';
 import {
     DigitalTwinCategoryNode,
     DigitalTwinLibraryApi,
@@ -54,7 +58,10 @@ interface NormalizedDigitalTwinFilters {
     includeCategories: boolean;
 }
 
-function sanitizeStringArray(values?: string[] | null, transform?: (value: string) => string): string[] | undefined {
+function sanitizeStringArray(
+    values?: string[] | null,
+    transform?: (value: string) => string,
+): string[] | undefined {
     if (!values) {
         return undefined;
     }
@@ -71,19 +78,37 @@ function sanitizeStringArray(values?: string[] | null, transform?: (value: strin
     return Array.from(new Set(normalized));
 }
 
-function normalizeFilters(filters: UseDigitalTwinsFilters): NormalizedDigitalTwinFilters {
+function normalizeFilters(
+    filters: UseDigitalTwinsFilters,
+): NormalizedDigitalTwinFilters {
     const normalizedQuery = filters.q?.trim();
     const normalizedTag = filters.tag?.trim();
     const normalizedTags = sanitizeStringArray(filters.tags);
-    const normalizedHasAssets = sanitizeStringArray(filters.hasAssets, (value) => value.toUpperCase());
-    const normalizedHasAsset = typeof filters.hasAsset === 'string' ? filters.hasAsset.trim().toUpperCase() : undefined;
+    const normalizedHasAssets = sanitizeStringArray(
+        filters.hasAssets,
+        (value) => value.toUpperCase(),
+    );
+    const normalizedHasAsset =
+        typeof filters.hasAsset === 'string'
+            ? filters.hasAsset.trim().toUpperCase()
+            : undefined;
 
     return {
         cursor: filters.cursor ?? undefined,
-        perPage: typeof filters.perPage === 'number' ? filters.perPage : undefined,
-        q: normalizedQuery && normalizedQuery.length > 0 ? normalizedQuery : undefined,
-        categoryId: typeof filters.categoryId === 'number' ? filters.categoryId : undefined,
-        tag: normalizedTag && normalizedTag.length > 0 ? normalizedTag : undefined,
+        perPage:
+            typeof filters.perPage === 'number' ? filters.perPage : undefined,
+        q:
+            normalizedQuery && normalizedQuery.length > 0
+                ? normalizedQuery
+                : undefined,
+        categoryId:
+            typeof filters.categoryId === 'number'
+                ? filters.categoryId
+                : undefined,
+        tag:
+            normalizedTag && normalizedTag.length > 0
+                ? normalizedTag
+                : undefined,
         tags: normalizedTags,
         hasAsset: normalizedHasAsset,
         hasAssets: normalizedHasAssets,
@@ -94,7 +119,8 @@ function normalizeFilters(filters: UseDigitalTwinsFilters): NormalizedDigitalTwi
     };
 }
 
-type UseDigitalTwinsQueryResult = UseQueryResult<DigitalTwinLibraryIndexResponse>;
+type UseDigitalTwinsQueryResult =
+    UseQueryResult<DigitalTwinLibraryIndexResponse>;
 
 export function useDigitalTwins(
     filters: UseDigitalTwinsFilters = {},
@@ -102,22 +128,28 @@ export function useDigitalTwins(
 ): UseDigitalTwinsResult & UseDigitalTwinsQueryResult {
     const api = useSdkClient(DigitalTwinLibraryApi);
 
-    const normalizedFilters = useMemo(() => normalizeFilters(filters), [filters]);
+    const normalizedFilters = useMemo(
+        () => normalizeFilters(filters),
+        [filters],
+    );
 
-    const queryKeyFilters = useMemo(() => ({
-        cursor: normalizedFilters.cursor,
-        perPage: normalizedFilters.perPage,
-        q: normalizedFilters.q,
-        categoryId: normalizedFilters.categoryId,
-        tag: normalizedFilters.tag,
-        tags: normalizedFilters.tags,
-        hasAsset: normalizedFilters.hasAsset,
-        hasAssets: normalizedFilters.hasAssets,
-        updatedFrom: normalizedFilters.updatedFrom,
-        updatedTo: normalizedFilters.updatedTo,
-        sort: normalizedFilters.sort,
-        includeCategories: normalizedFilters.includeCategories,
-    }), [normalizedFilters]);
+    const queryKeyFilters = useMemo(
+        () => ({
+            cursor: normalizedFilters.cursor,
+            perPage: normalizedFilters.perPage,
+            q: normalizedFilters.q,
+            categoryId: normalizedFilters.categoryId,
+            tag: normalizedFilters.tag,
+            tags: normalizedFilters.tags,
+            hasAsset: normalizedFilters.hasAsset,
+            hasAssets: normalizedFilters.hasAssets,
+            updatedFrom: normalizedFilters.updatedFrom,
+            updatedTo: normalizedFilters.updatedTo,
+            sort: normalizedFilters.sort,
+            includeCategories: normalizedFilters.includeCategories,
+        }),
+        [normalizedFilters],
+    );
 
     const query = useQuery<DigitalTwinLibraryIndexResponse>({
         queryKey: queryKeys.digitalTwins.libraryList(queryKeyFilters),
@@ -134,7 +166,9 @@ export function useDigitalTwins(
                 updated_from: normalizedFilters.updatedFrom,
                 updated_to: normalizedFilters.updatedTo,
                 sort: normalizedFilters.sort,
-                include: normalizedFilters.includeCategories ? ['categories'] : undefined,
+                include: normalizedFilters.includeCategories
+                    ? ['categories']
+                    : undefined,
             });
         },
         staleTime: options.staleTime ?? 30_000,
@@ -144,10 +178,14 @@ export function useDigitalTwins(
     });
 
     const payload = query.data?.data ?? null;
-    const rawMeta = (payload?.meta ?? undefined) as Record<string, unknown> | undefined;
+    const rawMeta = (payload?.meta ?? undefined) as
+        | Record<string, unknown>
+        | undefined;
     const meta = toCursorMeta(rawMeta);
     const items = payload?.items ?? [];
-    const categories = normalizedFilters.includeCategories ? payload?.categories ?? [] : [];
+    const categories = normalizedFilters.includeCategories
+        ? (payload?.categories ?? [])
+        : [];
 
     return {
         ...query,

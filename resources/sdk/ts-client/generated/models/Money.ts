@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * Monetary amount expressed in minor units. `amount` is derived from `amount_minor` and `currency` using the company rounding rules.
  * @export
@@ -20,13 +19,13 @@ import { mapValues } from '../runtime';
  */
 export interface Money {
     /**
-     * 
+     *
      * @type {number}
      * @memberof Money
      */
     amountMinor: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof Money
      */
@@ -43,7 +42,8 @@ export interface Money {
  * Check if a given object implements the Money interface.
  */
 export function instanceOfMoney(value: object): value is Money {
-    if (!('amountMinor' in value) || value['amountMinor'] === undefined) return false;
+    if (!('amountMinor' in value) || value['amountMinor'] === undefined)
+        return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
     if (!('amount' in value) || value['amount'] === undefined) return false;
     return true;
@@ -53,15 +53,17 @@ export function MoneyFromJSON(json: any): Money {
     return MoneyFromJSONTyped(json, false);
 }
 
-export function MoneyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Money {
+export function MoneyFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): Money {
     if (json == null) {
         return json;
     }
     return {
-        
-        'amountMinor': json['amount_minor'],
-        'currency': json['currency'],
-        'amount': json['amount'],
+        amountMinor: json['amount_minor'],
+        currency: json['currency'],
+        amount: json['amount'],
     };
 }
 
@@ -69,16 +71,17 @@ export function MoneyToJSON(json: any): Money {
     return MoneyToJSONTyped(json, false);
 }
 
-export function MoneyToJSONTyped(value?: Money | null, ignoreDiscriminator: boolean = false): any {
+export function MoneyToJSONTyped(
+    value?: Money | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'amount_minor': value['amountMinor'],
-        'currency': value['currency'],
-        'amount': value['amount'],
+        amount_minor: value['amountMinor'],
+        currency: value['currency'],
+        amount: value['amount'],
     };
 }
-

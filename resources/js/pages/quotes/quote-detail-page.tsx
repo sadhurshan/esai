@@ -1,27 +1,33 @@
+import { Award, Download, FileText, Loader2, Star } from 'lucide-react';
 import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Award, Download, FileText, Star, Loader2 } from 'lucide-react';
 
 import { ExportButtons } from '@/components/downloads/export-buttons';
+import { EmptyState } from '@/components/empty-state';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { DeliveryLeadTimeChip } from '@/components/quotes/delivery-leadtime-chip';
+import { MoneyCell } from '@/components/quotes/money-cell';
+import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/empty-state';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { QuoteStatusBadge } from '@/components/quotes/quote-status-badge';
-import { MoneyCell } from '@/components/quotes/money-cell';
-import { DeliveryLeadTimeChip } from '@/components/quotes/delivery-leadtime-chip';
+import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
 import { useQuote } from '@/hooks/api/quotes/use-quote';
 import { useQuoteShortlistMutation } from '@/hooks/api/quotes/use-shortlist-mutation';
 import { useTaxCodes } from '@/hooks/api/use-tax-codes';
-import type { Quote, QuoteAttachmentsInner, QuoteItem, QuoteRevision, TaxCode } from '@/sdk';
-import { publishToast } from '@/components/ui/use-toast';
-import { useFormatting } from '@/contexts/formatting-context';
+import type {
+    Quote,
+    QuoteAttachmentsInner,
+    QuoteItem,
+    QuoteRevision,
+    TaxCode,
+} from '@/sdk';
 
 interface TimelineEntry {
     id: string;
@@ -42,14 +48,19 @@ export function QuoteDetailPage() {
     const { quoteId } = useParams<{ quoteId: string }>();
     const navigate = useNavigate();
     const { hasFeature, state } = useAuth();
-    const featureFlagsLoaded = state.status !== 'idle' && state.status !== 'loading';
+    const featureFlagsLoaded =
+        state.status !== 'idle' && state.status !== 'loading';
     const quotesFeatureEnabled = hasFeature('quotes_enabled');
     const canAccessQuotes = !featureFlagsLoaded || quotesFeatureEnabled;
 
-    const quoteQuery = useQuote(quoteId, { enabled: Boolean(quoteId) && canAccessQuotes });
+    const quoteQuery = useQuote(quoteId, {
+        enabled: Boolean(quoteId) && canAccessQuotes,
+    });
     const quote = quoteQuery.data?.quote;
     const shortlistMutation = useQuoteShortlistMutation();
-    const taxCodesQuery = useTaxCodes(undefined, { enabled: Boolean(quoteId) && canAccessQuotes });
+    const taxCodesQuery = useTaxCodes(undefined, {
+        enabled: Boolean(quoteId) && canAccessQuotes,
+    });
     const taxCodeLookup = useMemo(() => {
         const lookup = new Map<number, TaxCode>();
         (taxCodesQuery.items ?? []).forEach((taxCode) => {
@@ -115,12 +126,18 @@ export function QuoteDetailPage() {
 
         const shouldShortlist = !quote.isShortlisted;
         shortlistMutation.mutate(
-            { quoteId: quote.id, shortlist: shouldShortlist, rfqId: quote.rfqId },
+            {
+                quoteId: quote.id,
+                shortlist: shouldShortlist,
+                rfqId: quote.rfqId,
+            },
             {
                 onSuccess: (updated) => {
                     publishToast({
                         variant: 'success',
-                        title: shouldShortlist ? 'Quote shortlisted' : 'Shortlist updated',
+                        title: shouldShortlist
+                            ? 'Quote shortlisted'
+                            : 'Shortlist updated',
                         description: shouldShortlist
                             ? `${getSupplierName(updated)} is now on your shortlist.`
                             : `${getSupplierName(updated)} was removed from your shortlist.`,
@@ -134,7 +151,9 @@ export function QuoteDetailPage() {
                         variant: 'destructive',
                         title: 'Unable to update shortlist',
                         description:
-                            error instanceof Error ? error.message : 'Please check your connection and try again.',
+                            error instanceof Error
+                                ? error.message
+                                : 'Please check your connection and try again.',
                     });
                 },
             },
@@ -159,7 +178,6 @@ export function QuoteDetailPage() {
         });
     };
 
-
     if (featureFlagsLoaded && !quotesFeatureEnabled) {
         return (
             <div className="flex flex-1 flex-col gap-6">
@@ -170,9 +188,13 @@ export function QuoteDetailPage() {
                 <EmptyState
                     title="Quotes unavailable on current plan"
                     description="Upgrade your workspace plan to review supplier quotes."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="View plans"
-                    ctaProps={{ onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -188,7 +210,9 @@ export function QuoteDetailPage() {
                 <EmptyState
                     title="Quote not specified"
                     description="Select a quote from the RFQ quotes list to continue."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="Back to RFQs"
                     ctaProps={{ onClick: () => navigate('/app/rfqs') }}
                 />
@@ -218,7 +242,8 @@ export function QuoteDetailPage() {
                 <Alert variant="destructive">
                     <AlertTitle>Unable to load quote</AlertTitle>
                     <AlertDescription>
-                        We hit an issue retrieving the quote. Please refresh or navigate back to retry.
+                        We hit an issue retrieving the quote. Please refresh or
+                        navigate back to retry.
                     </AlertDescription>
                 </Alert>
             </div>
@@ -235,7 +260,9 @@ export function QuoteDetailPage() {
                 <EmptyState
                     title="Quote unavailable"
                     description="This quote could not be found. It may have been deleted or you may lack access."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="Back to quotes"
                     ctaProps={{ onClick: () => navigate(-1) }}
                 />
@@ -255,12 +282,20 @@ export function QuoteDetailPage() {
 
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Quote · RFQ {quote.rfqId}</p>
-                    <h1 className="text-2xl font-semibold text-foreground">{supplierName}</h1>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Quote · RFQ {quote.rfqId}
+                    </p>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        {supplierName}
+                    </h1>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                         <QuoteStatusBadge status={quote.status} />
                         <span>Revision {quote.revisionNo ?? 1}</span>
-                        {quote.submittedAt ? <span>Submitted {formatDate(quote.submittedAt)}</span> : null}
+                        {quote.submittedAt ? (
+                            <span>
+                                Submitted {formatDate(quote.submittedAt)}
+                            </span>
+                        ) : null}
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -274,11 +309,21 @@ export function QuoteDetailPage() {
                         {shortlistMutation.isPending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            <Star className={shortlisted ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
+                            <Star
+                                className={
+                                    shortlisted
+                                        ? 'h-4 w-4 fill-current'
+                                        : 'h-4 w-4'
+                                }
+                            />
                         )}
                         {shortlisted ? 'Shortlisted' : 'Shortlist'}
                     </Button>
-                    <Button type="button" size="sm" onClick={handleLaunchAwardReview}>
+                    <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleLaunchAwardReview}
+                    >
                         <Award className="mr-2 h-4 w-4" /> Award this quote
                     </Button>
                     <ExportButtons
@@ -291,16 +336,27 @@ export function QuoteDetailPage() {
 
             <div className="grid gap-4 rounded-2xl border border-sidebar-border/60 bg-card/60 p-4 md:grid-cols-3">
                 <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Quote total</p>
-                    <MoneyCell amountMinor={quote.totalMinor} currency={quote.currency} />
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Quote total
+                    </p>
+                    <MoneyCell
+                        amountMinor={quote.totalMinor}
+                        currency={quote.currency}
+                    />
                 </div>
                 <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Lead time</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Lead time
+                    </p>
                     <DeliveryLeadTimeChip leadTimeDays={quote.leadTimeDays} />
                 </div>
                 <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Min order quantity</p>
-                    <p className="text-base font-semibold text-foreground">{quote.minOrderQty ?? '—'}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Min order quantity
+                    </p>
+                    <p className="text-base font-semibold text-foreground">
+                        {quote.minOrderQty ?? '—'}
+                    </p>
                 </div>
             </div>
 
@@ -317,7 +373,11 @@ export function QuoteDetailPage() {
                     <QuoteOverviewCard quote={quote} />
                 </TabsContent>
                 <TabsContent value="lines">
-                    <QuoteLinesTable items={lines} currency={quote.currency} taxCodes={taxCodeLookup} />
+                    <QuoteLinesTable
+                        items={lines}
+                        currency={quote.currency}
+                        taxCodes={taxCodeLookup}
+                    />
                 </TabsContent>
                 <TabsContent value="attachments">
                     <QuoteAttachmentsPanel attachments={attachments} />
@@ -342,43 +402,85 @@ function QuoteOverviewCard({ quote }: { quote: Quote }) {
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Currency</p>
-                    <p className="text-base font-semibold text-foreground">{quote.currency}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Currency
+                    </p>
+                    <p className="text-base font-semibold text-foreground">
+                        {quote.currency}
+                    </p>
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Submitted at</p>
-                    <p className="text-base font-semibold text-foreground">{formatDate(quote.submittedAt)}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Submitted at
+                    </p>
+                    <p className="text-base font-semibold text-foreground">
+                        {formatDate(quote.submittedAt)}
+                    </p>
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Subtotal</p>
-                    <MoneyCell amountMinor={quote.subtotalMinor ?? quote.totalMinor} currency={quote.currency} />
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Subtotal
+                    </p>
+                    <MoneyCell
+                        amountMinor={quote.subtotalMinor ?? quote.totalMinor}
+                        currency={quote.currency}
+                    />
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Tax</p>
-                    <MoneyCell amountMinor={quote.taxAmountMinor} currency={quote.currency} />
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Tax
+                    </p>
+                    <MoneyCell
+                        amountMinor={quote.taxAmountMinor}
+                        currency={quote.currency}
+                    />
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Notes</p>
-                    <p className="text-sm text-muted-foreground">{quote.note ?? '—'}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Notes
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        {quote.note ?? '—'}
+                    </p>
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Submitted by</p>
-                    <p className="text-base font-semibold text-foreground">{quote.submittedBy ? `User #${quote.submittedBy}` : '—'}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Submitted by
+                    </p>
+                    <p className="text-base font-semibold text-foreground">
+                        {quote.submittedBy ? `User #${quote.submittedBy}` : '—'}
+                    </p>
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Incoterm</p>
-                    <p className="text-base font-semibold text-foreground">{quote.incoterm ?? '—'}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Incoterm
+                    </p>
+                    <p className="text-base font-semibold text-foreground">
+                        {quote.incoterm ?? '—'}
+                    </p>
                 </div>
                 <div className="space-y-1 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Payment terms</p>
-                    <p className="text-base font-semibold text-foreground">{quote.paymentTerms ?? '—'}</p>
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Payment terms
+                    </p>
+                    <p className="text-base font-semibold text-foreground">
+                        {quote.paymentTerms ?? '—'}
+                    </p>
                 </div>
             </CardContent>
         </Card>
     );
 }
 
-function QuoteLinesTable({ items, currency, taxCodes }: { items: QuoteItem[]; currency?: string | null; taxCodes?: Map<number, TaxCode> }) {
+function QuoteLinesTable({
+    items,
+    currency,
+    taxCodes,
+}: {
+    items: QuoteItem[];
+    currency?: string | null;
+    taxCodes?: Map<number, TaxCode>;
+}) {
     const { formatNumber } = useFormatting();
     if (items.length === 0) {
         return (
@@ -393,7 +495,7 @@ function QuoteLinesTable({ items, currency, taxCodes }: { items: QuoteItem[]; cu
     return (
         <div className="overflow-hidden rounded-2xl border border-sidebar-border/60">
             <table className="min-w-full table-fixed text-sm">
-                <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <thead className="bg-muted/40 text-left text-xs tracking-wide text-muted-foreground uppercase">
                     <tr>
                         <th className="px-4 py-3 font-semibold">RFQ line</th>
                         <th className="px-4 py-3 font-semibold">Quantity</th>
@@ -418,44 +520,86 @@ function QuoteLinesTable({ items, currency, taxCodes }: { items: QuoteItem[]; cu
                                 </td>
                                 <td className="px-4 py-4 align-top text-sm text-muted-foreground">
                                     {typeof item.quantity === 'number'
-                                        ? formatNumber(item.quantity, { maximumFractionDigits: 3 })
+                                        ? formatNumber(item.quantity, {
+                                              maximumFractionDigits: 3,
+                                          })
                                         : '—'}
                                 </td>
                                 <td className="px-4 py-4 align-top">
-                                    <MoneyCell amountMinor={item.unitPriceMinor} currency={item.currency ?? currency} label="" />
+                                    <MoneyCell
+                                        amountMinor={item.unitPriceMinor}
+                                        currency={item.currency ?? currency}
+                                        label=""
+                                    />
                                 </td>
                                 <td className="px-4 py-4 align-top">
-                                    <MoneyCell amountMinor={extendedMinor} currency={item.currency ?? currency} label="" />
+                                    <MoneyCell
+                                        amountMinor={extendedMinor}
+                                        currency={item.currency ?? currency}
+                                        label=""
+                                    />
                                 </td>
                                 <td className="px-4 py-4 align-top">
-                                    <DeliveryLeadTimeChip leadTimeDays={item.leadTimeDays} />
+                                    <DeliveryLeadTimeChip
+                                        leadTimeDays={item.leadTimeDays}
+                                    />
                                 </td>
                                 <td className="px-4 py-4 align-top text-sm text-muted-foreground">
                                     {item.taxes && item.taxes.length > 0 ? (
                                         <div className="space-y-2">
                                             {item.taxes.map((tax, index) => {
-                                                const taxCode = tax.taxCodeId && taxCodes ? taxCodes.get(tax.taxCodeId) : undefined;
-                                                const codeLabel = taxCode?.code ?? (tax.taxCodeId ? `Tax ${tax.taxCodeId}` : 'Custom tax');
-                                                const nameLabel = taxCode?.name ?? '—';
+                                                const taxCode =
+                                                    tax.taxCodeId && taxCodes
+                                                        ? taxCodes.get(
+                                                              tax.taxCodeId,
+                                                          )
+                                                        : undefined;
+                                                const codeLabel =
+                                                    taxCode?.code ??
+                                                    (tax.taxCodeId
+                                                        ? `Tax ${tax.taxCodeId}`
+                                                        : 'Custom tax');
+                                                const nameLabel =
+                                                    taxCode?.name ?? '—';
 
                                                 return (
                                                     <div
-                                                        key={tax.id ?? `${item.id}-tax-${tax.taxCodeId ?? index}`}
+                                                        key={
+                                                            tax.id ??
+                                                            `${item.id}-tax-${tax.taxCodeId ?? index}`
+                                                        }
                                                         className="rounded-xl border border-sidebar-border/40 bg-muted/20 px-3 py-2"
                                                     >
                                                         <div className="flex flex-wrap items-center gap-2 text-xs">
-                                                            <Badge variant="outline" className="font-semibold">
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="font-semibold"
+                                                            >
                                                                 {codeLabel}
                                                             </Badge>
-                                                            {typeof tax.ratePercent === 'number' ? (
-                                                                <span className="text-muted-foreground">{tax.ratePercent}%</span>
+                                                            {typeof tax.ratePercent ===
+                                                            'number' ? (
+                                                                <span className="text-muted-foreground">
+                                                                    {
+                                                                        tax.ratePercent
+                                                                    }
+                                                                    %
+                                                                </span>
                                                             ) : null}
                                                         </div>
-                                                        <p className="mt-1 text-[11px] text-muted-foreground">{nameLabel}</p>
-                                                        {typeof tax.amountMinor === 'number' ? (
+                                                        <p className="mt-1 text-[11px] text-muted-foreground">
+                                                            {nameLabel}
+                                                        </p>
+                                                        {typeof tax.amountMinor ===
+                                                        'number' ? (
                                                             <MoneyCell
-                                                                amountMinor={tax.amountMinor}
-                                                                currency={item.currency ?? currency}
+                                                                amountMinor={
+                                                                    tax.amountMinor
+                                                                }
+                                                                currency={
+                                                                    item.currency ??
+                                                                    currency
+                                                                }
                                                                 label=""
                                                                 className="mt-1"
                                                             />
@@ -468,7 +612,9 @@ function QuoteLinesTable({ items, currency, taxCodes }: { items: QuoteItem[]; cu
                                         <span>—</span>
                                     )}
                                 </td>
-                                <td className="px-4 py-4 align-top text-sm text-muted-foreground">{item.note ?? '—'}</td>
+                                <td className="px-4 py-4 align-top text-sm text-muted-foreground">
+                                    {item.note ?? '—'}
+                                </td>
                             </tr>
                         );
                     })}
@@ -478,7 +624,11 @@ function QuoteLinesTable({ items, currency, taxCodes }: { items: QuoteItem[]; cu
     );
 }
 
-function QuoteAttachmentsPanel({ attachments }: { attachments: QuoteAttachmentsInner[] }) {
+function QuoteAttachmentsPanel({
+    attachments,
+}: {
+    attachments: QuoteAttachmentsInner[];
+}) {
     if (attachments.length === 0) {
         return (
             <EmptyState
@@ -493,13 +643,18 @@ function QuoteAttachmentsPanel({ attachments }: { attachments: QuoteAttachmentsI
         <div className="space-y-3">
             {attachments.map((attachment) => (
                 <div
-                    key={attachment.id ?? attachment.path ?? attachment.filename}
+                    key={
+                        attachment.id ?? attachment.path ?? attachment.filename
+                    }
                     className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sidebar-border/60 bg-card/70 px-4 py-3"
                 >
                     <div>
-                        <p className="text-sm font-medium text-foreground">{attachment.filename ?? 'Attachment'}</p>
+                        <p className="text-sm font-medium text-foreground">
+                            {attachment.filename ?? 'Attachment'}
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                            {attachment.mime ?? 'Unknown type'} · {formatFileSize(attachment.sizeBytes)}
+                            {attachment.mime ?? 'Unknown type'} ·{' '}
+                            {formatFileSize(attachment.sizeBytes)}
                         </p>
                     </div>
                     {attachment.path ? (
@@ -540,7 +695,9 @@ function QuoteRevisionsPanel({ revisions }: { revisions: QuoteRevision[] }) {
                     className="rounded-2xl border border-sidebar-border/60 bg-card/70 p-4"
                 >
                     <div className="flex flex-wrap items-center gap-3">
-                        <Badge variant="secondary">Rev {revision.revisionNo}</Badge>
+                        <Badge variant="secondary">
+                            Rev {revision.revisionNo}
+                        </Badge>
                         <QuoteStatusBadge status={revision.status} />
                         <span className="text-sm text-muted-foreground">
                             {formatDate(revision.submittedAt, {
@@ -549,7 +706,9 @@ function QuoteRevisionsPanel({ revisions }: { revisions: QuoteRevision[] }) {
                             })}
                         </span>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{revision.note ?? 'No notes provided.'}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        {revision.note ?? 'No notes provided.'}
+                    </p>
                     {/* TODO: clarify with spec how to highlight total or line changes once the API returns revision diff metadata. */}
                 </div>
             ))}
@@ -574,16 +733,27 @@ function QuoteTimeline({ entries }: { entries: TimelineEntry[] }) {
             {entries.map((entry) => (
                 <div key={entry.id} className="flex gap-4">
                     <div className="flex flex-col items-center">
-                            <span className="text-xs text-muted-foreground">{formatDate(entry.timestamp)}</span>
-                        <span className="mt-1 h-full w-px bg-sidebar-border/60" aria-hidden="true" />
+                        <span className="text-xs text-muted-foreground">
+                            {formatDate(entry.timestamp)}
+                        </span>
+                        <span
+                            className="mt-1 h-full w-px bg-sidebar-border/60"
+                            aria-hidden="true"
+                        />
                     </div>
                     <div className="flex-1 rounded-xl border border-sidebar-border/60 bg-card/70 px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold text-foreground">{entry.label}</p>
-                            {entry.status ? <QuoteStatusBadge status={entry.status} /> : null}
+                            <p className="text-sm font-semibold text-foreground">
+                                {entry.label}
+                            </p>
+                            {entry.status ? (
+                                <QuoteStatusBadge status={entry.status} />
+                            ) : null}
                         </div>
                         {entry.description ? (
-                            <p className="mt-1 text-sm text-muted-foreground">{entry.description}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {entry.description}
+                            </p>
                         ) : null}
                     </div>
                 </div>
@@ -639,4 +809,3 @@ function formatFileSize(bytes?: number | null): string {
 
     return `${value.toFixed(1)} ${units[unitIndex]}`;
 }
-

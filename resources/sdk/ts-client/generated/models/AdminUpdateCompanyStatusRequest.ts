@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminUpdateCompanyStatusRequest
  */
 export interface AdminUpdateCompanyStatusRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminUpdateCompanyStatusRequest
      */
     status: AdminUpdateCompanyStatusRequestStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminUpdateCompanyStatusRequest
      */
     note?: string;
 }
-
 
 /**
  * @export
@@ -41,47 +39,56 @@ export const AdminUpdateCompanyStatusRequestStatusEnum = {
     Pending: 'pending',
     Active: 'active',
     Suspended: 'suspended',
-    Archived: 'archived'
+    Archived: 'archived',
 } as const;
-export type AdminUpdateCompanyStatusRequestStatusEnum = typeof AdminUpdateCompanyStatusRequestStatusEnum[keyof typeof AdminUpdateCompanyStatusRequestStatusEnum];
-
+export type AdminUpdateCompanyStatusRequestStatusEnum =
+    (typeof AdminUpdateCompanyStatusRequestStatusEnum)[keyof typeof AdminUpdateCompanyStatusRequestStatusEnum];
 
 /**
  * Check if a given object implements the AdminUpdateCompanyStatusRequest interface.
  */
-export function instanceOfAdminUpdateCompanyStatusRequest(value: object): value is AdminUpdateCompanyStatusRequest {
+export function instanceOfAdminUpdateCompanyStatusRequest(
+    value: object,
+): value is AdminUpdateCompanyStatusRequest {
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
-export function AdminUpdateCompanyStatusRequestFromJSON(json: any): AdminUpdateCompanyStatusRequest {
+export function AdminUpdateCompanyStatusRequestFromJSON(
+    json: any,
+): AdminUpdateCompanyStatusRequest {
     return AdminUpdateCompanyStatusRequestFromJSONTyped(json, false);
 }
 
-export function AdminUpdateCompanyStatusRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminUpdateCompanyStatusRequest {
+export function AdminUpdateCompanyStatusRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminUpdateCompanyStatusRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'note': json['note'] == null ? undefined : json['note'],
+        status: json['status'],
+        note: json['note'] == null ? undefined : json['note'],
     };
 }
 
-export function AdminUpdateCompanyStatusRequestToJSON(json: any): AdminUpdateCompanyStatusRequest {
+export function AdminUpdateCompanyStatusRequestToJSON(
+    json: any,
+): AdminUpdateCompanyStatusRequest {
     return AdminUpdateCompanyStatusRequestToJSONTyped(json, false);
 }
 
-export function AdminUpdateCompanyStatusRequestToJSONTyped(value?: AdminUpdateCompanyStatusRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminUpdateCompanyStatusRequestToJSONTyped(
+    value?: AdminUpdateCompanyStatusRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'note': value['note'],
+        status: value['status'],
+        note: value['note'],
     };
 }
-

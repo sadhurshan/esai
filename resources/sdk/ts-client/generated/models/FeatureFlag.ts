@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface FeatureFlag
  */
 export interface FeatureFlag {
     /**
-     * 
+     *
      * @type {number}
      * @memberof FeatureFlag
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof FeatureFlag
      */
     companyId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof FeatureFlag
      */
     key: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof FeatureFlag
      */
     value: boolean;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof FeatureFlag
      */
     createdAt?: Date;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof FeatureFlag
      */
@@ -62,7 +61,8 @@ export interface FeatureFlag {
  */
 export function instanceOfFeatureFlag(value: object): value is FeatureFlag {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('companyId' in value) || value['companyId'] === undefined) return false;
+    if (!('companyId' in value) || value['companyId'] === undefined)
+        return false;
     if (!('key' in value) || value['key'] === undefined) return false;
     if (!('value' in value) || value['value'] === undefined) return false;
     return true;
@@ -72,18 +72,26 @@ export function FeatureFlagFromJSON(json: any): FeatureFlag {
     return FeatureFlagFromJSONTyped(json, false);
 }
 
-export function FeatureFlagFromJSONTyped(json: any, ignoreDiscriminator: boolean): FeatureFlag {
+export function FeatureFlagFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): FeatureFlag {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'companyId': json['company_id'],
-        'key': json['key'],
-        'value': json['value'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
-        'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
+        id: json['id'],
+        companyId: json['company_id'],
+        key: json['key'],
+        value: json['value'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
+        updatedAt:
+            json['updated_at'] == null
+                ? undefined
+                : new Date(json['updated_at']),
     };
 }
 
@@ -91,19 +99,26 @@ export function FeatureFlagToJSON(json: any): FeatureFlag {
     return FeatureFlagToJSONTyped(json, false);
 }
 
-export function FeatureFlagToJSONTyped(value?: FeatureFlag | null, ignoreDiscriminator: boolean = false): any {
+export function FeatureFlagToJSONTyped(
+    value?: FeatureFlag | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'company_id': value['companyId'],
-        'key': value['key'],
-        'value': value['value'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
-        'updated_at': value['updatedAt'] == null ? value['updatedAt'] : value['updatedAt'].toISOString(),
+        id: value['id'],
+        company_id: value['companyId'],
+        key: value['key'],
+        value: value['value'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
+        updated_at:
+            value['updatedAt'] == null
+                ? value['updatedAt']
+                : value['updatedAt'].toISOString(),
     };
 }
-

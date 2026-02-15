@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,45 +12,44 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface RegisterCompanyRequest
  */
 export interface RegisterCompanyRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompanyRequest
      */
     name: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompanyRequest
      */
     country: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompanyRequest
      */
     primaryContactName: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompanyRequest
      */
     primaryContactEmail: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompanyRequest
      */
     primaryContactPhone?: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof RegisterCompanyRequest
      */
@@ -60,50 +59,70 @@ export interface RegisterCompanyRequest {
 /**
  * Check if a given object implements the RegisterCompanyRequest interface.
  */
-export function instanceOfRegisterCompanyRequest(value: object): value is RegisterCompanyRequest {
+export function instanceOfRegisterCompanyRequest(
+    value: object,
+): value is RegisterCompanyRequest {
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('country' in value) || value['country'] === undefined) return false;
-    if (!('primaryContactName' in value) || value['primaryContactName'] === undefined) return false;
-    if (!('primaryContactEmail' in value) || value['primaryContactEmail'] === undefined) return false;
+    if (
+        !('primaryContactName' in value) ||
+        value['primaryContactName'] === undefined
+    )
+        return false;
+    if (
+        !('primaryContactEmail' in value) ||
+        value['primaryContactEmail'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function RegisterCompanyRequestFromJSON(json: any): RegisterCompanyRequest {
+export function RegisterCompanyRequestFromJSON(
+    json: any,
+): RegisterCompanyRequest {
     return RegisterCompanyRequestFromJSONTyped(json, false);
 }
 
-export function RegisterCompanyRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): RegisterCompanyRequest {
+export function RegisterCompanyRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RegisterCompanyRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'name': json['name'],
-        'country': json['country'],
-        'primaryContactName': json['primary_contact_name'],
-        'primaryContactEmail': json['primary_contact_email'],
-        'primaryContactPhone': json['primary_contact_phone'] == null ? undefined : json['primary_contact_phone'],
-        'website': json['website'] == null ? undefined : json['website'],
+        name: json['name'],
+        country: json['country'],
+        primaryContactName: json['primary_contact_name'],
+        primaryContactEmail: json['primary_contact_email'],
+        primaryContactPhone:
+            json['primary_contact_phone'] == null
+                ? undefined
+                : json['primary_contact_phone'],
+        website: json['website'] == null ? undefined : json['website'],
     };
 }
 
-export function RegisterCompanyRequestToJSON(json: any): RegisterCompanyRequest {
+export function RegisterCompanyRequestToJSON(
+    json: any,
+): RegisterCompanyRequest {
     return RegisterCompanyRequestToJSONTyped(json, false);
 }
 
-export function RegisterCompanyRequestToJSONTyped(value?: RegisterCompanyRequest | null, ignoreDiscriminator: boolean = false): any {
+export function RegisterCompanyRequestToJSONTyped(
+    value?: RegisterCompanyRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'name': value['name'],
-        'country': value['country'],
-        'primary_contact_name': value['primaryContactName'],
-        'primary_contact_email': value['primaryContactEmail'],
-        'primary_contact_phone': value['primaryContactPhone'],
-        'website': value['website'],
+        name: value['name'],
+        country: value['country'],
+        primary_contact_name: value['primaryContactName'],
+        primary_contact_email: value['primaryContactEmail'],
+        primary_contact_phone: value['primaryContactPhone'],
+        website: value['website'],
     };
 }
-

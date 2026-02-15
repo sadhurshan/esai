@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,105 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 import type { RfqAttachment } from './RfqAttachment';
-import {
-    RfqAttachmentFromJSON,
-    RfqAttachmentFromJSONTyped,
-    RfqAttachmentToJSON,
-    RfqAttachmentToJSONTyped,
-} from './RfqAttachment';
+import { RfqAttachmentFromJSON, RfqAttachmentToJSON } from './RfqAttachment';
 
 /**
- * 
+ *
  * @export
  * @interface UploadRfqAttachment201Response
  */
 export interface UploadRfqAttachment201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UploadRfqAttachment201Response
      */
     status: UploadRfqAttachment201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof UploadRfqAttachment201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {RfqAttachment}
      * @memberof UploadRfqAttachment201Response
      */
     data: RfqAttachment;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof UploadRfqAttachment201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const UploadRfqAttachment201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type UploadRfqAttachment201ResponseStatusEnum = typeof UploadRfqAttachment201ResponseStatusEnum[keyof typeof UploadRfqAttachment201ResponseStatusEnum];
-
+export type UploadRfqAttachment201ResponseStatusEnum =
+    (typeof UploadRfqAttachment201ResponseStatusEnum)[keyof typeof UploadRfqAttachment201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the UploadRfqAttachment201Response interface.
  */
-export function instanceOfUploadRfqAttachment201Response(value: object): value is UploadRfqAttachment201Response {
+export function instanceOfUploadRfqAttachment201Response(
+    value: object,
+): value is UploadRfqAttachment201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function UploadRfqAttachment201ResponseFromJSON(json: any): UploadRfqAttachment201Response {
+export function UploadRfqAttachment201ResponseFromJSON(
+    json: any,
+): UploadRfqAttachment201Response {
     return UploadRfqAttachment201ResponseFromJSONTyped(json, false);
 }
 
-export function UploadRfqAttachment201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): UploadRfqAttachment201Response {
+export function UploadRfqAttachment201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UploadRfqAttachment201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': RfqAttachmentFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: RfqAttachmentFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function UploadRfqAttachment201ResponseToJSON(json: any): UploadRfqAttachment201Response {
+export function UploadRfqAttachment201ResponseToJSON(
+    json: any,
+): UploadRfqAttachment201Response {
     return UploadRfqAttachment201ResponseToJSONTyped(json, false);
 }
 
-export function UploadRfqAttachment201ResponseToJSONTyped(value?: UploadRfqAttachment201Response | null, ignoreDiscriminator: boolean = false): any {
+export function UploadRfqAttachment201ResponseToJSONTyped(
+    value?: UploadRfqAttachment201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': RfqAttachmentToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: RfqAttachmentToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

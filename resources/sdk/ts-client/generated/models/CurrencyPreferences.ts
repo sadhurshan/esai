@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CurrencyPreferences
  */
 export interface CurrencyPreferences {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CurrencyPreferences
      */
     primary: string;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof CurrencyPreferences
      */
@@ -36,9 +35,12 @@ export interface CurrencyPreferences {
 /**
  * Check if a given object implements the CurrencyPreferences interface.
  */
-export function instanceOfCurrencyPreferences(value: object): value is CurrencyPreferences {
+export function instanceOfCurrencyPreferences(
+    value: object,
+): value is CurrencyPreferences {
     if (!('primary' in value) || value['primary'] === undefined) return false;
-    if (!('displayFx' in value) || value['displayFx'] === undefined) return false;
+    if (!('displayFx' in value) || value['displayFx'] === undefined)
+        return false;
     return true;
 }
 
@@ -46,14 +48,16 @@ export function CurrencyPreferencesFromJSON(json: any): CurrencyPreferences {
     return CurrencyPreferencesFromJSONTyped(json, false);
 }
 
-export function CurrencyPreferencesFromJSONTyped(json: any, ignoreDiscriminator: boolean): CurrencyPreferences {
+export function CurrencyPreferencesFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CurrencyPreferences {
     if (json == null) {
         return json;
     }
     return {
-        
-        'primary': json['primary'],
-        'displayFx': json['display_fx'],
+        primary: json['primary'],
+        displayFx: json['display_fx'],
     };
 }
 
@@ -61,15 +65,16 @@ export function CurrencyPreferencesToJSON(json: any): CurrencyPreferences {
     return CurrencyPreferencesToJSONTyped(json, false);
 }
 
-export function CurrencyPreferencesToJSONTyped(value?: CurrencyPreferences | null, ignoreDiscriminator: boolean = false): any {
+export function CurrencyPreferencesToJSONTyped(
+    value?: CurrencyPreferences | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'primary': value['primary'],
-        'display_fx': value['displayFx'],
+        primary: value['primary'],
+        display_fx: value['displayFx'],
     };
 }
-

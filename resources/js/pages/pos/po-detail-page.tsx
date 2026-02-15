@@ -1,28 +1,40 @@
+import { AlertTriangle, FileText, Layers } from 'lucide-react';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, FileText, Layers } from 'lucide-react';
 
 import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
+import { EmptyState } from '@/components/empty-state';
+import { CreateInvoiceDialog } from '@/components/invoices/create-invoice-dialog';
 import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { PoActivityTimeline } from '@/components/pos/po-activity-timeline';
 import { PoHeaderCard } from '@/components/pos/po-header-card';
 import { PoLineTable } from '@/components/pos/po-line-table';
-import { SendPoDialog, type SendPoDialogPayload } from '@/components/pos/send-po-dialog';
-import { PoActivityTimeline } from '@/components/pos/po-activity-timeline';
-import { CreateInvoiceDialog } from '@/components/invoices/create-invoice-dialog';
-import { EmptyState } from '@/components/empty-state';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import {
+    SendPoDialog,
+    type SendPoDialogPayload,
+} from '@/components/pos/send-po-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/auth-context';
+import { useFormatting } from '@/contexts/formatting-context';
+import {
+    useCreateInvoice,
+    type CreateInvoiceInput,
+} from '@/hooks/api/invoices/use-create-invoice';
+import { useCancelPo } from '@/hooks/api/pos/use-cancel-po';
+import { usePoEvents } from '@/hooks/api/pos/use-events';
 import { usePo } from '@/hooks/api/pos/use-po';
 import { useRecalcPo } from '@/hooks/api/pos/use-recalc-po';
 import { useSendPo } from '@/hooks/api/pos/use-send-po';
-import { useCancelPo } from '@/hooks/api/pos/use-cancel-po';
-import { usePoEvents } from '@/hooks/api/pos/use-events';
-import { useCreateInvoice, type CreateInvoiceInput } from '@/hooks/api/invoices/use-create-invoice';
-import { useAuth } from '@/contexts/auth-context';
-import { useFormatting } from '@/contexts/formatting-context';
 
 export function PoDetailPage() {
     const { formatDate } = useFormatting();
@@ -51,9 +63,13 @@ export function PoDetailPage() {
                 <EmptyState
                     title="Invalid purchase order"
                     description="The requested PO id is missing or malformed."
-                    icon={<AlertTriangle className="h-10 w-10 text-destructive" />}
+                    icon={
+                        <AlertTriangle className="h-10 w-10 text-destructive" />
+                    }
                     ctaLabel="Back to list"
-                    ctaProps={{ onClick: () => navigate('/app/purchase-orders') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/purchase-orders'),
+                    }}
                 />
             </div>
         );
@@ -84,7 +100,9 @@ export function PoDetailPage() {
                 <EmptyState
                     title="Unable to load PO"
                     description="The purchase order could not be retrieved. Please try again or contact support if the issue persists."
-                    icon={<AlertTriangle className="h-10 w-10 text-destructive" />}
+                    icon={
+                        <AlertTriangle className="h-10 w-10 text-destructive" />
+                    }
                     ctaLabel="Retry"
                     ctaProps={{ onClick: () => poQuery.refetch() }}
                 />
@@ -105,9 +123,13 @@ export function PoDetailPage() {
                 <EmptyState
                     title="Purchase order not found"
                     description="This PO was removed or never existed."
-                    icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                    icon={
+                        <FileText className="h-10 w-10 text-muted-foreground" />
+                    }
                     ctaLabel="Back to list"
-                    ctaProps={{ onClick: () => navigate('/app/purchase-orders') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/purchase-orders'),
+                    }}
                 />
             </div>
         );
@@ -134,7 +156,10 @@ export function PoDetailPage() {
     };
 
     const handleCancel = () => {
-        const confirmed = typeof window === 'undefined' ? true : window.confirm('Cancel this purchase order?');
+        const confirmed =
+            typeof window === 'undefined'
+                ? true
+                : window.confirm('Cancel this purchase order?');
         if (!confirmed) {
             return;
         }
@@ -144,7 +169,10 @@ export function PoDetailPage() {
 
     const handleCreateInvoice = () => {
         if (!invoicesEnabled) {
-            notifyPlanLimit({ code: 'invoices', message: 'Upgrade required to create invoices.' });
+            notifyPlanLimit({
+                code: 'invoices',
+                message: 'Upgrade required to create invoices.',
+            });
             return;
         }
 
@@ -162,18 +190,25 @@ export function PoDetailPage() {
         });
     };
 
-    const canSend = !isSupplierPersona && (po.status === 'draft' || po.status === 'recalculated');
-    const canCancel = !isSupplierPersona && (po.status === 'draft' || po.status === 'sent');
+    const canSend =
+        !isSupplierPersona &&
+        (po.status === 'draft' || po.status === 'recalculated');
+    const canCancel =
+        !isSupplierPersona && (po.status === 'draft' || po.status === 'sent');
     const hasInvoiceableLines = (po.lines ?? []).some((line) => {
         if (typeof line.remainingQuantity === 'number') {
             return line.remainingQuantity > 0;
         }
 
         const total = typeof line.quantity === 'number' ? line.quantity : 0;
-        const invoiced = typeof line.invoicedQuantity === 'number' ? line.invoicedQuantity : 0;
+        const invoiced =
+            typeof line.invoicedQuantity === 'number'
+                ? line.invoicedQuantity
+                : 0;
         return total - invoiced > 0;
     });
-    const showInvoiceDialog = !isSupplierPersona && invoicesEnabled && (po.lines?.length ?? 0) > 0;
+    const showInvoiceDialog =
+        !isSupplierPersona && invoicesEnabled && (po.lines?.length ?? 0) > 0;
     const timelineError = eventsQuery.isError
         ? eventsQuery.error instanceof Error
             ? eventsQuery.error.message
@@ -213,10 +248,16 @@ export function PoDetailPage() {
 
             <PoHeaderCard
                 po={po}
-                onRecalculate={!isSupplierPersona ? handleRecalculate : undefined}
+                onRecalculate={
+                    !isSupplierPersona ? handleRecalculate : undefined
+                }
                 onSend={canSend ? handleSend : undefined}
                 onCancel={canCancel ? handleCancel : undefined}
-                onCreateInvoice={!isSupplierPersona && invoicesEnabled ? handleCreateInvoice : undefined}
+                onCreateInvoice={
+                    !isSupplierPersona && invoicesEnabled
+                        ? handleCreateInvoice
+                        : undefined
+                }
                 canCreateInvoice={!isSupplierPersona && hasInvoiceableLines}
                 isCreatingInvoice={createInvoiceMutation.isPending}
                 isRecalculating={recalcMutation.isPending}
@@ -236,8 +277,13 @@ export function PoDetailPage() {
 
                     <Card className="border-border/70">
                         <CardHeader>
-                            <CardTitle className="text-base font-semibold">Activity timeline</CardTitle>
-                            <CardDescription>Delivery attempts, acknowledgements, and invoice events.</CardDescription>
+                            <CardTitle className="text-base font-semibold">
+                                Activity timeline
+                            </CardTitle>
+                            <CardDescription>
+                                Delivery attempts, acknowledgements, and invoice
+                                events.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <PoActivityTimeline
@@ -253,32 +299,55 @@ export function PoDetailPage() {
                 <div className="space-y-6">
                     <Card className="border-border/70">
                         <CardHeader>
-                            <CardTitle className="text-base font-semibold">Commercial terms</CardTitle>
-                            <CardDescription>Snapshot of tax, incoterms, and source RFQ.</CardDescription>
+                            <CardTitle className="text-base font-semibold">
+                                Commercial terms
+                            </CardTitle>
+                            <CardDescription>
+                                Snapshot of tax, incoterms, and source RFQ.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <dl className="grid gap-4 text-sm">
                                 <div>
-                                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Incoterm</dt>
-                                    <dd className="font-medium text-foreground">{po.incoterm ?? '—'}</dd>
-                                </div>
-                                <div>
-                                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tax percent</dt>
+                                    <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                        Incoterm
+                                    </dt>
                                     <dd className="font-medium text-foreground">
-                                        {po.taxPercent != null ? `${po.taxPercent}%` : '—'}
+                                        {po.incoterm ?? '—'}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Source RFQ</dt>
+                                    <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                        Tax percent
+                                    </dt>
+                                    <dd className="font-medium text-foreground">
+                                        {po.taxPercent != null
+                                            ? `${po.taxPercent}%`
+                                            : '—'}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                                        Source RFQ
+                                    </dt>
                                     <dd className="flex items-center gap-2">
                                         {po.rfqId ? (
-                                            <Button asChild variant="outline" size="sm">
-                                                <Link to={`/app/rfqs/${po.rfqId}`}>
-                                                    RFQ {po.rfqNumber ?? po.rfqId}
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="sm"
+                                            >
+                                                <Link
+                                                    to={`/app/rfqs/${po.rfqId}`}
+                                                >
+                                                    RFQ{' '}
+                                                    {po.rfqNumber ?? po.rfqId}
                                                 </Link>
                                             </Button>
                                         ) : (
-                                            <span className="font-medium text-foreground">—</span>
+                                            <span className="font-medium text-foreground">
+                                                —
+                                            </span>
                                         )}
                                     </dd>
                                 </div>
@@ -288,22 +357,36 @@ export function PoDetailPage() {
 
                     <Card className="border-border/70">
                         <CardHeader>
-                            <CardTitle className="text-base font-semibold">Change orders</CardTitle>
-                            <CardDescription>Audit of adjustments against this PO.</CardDescription>
+                            <CardTitle className="text-base font-semibold">
+                                Change orders
+                            </CardTitle>
+                            <CardDescription>
+                                Audit of adjustments against this PO.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {po.changeOrders && po.changeOrders.length > 0 ? (
                                 <ul className="space-y-3 text-sm">
                                     {po.changeOrders.map((change) => (
-                                        <li key={change.id} className="rounded-lg border border-border/60 p-3">
+                                        <li
+                                            key={change.id}
+                                            className="rounded-lg border border-border/60 p-3"
+                                        >
                                             <div className="flex items-center justify-between gap-2">
-                                                <span className="font-semibold text-foreground">{change.reason}</span>
-                                                <Badge variant="outline" className="uppercase tracking-wide">
+                                                <span className="font-semibold text-foreground">
+                                                    {change.reason}
+                                                </span>
+                                                <Badge
+                                                    variant="outline"
+                                                    className="tracking-wide uppercase"
+                                                >
                                                     {change.status}
                                                 </Badge>
                                             </div>
                                             <p className="text-xs text-muted-foreground">
-                                                Proposed {formatDate(change.createdAt)} • Rev {change.poRevisionNo ?? '—'}
+                                                Proposed{' '}
+                                                {formatDate(change.createdAt)} •
+                                                Rev {change.poRevisionNo ?? '—'}
                                             </p>
                                         </li>
                                     ))}

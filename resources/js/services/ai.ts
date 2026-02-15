@@ -11,6 +11,8 @@ export interface ForecastPayload extends Record<string, unknown> {
     part_id: number;
     history: Array<{ date: string; quantity: number }>;
     horizon: number;
+    lead_time_days?: number | null;
+    lead_time_variance_days?: number | null;
     entity_type?: string | null;
     entity_id?: number | null;
 }
@@ -67,11 +69,20 @@ export interface AnswerQuestionResponse {
     meta?: Record<string, unknown>;
 }
 
-export const COPILOT_ACTION_TYPES = ['rfq_draft', 'supplier_message', 'maintenance_checklist', 'inventory_whatif'] as const;
+export const COPILOT_ACTION_TYPES = [
+    'rfq_draft',
+    'supplier_message',
+    'maintenance_checklist',
+    'inventory_whatif',
+] as const;
 
 export type CopilotActionType = (typeof COPILOT_ACTION_TYPES)[number];
 
-export type CopilotActionStatus = 'drafted' | 'approved' | 'rejected' | 'expired';
+export type CopilotActionStatus =
+    | 'drafted'
+    | 'approved'
+    | 'rejected'
+    | 'expired';
 
 export interface CopilotCitation {
     doc_id: string;
@@ -123,7 +134,9 @@ const normalizeError = (error: unknown): ApiError => {
         return error;
     }
 
-    return new ApiError(error instanceof Error ? error.message : 'AI request failed');
+    return new ApiError(
+        error instanceof Error ? error.message : 'AI request failed',
+    );
 };
 
 const handleRequest = async <TPayload extends Record<string, unknown>, TData>(
@@ -144,52 +157,72 @@ const handleRequest = async <TPayload extends Record<string, unknown>, TData>(
     }
 };
 
-export const getForecast = async <TData = Record<string, unknown>>(payload: ForecastPayload): Promise<AiResponse<TData>> => {
+export const getForecast = async <TData = Record<string, unknown>>(
+    payload: ForecastPayload,
+): Promise<AiResponse<TData>> => {
     return handleRequest<ForecastPayload, TData>('/ai/forecast', payload);
 };
 
 export const getSupplierRisk = async <TData = Record<string, unknown>>(
     payload: SupplierRiskPayload,
 ): Promise<AiResponse<TData>> => {
-    return handleRequest<SupplierRiskPayload, TData>('/ai/supplier-risk', payload);
+    return handleRequest<SupplierRiskPayload, TData>(
+        '/ai/supplier-risk',
+        payload,
+    );
 };
 
 export const indexDocument = async (
     payload: IndexDocumentPayload,
 ): Promise<AiResponse<{ doc_id: number; doc_version: string }>> => {
-    return handleRequest<IndexDocumentPayload, { doc_id: number; doc_version: string }>(
-        '/v1/admin/ai/reindex-document',
-        payload,
-    );
+    return handleRequest<
+        IndexDocumentPayload,
+        { doc_id: number; doc_version: string }
+    >('/v1/admin/ai/reindex-document', payload);
 };
 
 export const semanticSearch = async <TData = SemanticSearchResponse>(
     payload: SemanticSearchPayload,
 ): Promise<AiResponse<TData>> => {
-    return handleRequest<SemanticSearchPayload, TData>('/copilot/search', payload);
+    return handleRequest<SemanticSearchPayload, TData>(
+        '/copilot/search',
+        payload,
+    );
 };
 
 export const answerQuestion = async <TData = AnswerQuestionResponse>(
     payload: AnswerQuestionPayload,
 ): Promise<AiResponse<TData>> => {
-    return handleRequest<AnswerQuestionPayload, TData>('/copilot/answer', payload);
+    return handleRequest<AnswerQuestionPayload, TData>(
+        '/copilot/answer',
+        payload,
+    );
 };
 
 export const planCopilotAction = async (
     payload: CopilotActionPlanPayload,
 ): Promise<AiResponse<CopilotActionPlanResponse>> => {
-    return handleRequest<CopilotActionPlanPayload, CopilotActionPlanResponse>('/v1/ai/actions/plan', payload);
+    return handleRequest<CopilotActionPlanPayload, CopilotActionPlanResponse>(
+        '/v1/ai/actions/plan',
+        payload,
+    );
 };
 
 export const approveCopilotAction = async (
     draftId: number,
 ): Promise<AiResponse<CopilotActionPlanResponse>> => {
-    return handleRequest<Record<string, never>, CopilotActionPlanResponse>(`/v1/ai/actions/${draftId}/approve`, {});
+    return handleRequest<Record<string, never>, CopilotActionPlanResponse>(
+        `/v1/ai/actions/${draftId}/approve`,
+        {},
+    );
 };
 
 export const rejectCopilotAction = async (
     draftId: number,
     payload: CopilotActionRejectPayload,
 ): Promise<AiResponse<CopilotActionPlanResponse>> => {
-    return handleRequest<CopilotActionRejectPayload, CopilotActionPlanResponse>(`/v1/ai/actions/${draftId}/reject`, payload);
+    return handleRequest<CopilotActionRejectPayload, CopilotActionPlanResponse>(
+        `/v1/ai/actions/${draftId}/reject`,
+        payload,
+    );
 };

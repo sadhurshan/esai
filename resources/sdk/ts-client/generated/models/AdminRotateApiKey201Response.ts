@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { AdminRotateApiKey201ResponseAllOfData } from './AdminRotateApiKey201ResponseAllOfData';
 import {
     AdminRotateApiKey201ResponseAllOfDataFromJSON,
-    AdminRotateApiKey201ResponseAllOfDataFromJSONTyped,
     AdminRotateApiKey201ResponseAllOfDataToJSON,
-    AdminRotateApiKey201ResponseAllOfDataToJSONTyped,
 } from './AdminRotateApiKey201ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface AdminRotateApiKey201Response
  */
 export interface AdminRotateApiKey201Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminRotateApiKey201Response
      */
     status: AdminRotateApiKey201ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminRotateApiKey201Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {AdminRotateApiKey201ResponseAllOfData}
      * @memberof AdminRotateApiKey201Response
      */
     data: AdminRotateApiKey201ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof AdminRotateApiKey201Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const AdminRotateApiKey201ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type AdminRotateApiKey201ResponseStatusEnum = typeof AdminRotateApiKey201ResponseStatusEnum[keyof typeof AdminRotateApiKey201ResponseStatusEnum];
-
+export type AdminRotateApiKey201ResponseStatusEnum =
+    (typeof AdminRotateApiKey201ResponseStatusEnum)[keyof typeof AdminRotateApiKey201ResponseStatusEnum];
 
 /**
  * Check if a given object implements the AdminRotateApiKey201Response interface.
  */
-export function instanceOfAdminRotateApiKey201Response(value: object): value is AdminRotateApiKey201Response {
+export function instanceOfAdminRotateApiKey201Response(
+    value: object,
+): value is AdminRotateApiKey201Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function AdminRotateApiKey201ResponseFromJSON(json: any): AdminRotateApiKey201Response {
+export function AdminRotateApiKey201ResponseFromJSON(
+    json: any,
+): AdminRotateApiKey201Response {
     return AdminRotateApiKey201ResponseFromJSONTyped(json, false);
 }
 
-export function AdminRotateApiKey201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminRotateApiKey201Response {
+export function AdminRotateApiKey201ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminRotateApiKey201Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': AdminRotateApiKey201ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: AdminRotateApiKey201ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminRotateApiKey201ResponseToJSON(json: any): AdminRotateApiKey201Response {
+export function AdminRotateApiKey201ResponseToJSON(
+    json: any,
+): AdminRotateApiKey201Response {
     return AdminRotateApiKey201ResponseToJSONTyped(json, false);
 }
 
-export function AdminRotateApiKey201ResponseToJSONTyped(value?: AdminRotateApiKey201Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminRotateApiKey201ResponseToJSONTyped(
+    value?: AdminRotateApiKey201Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': AdminRotateApiKey201ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: AdminRotateApiKey201ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

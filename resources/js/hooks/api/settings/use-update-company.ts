@@ -1,17 +1,27 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { api, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+    CompanySettingsFromJSON,
+    CompanySettingsToJSON,
+    type CompanySettings as ApiCompanySettings,
+} from '@/sdk';
 import type { CompanySettings } from '@/types/settings';
 import { mapCompanySettings } from './use-company';
-import { CompanySettingsFromJSON, CompanySettingsToJSON, type CompanySettings as ApiCompanySettings } from '@/sdk';
 
 export interface UpdateCompanySettingsInput extends CompanySettings {
     logoFile?: File | null;
     markFile?: File | null;
 }
 
-export function buildCompanySettingsPayload(input: UpdateCompanySettingsInput): ApiCompanySettings {
+export function buildCompanySettingsPayload(
+    input: UpdateCompanySettingsInput,
+): ApiCompanySettings {
     const payload = {
         legalName: input.legalName,
         displayName: input.displayName,
@@ -37,15 +47,19 @@ export function buildCompanySettingsPayload(input: UpdateCompanySettingsInput): 
             postalCode: input.shipFrom?.postalCode ?? null,
             country: input.shipFrom?.country ?? '',
         },
-        logoUrl: input.logoFile ? null : input.logoUrl ?? null,
-        markUrl: input.markFile ? null : input.markUrl ?? null,
+        logoUrl: input.logoFile ? null : (input.logoUrl ?? null),
+        markUrl: input.markFile ? null : (input.markUrl ?? null),
     } satisfies Record<string, unknown>;
 
     return payload as ApiCompanySettings;
 }
 
-export function buildCompanySettingsFormData(input: UpdateCompanySettingsInput): FormData {
-    const jsonPayload = CompanySettingsToJSON(buildCompanySettingsPayload(input));
+export function buildCompanySettingsFormData(
+    input: UpdateCompanySettingsInput,
+): FormData {
+    const jsonPayload = CompanySettingsToJSON(
+        buildCompanySettingsPayload(input),
+    );
     const formData = new FormData();
 
     appendFormData(formData, jsonPayload);
@@ -62,12 +76,19 @@ export function buildCompanySettingsFormData(input: UpdateCompanySettingsInput):
     return formData;
 }
 
-export function useUpdateCompanySettings(): UseMutationResult<CompanySettings, ApiError, UpdateCompanySettingsInput> {
+export function useUpdateCompanySettings(): UseMutationResult<
+    CompanySettings,
+    ApiError,
+    UpdateCompanySettingsInput
+> {
     const queryClient = useQueryClient();
 
     return useMutation<CompanySettings, ApiError, UpdateCompanySettingsInput>({
         mutationFn: async (input) => {
-            const data = (await api.post('/settings/company', buildCompanySettingsFormData(input))) as unknown;
+            const data = (await api.post(
+                '/settings/company',
+                buildCompanySettingsFormData(input),
+            )) as unknown;
             const payload = CompanySettingsFromJSON(data);
 
             return mapCompanySettings(payload);
@@ -78,7 +99,11 @@ export function useUpdateCompanySettings(): UseMutationResult<CompanySettings, A
     });
 }
 
-const appendFormData = (formData: FormData, value: unknown, parentKey?: string): void => {
+const appendFormData = (
+    formData: FormData,
+    value: unknown,
+    parentKey?: string,
+): void => {
     if (value === undefined) {
         return;
     }
@@ -92,15 +117,19 @@ const appendFormData = (formData: FormData, value: unknown, parentKey?: string):
     }
 
     if (Array.isArray(value)) {
-        value.forEach((entry) => appendFormData(formData, entry, `${parentKey}[]`));
+        value.forEach((entry) =>
+            appendFormData(formData, entry, `${parentKey}[]`),
+        );
         return;
     }
 
     if (typeof value === 'object') {
-        Object.entries(value as Record<string, unknown>).forEach(([key, entry]) => {
-            const nextKey = parentKey ? `${parentKey}[${key}]` : key;
-            appendFormData(formData, entry, nextKey);
-        });
+        Object.entries(value as Record<string, unknown>).forEach(
+            ([key, entry]) => {
+                const nextKey = parentKey ? `${parentKey}[${key}]` : key;
+                appendFormData(formData, entry, nextKey);
+            },
+        );
 
         return;
     }

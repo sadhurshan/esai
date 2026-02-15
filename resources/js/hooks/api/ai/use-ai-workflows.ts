@@ -1,8 +1,15 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { api, buildQuery, type ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
-import type { AiWorkflowListResponse, AiWorkflowSummary } from '@/types/ai-workflows';
+import type {
+    AiWorkflowListResponse,
+    AiWorkflowSummary,
+} from '@/types/ai-workflows';
 
 export interface UseAiWorkflowsParams extends Record<string, unknown> {
     status?: string | string[];
@@ -27,7 +34,9 @@ const normalizeParams = (params: UseAiWorkflowsParams): NormalizedParams => {
     const normalizeStatus = (raw?: string | string[]) => {
         if (Array.isArray(raw)) {
             return raw
-                .map((value) => (typeof value === 'string' ? value.trim() : String(value)))
+                .map((value) =>
+                    typeof value === 'string' ? value.trim() : String(value),
+                )
                 .filter((value) => value.length > 0)
                 .sort();
         }
@@ -68,7 +77,9 @@ export function useAiWorkflows(
         queryKey: queryKeys.ai.workflows.list(keyPayload),
         queryFn: async () => {
             const query = buildQuery(queryPayload);
-            const response = await api.get<AiWorkflowListResponse>(`/v1/ai/workflows${query}`);
+            const response = await api.get<AiWorkflowListResponse>(
+                `/v1/ai/workflows${query}`,
+            );
             return response.data;
         },
         select: (response) => ({

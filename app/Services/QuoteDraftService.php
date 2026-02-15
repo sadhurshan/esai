@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Models\RFQ;
 use App\Models\RfqItem;
+use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Support\Audit\AuditLogger;
 use App\Support\RfqResponseWindowGuard;
 use App\Support\CompanyContext;
@@ -19,7 +22,8 @@ class QuoteDraftService
         private readonly TotalsCalculator $totalsCalculator,
         private readonly LineTaxSyncService $lineTaxSync,
         private readonly AuditLogger $auditLogger,
-        private readonly RfqResponseWindowGuard $rfqResponseWindowGuard
+        private readonly RfqResponseWindowGuard $rfqResponseWindowGuard,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {}
 
     /**
@@ -179,6 +183,13 @@ class QuoteDraftService
             $quote->save();
 
             $this->auditLogger->updated($quote, $before, $quote->only(['status', 'submitted_by', 'submitted_at']));
+
+            $rfq = CompanyContext::bypass(static fn () => RFQ::query()->find($quote->rfq_id));
+            $actor = User::query()->find($userId);
+
+            if ($rfq instanceof RFQ) {
+                $this->digitalTwinLinkService->linkQuoteSubmission($rfq, $quote, $actor);
+            }
 
             return $quote->fresh($this->defaultRelations());
         });

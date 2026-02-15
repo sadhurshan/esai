@@ -1,8 +1,20 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import { HttpError, RiskModuleApi, type GenerateRiskScoresPayload, type ListRiskScoresQuery } from '@/sdk';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+    HttpError,
+    RiskModuleApi,
+    type GenerateRiskScoresPayload,
+    type ListRiskScoresQuery,
+} from '@/sdk';
 import type { SupplierRiskScore } from '@/types/risk';
 
 interface RiskScoresResponse {
@@ -16,7 +28,8 @@ interface UseRiskScoresResult {
     meta: Record<string, unknown> | null;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
 const RISK_GRADES = new Set(['low', 'medium', 'high']);
 
 const toNumber = (value: unknown): number | null => {
@@ -60,14 +73,20 @@ function mapRiskScore(payload: Record<string, unknown>): SupplierRiskScore {
         : null;
 
     const badgesRaw = Array.isArray(payload.badges)
-        ? payload.badges.filter((badge): badge is string => typeof badge === 'string')
+        ? payload.badges.filter(
+              (badge): badge is string => typeof badge === 'string',
+          )
         : [];
 
     return {
         supplierId: Number(payload.supplier_id ?? payload.supplierId ?? 0) || 0,
-        supplierName: typeof payload.supplier_name === 'string' ? payload.supplier_name : null,
+        supplierName:
+            typeof payload.supplier_name === 'string'
+                ? payload.supplier_name
+                : null,
         riskGrade:
-            typeof payload.risk_grade === 'string' && RISK_GRADES.has(payload.risk_grade)
+            typeof payload.risk_grade === 'string' &&
+            RISK_GRADES.has(payload.risk_grade)
                 ? (payload.risk_grade as SupplierRiskScore['riskGrade'])
                 : null,
         overallScore: toNumber(payload.overall_score),
@@ -78,12 +97,17 @@ function mapRiskScore(payload: Record<string, unknown>): SupplierRiskScore {
         responsivenessRate: toNumber(payload.responsiveness_rate),
         badges: badgesRaw,
         meta: normalizedMeta,
-        createdAt: typeof payload.created_at === 'string' ? payload.created_at : null,
-        updatedAt: typeof payload.updated_at === 'string' ? payload.updated_at : null,
+        createdAt:
+            typeof payload.created_at === 'string' ? payload.created_at : null,
+        updatedAt:
+            typeof payload.updated_at === 'string' ? payload.updated_at : null,
     } satisfies SupplierRiskScore;
 }
 
-function extractScores(payload: RiskScoresResponse | unknown): { rows: SupplierRiskScore[]; meta: Record<string, unknown> | null } {
+function extractScores(payload: RiskScoresResponse | unknown): {
+    rows: SupplierRiskScore[];
+    meta: Record<string, unknown> | null;
+} {
     if (Array.isArray(payload)) {
         return {
             rows: payload.filter(isRecord).map(mapRiskScore),
@@ -120,7 +144,11 @@ export function useRiskScores(
 ): UseQueryResult<UseRiskScoresResult, HttpError | Error> {
     const riskApi = useSdkClient(RiskModuleApi);
 
-    return useQuery<RiskScoresResponse | unknown, HttpError | Error, UseRiskScoresResult>({
+    return useQuery<
+        RiskScoresResponse | unknown,
+        HttpError | Error,
+        UseRiskScoresResult
+    >({
         queryKey: queryKeys.risk.list(params),
         placeholderData: keepPreviousData,
         staleTime: 60_000,
@@ -141,7 +169,11 @@ export function useGenerateRiskScores(): UseMutationResult<
     const riskApi = useSdkClient(RiskModuleApi);
     const queryClient = useQueryClient();
 
-    return useMutation<SupplierRiskScore[], HttpError | Error, GenerateRiskScoresPayload | undefined>({
+    return useMutation<
+        SupplierRiskScore[],
+        HttpError | Error,
+        GenerateRiskScoresPayload | undefined
+    >({
         mutationFn: async (payload) => {
             const response = await riskApi.generateScores(payload ?? {});
             const { rows } = extractScores(response);

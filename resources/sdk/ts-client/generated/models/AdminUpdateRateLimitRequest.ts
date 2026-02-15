@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminUpdateRateLimitRequest
  */
 export interface AdminUpdateRateLimitRequest {
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminUpdateRateLimitRequest
      */
     windowSeconds?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminUpdateRateLimitRequest
      */
     maxRequests?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminUpdateRateLimitRequest
      */
@@ -42,40 +41,51 @@ export interface AdminUpdateRateLimitRequest {
 /**
  * Check if a given object implements the AdminUpdateRateLimitRequest interface.
  */
-export function instanceOfAdminUpdateRateLimitRequest(value: object): value is AdminUpdateRateLimitRequest {
+export function instanceOfAdminUpdateRateLimitRequest(
+    value: object,
+): value is AdminUpdateRateLimitRequest {
     return true;
 }
 
-export function AdminUpdateRateLimitRequestFromJSON(json: any): AdminUpdateRateLimitRequest {
+export function AdminUpdateRateLimitRequestFromJSON(
+    json: any,
+): AdminUpdateRateLimitRequest {
     return AdminUpdateRateLimitRequestFromJSONTyped(json, false);
 }
 
-export function AdminUpdateRateLimitRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminUpdateRateLimitRequest {
+export function AdminUpdateRateLimitRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminUpdateRateLimitRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'windowSeconds': json['window_seconds'] == null ? undefined : json['window_seconds'],
-        'maxRequests': json['max_requests'] == null ? undefined : json['max_requests'],
-        'active': json['active'] == null ? undefined : json['active'],
+        windowSeconds:
+            json['window_seconds'] == null ? undefined : json['window_seconds'],
+        maxRequests:
+            json['max_requests'] == null ? undefined : json['max_requests'],
+        active: json['active'] == null ? undefined : json['active'],
     };
 }
 
-export function AdminUpdateRateLimitRequestToJSON(json: any): AdminUpdateRateLimitRequest {
+export function AdminUpdateRateLimitRequestToJSON(
+    json: any,
+): AdminUpdateRateLimitRequest {
     return AdminUpdateRateLimitRequestToJSONTyped(json, false);
 }
 
-export function AdminUpdateRateLimitRequestToJSONTyped(value?: AdminUpdateRateLimitRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminUpdateRateLimitRequestToJSONTyped(
+    value?: AdminUpdateRateLimitRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'window_seconds': value['windowSeconds'],
-        'max_requests': value['maxRequests'],
-        'active': value['active'],
+        window_seconds: value['windowSeconds'],
+        max_requests: value['maxRequests'],
+        active: value['active'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -14,21 +14,26 @@
 
 /**
  * @type ListPurchaseOrdersStatusParameter
- * 
+ *
  * @export
  */
 export type ListPurchaseOrdersStatusParameter = Array<string> | string;
 
-export function ListPurchaseOrdersStatusParameterFromJSON(json: any): ListPurchaseOrdersStatusParameter {
+export function ListPurchaseOrdersStatusParameterFromJSON(
+    json: any,
+): ListPurchaseOrdersStatusParameter {
     return ListPurchaseOrdersStatusParameterFromJSONTyped(json, false);
 }
 
-export function ListPurchaseOrdersStatusParameterFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListPurchaseOrdersStatusParameter {
+export function ListPurchaseOrdersStatusParameterFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListPurchaseOrdersStatusParameter {
     if (json == null) {
         return json;
     }
     if (Array.isArray(json)) {
-        if (json.every(item => typeof item === 'string')) {
+        if (json.every((item) => typeof item === 'string')) {
             return json;
         }
     }
@@ -42,12 +47,15 @@ export function ListPurchaseOrdersStatusParameterToJSON(json: any): any {
     return ListPurchaseOrdersStatusParameterToJSONTyped(json, false);
 }
 
-export function ListPurchaseOrdersStatusParameterToJSONTyped(value?: ListPurchaseOrdersStatusParameter | null, ignoreDiscriminator: boolean = false): any {
+export function ListPurchaseOrdersStatusParameterToJSONTyped(
+    value?: ListPurchaseOrdersStatusParameter | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
     if (Array.isArray(value)) {
-        if (value.every(item => typeof item === 'string')) {
+        if (value.every((item) => typeof item === 'string')) {
             return value;
         }
     }
@@ -56,4 +64,3 @@ export function ListPurchaseOrdersStatusParameterToJSONTyped(value?: ListPurchas
     }
     return {};
 }
-

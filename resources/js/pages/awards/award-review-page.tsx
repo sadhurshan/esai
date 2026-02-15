@@ -1,12 +1,15 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AwardLinePicker } from '@/components/awards/award-line-picker';
 import { AwardSummaryCard } from '@/components/awards/award-summary-card';
 import { ConvertToPoDialog } from '@/components/awards/convert-to-po-dialog';
+import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
@@ -14,11 +17,11 @@ import { useCreateAwards } from '@/hooks/api/awards/use-create-awards';
 import { useDeleteAward } from '@/hooks/api/awards/use-delete-award';
 import { useRfqAwardCandidates } from '@/hooks/api/awards/use-rfq-award-candidates';
 import { useCreatePo } from '@/hooks/api/pos/use-create-po';
-import { awardFormSchema, type AwardFormValues } from '@/pages/awards/award-form-schema';
+import {
+    awardFormSchema,
+    type AwardFormValues,
+} from '@/pages/awards/award-form-schema';
 import { HttpError } from '@/sdk';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { WorkspaceBreadcrumbs } from '@/components/breadcrumbs';
 
 interface AwardLaunchState {
     quoteIds?: Array<string | number>;
@@ -56,9 +59,11 @@ export function AwardReviewPage() {
     const params = useParams<{ rfqId: string }>();
     const rfqId = Number(params.rfqId);
     const location = useLocation();
-    const awardLaunchState = (location.state as AwardLaunchState | undefined) ?? undefined;
+    const awardLaunchState =
+        (location.state as AwardLaunchState | undefined) ?? undefined;
     const navigate = useNavigate();
-    const { data, isLoading, isFetching, refetch } = useRfqAwardCandidates(rfqId);
+    const { data, isLoading, isFetching, refetch } =
+        useRfqAwardCandidates(rfqId);
     const createAwardsMutation = useCreateAwards();
     const deleteAwardMutation = useDeleteAward();
     const createPoMutation = useCreatePo();
@@ -103,7 +108,9 @@ export function AwardReviewPage() {
         }
         const map = new Map<number, number>();
         lines.forEach((line) => {
-            const matchingCandidate = line.candidates.find((candidate) => preferredQuoteIdSet.has(String(candidate.quoteId)));
+            const matchingCandidate = line.candidates.find((candidate) =>
+                preferredQuoteIdSet.has(String(candidate.quoteId)),
+            );
             if (matchingCandidate) {
                 map.set(line.id, matchingCandidate.quoteItemId);
             }
@@ -113,23 +120,31 @@ export function AwardReviewPage() {
 
     const defaultLineValues = useMemo(() => {
         const values = lines.map((line) => {
-            const persistedAward = awards.find((award) => award.rfqItemId === line.id && !award.poId);
+            const persistedAward = awards.find(
+                (award) => award.rfqItemId === line.id && !award.poId,
+            );
             return {
                 rfqItemId: line.id,
-                quoteItemId: persistedAward?.quoteItemId ?? preferredQuoteItemByLine?.get(line.id),
+                quoteItemId:
+                    persistedAward?.quoteItemId ??
+                    preferredQuoteItemByLine?.get(line.id),
                 awardedQty: persistedAward?.awardedQty ?? line.quantity,
             };
         });
         return values;
     }, [awards, lines, preferredQuoteItemByLine]);
 
-    const defaultHash = useMemo(() => JSON.stringify(defaultLineValues), [defaultLineValues]);
+    const defaultHash = useMemo(
+        () => JSON.stringify(defaultLineValues),
+        [defaultLineValues],
+    );
 
     useEffect(() => {
         form.reset({ lines: defaultLineValues });
     }, [defaultHash, defaultLineValues, form]);
 
-    const watchedSelections = useWatch({ control: form.control, name: 'lines' }) ?? [];
+    const watchedSelections =
+        useWatch({ control: form.control, name: 'lines' }) ?? [];
 
     const handlePersistAwards = form.handleSubmit(async (values) => {
         const items = values.lines
@@ -137,7 +152,10 @@ export function AwardReviewPage() {
             .map((line) => ({
                 rfqItemId: line.rfqItemId,
                 quoteItemId: line.quoteItemId!,
-                awardedQty: line.awardedQty && line.awardedQty > 0 ? line.awardedQty : undefined,
+                awardedQty:
+                    line.awardedQty && line.awardedQty > 0
+                        ? line.awardedQty
+                        : undefined,
             }));
 
         if (!items.length) {
@@ -154,7 +172,10 @@ export function AwardReviewPage() {
             await refetch();
         } catch (error) {
             const description =
-                resolveApiErrorMessage(error) ?? (error instanceof Error ? error.message : 'Unexpected error occurred while saving.');
+                resolveApiErrorMessage(error) ??
+                (error instanceof Error
+                    ? error.message
+                    : 'Unexpected error occurred while saving.');
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to save awards',
@@ -175,7 +196,10 @@ export function AwardReviewPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to remove award',
-                description: error instanceof Error ? error.message : 'Unexpected error occurred while deleting.',
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unexpected error occurred while deleting.',
             });
         } finally {
             setDeletingAwardId(null);
@@ -184,22 +208,31 @@ export function AwardReviewPage() {
 
     const handleConvert = async (awardIds: number[]) => {
         try {
-            const purchaseOrders = await createPoMutation.mutateAsync({ awardIds, rfqId });
+            const purchaseOrders = await createPoMutation.mutateAsync({
+                awardIds,
+                rfqId,
+            });
             setIsConvertDialogOpen(false);
             if (purchaseOrders.length > 0) {
                 navigate(`/app/purchase-orders/${purchaseOrders[0].id}`);
             }
         } catch (error) {
             if (error instanceof HttpError && error.response.status === 402) {
-                const planMessage = (error.body as { message?: string } | undefined)?.message;
+                const planMessage = (
+                    error.body as { message?: string } | undefined
+                )?.message;
                 notifyPlanLimit({
                     code: 'purchase_orders',
-                    message: planMessage ?? 'Upgrade plan to create purchase orders.',
+                    message:
+                        planMessage ??
+                        'Upgrade plan to create purchase orders.',
                 });
             } else {
                 const description =
                     resolveApiErrorMessage(error) ??
-                    (error instanceof Error ? error.message : 'Unable to convert awards to purchase orders.');
+                    (error instanceof Error
+                        ? error.message
+                        : 'Unable to convert awards to purchase orders.');
                 publishToast({
                     variant: 'destructive',
                     title: 'Conversion failed',
@@ -222,18 +255,26 @@ export function AwardReviewPage() {
             <Card className="border-border/70">
                 <CardContent className="flex flex-col gap-2 p-6">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        {rfq?.number ? <Badge variant="outline">RFQ #{rfq.number}</Badge> : null}
+                        {rfq?.number ? (
+                            <Badge variant="outline">RFQ #{rfq.number}</Badge>
+                        ) : null}
                         {rfq?.status ? (
                             <Badge variant="secondary" className="capitalize">
                                 {rfq.status.replace(/_/g, ' ')}
                             </Badge>
                         ) : null}
-                        {isFetching ? <span className="text-xs">Refreshing…</span> : null}
+                        {isFetching ? (
+                            <span className="text-xs">Refreshing…</span>
+                        ) : null}
                     </div>
                     <div className="flex flex-col gap-1">
-                        <h1 className="text-2xl font-semibold text-foreground">Award RFQ lines</h1>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            Award RFQ lines
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Select winning quotes per line, persist awards, and convert them into purchase order drafts grouped by supplier.
+                            Select winning quotes per line, persist awards, and
+                            convert them into purchase order drafts grouped by
+                            supplier.
                         </p>
                     </div>
                 </CardContent>
@@ -249,7 +290,11 @@ export function AwardReviewPage() {
                 </div>
             ) : (
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-                    <form id="award-lines-form" className="space-y-4" onSubmit={handlePersistAwards}>
+                    <form
+                        id="award-lines-form"
+                        className="space-y-4"
+                        onSubmit={handlePersistAwards}
+                    >
                         <AwardLinePicker
                             lines={lines}
                             form={form}

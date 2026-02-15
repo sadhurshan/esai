@@ -10,24 +10,29 @@ This package is generated from the canonical OpenAPI definition (`php artisan ap
 ## Quick Start
 
 ```ts
-import { createConfiguration, PurchaseOrdersApi, TooManyRequestsError } from './ts-client';
+import {
+    createConfiguration,
+    PurchaseOrdersApi,
+    TooManyRequestsError,
+} from './ts-client';
 
 const config = createConfiguration({
-  baseUrl: process.env.API_BASE_URL,
-  bearerToken: async () => sessionStorage.getItem('access_token') ?? undefined,
-  apiKey: () => process.env.PUBLIC_API_KEY,
+    baseUrl: process.env.API_BASE_URL,
+    bearerToken: async () =>
+        sessionStorage.getItem('access_token') ?? undefined,
+    apiKey: () => process.env.PUBLIC_API_KEY,
 });
 
 const purchaseOrders = new PurchaseOrdersApi(config);
 
 try {
-  const result = await purchaseOrders.apiPurchaseOrdersGet();
-  console.log(result.data.items);
+    const result = await purchaseOrders.apiPurchaseOrdersGet();
+    console.log(result.data.items);
 } catch (error) {
-  if (error instanceof TooManyRequestsError) {
-    console.warn(`Retry after ${error.retryAfterMs}ms`);
-  }
-  throw error;
+    if (error instanceof TooManyRequestsError) {
+        console.warn(`Retry after ${error.retryAfterMs}ms`);
+    }
+    throw error;
 }
 ```
 

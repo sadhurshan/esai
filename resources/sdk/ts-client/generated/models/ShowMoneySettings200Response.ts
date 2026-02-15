@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,105 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { MoneySettings } from './MoneySettings';
-import {
-    MoneySettingsFromJSON,
-    MoneySettingsFromJSONTyped,
-    MoneySettingsToJSON,
-    MoneySettingsToJSONTyped,
-} from './MoneySettings';
+import { MoneySettingsFromJSON, MoneySettingsToJSON } from './MoneySettings';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface ShowMoneySettings200Response
  */
 export interface ShowMoneySettings200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ShowMoneySettings200Response
      */
     status: ShowMoneySettings200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ShowMoneySettings200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {MoneySettings}
      * @memberof ShowMoneySettings200Response
      */
     data: MoneySettings;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof ShowMoneySettings200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const ShowMoneySettings200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type ShowMoneySettings200ResponseStatusEnum = typeof ShowMoneySettings200ResponseStatusEnum[keyof typeof ShowMoneySettings200ResponseStatusEnum];
-
+export type ShowMoneySettings200ResponseStatusEnum =
+    (typeof ShowMoneySettings200ResponseStatusEnum)[keyof typeof ShowMoneySettings200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the ShowMoneySettings200Response interface.
  */
-export function instanceOfShowMoneySettings200Response(value: object): value is ShowMoneySettings200Response {
+export function instanceOfShowMoneySettings200Response(
+    value: object,
+): value is ShowMoneySettings200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function ShowMoneySettings200ResponseFromJSON(json: any): ShowMoneySettings200Response {
+export function ShowMoneySettings200ResponseFromJSON(
+    json: any,
+): ShowMoneySettings200Response {
     return ShowMoneySettings200ResponseFromJSONTyped(json, false);
 }
 
-export function ShowMoneySettings200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ShowMoneySettings200Response {
+export function ShowMoneySettings200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ShowMoneySettings200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': MoneySettingsFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: MoneySettingsFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function ShowMoneySettings200ResponseToJSON(json: any): ShowMoneySettings200Response {
+export function ShowMoneySettings200ResponseToJSON(
+    json: any,
+): ShowMoneySettings200Response {
     return ShowMoneySettings200ResponseToJSONTyped(json, false);
 }
 
-export function ShowMoneySettings200ResponseToJSONTyped(value?: ShowMoneySettings200Response | null, ignoreDiscriminator: boolean = false): any {
+export function ShowMoneySettings200ResponseToJSONTyped(
+    value?: ShowMoneySettings200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': MoneySettingsToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: MoneySettingsToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

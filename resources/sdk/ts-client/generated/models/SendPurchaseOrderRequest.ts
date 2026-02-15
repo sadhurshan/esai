@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,15 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SendPurchaseOrderRequest
  */
 export interface SendPurchaseOrderRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SendPurchaseOrderRequest
      */
@@ -32,70 +31,78 @@ export interface SendPurchaseOrderRequest {
      */
     to?: Array<string>;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof SendPurchaseOrderRequest
      */
     cc?: Array<string>;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SendPurchaseOrderRequest
      */
     message?: string;
 }
 
-
 /**
  * @export
  */
 export const SendPurchaseOrderRequestChannelEnum = {
     Email: 'email',
-    Webhook: 'webhook'
+    Webhook: 'webhook',
 } as const;
-export type SendPurchaseOrderRequestChannelEnum = typeof SendPurchaseOrderRequestChannelEnum[keyof typeof SendPurchaseOrderRequestChannelEnum];
-
+export type SendPurchaseOrderRequestChannelEnum =
+    (typeof SendPurchaseOrderRequestChannelEnum)[keyof typeof SendPurchaseOrderRequestChannelEnum];
 
 /**
  * Check if a given object implements the SendPurchaseOrderRequest interface.
  */
-export function instanceOfSendPurchaseOrderRequest(value: object): value is SendPurchaseOrderRequest {
+export function instanceOfSendPurchaseOrderRequest(
+    value: object,
+): value is SendPurchaseOrderRequest {
     if (!('channel' in value) || value['channel'] === undefined) return false;
     return true;
 }
 
-export function SendPurchaseOrderRequestFromJSON(json: any): SendPurchaseOrderRequest {
+export function SendPurchaseOrderRequestFromJSON(
+    json: any,
+): SendPurchaseOrderRequest {
     return SendPurchaseOrderRequestFromJSONTyped(json, false);
 }
 
-export function SendPurchaseOrderRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): SendPurchaseOrderRequest {
+export function SendPurchaseOrderRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SendPurchaseOrderRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'channel': json['channel'],
-        'to': json['to'] == null ? undefined : json['to'],
-        'cc': json['cc'] == null ? undefined : json['cc'],
-        'message': json['message'] == null ? undefined : json['message'],
+        channel: json['channel'],
+        to: json['to'] == null ? undefined : json['to'],
+        cc: json['cc'] == null ? undefined : json['cc'],
+        message: json['message'] == null ? undefined : json['message'],
     };
 }
 
-export function SendPurchaseOrderRequestToJSON(json: any): SendPurchaseOrderRequest {
+export function SendPurchaseOrderRequestToJSON(
+    json: any,
+): SendPurchaseOrderRequest {
     return SendPurchaseOrderRequestToJSONTyped(json, false);
 }
 
-export function SendPurchaseOrderRequestToJSONTyped(value?: SendPurchaseOrderRequest | null, ignoreDiscriminator: boolean = false): any {
+export function SendPurchaseOrderRequestToJSONTyped(
+    value?: SendPurchaseOrderRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'channel': value['channel'],
-        'to': value['to'],
-        'cc': value['cc'],
-        'message': value['message'],
+        channel: value['channel'],
+        to: value['to'],
+        cc: value['cc'],
+        message: value['message'],
     };
 }
-

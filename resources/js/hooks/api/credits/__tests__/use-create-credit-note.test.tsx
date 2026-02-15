@@ -1,12 +1,12 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useCreateCreditNote } from '../use-create-credit-note';
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
+import { useCreateCreditNote } from '../use-create-credit-note';
 
 vi.mock('@/contexts/api-client-context', () => ({
     useSdkClient: vi.fn(),
@@ -31,7 +31,11 @@ function createWrapper() {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return { Wrapper, invalidateSpy };
@@ -67,7 +71,9 @@ describe('useCreateCreditNote', () => {
         createCreditNoteFromInvoice.mockResolvedValue(apiResponse);
 
         const { Wrapper, invalidateSpy } = createWrapper();
-        const { result } = renderHook(() => useCreateCreditNote(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateCreditNote(), {
+            wrapper: Wrapper,
+        });
 
         await result.current.mutateAsync({
             invoiceId: 55,
@@ -87,12 +93,16 @@ describe('useCreateCreditNote', () => {
         await waitFor(() => expect(publishToastMock).toHaveBeenCalledTimes(1));
         expect(publishToastMock.mock.calls[0]?.[0]?.variant).toBe('success');
 
-        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['credits', 'list', {}] });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: ['credits', 'list', {}],
+        });
     });
 
     it('surfaces client-side validation errors via toast', async () => {
         const { Wrapper } = createWrapper();
-        const { result } = renderHook(() => useCreateCreditNote(), { wrapper: Wrapper });
+        const { result } = renderHook(() => useCreateCreditNote(), {
+            wrapper: Wrapper,
+        });
 
         await expect(
             result.current.mutateAsync({
@@ -100,7 +110,9 @@ describe('useCreateCreditNote', () => {
                 reason: '',
                 amountMinor: 1000,
             }),
-        ).rejects.toThrow('A valid invoice reference is required to create a credit note.');
+        ).rejects.toThrow(
+            'A valid invoice reference is required to create a credit note.',
+        );
 
         await waitFor(() => expect(publishToastMock).toHaveBeenCalled());
         expect(publishToastMock.mock.calls[0]?.[0]).toMatchObject({

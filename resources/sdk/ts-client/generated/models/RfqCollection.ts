@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { Rfq } from './Rfq';
-import {
-    RfqFromJSON,
-    RfqFromJSONTyped,
-    RfqToJSON,
-    RfqToJSONTyped,
-} from './Rfq';
+import { RfqFromJSON, RfqToJSON } from './Rfq';
 
 /**
- * 
+ *
  * @export
  * @interface RfqCollection
  */
 export interface RfqCollection {
     /**
-     * 
+     *
      * @type {Array<Rfq>}
      * @memberof RfqCollection
      */
     items: Array<Rfq>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof RfqCollection
      */
@@ -61,14 +50,16 @@ export function RfqCollectionFromJSON(json: any): RfqCollection {
     return RfqCollectionFromJSONTyped(json, false);
 }
 
-export function RfqCollectionFromJSONTyped(json: any, ignoreDiscriminator: boolean): RfqCollection {
+export function RfqCollectionFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): RfqCollection {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(RfqFromJSON)),
-        'meta': PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(RfqFromJSON),
+        meta: PageMetaFromJSON(json['meta']),
     };
 }
 
@@ -76,15 +67,16 @@ export function RfqCollectionToJSON(json: any): RfqCollection {
     return RfqCollectionToJSONTyped(json, false);
 }
 
-export function RfqCollectionToJSONTyped(value?: RfqCollection | null, ignoreDiscriminator: boolean = false): any {
+export function RfqCollectionToJSONTyped(
+    value?: RfqCollection | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(RfqToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(RfqToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

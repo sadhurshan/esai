@@ -2,16 +2,14 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**showCompanySettings**](SettingsApi.md#showcompanysettings) | **GET** /api/settings/company | Retrieve company profile settings |
-| [**showLocalizationSettings**](SettingsApi.md#showlocalizationsettings) | **GET** /api/settings/localization | Retrieve localization settings |
-| [**showNumberingSettings**](SettingsApi.md#shownumberingsettings) | **GET** /api/settings/numbering | Retrieve document numbering rules |
-| [**updateCompanySettings**](SettingsApi.md#updatecompanysettings) | **PATCH** /api/settings/company | Update company profile settings |
-| [**updateLocalizationSettings**](SettingsApi.md#updatelocalizationsettings) | **PATCH** /api/settings/localization | Update localization settings |
-| [**updateNumberingSettings**](SettingsApi.md#updatenumberingsettings) | **PATCH** /api/settings/numbering | Update document numbering rules |
-
-
+| Method                                                                      | HTTP request                         | Description                       |
+| --------------------------------------------------------------------------- | ------------------------------------ | --------------------------------- |
+| [**showCompanySettings**](SettingsApi.md#showcompanysettings)               | **GET** /api/settings/company        | Retrieve company profile settings |
+| [**showLocalizationSettings**](SettingsApi.md#showlocalizationsettings)     | **GET** /api/settings/localization   | Retrieve localization settings    |
+| [**showNumberingSettings**](SettingsApi.md#shownumberingsettings)           | **GET** /api/settings/numbering      | Retrieve document numbering rules |
+| [**updateCompanySettings**](SettingsApi.md#updatecompanysettings)           | **PATCH** /api/settings/company      | Update company profile settings   |
+| [**updateLocalizationSettings**](SettingsApi.md#updatelocalizationsettings) | **PATCH** /api/settings/localization | Update localization settings      |
+| [**updateNumberingSettings**](SettingsApi.md#updatenumberingsettings)       | **PATCH** /api/settings/numbering    | Update document numbering rules   |
 
 ## showCompanySettings
 
@@ -22,28 +20,25 @@ Retrieve company profile settings
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SettingsApi,
-} from '';
+import { Configuration, SettingsApi } from '';
 import type { ShowCompanySettingsRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SettingsApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SettingsApi(config);
 
-  try {
-    const data = await api.showCompanySettings();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showCompanySettings();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -67,14 +62,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Current company profile settings. |  -  |
+
+| Status code | Description                       | Response headers |
+| ----------- | --------------------------------- | ---------------- |
+| **200**     | Current company profile settings. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showLocalizationSettings
 
@@ -85,28 +79,25 @@ Retrieve localization settings
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SettingsApi,
-} from '';
+import { Configuration, SettingsApi } from '';
 import type { ShowLocalizationSettingsRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SettingsApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SettingsApi(config);
 
-  try {
-    const data = await api.showLocalizationSettings();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showLocalizationSettings();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -130,14 +121,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Current localization preferences for the tenant. |  -  |
+
+| Status code | Description                                      | Response headers |
+| ----------- | ------------------------------------------------ | ---------------- |
+| **200**     | Current localization preferences for the tenant. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showNumberingSettings
 
@@ -148,28 +138,25 @@ Retrieve document numbering rules
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SettingsApi,
-} from '';
+import { Configuration, SettingsApi } from '';
 import type { ShowNumberingSettingsRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SettingsApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SettingsApi(config);
 
-  try {
-    const data = await api.showNumberingSettings();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showNumberingSettings();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -193,14 +180,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Current numbering configuration for all document types. |  -  |
+
+| Status code | Description                                             | Response headers |
+| ----------- | ------------------------------------------------------- | ---------------- |
+| **200**     | Current numbering configuration for all document types. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateCompanySettings
 
@@ -219,7 +205,7 @@ import type { UpdateCompanySettingsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -246,10 +232,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **companySettings** | [CompanySettings](CompanySettings.md) |  | |
+| Name                | Type                                  | Description | Notes |
+| ------------------- | ------------------------------------- | ----------- | ----- |
+| **companySettings** | [CompanySettings](CompanySettings.md) |             |       |
 
 ### Return type
 
@@ -264,15 +249,14 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Updated company profile settings. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                       | Response headers       |
+| ----------- | --------------------------------- | ---------------------- |
+| **200**     | Updated company profile settings. | -                      |
+| **422**     | Payload validation failed.        | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateLocalizationSettings
 
@@ -291,7 +275,7 @@ import type { UpdateLocalizationSettingsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -318,10 +302,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **localizationSettings** | [LocalizationSettings](LocalizationSettings.md) |  | |
+| Name                     | Type                                            | Description | Notes |
+| ------------------------ | ----------------------------------------------- | ----------- | ----- |
+| **localizationSettings** | [LocalizationSettings](LocalizationSettings.md) |             |       |
 
 ### Return type
 
@@ -336,15 +319,14 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Updated localization settings. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                    | Response headers       |
+| ----------- | ------------------------------ | ---------------------- |
+| **200**     | Updated localization settings. | -                      |
+| **422**     | Payload validation failed.     | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateNumberingSettings
 
@@ -363,7 +345,7 @@ import type { UpdateNumberingSettingsRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -390,10 +372,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **numberingSettings** | [NumberingSettings](NumberingSettings.md) |  | |
+| Name                  | Type                                      | Description | Notes |
+| --------------------- | ----------------------------------------- | ----------- | ----- |
+| **numberingSettings** | [NumberingSettings](NumberingSettings.md) |             |       |
 
 ### Return type
 
@@ -408,12 +389,11 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Updated numbering configuration. |  -  |
-| **422** | Payload validation failed. |  * X-Request-Id -  <br>  |
+
+| Status code | Description                      | Response headers       |
+| ----------- | -------------------------------- | ---------------------- |
+| **200**     | Updated numbering configuration. | -                      |
+| **422**     | Payload validation failed.       | \* X-Request-Id - <br> |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

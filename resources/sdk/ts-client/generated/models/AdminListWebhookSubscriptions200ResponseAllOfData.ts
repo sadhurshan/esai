@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { WebhookSubscription } from './WebhookSubscription';
 import {
     WebhookSubscriptionFromJSON,
-    WebhookSubscriptionFromJSONTyped,
     WebhookSubscriptionToJSON,
-    WebhookSubscriptionToJSONTyped,
 } from './WebhookSubscription';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListWebhookSubscriptions200ResponseAllOfData
  */
 export interface AdminListWebhookSubscriptions200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<WebhookSubscription>}
      * @memberof AdminListWebhookSubscriptions200ResponseAllOfData
      */
     items?: Array<WebhookSubscription>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof AdminListWebhookSubscriptions200ResponseAllOfData
      */
@@ -51,38 +43,61 @@ export interface AdminListWebhookSubscriptions200ResponseAllOfData {
 /**
  * Check if a given object implements the AdminListWebhookSubscriptions200ResponseAllOfData interface.
  */
-export function instanceOfAdminListWebhookSubscriptions200ResponseAllOfData(value: object): value is AdminListWebhookSubscriptions200ResponseAllOfData {
+export function instanceOfAdminListWebhookSubscriptions200ResponseAllOfData(
+    value: object,
+): value is AdminListWebhookSubscriptions200ResponseAllOfData {
     return true;
 }
 
-export function AdminListWebhookSubscriptions200ResponseAllOfDataFromJSON(json: any): AdminListWebhookSubscriptions200ResponseAllOfData {
-    return AdminListWebhookSubscriptions200ResponseAllOfDataFromJSONTyped(json, false);
+export function AdminListWebhookSubscriptions200ResponseAllOfDataFromJSON(
+    json: any,
+): AdminListWebhookSubscriptions200ResponseAllOfData {
+    return AdminListWebhookSubscriptions200ResponseAllOfDataFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function AdminListWebhookSubscriptions200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListWebhookSubscriptions200ResponseAllOfData {
+export function AdminListWebhookSubscriptions200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListWebhookSubscriptions200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(WebhookSubscriptionFromJSON)),
-        'meta': json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(
+                      WebhookSubscriptionFromJSON,
+                  ),
+        meta: json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminListWebhookSubscriptions200ResponseAllOfDataToJSON(json: any): AdminListWebhookSubscriptions200ResponseAllOfData {
-    return AdminListWebhookSubscriptions200ResponseAllOfDataToJSONTyped(json, false);
+export function AdminListWebhookSubscriptions200ResponseAllOfDataToJSON(
+    json: any,
+): AdminListWebhookSubscriptions200ResponseAllOfData {
+    return AdminListWebhookSubscriptions200ResponseAllOfDataToJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function AdminListWebhookSubscriptions200ResponseAllOfDataToJSONTyped(value?: AdminListWebhookSubscriptions200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListWebhookSubscriptions200ResponseAllOfDataToJSONTyped(
+    value?: AdminListWebhookSubscriptions200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(WebhookSubscriptionToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(WebhookSubscriptionToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,33 +12,32 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface UpdateTaxCodeRequest
  */
 export interface UpdateTaxCodeRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof UpdateTaxCodeRequest
      */
     name?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof UpdateTaxCodeRequest
      */
     ratePercent?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof UpdateTaxCodeRequest
      */
     isCompound?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof UpdateTaxCodeRequest
      */
@@ -48,7 +47,9 @@ export interface UpdateTaxCodeRequest {
 /**
  * Check if a given object implements the UpdateTaxCodeRequest interface.
  */
-export function instanceOfUpdateTaxCodeRequest(value: object): value is UpdateTaxCodeRequest {
+export function instanceOfUpdateTaxCodeRequest(
+    value: object,
+): value is UpdateTaxCodeRequest {
     return true;
 }
 
@@ -56,16 +57,20 @@ export function UpdateTaxCodeRequestFromJSON(json: any): UpdateTaxCodeRequest {
     return UpdateTaxCodeRequestFromJSONTyped(json, false);
 }
 
-export function UpdateTaxCodeRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateTaxCodeRequest {
+export function UpdateTaxCodeRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): UpdateTaxCodeRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'name': json['name'] == null ? undefined : json['name'],
-        'ratePercent': json['rate_percent'] == null ? undefined : json['rate_percent'],
-        'isCompound': json['is_compound'] == null ? undefined : json['is_compound'],
-        'active': json['active'] == null ? undefined : json['active'],
+        name: json['name'] == null ? undefined : json['name'],
+        ratePercent:
+            json['rate_percent'] == null ? undefined : json['rate_percent'],
+        isCompound:
+            json['is_compound'] == null ? undefined : json['is_compound'],
+        active: json['active'] == null ? undefined : json['active'],
     };
 }
 
@@ -73,17 +78,18 @@ export function UpdateTaxCodeRequestToJSON(json: any): UpdateTaxCodeRequest {
     return UpdateTaxCodeRequestToJSONTyped(json, false);
 }
 
-export function UpdateTaxCodeRequestToJSONTyped(value?: UpdateTaxCodeRequest | null, ignoreDiscriminator: boolean = false): any {
+export function UpdateTaxCodeRequestToJSONTyped(
+    value?: UpdateTaxCodeRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'name': value['name'],
-        'rate_percent': value['ratePercent'],
-        'is_compound': value['isCompound'],
-        'active': value['active'],
+        name: value['name'],
+        rate_percent: value['ratePercent'],
+        is_compound: value['isCompound'],
+        active: value['active'],
     };
 }
-

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,23 @@
  * Do not edit the class manually.
  */
 
-
-import * as runtime from '../runtime';
 import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  AttachInvoiceFile200Response,
-  CreateInvoiceFromPo200Response,
-  CreateInvoiceFromPoRequestLinesInner,
-  InvoiceLineInput,
-  ListInvoices200Response,
-  UpdateInvoiceRequest,
+    ApiSuccessResponse,
+    AttachInvoiceFile200Response,
+    CreateInvoiceFromPo200Response,
+    CreateInvoiceFromPoRequestLinesInner,
+    InvoiceLineInput,
+    ListInvoices200Response,
+    UpdateInvoiceRequest,
 } from '../models/index';
 import {
-    ApiErrorResponseFromJSON,
-    ApiErrorResponseToJSON,
     ApiSuccessResponseFromJSON,
-    ApiSuccessResponseToJSON,
     AttachInvoiceFile200ResponseFromJSON,
-    AttachInvoiceFile200ResponseToJSON,
     CreateInvoiceFromPo200ResponseFromJSON,
-    CreateInvoiceFromPo200ResponseToJSON,
-    CreateInvoiceFromPoRequestLinesInnerFromJSON,
-    CreateInvoiceFromPoRequestLinesInnerToJSON,
-    InvoiceLineInputFromJSON,
-    InvoiceLineInputToJSON,
     ListInvoices200ResponseFromJSON,
-    ListInvoices200ResponseToJSON,
-    UpdateInvoiceRequestFromJSON,
     UpdateInvoiceRequestToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AttachInvoiceFileRequest {
     invoiceId: string;
@@ -111,198 +98,256 @@ export interface UpdateInvoiceOperationRequest {
 
 /**
  * InvoicesApi - interface
- * 
+ *
  * @export
  * @interface InvoicesApiInterface
  */
 export interface InvoicesApiInterface {
     /**
-     * 
+     *
      * @summary Upload supporting file for invoice
-     * @param {string} invoiceId 
-     * @param {Blob} file 
+     * @param {string} invoiceId
+     * @param {Blob} file
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    attachInvoiceFileRaw(requestParameters: AttachInvoiceFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AttachInvoiceFile200Response>>;
+    attachInvoiceFileRaw(
+        requestParameters: AttachInvoiceFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AttachInvoiceFile200Response>>;
 
     /**
      * Upload supporting file for invoice
      */
-    attachInvoiceFile(requestParameters: AttachInvoiceFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AttachInvoiceFile200Response>;
+    attachInvoiceFile(
+        requestParameters: AttachInvoiceFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AttachInvoiceFile200Response>;
 
     /**
-     * 
+     *
      * @summary Create invoice for purchase order
-     * @param {string} purchaseOrderId 
-     * @param {Array<InvoiceLineInput>} lines 
-     * @param {number} [perPage] 
-     * @param {number} [page] 
-     * @param {'pending' | 'paid' | 'overdue' | 'disputed'} [status] 
-     * @param {number} [supplierId] 
-     * @param {Date} [from] 
-     * @param {Date} [to] 
-     * @param {string} [invoiceNumber] 
-     * @param {Date} [invoiceDate] 
-     * @param {string} [currency] 
-     * @param {Blob} [document] 
+     * @param {string} purchaseOrderId
+     * @param {Array<InvoiceLineInput>} lines
+     * @param {number} [perPage]
+     * @param {number} [page]
+     * @param {'pending' | 'paid' | 'overdue' | 'disputed'} [status]
+     * @param {number} [supplierId]
+     * @param {Date} [from]
+     * @param {Date} [to]
+     * @param {string} [invoiceNumber]
+     * @param {Date} [invoiceDate]
+     * @param {string} [currency]
+     * @param {Blob} [document]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    createInvoiceForPurchaseOrderRaw(requestParameters: CreateInvoiceForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
+    createInvoiceForPurchaseOrderRaw(
+        requestParameters: CreateInvoiceForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
 
     /**
      * Create invoice for purchase order
      */
-    createInvoiceForPurchaseOrder(requestParameters: CreateInvoiceForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response>;
+    createInvoiceForPurchaseOrder(
+        requestParameters: CreateInvoiceForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response>;
 
     /**
-     * 
+     *
      * @summary Create invoice from purchase order reference
-     * @param {number} poId 
-     * @param {Array<CreateInvoiceFromPoRequestLinesInner>} lines 
-     * @param {number} [supplierId] 
-     * @param {string} [invoiceNumber] 
-     * @param {Date} [invoiceDate] 
-     * @param {string} [currency] 
-     * @param {Blob} [document] 
+     * @param {number} poId
+     * @param {Array<CreateInvoiceFromPoRequestLinesInner>} lines
+     * @param {number} [supplierId]
+     * @param {string} [invoiceNumber]
+     * @param {Date} [invoiceDate]
+     * @param {string} [currency]
+     * @param {Blob} [document]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    createInvoiceFromPoRaw(requestParameters: CreateInvoiceFromPoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
+    createInvoiceFromPoRaw(
+        requestParameters: CreateInvoiceFromPoRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
 
     /**
      * Create invoice from purchase order reference
      */
-    createInvoiceFromPo(requestParameters: CreateInvoiceFromPoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response>;
+    createInvoiceFromPo(
+        requestParameters: CreateInvoiceFromPoRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response>;
 
     /**
-     * 
+     *
      * @summary Delete invoice
-     * @param {string} invoiceId 
+     * @param {string} invoiceId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    deleteInvoiceRaw(requestParameters: DeleteInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
+    deleteInvoiceRaw(
+        requestParameters: DeleteInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>>;
 
     /**
      * Delete invoice
      */
-    deleteInvoice(requestParameters: DeleteInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse>;
+    deleteInvoice(
+        requestParameters: DeleteInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse>;
 
     /**
-     * 
+     *
      * @summary List invoices for company
-     * @param {number} [perPage] 
-     * @param {number} [page] 
-     * @param {'pending' | 'paid' | 'overdue' | 'disputed'} [status] 
-     * @param {number} [supplierId] 
-     * @param {Date} [from] 
-     * @param {Date} [to] 
+     * @param {number} [perPage]
+     * @param {number} [page]
+     * @param {'pending' | 'paid' | 'overdue' | 'disputed'} [status]
+     * @param {number} [supplierId]
+     * @param {Date} [from]
+     * @param {Date} [to]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    listInvoicesRaw(requestParameters: ListInvoicesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListInvoices200Response>>;
+    listInvoicesRaw(
+        requestParameters: ListInvoicesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListInvoices200Response>>;
 
     /**
      * List invoices for company
      */
-    listInvoices(requestParameters: ListInvoicesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListInvoices200Response>;
+    listInvoices(
+        requestParameters: ListInvoicesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListInvoices200Response>;
 
     /**
-     * 
+     *
      * @summary List invoices for a purchase order
-     * @param {string} purchaseOrderId 
-     * @param {number} [perPage] 
-     * @param {number} [page] 
-     * @param {'pending' | 'paid' | 'overdue' | 'disputed'} [status] 
-     * @param {number} [supplierId] 
-     * @param {Date} [from] 
-     * @param {Date} [to] 
+     * @param {string} purchaseOrderId
+     * @param {number} [perPage]
+     * @param {number} [page]
+     * @param {'pending' | 'paid' | 'overdue' | 'disputed'} [status]
+     * @param {number} [supplierId]
+     * @param {Date} [from]
+     * @param {Date} [to]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    listInvoicesForPurchaseOrderRaw(requestParameters: ListInvoicesForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListInvoices200Response>>;
+    listInvoicesForPurchaseOrderRaw(
+        requestParameters: ListInvoicesForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListInvoices200Response>>;
 
     /**
      * List invoices for a purchase order
      */
-    listInvoicesForPurchaseOrder(requestParameters: ListInvoicesForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListInvoices200Response>;
+    listInvoicesForPurchaseOrder(
+        requestParameters: ListInvoicesForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListInvoices200Response>;
 
     /**
-     * 
+     *
      * @summary Recalculate invoice totals
-     * @param {string} invoiceId 
+     * @param {string} invoiceId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    recalculateInvoiceRaw(requestParameters: RecalculateInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
+    recalculateInvoiceRaw(
+        requestParameters: RecalculateInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
 
     /**
      * Recalculate invoice totals
      */
-    recalculateInvoice(requestParameters: RecalculateInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response>;
+    recalculateInvoice(
+        requestParameters: RecalculateInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response>;
 
     /**
-     * 
+     *
      * @summary Retrieve invoice
-     * @param {string} invoiceId 
+     * @param {string} invoiceId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    showInvoiceRaw(requestParameters: ShowInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
+    showInvoiceRaw(
+        requestParameters: ShowInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
 
     /**
      * Retrieve invoice
      */
-    showInvoice(requestParameters: ShowInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response>;
+    showInvoice(
+        requestParameters: ShowInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response>;
 
     /**
-     * 
+     *
      * @summary Update invoice metadata
-     * @param {string} invoiceId 
-     * @param {UpdateInvoiceRequest} updateInvoiceRequest 
+     * @param {string} invoiceId
+     * @param {UpdateInvoiceRequest} updateInvoiceRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof InvoicesApiInterface
      */
-    updateInvoiceRaw(requestParameters: UpdateInvoiceOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
+    updateInvoiceRaw(
+        requestParameters: UpdateInvoiceOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>>;
 
     /**
      * Update invoice metadata
      */
-    updateInvoice(requestParameters: UpdateInvoiceOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response>;
-
+    updateInvoice(
+        requestParameters: UpdateInvoiceOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response>;
 }
 
 /**
- * 
+ *
  */
-export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface {
-
+export class InvoicesApi
+    extends runtime.BaseAPI
+    implements InvoicesApiInterface
+{
     /**
      * Upload supporting file for invoice
      */
-    async attachInvoiceFileRaw(requestParameters: AttachInvoiceFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AttachInvoiceFile200Response>> {
+    async attachInvoiceFileRaw(
+        requestParameters: AttachInvoiceFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<AttachInvoiceFile200Response>> {
         if (requestParameters['invoiceId'] == null) {
             throw new runtime.RequiredError(
                 'invoiceId',
-                'Required parameter "invoiceId" was null or undefined when calling attachInvoiceFile().'
+                'Required parameter "invoiceId" was null or undefined when calling attachInvoiceFile().',
             );
         }
 
         if (requestParameters['file'] == null) {
             throw new runtime.RequiredError(
                 'file',
-                'Required parameter "file" was null or undefined when calling attachInvoiceFile().'
+                'Required parameter "file" was null or undefined when calling attachInvoiceFile().',
             );
         }
 
@@ -311,15 +356,16 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
         const consumes: runtime.Consume[] = [
@@ -342,44 +388,60 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
             formParams.append('file', requestParameters['file'] as any);
         }
 
-
         let urlPath = `/api/invoices/{invoiceId}/attachments`;
-        urlPath = urlPath.replace(`{${"invoiceId"}}`, encodeURIComponent(String(requestParameters['invoiceId'])));
+        urlPath = urlPath.replace(
+            `{${'invoiceId'}}`,
+            encodeURIComponent(String(requestParameters['invoiceId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AttachInvoiceFile200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            AttachInvoiceFile200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Upload supporting file for invoice
      */
-    async attachInvoiceFile(requestParameters: AttachInvoiceFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AttachInvoiceFile200Response> {
-        const response = await this.attachInvoiceFileRaw(requestParameters, initOverrides);
+    async attachInvoiceFile(
+        requestParameters: AttachInvoiceFileRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<AttachInvoiceFile200Response> {
+        const response = await this.attachInvoiceFileRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create invoice for purchase order
      */
-    async createInvoiceForPurchaseOrderRaw(requestParameters: CreateInvoiceForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
+    async createInvoiceForPurchaseOrderRaw(
+        requestParameters: CreateInvoiceForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling createInvoiceForPurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling createInvoiceForPurchaseOrder().',
             );
         }
 
         if (requestParameters['lines'] == null) {
             throw new runtime.RequiredError(
                 'lines',
-                'Required parameter "lines" was null or undefined when calling createInvoiceForPurchaseOrder().'
+                'Required parameter "lines" was null or undefined when calling createInvoiceForPurchaseOrder().',
             );
         }
 
@@ -412,15 +474,16 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
         const consumes: runtime.Consume[] = [
@@ -440,11 +503,17 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         }
 
         if (requestParameters['invoiceNumber'] != null) {
-            formParams.append('invoice_number', requestParameters['invoiceNumber'] as any);
+            formParams.append(
+                'invoice_number',
+                requestParameters['invoiceNumber'] as any,
+            );
         }
 
         if (requestParameters['invoiceDate'] != null) {
-            formParams.append('invoice_date', requestParameters['invoiceDate'] as any);
+            formParams.append(
+                'invoice_date',
+                requestParameters['invoiceDate'] as any,
+            );
         }
 
         if (requestParameters['currency'] != null) {
@@ -456,47 +525,68 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         }
 
         if (requestParameters['lines'] != null) {
-            formParams.append('lines', requestParameters['lines']!.join(runtime.COLLECTION_FORMATS["csv"]));
+            formParams.append(
+                'lines',
+                requestParameters['lines']!.join(
+                    runtime.COLLECTION_FORMATS['csv'],
+                ),
+            );
         }
 
-
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/invoices`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateInvoiceFromPo200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateInvoiceFromPo200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create invoice for purchase order
      */
-    async createInvoiceForPurchaseOrder(requestParameters: CreateInvoiceForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response> {
-        const response = await this.createInvoiceForPurchaseOrderRaw(requestParameters, initOverrides);
+    async createInvoiceForPurchaseOrder(
+        requestParameters: CreateInvoiceForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response> {
+        const response = await this.createInvoiceForPurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Create invoice from purchase order reference
      */
-    async createInvoiceFromPoRaw(requestParameters: CreateInvoiceFromPoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
+    async createInvoiceFromPoRaw(
+        requestParameters: CreateInvoiceFromPoRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
         if (requestParameters['poId'] == null) {
             throw new runtime.RequiredError(
                 'poId',
-                'Required parameter "poId" was null or undefined when calling createInvoiceFromPo().'
+                'Required parameter "poId" was null or undefined when calling createInvoiceFromPo().',
             );
         }
 
         if (requestParameters['lines'] == null) {
             throw new runtime.RequiredError(
                 'lines',
-                'Required parameter "lines" was null or undefined when calling createInvoiceFromPo().'
+                'Required parameter "lines" was null or undefined when calling createInvoiceFromPo().',
             );
         }
 
@@ -505,15 +595,16 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
         const consumes: runtime.Consume[] = [
@@ -537,15 +628,24 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         }
 
         if (requestParameters['supplierId'] != null) {
-            formParams.append('supplier_id', requestParameters['supplierId'] as any);
+            formParams.append(
+                'supplier_id',
+                requestParameters['supplierId'] as any,
+            );
         }
 
         if (requestParameters['invoiceNumber'] != null) {
-            formParams.append('invoice_number', requestParameters['invoiceNumber'] as any);
+            formParams.append(
+                'invoice_number',
+                requestParameters['invoiceNumber'] as any,
+            );
         }
 
         if (requestParameters['invoiceDate'] != null) {
-            formParams.append('invoice_date', requestParameters['invoiceDate'] as any);
+            formParams.append(
+                'invoice_date',
+                requestParameters['invoiceDate'] as any,
+            );
         }
 
         if (requestParameters['currency'] != null) {
@@ -557,39 +657,57 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         }
 
         if (requestParameters['lines'] != null) {
-            formParams.append('lines', requestParameters['lines']!.join(runtime.COLLECTION_FORMATS["csv"]));
+            formParams.append(
+                'lines',
+                requestParameters['lines']!.join(
+                    runtime.COLLECTION_FORMATS['csv'],
+                ),
+            );
         }
-
 
         let urlPath = `/api/invoices/from-po`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: formParams,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+                body: formParams,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateInvoiceFromPo200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateInvoiceFromPo200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Create invoice from purchase order reference
      */
-    async createInvoiceFromPo(requestParameters: CreateInvoiceFromPoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response> {
-        const response = await this.createInvoiceFromPoRaw(requestParameters, initOverrides);
+    async createInvoiceFromPo(
+        requestParameters: CreateInvoiceFromPoRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response> {
+        const response = await this.createInvoiceFromPoRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Delete invoice
      */
-    async deleteInvoiceRaw(requestParameters: DeleteInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
+    async deleteInvoiceRaw(
+        requestParameters: DeleteInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ApiSuccessResponse>> {
         if (requestParameters['invoiceId'] == null) {
             throw new runtime.RequiredError(
                 'invoiceId',
-                'Required parameter "invoiceId" was null or undefined when calling deleteInvoice().'
+                'Required parameter "invoiceId" was null or undefined when calling deleteInvoice().',
             );
         }
 
@@ -598,43 +716,61 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/invoices/{invoiceId}`;
-        urlPath = urlPath.replace(`{${"invoiceId"}}`, encodeURIComponent(String(requestParameters['invoiceId'])));
+        urlPath = urlPath.replace(
+            `{${'invoiceId'}}`,
+            encodeURIComponent(String(requestParameters['invoiceId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'DELETE',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiSuccessResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ApiSuccessResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Delete invoice
      */
-    async deleteInvoice(requestParameters: DeleteInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiSuccessResponse> {
-        const response = await this.deleteInvoiceRaw(requestParameters, initOverrides);
+    async deleteInvoice(
+        requestParameters: DeleteInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ApiSuccessResponse> {
+        const response = await this.deleteInvoiceRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List invoices for company
      */
-    async listInvoicesRaw(requestParameters: ListInvoicesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListInvoices200Response>> {
+    async listInvoicesRaw(
+        requestParameters: ListInvoicesRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListInvoices200Response>> {
         const queryParameters: any = {};
 
         if (requestParameters['perPage'] != null) {
@@ -664,46 +800,61 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/invoices`;
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListInvoices200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListInvoices200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List invoices for company
      */
-    async listInvoices(requestParameters: ListInvoicesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListInvoices200Response> {
-        const response = await this.listInvoicesRaw(requestParameters, initOverrides);
+    async listInvoices(
+        requestParameters: ListInvoicesRequest = {},
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListInvoices200Response> {
+        const response = await this.listInvoicesRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * List invoices for a purchase order
      */
-    async listInvoicesForPurchaseOrderRaw(requestParameters: ListInvoicesForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListInvoices200Response>> {
+    async listInvoicesForPurchaseOrderRaw(
+        requestParameters: ListInvoicesForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<ListInvoices200Response>> {
         if (requestParameters['purchaseOrderId'] == null) {
             throw new runtime.RequiredError(
                 'purchaseOrderId',
-                'Required parameter "purchaseOrderId" was null or undefined when calling listInvoicesForPurchaseOrder().'
+                'Required parameter "purchaseOrderId" was null or undefined when calling listInvoicesForPurchaseOrder().',
             );
         }
 
@@ -736,47 +887,65 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/purchase-orders/{purchaseOrderId}/invoices`;
-        urlPath = urlPath.replace(`{${"purchaseOrderId"}}`, encodeURIComponent(String(requestParameters['purchaseOrderId'])));
+        urlPath = urlPath.replace(
+            `{${'purchaseOrderId'}}`,
+            encodeURIComponent(String(requestParameters['purchaseOrderId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ListInvoices200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            ListInvoices200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * List invoices for a purchase order
      */
-    async listInvoicesForPurchaseOrder(requestParameters: ListInvoicesForPurchaseOrderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListInvoices200Response> {
-        const response = await this.listInvoicesForPurchaseOrderRaw(requestParameters, initOverrides);
+    async listInvoicesForPurchaseOrder(
+        requestParameters: ListInvoicesForPurchaseOrderRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<ListInvoices200Response> {
+        const response = await this.listInvoicesForPurchaseOrderRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Recalculate invoice totals
      */
-    async recalculateInvoiceRaw(requestParameters: RecalculateInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
+    async recalculateInvoiceRaw(
+        requestParameters: RecalculateInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
         if (requestParameters['invoiceId'] == null) {
             throw new runtime.RequiredError(
                 'invoiceId',
-                'Required parameter "invoiceId" was null or undefined when calling recalculateInvoice().'
+                'Required parameter "invoiceId" was null or undefined when calling recalculateInvoice().',
             );
         }
 
@@ -785,47 +954,65 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/invoices/{invoiceId}/recalculate`;
-        urlPath = urlPath.replace(`{${"invoiceId"}}`, encodeURIComponent(String(requestParameters['invoiceId'])));
+        urlPath = urlPath.replace(
+            `{${'invoiceId'}}`,
+            encodeURIComponent(String(requestParameters['invoiceId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'POST',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateInvoiceFromPo200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateInvoiceFromPo200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Recalculate invoice totals
      */
-    async recalculateInvoice(requestParameters: RecalculateInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response> {
-        const response = await this.recalculateInvoiceRaw(requestParameters, initOverrides);
+    async recalculateInvoice(
+        requestParameters: RecalculateInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response> {
+        const response = await this.recalculateInvoiceRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Retrieve invoice
      */
-    async showInvoiceRaw(requestParameters: ShowInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
+    async showInvoiceRaw(
+        requestParameters: ShowInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
         if (requestParameters['invoiceId'] == null) {
             throw new runtime.RequiredError(
                 'invoiceId',
-                'Required parameter "invoiceId" was null or undefined when calling showInvoice().'
+                'Required parameter "invoiceId" was null or undefined when calling showInvoice().',
             );
         }
 
@@ -834,54 +1021,72 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/invoices/{invoiceId}`;
-        urlPath = urlPath.replace(`{${"invoiceId"}}`, encodeURIComponent(String(requestParameters['invoiceId'])));
+        urlPath = urlPath.replace(
+            `{${'invoiceId'}}`,
+            encodeURIComponent(String(requestParameters['invoiceId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateInvoiceFromPo200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateInvoiceFromPo200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Retrieve invoice
      */
-    async showInvoice(requestParameters: ShowInvoiceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response> {
-        const response = await this.showInvoiceRaw(requestParameters, initOverrides);
+    async showInvoice(
+        requestParameters: ShowInvoiceRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response> {
+        const response = await this.showInvoiceRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
 
     /**
      * Update invoice metadata
      */
-    async updateInvoiceRaw(requestParameters: UpdateInvoiceOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
+    async updateInvoiceRaw(
+        requestParameters: UpdateInvoiceOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<runtime.ApiResponse<CreateInvoiceFromPo200Response>> {
         if (requestParameters['invoiceId'] == null) {
             throw new runtime.RequiredError(
                 'invoiceId',
-                'Required parameter "invoiceId" was null or undefined when calling updateInvoice().'
+                'Required parameter "invoiceId" was null or undefined when calling updateInvoice().',
             );
         }
 
         if (requestParameters['updateInvoiceRequest'] == null) {
             throw new runtime.RequiredError(
                 'updateInvoiceRequest',
-                'Required parameter "updateInvoiceRequest" was null or undefined when calling updateInvoice().'
+                'Required parameter "updateInvoiceRequest" was null or undefined when calling updateInvoice().',
             );
         }
 
@@ -892,40 +1097,56 @@ export class InvoicesApi extends runtime.BaseAPI implements InvoicesApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // apiKeyAuth authentication
+            headerParameters['X-API-Key'] =
+                await this.configuration.apiKey('X-API-Key'); // apiKeyAuth authentication
         }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
+            const tokenString = await token('bearerAuth', []);
 
             if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+                headerParameters['Authorization'] = `Bearer ${tokenString}`;
             }
         }
 
         let urlPath = `/api/invoices/{invoiceId}`;
-        urlPath = urlPath.replace(`{${"invoiceId"}}`, encodeURIComponent(String(requestParameters['invoiceId'])));
+        urlPath = urlPath.replace(
+            `{${'invoiceId'}}`,
+            encodeURIComponent(String(requestParameters['invoiceId'])),
+        );
 
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateInvoiceRequestToJSON(requestParameters['updateInvoiceRequest']),
-        }, initOverrides);
+        const response = await this.request(
+            {
+                path: urlPath,
+                method: 'PUT',
+                headers: headerParameters,
+                query: queryParameters,
+                body: UpdateInvoiceRequestToJSON(
+                    requestParameters['updateInvoiceRequest'],
+                ),
+            },
+            initOverrides,
+        );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CreateInvoiceFromPo200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            CreateInvoiceFromPo200ResponseFromJSON(jsonValue),
+        );
     }
 
     /**
      * Update invoice metadata
      */
-    async updateInvoice(requestParameters: UpdateInvoiceOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateInvoiceFromPo200Response> {
-        const response = await this.updateInvoiceRaw(requestParameters, initOverrides);
+    async updateInvoice(
+        requestParameters: UpdateInvoiceOperationRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    ): Promise<CreateInvoiceFromPo200Response> {
+        const response = await this.updateInvoiceRaw(
+            requestParameters,
+            initOverrides,
+        );
         return await response.value();
     }
-
 }
 
 /**
@@ -935,9 +1156,10 @@ export const CreateInvoiceForPurchaseOrderStatusEnum = {
     Pending: 'pending',
     Paid: 'paid',
     Overdue: 'overdue',
-    Disputed: 'disputed'
+    Disputed: 'disputed',
 } as const;
-export type CreateInvoiceForPurchaseOrderStatusEnum = typeof CreateInvoiceForPurchaseOrderStatusEnum[keyof typeof CreateInvoiceForPurchaseOrderStatusEnum];
+export type CreateInvoiceForPurchaseOrderStatusEnum =
+    (typeof CreateInvoiceForPurchaseOrderStatusEnum)[keyof typeof CreateInvoiceForPurchaseOrderStatusEnum];
 /**
  * @export
  */
@@ -945,9 +1167,10 @@ export const ListInvoicesStatusEnum = {
     Pending: 'pending',
     Paid: 'paid',
     Overdue: 'overdue',
-    Disputed: 'disputed'
+    Disputed: 'disputed',
 } as const;
-export type ListInvoicesStatusEnum = typeof ListInvoicesStatusEnum[keyof typeof ListInvoicesStatusEnum];
+export type ListInvoicesStatusEnum =
+    (typeof ListInvoicesStatusEnum)[keyof typeof ListInvoicesStatusEnum];
 /**
  * @export
  */
@@ -955,6 +1178,7 @@ export const ListInvoicesForPurchaseOrderStatusEnum = {
     Pending: 'pending',
     Paid: 'paid',
     Overdue: 'overdue',
-    Disputed: 'disputed'
+    Disputed: 'disputed',
 } as const;
-export type ListInvoicesForPurchaseOrderStatusEnum = typeof ListInvoicesForPurchaseOrderStatusEnum[keyof typeof ListInvoicesForPurchaseOrderStatusEnum];
+export type ListInvoicesForPurchaseOrderStatusEnum =
+    (typeof ListInvoicesForPurchaseOrderStatusEnum)[keyof typeof ListInvoicesForPurchaseOrderStatusEnum];

@@ -1,11 +1,18 @@
-import { useMemo } from 'react';
 import { DocumentNumberPreview } from '@/components/documents/document-number-preview';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import type { RfqAwardCandidateLine, RfqItemAwardSummary } from '@/sdk';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import type { RfqAwardCandidateLine, RfqItemAwardSummary } from '@/sdk';
+import { AlertCircle } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface ConvertToPoDialogProps {
     open: boolean;
@@ -42,17 +49,36 @@ function formatMinorCurrency(value?: number | null, currency?: string): string {
     }
 }
 
-export function ConvertToPoDialog({ open, onOpenChange, awards, lines, isConverting = false, onConfirm }: ConvertToPoDialogProps) {
+export function ConvertToPoDialog({
+    open,
+    onOpenChange,
+    awards,
+    lines,
+    isConverting = false,
+    onConfirm,
+}: ConvertToPoDialogProps) {
     const { state } = useAuth();
 
     const candidateIndex = useMemo(() => {
-        const map = new Map<number, { line: RfqAwardCandidateLine; currency?: string; priceMinor?: number }>();
+        const map = new Map<
+            number,
+            {
+                line: RfqAwardCandidateLine;
+                currency?: string;
+                priceMinor?: number;
+            }
+        >();
         lines.forEach((line) => {
             line.candidates.forEach((candidate) => {
                 map.set(candidate.quoteItemId, {
                     line,
-                    currency: candidate.convertedCurrency ?? candidate.unitPriceCurrency,
-                    priceMinor: candidate.convertedUnitPriceMinor ?? candidate.unitPriceMinor ?? 0,
+                    currency:
+                        candidate.convertedCurrency ??
+                        candidate.unitPriceCurrency,
+                    priceMinor:
+                        candidate.convertedUnitPriceMinor ??
+                        candidate.unitPriceMinor ??
+                        0,
                 });
             });
         });
@@ -68,7 +94,8 @@ export function ConvertToPoDialog({ open, onOpenChange, awards, lines, isConvert
             const key = String(award.supplierId ?? award.id);
             const candidateMeta = candidateIndex.get(award.quoteItemId);
             const currency = candidateMeta?.currency;
-            const total = (candidateMeta?.priceMinor ?? 0) * (award.awardedQty ?? 1);
+            const total =
+                (candidateMeta?.priceMinor ?? 0) * (award.awardedQty ?? 1);
             const existing = groups.get(key);
 
             if (!existing) {
@@ -100,8 +127,10 @@ export function ConvertToPoDialog({ open, onOpenChange, awards, lines, isConvert
                 <DialogHeader>
                     <DialogTitle>Convert awards to purchase orders</DialogTitle>
                     <DialogDescription>
-                        We will create one purchase order per supplier using your saved awards. Ship-to and bill-to defaults
-                        from {state.company?.name ?? 'your company'} will be applied automatically.
+                        We will create one purchase order per supplier using
+                        your saved awards. Ship-to and bill-to defaults from{' '}
+                        {state.company?.name ?? 'your company'} will be applied
+                        automatically.
                     </DialogDescription>
                     <DocumentNumberPreview docType="po" className="mt-3" />
                 </DialogHeader>
@@ -109,45 +138,74 @@ export function ConvertToPoDialog({ open, onOpenChange, awards, lines, isConvert
                 {pendingAwards.length === 0 ? (
                     <div className="flex items-center gap-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
                         <AlertCircle className="h-5 w-5" />
-                        <span>Create awards first or ensure they are not already converted.</span>
+                        <span>
+                            Create awards first or ensure they are not already
+                            converted.
+                        </span>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="rounded-md border bg-muted/40 p-3 text-sm">
-                            <p className="font-semibold text-foreground">{pendingAwards.length} award(s) ready</p>
-                            <p className="text-xs text-muted-foreground">Each supplier below will receive its own purchase order draft.</p>
+                            <p className="font-semibold text-foreground">
+                                {pendingAwards.length} award(s) ready
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Each supplier below will receive its own
+                                purchase order draft.
+                            </p>
                         </div>
                         <div className="space-y-3">
                             {supplierGroups.map((group, index) => (
-                                <div key={`${group.supplierId ?? index}`} className="rounded-md border p-3">
+                                <div
+                                    key={`${group.supplierId ?? index}`}
+                                    className="rounded-md border p-3"
+                                >
                                     <div className="flex flex-col text-sm">
                                         <span className="font-semibold text-foreground">
-                                            {group.supplierName ?? `Supplier #${group.supplierId ?? '—'}`}
+                                            {group.supplierName ??
+                                                `Supplier #${group.supplierId ?? '—'}`}
                                         </span>
                                         <span className="text-xs text-muted-foreground">
-                                            {group.lineCount} line{group.lineCount === 1 ? '' : 's'} • {formatMinorCurrency(group.totalMinor, group.currency)}
+                                            {group.lineCount} line
+                                            {group.lineCount === 1
+                                                ? ''
+                                                : 's'} •{' '}
+                                            {formatMinorCurrency(
+                                                group.totalMinor,
+                                                group.currency,
+                                            )}
                                         </span>
                                     </div>
                                 </div>
                             ))}
                             {supplierGroups.length > 1 ? <Separator /> : null}
                             <p className="text-xs text-muted-foreground">
-                                POs inherit bill-to ({state.company?.name ?? 'your company'}) and will be stored as drafts for review.
+                                POs inherit bill-to (
+                                {state.company?.name ?? 'your company'}) and
+                                will be stored as drafts for review.
                             </p>
                         </div>
                     </div>
                 )}
 
                 <DialogFooter className="gap-2">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                    >
                         Cancel
                     </Button>
                     <Button
                         type="button"
                         disabled={disabled || isConverting}
-                        onClick={() => onConfirm(pendingAwards.map((award) => award.id))}
+                        onClick={() =>
+                            onConfirm(pendingAwards.map((award) => award.id))
+                        }
                     >
-                        {isConverting ? 'Converting…' : 'Create purchase orders'}
+                        {isConverting
+                            ? 'Converting…'
+                            : 'Create purchase orders'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

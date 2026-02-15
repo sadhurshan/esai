@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,21 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreateRmaRequest
  */
 export interface CreateRmaRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreateRmaRequest
      */
     reason: string;
     /**
-     * 
+     *
      * @type {Array<string>}
      * @memberof CreateRmaRequest
      */
@@ -36,7 +35,9 @@ export interface CreateRmaRequest {
 /**
  * Check if a given object implements the CreateRmaRequest interface.
  */
-export function instanceOfCreateRmaRequest(value: object): value is CreateRmaRequest {
+export function instanceOfCreateRmaRequest(
+    value: object,
+): value is CreateRmaRequest {
     if (!('reason' in value) || value['reason'] === undefined) return false;
     return true;
 }
@@ -45,14 +46,17 @@ export function CreateRmaRequestFromJSON(json: any): CreateRmaRequest {
     return CreateRmaRequestFromJSONTyped(json, false);
 }
 
-export function CreateRmaRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateRmaRequest {
+export function CreateRmaRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreateRmaRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'reason': json['reason'],
-        'attachments': json['attachments'] == null ? undefined : json['attachments'],
+        reason: json['reason'],
+        attachments:
+            json['attachments'] == null ? undefined : json['attachments'],
     };
 }
 
@@ -60,15 +64,16 @@ export function CreateRmaRequestToJSON(json: any): CreateRmaRequest {
     return CreateRmaRequestToJSONTyped(json, false);
 }
 
-export function CreateRmaRequestToJSONTyped(value?: CreateRmaRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CreateRmaRequestToJSONTyped(
+    value?: CreateRmaRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'reason': value['reason'],
-        'attachments': value['attachments'],
+        reason: value['reason'],
+        attachments: value['attachments'],
     };
 }
-

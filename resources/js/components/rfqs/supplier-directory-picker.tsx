@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -75,12 +81,17 @@ export function SupplierDirectoryPicker({
             <DialogContent className="max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Browse supplier directory</DialogTitle>
-                    <DialogDescription>Search your approved supplier network and add participants instantly.</DialogDescription>
+                    <DialogDescription>
+                        Search your approved supplier network and add
+                        participants instantly.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="supplier-search">Search suppliers</Label>
+                        <Label htmlFor="supplier-search">
+                            Search suppliers
+                        </Label>
                         <Input
                             id="supplier-search"
                             value={search}
@@ -96,42 +107,75 @@ export function SupplierDirectoryPicker({
                     ) : null}
 
                     {!supplierQuery.isLoading && suppliers.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No suppliers matched your search yet.</p>
+                        <p className="text-sm text-muted-foreground">
+                            No suppliers matched your search yet.
+                        </p>
                     ) : null}
 
                     <ul className="grid gap-2">
                         {allowAllSuppliersOption ? (
-                            <li className="rounded-md border border-dashed p-3" key="all-suppliers">
+                            <li
+                                className="rounded-md border border-dashed p-3"
+                                key="all-suppliers"
+                            >
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <p className="font-semibold text-foreground">All suppliers</p>
+                                        <p className="font-semibold text-foreground">
+                                            All suppliers
+                                        </p>
                                         <p className="text-xs text-muted-foreground">
-                                            Include every supplier in your approved directory.
+                                            Include every supplier in your
+                                            approved directory.
                                         </p>
                                     </div>
-                                    <Button type="button" size="sm" variant="secondary" onClick={handleSelectAll}>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={handleSelectAll}
+                                    >
                                         Select
                                     </Button>
                                 </div>
                             </li>
                         ) : null}
                         {suppliers.map((supplier) => (
-                            <li key={supplier.id} className="rounded-md border p-3">
+                            <li
+                                key={supplier.id}
+                                className="rounded-md border p-3"
+                            >
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <p className="font-semibold text-foreground">{supplier.name}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {supplier.address.city ? `${supplier.address.city}, ` : ''}
-                                            {supplier.address.country ?? 'Location unavailable'}
+                                        <p className="font-semibold text-foreground">
+                                            {supplier.name}
                                         </p>
-                                        {supplier.capabilities.methods && supplier.capabilities.methods.length > 0 ? (
+                                        <p className="text-xs text-muted-foreground">
+                                            {supplier.address.city
+                                                ? `${supplier.address.city}, `
+                                                : ''}
+                                            {supplier.address.country ??
+                                                'Location unavailable'}
+                                        </p>
+                                        {supplier.capabilities.methods &&
+                                        supplier.capabilities.methods.length >
+                                            0 ? (
                                             <p className="mt-1 text-xs text-muted-foreground">
-                                                Methods: {supplier.capabilities.methods.slice(0, 3).join(', ')}
-                                                {supplier.capabilities.methods.length > 3 ? '…' : ''}
+                                                Methods:{' '}
+                                                {supplier.capabilities.methods
+                                                    .slice(0, 3)
+                                                    .join(', ')}
+                                                {supplier.capabilities.methods
+                                                    .length > 3
+                                                    ? '…'
+                                                    : ''}
                                             </p>
                                         ) : null}
                                     </div>
-                                    <Button type="button" size="sm" onClick={() => handleSelect(supplier)}>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={() => handleSelect(supplier)}
+                                    >
                                         Add
                                     </Button>
                                 </div>

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { EmptyState } from '@/components/empty-state';
 import { errorToast } from '@/components/toasts';
@@ -33,6 +33,9 @@ export interface ForecastInsight extends Record<string, unknown> {
     safety_stock?: number | null;
     reorder_point?: number | null;
     order_by_date?: string | null;
+    lead_time_days?: number | null;
+    lead_time_variance_days?: number | null;
+    suggested_order_qty?: number | null;
     explanation?: string | string[] | null;
 }
 
@@ -40,6 +43,8 @@ interface ForecastInsightCardProps {
     partId: number;
     history: ForecastHistoryPoint[];
     horizon?: number;
+    leadTimeDays?: number | null;
+    leadTimeVarianceDays?: number | null;
     disabled?: boolean;
     className?: string;
     onApply?: (insight: ForecastInsight) => void;
@@ -49,6 +54,8 @@ export function ForecastInsightCard({
     partId,
     history,
     horizon = DEFAULT_HORIZON_DAYS,
+    leadTimeDays,
+    leadTimeVarianceDays,
     disabled = false,
     className,
     onApply,
@@ -66,7 +73,9 @@ export function ForecastInsightCard({
 
                 return {
                     date: entry.date,
-                    quantity: Number.isFinite(numericQuantity) ? numericQuantity : 0,
+                    quantity: Number.isFinite(numericQuantity)
+                        ? numericQuantity
+                        : 0,
                 };
             });
     }, [history]);
@@ -104,23 +113,47 @@ export function ForecastInsightCard({
 
     const metricCards = useMemo(() => {
         if (!insight) {
-            return [] as Array<{ label: string; value: string; helper?: string }>;
+            return [] as Array<{
+                label: string;
+                value: string;
+                helper?: string;
+            }>;
         }
 
         return [
             {
+                label: 'Suggested order qty',
+                value: formatNumber(insight.suggested_order_qty ?? null, {
+                    maximumFractionDigits: 0,
+                }),
+                helper: 'Recommended replenishment quantity for the horizon.',
+            },
+            {
                 label: 'Safety stock',
-                value: formatNumber(insight.safety_stock ?? null, { maximumFractionDigits: 0 }),
+                value: formatNumber(insight.safety_stock ?? null, {
+                    maximumFractionDigits: 0,
+                }),
                 helper: 'Buffer to absorb demand spikes.',
             },
             {
                 label: 'Reorder point',
-                value: formatNumber(insight.reorder_point ?? null, { maximumFractionDigits: 0 }),
+                value: formatNumber(insight.reorder_point ?? null, {
+                    maximumFractionDigits: 0,
+                }),
                 helper: 'Includes safety stock + lead time coverage.',
             },
             {
                 label: 'Avg daily demand',
-                value: formatNumber(insight.avg_daily_demand ?? null, { maximumFractionDigits: 1 }),
+                value: formatNumber(insight.avg_daily_demand ?? null, {
+                    maximumFractionDigits: 1,
+                }),
+            },
+            {
+                label: 'Lead time variance',
+                value: formatNumber(insight.lead_time_variance_days ?? null, {
+                    maximumFractionDigits: 1,
+                }),
+                helper: 'Used to pad reorder coverage beyond average lead time.',
             },
             {
                 label: 'Forecast horizon',
@@ -157,17 +190,24 @@ export function ForecastInsightCard({
                 part_id: partId,
                 history: normalizedHistory,
                 horizon: safeHorizon,
+                lead_time_days: leadTimeDays ?? safeHorizon,
+                lead_time_variance_days: leadTimeVarianceDays ?? null,
             });
 
             const data = response.data ?? null;
 
             if (!data) {
-                throw new ApiError('AI returned an empty forecast. Please retry.');
+                throw new ApiError(
+                    'AI returned an empty forecast. Please retry.',
+                );
             }
 
             setInsight(data);
         } catch (error) {
-            const message = error instanceof ApiError ? error.message : 'Unexpected error occurred.';
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : 'Unexpected error occurred.';
             errorToast('Unable to generate forecast', message);
         } finally {
             setIsLoading(false);
@@ -211,12 +251,16 @@ export function ForecastInsightCard({
                             key={metric.label}
                             className="rounded-lg border bg-card/40 p-4 shadow-sm"
                         >
-                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                 {metric.label}
                             </p>
-                            <p className="mt-1 text-xl font-semibold text-foreground">{metric.value}</p>
+                            <p className="mt-1 text-xl font-semibold text-foreground">
+                                {metric.value}
+                            </p>
                             {metric.helper ? (
-                                <p className="mt-1 text-xs text-muted-foreground">{metric.helper}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    {metric.helper}
+                                </p>
                             ) : null}
                         </div>
                     ))}
@@ -224,7 +268,9 @@ export function ForecastInsightCard({
 
                 {explanationItems.length > 0 && (
                     <div className="rounded-lg border bg-muted/30 p-4">
-                        <p className="text-sm font-semibold text-foreground">Model explanation</p>
+                        <p className="text-sm font-semibold text-foreground">
+                            Model explanation
+                        </p>
                         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                             {explanationItems.map((item, index) => (
                                 <li key={`${item}-${index}`}>{item}</li>
@@ -233,7 +279,9 @@ export function ForecastInsightCard({
                     </div>
                 )}
 
-                <p className="text-xs text-muted-foreground">{historySummary}</p>
+                <p className="text-xs text-muted-foreground">
+                    {historySummary}
+                </p>
             </div>
         );
     };
@@ -245,7 +293,8 @@ export function ForecastInsightCard({
                     <div>
                         <CardTitle>Forecast insight</CardTitle>
                         <CardDescription>
-                            Generate safety stock and reorder recommendations directly from recent demand.
+                            Generate safety stock and reorder recommendations
+                            directly from recent demand.
                         </CardDescription>
                     </div>
                     <Button
@@ -268,9 +317,14 @@ export function ForecastInsightCard({
             {onApply && (
                 <CardFooter className="flex-col items-start gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-muted-foreground">
-                        Review the insight before applying it to your reorder settings.
+                        Review the insight before applying it to your reorder
+                        settings.
                     </p>
-                    <Button variant="outline" onClick={handleApply} disabled={!insight || isLoading}>
+                    <Button
+                        variant="outline"
+                        onClick={handleApply}
+                        disabled={!insight || isLoading}
+                    >
                         Apply to reorder settings
                     </Button>
                 </CardFooter>

@@ -1,9 +1,17 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { BuyerOrderFilters, CursorPaginated, SalesOrderSummary } from '@/types/orders';
 import { HttpError, OrdersAppApi } from '@/sdk';
+import type {
+    BuyerOrderFilters,
+    CursorPaginated,
+    SalesOrderSummary,
+} from '@/types/orders';
 
 export type BuyerOrderListResult = CursorPaginated<SalesOrderSummary>;
 
@@ -11,7 +19,9 @@ export type UseBuyerOrdersParams = BuyerOrderFilters;
 
 const DEFAULT_PER_PAGE = 25;
 
-export function useBuyerOrders(params: UseBuyerOrdersParams = {}): UseQueryResult<BuyerOrderListResult, HttpError> {
+export function useBuyerOrders(
+    params: UseBuyerOrdersParams = {},
+): UseQueryResult<BuyerOrderListResult, HttpError> {
     const ordersApi = useSdkClient(OrdersAppApi);
     const queryFilters = {
         ...params,

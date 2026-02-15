@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,56 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AdminPlansStoreRequest
  */
 export interface AdminPlansStoreRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminPlansStoreRequest
      */
     code: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminPlansStoreRequest
      */
     name: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminPlansStoreRequest
      */
     priceUsd: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminPlansStoreRequest
      */
     rfqsPerMonth?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof AdminPlansStoreRequest
      */
     usersMax?: number;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansStoreRequest
      */
     analyticsEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansStoreRequest
      */
     inventoryEnabled?: boolean;
     /**
-     * 
+     *
      * @type {boolean}
      * @memberof AdminPlansStoreRequest
      */
@@ -72,53 +71,72 @@ export interface AdminPlansStoreRequest {
 /**
  * Check if a given object implements the AdminPlansStoreRequest interface.
  */
-export function instanceOfAdminPlansStoreRequest(value: object): value is AdminPlansStoreRequest {
+export function instanceOfAdminPlansStoreRequest(
+    value: object,
+): value is AdminPlansStoreRequest {
     if (!('code' in value) || value['code'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('priceUsd' in value) || value['priceUsd'] === undefined) return false;
     return true;
 }
 
-export function AdminPlansStoreRequestFromJSON(json: any): AdminPlansStoreRequest {
+export function AdminPlansStoreRequestFromJSON(
+    json: any,
+): AdminPlansStoreRequest {
     return AdminPlansStoreRequestFromJSONTyped(json, false);
 }
 
-export function AdminPlansStoreRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminPlansStoreRequest {
+export function AdminPlansStoreRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminPlansStoreRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'code': json['code'],
-        'name': json['name'],
-        'priceUsd': json['price_usd'],
-        'rfqsPerMonth': json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
-        'usersMax': json['users_max'] == null ? undefined : json['users_max'],
-        'analyticsEnabled': json['analytics_enabled'] == null ? undefined : json['analytics_enabled'],
-        'inventoryEnabled': json['inventory_enabled'] == null ? undefined : json['inventory_enabled'],
-        'multiCurrencyEnabled': json['multi_currency_enabled'] == null ? undefined : json['multi_currency_enabled'],
+        code: json['code'],
+        name: json['name'],
+        priceUsd: json['price_usd'],
+        rfqsPerMonth:
+            json['rfqs_per_month'] == null ? undefined : json['rfqs_per_month'],
+        usersMax: json['users_max'] == null ? undefined : json['users_max'],
+        analyticsEnabled:
+            json['analytics_enabled'] == null
+                ? undefined
+                : json['analytics_enabled'],
+        inventoryEnabled:
+            json['inventory_enabled'] == null
+                ? undefined
+                : json['inventory_enabled'],
+        multiCurrencyEnabled:
+            json['multi_currency_enabled'] == null
+                ? undefined
+                : json['multi_currency_enabled'],
     };
 }
 
-export function AdminPlansStoreRequestToJSON(json: any): AdminPlansStoreRequest {
+export function AdminPlansStoreRequestToJSON(
+    json: any,
+): AdminPlansStoreRequest {
     return AdminPlansStoreRequestToJSONTyped(json, false);
 }
 
-export function AdminPlansStoreRequestToJSONTyped(value?: AdminPlansStoreRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AdminPlansStoreRequestToJSONTyped(
+    value?: AdminPlansStoreRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'code': value['code'],
-        'name': value['name'],
-        'price_usd': value['priceUsd'],
-        'rfqs_per_month': value['rfqsPerMonth'],
-        'users_max': value['usersMax'],
-        'analytics_enabled': value['analyticsEnabled'],
-        'inventory_enabled': value['inventoryEnabled'],
-        'multi_currency_enabled': value['multiCurrencyEnabled'],
+        code: value['code'],
+        name: value['name'],
+        price_usd: value['priceUsd'],
+        rfqs_per_month: value['rfqsPerMonth'],
+        users_max: value['usersMax'],
+        analytics_enabled: value['analyticsEnabled'],
+        inventory_enabled: value['inventoryEnabled'],
+        multi_currency_enabled: value['multiCurrencyEnabled'],
     };
 }
-

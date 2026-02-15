@@ -2,24 +2,22 @@
 
 All URIs are relative to *https://api.elements-supply.ai*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**createSupplierApplication**](SuppliersApi.md#createsupplierapplication) | **POST** /api/supplier-applications | Submit supplier application |
-| [**createSupplierEsg**](SuppliersApi.md#createsupplieresg) | **POST** /api/suppliers/{supplierId}/esg | Store ESG record for supplier |
-| [**deleteSupplierApplication**](SuppliersApi.md#deletesupplierapplication) | **DELETE** /api/supplier-applications/{applicationId} | Delete supplier application |
-| [**deleteSupplierEsg**](SuppliersApi.md#deletesupplieresg) | **DELETE** /api/suppliers/{supplierId}/esg/{recordId} | Delete ESG record |
-| [**exportSupplierEsg**](SuppliersApi.md#exportsupplieresg) | **POST** /api/suppliers/{supplierId}/esg/export | Queue ESG export for supplier |
-| [**listSupplierApplications**](SuppliersApi.md#listsupplierapplications) | **GET** /api/supplier-applications | List supplier applications |
-| [**listSupplierEsg**](SuppliersApi.md#listsupplieresg) | **GET** /api/suppliers/{supplierId}/esg | List ESG records for supplier |
-| [**listSuppliers**](SuppliersApi.md#listsuppliers) | **GET** /api/suppliers | List suppliers for current company |
-| [**selfApplySupplierApplication**](SuppliersApi.md#selfapplysupplierapplication) | **POST** /api/me/apply-supplier | Submit a supplier application for the authenticated company |
-| [**showSelfServiceSupplierApplicationStatus**](SuppliersApi.md#showselfservicesupplierapplicationstatus) | **GET** /api/me/supplier-application/status | Get supplier self-service application status |
-| [**showSupplier**](SuppliersApi.md#showsupplier) | **GET** /api/suppliers/{supplierId} | Show supplier |
-| [**showSupplierApplication**](SuppliersApi.md#showsupplierapplication) | **GET** /api/supplier-applications/{applicationId} | Show supplier application |
-| [**updateSupplierEsg**](SuppliersApi.md#updatesupplieresg) | **PUT** /api/suppliers/{supplierId}/esg/{recordId} | Update ESG record |
-| [**updateSupplierVisibility**](SuppliersApi.md#updatesuppliervisibility) | **PUT** /api/me/supplier/visibility | Update supplier directory visibility |
-
-
+| Method                                                                                                   | HTTP request                                          | Description                                                 |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------- |
+| [**createSupplierApplication**](SuppliersApi.md#createsupplierapplication)                               | **POST** /api/supplier-applications                   | Submit supplier application                                 |
+| [**createSupplierEsg**](SuppliersApi.md#createsupplieresg)                                               | **POST** /api/suppliers/{supplierId}/esg              | Store ESG record for supplier                               |
+| [**deleteSupplierApplication**](SuppliersApi.md#deletesupplierapplication)                               | **DELETE** /api/supplier-applications/{applicationId} | Delete supplier application                                 |
+| [**deleteSupplierEsg**](SuppliersApi.md#deletesupplieresg)                                               | **DELETE** /api/suppliers/{supplierId}/esg/{recordId} | Delete ESG record                                           |
+| [**exportSupplierEsg**](SuppliersApi.md#exportsupplieresg)                                               | **POST** /api/suppliers/{supplierId}/esg/export       | Queue ESG export for supplier                               |
+| [**listSupplierApplications**](SuppliersApi.md#listsupplierapplications)                                 | **GET** /api/supplier-applications                    | List supplier applications                                  |
+| [**listSupplierEsg**](SuppliersApi.md#listsupplieresg)                                                   | **GET** /api/suppliers/{supplierId}/esg               | List ESG records for supplier                               |
+| [**listSuppliers**](SuppliersApi.md#listsuppliers)                                                       | **GET** /api/suppliers                                | List suppliers for current company                          |
+| [**selfApplySupplierApplication**](SuppliersApi.md#selfapplysupplierapplication)                         | **POST** /api/me/apply-supplier                       | Submit a supplier application for the authenticated company |
+| [**showSelfServiceSupplierApplicationStatus**](SuppliersApi.md#showselfservicesupplierapplicationstatus) | **GET** /api/me/supplier-application/status           | Get supplier self-service application status                |
+| [**showSupplier**](SuppliersApi.md#showsupplier)                                                         | **GET** /api/suppliers/{supplierId}                   | Show supplier                                               |
+| [**showSupplierApplication**](SuppliersApi.md#showsupplierapplication)                                   | **GET** /api/supplier-applications/{applicationId}    | Show supplier application                                   |
+| [**updateSupplierEsg**](SuppliersApi.md#updatesupplieresg)                                               | **PUT** /api/suppliers/{supplierId}/esg/{recordId}    | Update ESG record                                           |
+| [**updateSupplierVisibility**](SuppliersApi.md#updatesuppliervisibility)                                 | **PUT** /api/me/supplier/visibility                   | Update supplier directory visibility                        |
 
 ## createSupplierApplication
 
@@ -38,7 +36,7 @@ import type { CreateSupplierApplicationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -65,10 +63,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierApplicationPayload** | [SupplierApplicationPayload](SupplierApplicationPayload.md) |  | |
+| Name                           | Type                                                        | Description | Notes |
+| ------------------------------ | ----------------------------------------------------------- | ----------- | ----- |
+| **supplierApplicationPayload** | [SupplierApplicationPayload](SupplierApplicationPayload.md) |             |       |
 
 ### Return type
 
@@ -83,14 +80,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier application submitted. |  -  |
+
+| Status code | Description                     | Response headers |
+| ----------- | ------------------------------- | ---------------- |
+| **200**     | Supplier application submitted. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## createSupplierEsg
 
@@ -101,35 +97,32 @@ Store ESG record for supplier
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { CreateSupplierEsgRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-    // { [key: string]: any; }
-    requestBody: Object,
-  } satisfies CreateSupplierEsgRequest;
+    const body = {
+        // number
+        supplierId: 56,
+        // { [key: string]: any; }
+        requestBody: Object,
+    } satisfies CreateSupplierEsgRequest;
 
-  try {
-    const data = await api.createSupplierEsg(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.createSupplierEsg(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -138,11 +131,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
-| **requestBody** | `{ [key: string]: any; }` |  | |
+| Name            | Type                      | Description | Notes                     |
+| --------------- | ------------------------- | ----------- | ------------------------- |
+| **supplierId**  | `number`                  |             | [Defaults to `undefined`] |
+| **requestBody** | `{ [key: string]: any; }` |             |                           |
 
 ### Return type
 
@@ -157,14 +149,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **201** | ESG record created. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **201**     | ESG record created. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## deleteSupplierApplication
 
@@ -175,33 +166,30 @@ Delete supplier application
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { DeleteSupplierApplicationRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    applicationId: 56,
-  } satisfies DeleteSupplierApplicationRequest;
+    const body = {
+        // number
+        applicationId: 56,
+    } satisfies DeleteSupplierApplicationRequest;
 
-  try {
-    const data = await api.deleteSupplierApplication(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.deleteSupplierApplication(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -210,10 +198,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **applicationId** | `number` |  | [Defaults to `undefined`] |
+| Name              | Type     | Description | Notes                     |
+| ----------------- | -------- | ----------- | ------------------------- |
+| **applicationId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -228,14 +215,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier application deleted. |  -  |
+
+| Status code | Description                   | Response headers |
+| ----------- | ----------------------------- | ---------------- |
+| **200**     | Supplier application deleted. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## deleteSupplierEsg
 
@@ -246,35 +232,32 @@ Delete ESG record
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { DeleteSupplierEsgRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-    // number
-    recordId: 56,
-  } satisfies DeleteSupplierEsgRequest;
+    const body = {
+        // number
+        supplierId: 56,
+        // number
+        recordId: 56,
+    } satisfies DeleteSupplierEsgRequest;
 
-  try {
-    const data = await api.deleteSupplierEsg(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.deleteSupplierEsg(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -283,11 +266,10 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
-| **recordId** | `number` |  | [Defaults to `undefined`] |
+| Name           | Type     | Description | Notes                     |
+| -------------- | -------- | ----------- | ------------------------- |
+| **supplierId** | `number` |             | [Defaults to `undefined`] |
+| **recordId**   | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -302,14 +284,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | ESG record deleted. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **200**     | ESG record deleted. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## exportSupplierEsg
 
@@ -320,33 +301,30 @@ Queue ESG export for supplier
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ExportSupplierEsgRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-  } satisfies ExportSupplierEsgRequest;
+    const body = {
+        // number
+        supplierId: 56,
+    } satisfies ExportSupplierEsgRequest;
 
-  try {
-    const data = await api.exportSupplierEsg(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.exportSupplierEsg(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -355,10 +333,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
+| Name           | Type     | Description | Notes                     |
+| -------------- | -------- | ----------- | ------------------------- |
+| **supplierId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -373,14 +350,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **202** | ESG export queued. |  -  |
+
+| Status code | Description        | Response headers |
+| ----------- | ------------------ | ---------------- |
+| **202**     | ESG export queued. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listSupplierApplications
 
@@ -391,28 +367,25 @@ List supplier applications
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ListSupplierApplicationsRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  try {
-    const data = await api.listSupplierApplications();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.listSupplierApplications();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -436,14 +409,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated supplier applications. |  -  |
+
+| Status code | Description                      | Response headers |
+| ----------- | -------------------------------- | ---------------- |
+| **200**     | Paginated supplier applications. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listSupplierEsg
 
@@ -454,33 +426,30 @@ List ESG records for supplier
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ListSupplierEsgRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-  } satisfies ListSupplierEsgRequest;
+    const body = {
+        // number
+        supplierId: 56,
+    } satisfies ListSupplierEsgRequest;
 
-  try {
-    const data = await api.listSupplierEsg(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.listSupplierEsg(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -489,10 +458,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
+| Name           | Type     | Description | Notes                     |
+| -------------- | -------- | ----------- | ------------------------- |
+| **supplierId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -507,14 +475,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Environmental, social, and governance records for the supplier. |  -  |
+
+| Status code | Description                                                     | Response headers |
+| ----------- | --------------------------------------------------------------- | ---------------- |
+| **200**     | Environmental, social, and governance records for the supplier. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## listSuppliers
 
@@ -525,28 +492,25 @@ List suppliers for current company
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ListSuppliersRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  try {
-    const data = await api.listSuppliers();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.listSuppliers();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -570,14 +534,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Paginated suppliers. |  -  |
+
+| Status code | Description          | Response headers |
+| ----------- | -------------------- | ---------------- |
+| **200**     | Paginated suppliers. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## selfApplySupplierApplication
 
@@ -598,7 +561,7 @@ import type { SelfApplySupplierApplicationRequest } from '';
 
 async function example() {
   console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // To configure API key authorization: apiKeyAuth
     apiKey: "YOUR API KEY",
     // Configure HTTP bearer authorization: bearerAuth
@@ -625,10 +588,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierApplicationPayload** | [SupplierApplicationPayload](SupplierApplicationPayload.md) |  | |
+| Name                           | Type                                                        | Description | Notes |
+| ------------------------------ | ----------------------------------------------------------- | ----------- | ----- |
+| **supplierApplicationPayload** | [SupplierApplicationPayload](SupplierApplicationPayload.md) |             |       |
 
 ### Return type
 
@@ -643,16 +605,15 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier application submitted for review. |  -  |
-| **403** | Missing permissions or company context. |  -  |
-| **422** | Payload failed validation or a pending application already exists. |  -  |
+
+| Status code | Description                                                        | Response headers |
+| ----------- | ------------------------------------------------------------------ | ---------------- |
+| **200**     | Supplier application submitted for review.                         | -                |
+| **403**     | Missing permissions or company context.                            | -                |
+| **422**     | Payload failed validation or a pending application already exists. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showSelfServiceSupplierApplicationStatus
 
@@ -663,28 +624,25 @@ Get supplier self-service application status
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ShowSelfServiceSupplierApplicationStatusRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  try {
-    const data = await api.showSelfServiceSupplierApplicationStatus();
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showSelfServiceSupplierApplicationStatus();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -708,14 +666,13 @@ This endpoint does not need any parameter.
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Current status for the authenticated user\&#39;s company application. |  -  |
+
+| Status code | Description                                                           | Response headers |
+| ----------- | --------------------------------------------------------------------- | ---------------- |
+| **200**     | Current status for the authenticated user\&#39;s company application. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showSupplier
 
@@ -726,33 +683,30 @@ Show supplier
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ShowSupplierRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-  } satisfies ShowSupplierRequest;
+    const body = {
+        // number
+        supplierId: 56,
+    } satisfies ShowSupplierRequest;
 
-  try {
-    const data = await api.showSupplier(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showSupplier(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -761,10 +715,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
+| Name           | Type     | Description | Notes                     |
+| -------------- | -------- | ----------- | ------------------------- |
+| **supplierId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -779,14 +732,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier details. |  -  |
+
+| Status code | Description       | Response headers |
+| ----------- | ----------------- | ---------------- |
+| **200**     | Supplier details. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## showSupplierApplication
 
@@ -797,33 +749,30 @@ Show supplier application
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { ShowSupplierApplicationRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    applicationId: 56,
-  } satisfies ShowSupplierApplicationRequest;
+    const body = {
+        // number
+        applicationId: 56,
+    } satisfies ShowSupplierApplicationRequest;
 
-  try {
-    const data = await api.showSupplierApplication(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.showSupplierApplication(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -832,10 +781,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **applicationId** | `number` |  | [Defaults to `undefined`] |
+| Name              | Type     | Description | Notes                     |
+| ----------------- | -------- | ----------- | ------------------------- |
+| **applicationId** | `number` |             | [Defaults to `undefined`] |
 
 ### Return type
 
@@ -850,14 +798,13 @@ example().catch(console.error);
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Supplier application details. |  -  |
+
+| Status code | Description                   | Response headers |
+| ----------- | ----------------------------- | ---------------- |
+| **200**     | Supplier application details. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateSupplierEsg
 
@@ -868,37 +815,34 @@ Update ESG record
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { UpdateSupplierEsgRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // number
-    supplierId: 56,
-    // number
-    recordId: 56,
-    // { [key: string]: any; }
-    requestBody: Object,
-  } satisfies UpdateSupplierEsgRequest;
+    const body = {
+        // number
+        supplierId: 56,
+        // number
+        recordId: 56,
+        // { [key: string]: any; }
+        requestBody: Object,
+    } satisfies UpdateSupplierEsgRequest;
 
-  try {
-    const data = await api.updateSupplierEsg(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.updateSupplierEsg(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -907,12 +851,11 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **supplierId** | `number` |  | [Defaults to `undefined`] |
-| **recordId** | `number` |  | [Defaults to `undefined`] |
-| **requestBody** | `{ [key: string]: any; }` |  | |
+| Name            | Type                      | Description | Notes                     |
+| --------------- | ------------------------- | ----------- | ------------------------- |
+| **supplierId**  | `number`                  |             | [Defaults to `undefined`] |
+| **recordId**    | `number`                  |             | [Defaults to `undefined`] |
+| **requestBody** | `{ [key: string]: any; }` |             |                           |
 
 ### Return type
 
@@ -927,14 +870,13 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | ESG record updated. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **200**     | ESG record updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
 
 ## updateSupplierVisibility
 
@@ -945,33 +887,30 @@ Update supplier directory visibility
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SuppliersApi,
-} from '';
+import { Configuration, SuppliersApi } from '';
 import type { UpdateSupplierVisibilityRequest } from '';
 
 async function example() {
-  console.log("🚀 Testing  SDK...");
-  const config = new Configuration({ 
-    // To configure API key authorization: apiKeyAuth
-    apiKey: "YOUR API KEY",
-    // Configure HTTP bearer authorization: bearerAuth
-    accessToken: "YOUR BEARER TOKEN",
-  });
-  const api = new SuppliersApi(config);
+    console.log('🚀 Testing  SDK...');
+    const config = new Configuration({
+        // To configure API key authorization: apiKeyAuth
+        apiKey: 'YOUR API KEY',
+        // Configure HTTP bearer authorization: bearerAuth
+        accessToken: 'YOUR BEARER TOKEN',
+    });
+    const api = new SuppliersApi(config);
 
-  const body = {
-    // { [key: string]: any; }
-    requestBody: Object,
-  } satisfies UpdateSupplierVisibilityRequest;
+    const body = {
+        // { [key: string]: any; }
+        requestBody: Object,
+    } satisfies UpdateSupplierVisibilityRequest;
 
-  try {
-    const data = await api.updateSupplierVisibility(body);
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
+    try {
+        const data = await api.updateSupplierVisibility(body);
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 // Run the test
@@ -980,10 +919,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **requestBody** | `{ [key: string]: any; }` |  | |
+| Name            | Type                      | Description | Notes |
+| --------------- | ------------------------- | ----------- | ----- |
+| **requestBody** | `{ [key: string]: any; }` |             |       |
 
 ### Return type
 
@@ -998,11 +936,10 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
-
 ### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Visibility updated. |  -  |
+
+| Status code | Description         | Response headers |
+| ----------- | ------------------- | ---------------- |
+| **200**     | Visibility updated. | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

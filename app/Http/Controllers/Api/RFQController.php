@@ -16,6 +16,7 @@ use App\Models\RFQ;
 use App\Models\RfqItem;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Services\RfqDeadlineExtensionService;
 use App\Services\RfqVersionService;
 use App\Support\Audit\AuditLogger;
@@ -89,6 +90,7 @@ class RFQController extends ApiController
         private readonly RfqVersionService $rfqVersionService,
         private readonly NotificationService $notifications,
         private readonly RfqDeadlineExtensionService $deadlineExtensions,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {
     }
     public function index(Request $request): JsonResponse
@@ -236,6 +238,8 @@ class RFQController extends ApiController
             });
 
             $rfq->load(['items', 'cadDocument']);
+
+            $this->digitalTwinLinkService->linkRfqCreation($rfq, $user);
 
             $this->auditLogger->created($rfq);
 
@@ -1287,6 +1291,24 @@ class RFQController extends ApiController
                 }
             } elseif ($existing !== $value) {
                 $meta['tax_percent'] = $value;
+                $changed = true;
+            }
+        }
+
+        if (array_key_exists('digital_twin_id', $payload)) {
+            $value = $payload['digital_twin_id'];
+            unset($payload['digital_twin_id']);
+
+            $value = $value === null ? null : (int) $value;
+            $existing = $meta['digital_twin_id'] ?? null;
+
+            if ($value === null || $value <= 0) {
+                if (array_key_exists('digital_twin_id', $meta)) {
+                    unset($meta['digital_twin_id']);
+                    $changed = true;
+                }
+            } elseif ($existing !== $value) {
+                $meta['digital_twin_id'] = $value;
                 $changed = true;
             }
         }

@@ -6,7 +6,11 @@ export type SalesOrderStatus =
     | 'fulfilled'
     | 'cancelled';
 
-export type ShipmentStatus = 'pending' | 'in_transit' | 'delivered' | 'cancelled';
+export type ShipmentStatus =
+    | 'pending'
+    | 'in_transit'
+    | 'delivered'
+    | 'cancelled';
 
 export interface OrderShippingProfile {
     shipToName?: string | null;

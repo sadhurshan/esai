@@ -1,10 +1,13 @@
-import { renderHook } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/dom';
+import { renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useForecastReport, useSupplierPerformanceReport } from '@/hooks/api/analytics/use-analytics';
+import {
+    useForecastReport,
+    useSupplierPerformanceReport,
+} from '@/hooks/api/analytics/use-analytics';
 import { api } from '@/lib/api';
 
 function createWrapper() {
@@ -17,7 +20,11 @@ function createWrapper() {
     });
 
     function Wrapper({ children }: PropsWithChildren) {
-        return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return Wrapper;

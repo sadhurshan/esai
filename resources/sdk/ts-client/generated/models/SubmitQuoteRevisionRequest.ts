@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,29 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { SubmitQuoteRevisionRequestItemsInner } from './SubmitQuoteRevisionRequestItemsInner';
 import {
     SubmitQuoteRevisionRequestItemsInnerFromJSON,
-    SubmitQuoteRevisionRequestItemsInnerFromJSONTyped,
     SubmitQuoteRevisionRequestItemsInnerToJSON,
-    SubmitQuoteRevisionRequestItemsInnerToJSONTyped,
 } from './SubmitQuoteRevisionRequestItemsInner';
 
 /**
- * 
+ *
  * @export
  * @interface SubmitQuoteRevisionRequest
  */
 export interface SubmitQuoteRevisionRequest {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SubmitQuoteRevisionRequest
      */
     note: string;
     /**
-     * 
+     *
      * @type {Array<SubmitQuoteRevisionRequestItemsInner>}
      * @memberof SubmitQuoteRevisionRequest
      */
@@ -44,40 +41,53 @@ export interface SubmitQuoteRevisionRequest {
 /**
  * Check if a given object implements the SubmitQuoteRevisionRequest interface.
  */
-export function instanceOfSubmitQuoteRevisionRequest(value: object): value is SubmitQuoteRevisionRequest {
+export function instanceOfSubmitQuoteRevisionRequest(
+    value: object,
+): value is SubmitQuoteRevisionRequest {
     if (!('note' in value) || value['note'] === undefined) return false;
     if (!('items' in value) || value['items'] === undefined) return false;
     return true;
 }
 
-export function SubmitQuoteRevisionRequestFromJSON(json: any): SubmitQuoteRevisionRequest {
+export function SubmitQuoteRevisionRequestFromJSON(
+    json: any,
+): SubmitQuoteRevisionRequest {
     return SubmitQuoteRevisionRequestFromJSONTyped(json, false);
 }
 
-export function SubmitQuoteRevisionRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): SubmitQuoteRevisionRequest {
+export function SubmitQuoteRevisionRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SubmitQuoteRevisionRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'note': json['note'],
-        'items': ((json['items'] as Array<any>).map(SubmitQuoteRevisionRequestItemsInnerFromJSON)),
+        note: json['note'],
+        items: (json['items'] as Array<any>).map(
+            SubmitQuoteRevisionRequestItemsInnerFromJSON,
+        ),
     };
 }
 
-export function SubmitQuoteRevisionRequestToJSON(json: any): SubmitQuoteRevisionRequest {
+export function SubmitQuoteRevisionRequestToJSON(
+    json: any,
+): SubmitQuoteRevisionRequest {
     return SubmitQuoteRevisionRequestToJSONTyped(json, false);
 }
 
-export function SubmitQuoteRevisionRequestToJSONTyped(value?: SubmitQuoteRevisionRequest | null, ignoreDiscriminator: boolean = false): any {
+export function SubmitQuoteRevisionRequestToJSONTyped(
+    value?: SubmitQuoteRevisionRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'note': value['note'],
-        'items': ((value['items'] as Array<any>).map(SubmitQuoteRevisionRequestItemsInnerToJSON)),
+        note: value['note'],
+        items: (value['items'] as Array<any>).map(
+            SubmitQuoteRevisionRequestItemsInnerToJSON,
+        ),
     };
 }
-

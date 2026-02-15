@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,69 +12,68 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface CreditNoteLine
  */
 export interface CreditNoteLine {
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
     invoiceLineId: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNoteLine
      */
     description?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
     qtyInvoiced: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
     qtyToCredit: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
     qtyAlreadyCredited?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
     unitPriceMinor: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNoteLine
      */
     currency: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof CreditNoteLine
      */
     uom?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof CreditNoteLine
      */
@@ -84,12 +83,18 @@ export interface CreditNoteLine {
 /**
  * Check if a given object implements the CreditNoteLine interface.
  */
-export function instanceOfCreditNoteLine(value: object): value is CreditNoteLine {
+export function instanceOfCreditNoteLine(
+    value: object,
+): value is CreditNoteLine {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('invoiceLineId' in value) || value['invoiceLineId'] === undefined) return false;
-    if (!('qtyInvoiced' in value) || value['qtyInvoiced'] === undefined) return false;
-    if (!('qtyToCredit' in value) || value['qtyToCredit'] === undefined) return false;
-    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined) return false;
+    if (!('invoiceLineId' in value) || value['invoiceLineId'] === undefined)
+        return false;
+    if (!('qtyInvoiced' in value) || value['qtyInvoiced'] === undefined)
+        return false;
+    if (!('qtyToCredit' in value) || value['qtyToCredit'] === undefined)
+        return false;
+    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined)
+        return false;
     if (!('currency' in value) || value['currency'] === undefined) return false;
     return true;
 }
@@ -98,22 +103,29 @@ export function CreditNoteLineFromJSON(json: any): CreditNoteLine {
     return CreditNoteLineFromJSONTyped(json, false);
 }
 
-export function CreditNoteLineFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreditNoteLine {
+export function CreditNoteLineFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): CreditNoteLine {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'invoiceLineId': json['invoice_line_id'],
-        'description': json['description'] == null ? undefined : json['description'],
-        'qtyInvoiced': json['qty_invoiced'],
-        'qtyToCredit': json['qty_to_credit'],
-        'qtyAlreadyCredited': json['qty_already_credited'] == null ? undefined : json['qty_already_credited'],
-        'unitPriceMinor': json['unit_price_minor'],
-        'currency': json['currency'],
-        'uom': json['uom'] == null ? undefined : json['uom'],
-        'totalMinor': json['total_minor'] == null ? undefined : json['total_minor'],
+        id: json['id'],
+        invoiceLineId: json['invoice_line_id'],
+        description:
+            json['description'] == null ? undefined : json['description'],
+        qtyInvoiced: json['qty_invoiced'],
+        qtyToCredit: json['qty_to_credit'],
+        qtyAlreadyCredited:
+            json['qty_already_credited'] == null
+                ? undefined
+                : json['qty_already_credited'],
+        unitPriceMinor: json['unit_price_minor'],
+        currency: json['currency'],
+        uom: json['uom'] == null ? undefined : json['uom'],
+        totalMinor:
+            json['total_minor'] == null ? undefined : json['total_minor'],
     };
 }
 
@@ -121,23 +133,24 @@ export function CreditNoteLineToJSON(json: any): CreditNoteLine {
     return CreditNoteLineToJSONTyped(json, false);
 }
 
-export function CreditNoteLineToJSONTyped(value?: CreditNoteLine | null, ignoreDiscriminator: boolean = false): any {
+export function CreditNoteLineToJSONTyped(
+    value?: CreditNoteLine | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'invoice_line_id': value['invoiceLineId'],
-        'description': value['description'],
-        'qty_invoiced': value['qtyInvoiced'],
-        'qty_to_credit': value['qtyToCredit'],
-        'qty_already_credited': value['qtyAlreadyCredited'],
-        'unit_price_minor': value['unitPriceMinor'],
-        'currency': value['currency'],
-        'uom': value['uom'],
-        'total_minor': value['totalMinor'],
+        id: value['id'],
+        invoice_line_id: value['invoiceLineId'],
+        description: value['description'],
+        qty_invoiced: value['qtyInvoiced'],
+        qty_to_credit: value['qtyToCredit'],
+        qty_already_credited: value['qtyAlreadyCredited'],
+        unit_price_minor: value['unitPriceMinor'],
+        currency: value['currency'],
+        uom: value['uom'],
+        total_minor: value['totalMinor'],
     };
 }
-

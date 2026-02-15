@@ -1,9 +1,13 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import { SettingsApi, type NumberingRule as ApiNumberingRule, type NumberingSettings as ApiNumberingSettings } from '@/sdk';
 import type { ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+    SettingsApi,
+    type NumberingRule as ApiNumberingRule,
+    type NumberingSettings as ApiNumberingSettings,
+} from '@/sdk';
 import type { NumberingRule, NumberingSettings } from '@/types/settings';
 
 function mapRule(payload?: ApiNumberingRule): NumberingRule {
@@ -16,7 +20,9 @@ function mapRule(payload?: ApiNumberingRule): NumberingRule {
     };
 }
 
-export function mapNumberingSettings(payload: ApiNumberingSettings): NumberingSettings {
+export function mapNumberingSettings(
+    payload: ApiNumberingSettings,
+): NumberingSettings {
     return {
         rfq: mapRule(payload.rfq),
         quote: mapRule(payload.quote),
@@ -27,7 +33,10 @@ export function mapNumberingSettings(payload: ApiNumberingSettings): NumberingSe
     };
 }
 
-export function useNumberingSettings(): UseQueryResult<NumberingSettings, ApiError> {
+export function useNumberingSettings(): UseQueryResult<
+    NumberingSettings,
+    ApiError
+> {
     const settingsApi = useSdkClient(SettingsApi);
 
     return useQuery<NumberingSettings, ApiError>({

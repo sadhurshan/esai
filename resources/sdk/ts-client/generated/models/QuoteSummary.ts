@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,56 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface QuoteSummary
  */
 export interface QuoteSummary {
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteSummary
      */
     id: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteSummary
      */
     rfqId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteSummary
      */
     supplierId: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteSummary
      */
     status: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteSummary
      */
     total?: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof QuoteSummary
      */
     totalMinor: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof QuoteSummary
      */
     currency?: string;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof QuoteSummary
      */
@@ -75,9 +74,11 @@ export interface QuoteSummary {
 export function instanceOfQuoteSummary(value: object): value is QuoteSummary {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('rfqId' in value) || value['rfqId'] === undefined) return false;
-    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+    if (!('supplierId' in value) || value['supplierId'] === undefined)
+        return false;
     if (!('status' in value) || value['status'] === undefined) return false;
-    if (!('totalMinor' in value) || value['totalMinor'] === undefined) return false;
+    if (!('totalMinor' in value) || value['totalMinor'] === undefined)
+        return false;
     return true;
 }
 
@@ -85,20 +86,25 @@ export function QuoteSummaryFromJSON(json: any): QuoteSummary {
     return QuoteSummaryFromJSONTyped(json, false);
 }
 
-export function QuoteSummaryFromJSONTyped(json: any, ignoreDiscriminator: boolean): QuoteSummary {
+export function QuoteSummaryFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): QuoteSummary {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'rfqId': json['rfq_id'],
-        'supplierId': json['supplier_id'],
-        'status': json['status'],
-        'total': json['total'] == null ? undefined : json['total'],
-        'totalMinor': json['total_minor'],
-        'currency': json['currency'] == null ? undefined : json['currency'],
-        'submittedAt': json['submitted_at'] == null ? undefined : (new Date(json['submitted_at'])),
+        id: json['id'],
+        rfqId: json['rfq_id'],
+        supplierId: json['supplier_id'],
+        status: json['status'],
+        total: json['total'] == null ? undefined : json['total'],
+        totalMinor: json['total_minor'],
+        currency: json['currency'] == null ? undefined : json['currency'],
+        submittedAt:
+            json['submitted_at'] == null
+                ? undefined
+                : new Date(json['submitted_at']),
     };
 }
 
@@ -106,21 +112,25 @@ export function QuoteSummaryToJSON(json: any): QuoteSummary {
     return QuoteSummaryToJSONTyped(json, false);
 }
 
-export function QuoteSummaryToJSONTyped(value?: QuoteSummary | null, ignoreDiscriminator: boolean = false): any {
+export function QuoteSummaryToJSONTyped(
+    value?: QuoteSummary | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'rfq_id': value['rfqId'],
-        'supplier_id': value['supplierId'],
-        'status': value['status'],
-        'total': value['total'],
-        'total_minor': value['totalMinor'],
-        'currency': value['currency'],
-        'submitted_at': value['submittedAt'] == null ? value['submittedAt'] : value['submittedAt'].toISOString(),
+        id: value['id'],
+        rfq_id: value['rfqId'],
+        supplier_id: value['supplierId'],
+        status: value['status'],
+        total: value['total'],
+        total_minor: value['totalMinor'],
+        currency: value['currency'],
+        submitted_at:
+            value['submittedAt'] == null
+                ? value['submittedAt']
+                : value['submittedAt'].toISOString(),
     };
 }
-

@@ -1,8 +1,12 @@
-import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { useMoneyFormatter } from '@/hooks/use-money-formatter';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useMoneySettings } from '@/hooks/api/use-money-settings';
+import { useMoneyFormatter } from '@/hooks/use-money-formatter';
+import { cn } from '@/lib/utils';
+import { Info } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface MoneyCellProps {
@@ -16,7 +20,10 @@ interface MoneyCellProps {
 
 const DEFAULT_MINOR_UNIT = 2;
 
-function toMajorUnits(valueMinor?: number | null, minorUnit?: number | null): number | null {
+function toMajorUnits(
+    valueMinor?: number | null,
+    minorUnit?: number | null,
+): number | null {
     if (valueMinor === null || valueMinor === undefined) {
         return null;
     }
@@ -25,7 +32,11 @@ function toMajorUnits(valueMinor?: number | null, minorUnit?: number | null): nu
     return valueMinor / divisor;
 }
 
-function formatForeignCurrency(amountMinor?: number | null, currency?: string | null, locale?: string): string | null {
+function formatForeignCurrency(
+    amountMinor?: number | null,
+    currency?: string | null,
+    locale?: string,
+): string | null {
     if (amountMinor == null || !currency) {
         return null;
     }
@@ -37,7 +48,9 @@ function formatForeignCurrency(amountMinor?: number | null, currency?: string | 
             minimumFractionDigits: DEFAULT_MINOR_UNIT,
             maximumFractionDigits: DEFAULT_MINOR_UNIT,
         });
-        return formatter.format(toMajorUnits(amountMinor, DEFAULT_MINOR_UNIT) ?? 0);
+        return formatter.format(
+            toMajorUnits(amountMinor, DEFAULT_MINOR_UNIT) ?? 0,
+        );
     } catch (error) {
         void error;
         return `${(toMajorUnits(amountMinor, DEFAULT_MINOR_UNIT) ?? 0).toFixed(DEFAULT_MINOR_UNIT)} ${currency}`;
@@ -56,11 +69,21 @@ export function MoneyCell({
     const { data: moneySettings } = useMoneySettings();
 
     const companyMinorUnit = useMemo(() => {
-        return moneySettings?.pricingCurrency?.minorUnit ?? moneySettings?.baseCurrency?.minorUnit ?? DEFAULT_MINOR_UNIT;
+        return (
+            moneySettings?.pricingCurrency?.minorUnit ??
+            moneySettings?.baseCurrency?.minorUnit ??
+            DEFAULT_MINOR_UNIT
+        );
     }, [moneySettings]);
 
     const companyCurrency = useMemo(() => {
-        return moneySettings?.pricingCurrency?.code ?? moneySettings?.baseCurrency?.code ?? convertedCurrency ?? currency ?? 'USD';
+        return (
+            moneySettings?.pricingCurrency?.code ??
+            moneySettings?.baseCurrency?.code ??
+            convertedCurrency ??
+            currency ??
+            'USD'
+        );
     }, [convertedCurrency, currency, moneySettings]);
 
     const displayValueMinor =
@@ -69,10 +92,14 @@ export function MoneyCell({
             : amountMinor;
 
     const companyValue = toMajorUnits(displayValueMinor, companyMinorUnit);
-    const formattedCompanyValue = companyValue !== null ? formatCompanyMoney(companyValue) : '—';
+    const formattedCompanyValue =
+        companyValue !== null ? formatCompanyMoney(companyValue) : '—';
 
     const showFxTooltip = Boolean(
-        currency && currency !== companyCurrency && amountMinor !== undefined && amountMinor !== null,
+        currency &&
+        currency !== companyCurrency &&
+        amountMinor !== undefined &&
+        amountMinor !== null,
     );
 
     const originalPresentation = useMemo(() => {
@@ -84,7 +111,12 @@ export function MoneyCell({
     }, [amountMinor, currency, showFxTooltip]);
 
     return (
-        <div className={cn('flex flex-col gap-1 text-sm text-foreground', className)}>
+        <div
+            className={cn(
+                'flex flex-col gap-1 text-sm text-foreground',
+                className,
+            )}
+        >
             <div className="flex items-center gap-1 font-semibold">
                 <span>{formattedCompanyValue}</span>
                 {showFxTooltip && originalPresentation ? (
@@ -100,18 +132,23 @@ export function MoneyCell({
                         </TooltipTrigger>
                         <TooltipContent>
                             <div className="space-y-1">
-                                <p className="font-semibold">Supplier currency</p>
+                                <p className="font-semibold">
+                                    Supplier currency
+                                </p>
                                 <p>{originalPresentation}</p>
                                 <p className="text-xs text-muted-foreground">
                                     {/* TODO: surface FX rate + timestamp once exposed by Money settings. */}
-                                    Converted to {companyCurrency} for workspace comparisons.
+                                    Converted to {companyCurrency} for workspace
+                                    comparisons.
                                 </p>
                             </div>
                         </TooltipContent>
                     </Tooltip>
                 ) : null}
             </div>
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+            <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                {label}
+            </span>
         </div>
     );
 }

@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
     AlertCircle,
     AlertTriangle,
@@ -13,11 +11,19 @@ import {
     Shield,
     Sparkles,
 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
@@ -98,7 +104,8 @@ const PLAN_FEATURES: PlanFeatureDefinition[] = [
     {
         key: 'approvals_enabled',
         label: 'Approval workflows',
-        description: 'Route RFQs, quotes, and POs through multi-level approvals.',
+        description:
+            'Route RFQs, quotes, and POs through multi-level approvals.',
     },
     {
         key: 'inventory_enabled',
@@ -129,8 +136,12 @@ const PLAN_FEATURES: PlanFeatureDefinition[] = [
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const plansUrl = apiBase ? `${apiBase}/api/plans` : '/api/plans';
-const billingPortalUrl = apiBase ? `${apiBase}/api/billing/portal` : '/api/billing/portal';
-const billingInvoicesUrl = apiBase ? `${apiBase}/api/billing/invoices` : '/api/billing/invoices';
+const billingPortalUrl = apiBase
+    ? `${apiBase}/api/billing/portal`
+    : '/api/billing/portal';
+const billingInvoicesUrl = apiBase
+    ? `${apiBase}/api/billing/invoices`
+    : '/api/billing/invoices';
 const EMPTY_FEATURE_FLAGS: Record<string, boolean> = Object.freeze({});
 
 export function BillingSettingsPage() {
@@ -144,14 +155,19 @@ export function BillingSettingsPage() {
     const [isRefreshingProfile, setIsRefreshingProfile] = useState(false);
     const [isLaunchingPortal, setIsLaunchingPortal] = useState(false);
     const [portalError, setPortalError] = useState<string | null>(null);
-    const [portalFallbackUrl, setPortalFallbackUrl] = useState<string | null>(null);
+    const [portalFallbackUrl, setPortalFallbackUrl] = useState<string | null>(
+        null,
+    );
     const [invoices, setInvoices] = useState<BillingInvoiceRecord[]>([]);
     const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
     const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
     const company = state.company;
     const currentPlanCode = state.plan ?? company?.plan ?? null;
-    const featureFlags = (state.featureFlags ?? EMPTY_FEATURE_FLAGS) as Record<string, boolean>;
+    const featureFlags = (state.featureFlags ?? EMPTY_FEATURE_FLAGS) as Record<
+        string,
+        boolean
+    >;
 
     useEffect(() => {
         let cancelled = false;
@@ -160,7 +176,9 @@ export function BillingSettingsPage() {
             setIsLoadingPlans(true);
             setLoadError(null);
             try {
-                const response = await fetch(plansUrl, { credentials: 'include' });
+                const response = await fetch(plansUrl, {
+                    credentials: 'include',
+                });
 
                 if (!response.ok) {
                     throw new Error('Unable to load plans');
@@ -202,21 +220,30 @@ export function BillingSettingsPage() {
                     signal: controller.signal,
                 });
 
-                const payload = (await response.json().catch(() => ({}))) as BillingInvoiceResponseEnvelope;
+                const payload = (await response
+                    .json()
+                    .catch(() => ({}))) as BillingInvoiceResponseEnvelope;
 
                 if (!isActive) {
                     return;
                 }
 
                 if (!response.ok || payload?.status !== 'success') {
-                    setInvoiceError(payload?.message ?? 'Unable to load invoice history right now.');
+                    setInvoiceError(
+                        payload?.message ??
+                            'Unable to load invoice history right now.',
+                    );
                     setInvoices([]);
                     return;
                 }
 
                 setInvoices(payload?.data?.items ?? []);
             } catch (error) {
-                if (!isActive || (error instanceof DOMException && error.name === 'AbortError')) {
+                if (
+                    !isActive ||
+                    (error instanceof DOMException &&
+                        error.name === 'AbortError')
+                ) {
                     return;
                 }
                 console.error('Failed to load Stripe invoices', error);
@@ -254,8 +281,14 @@ export function BillingSettingsPage() {
         };
 
         return [
-            { label: 'RFQs per month', value: formatLimit(plan?.rfqs_per_month) },
-            { label: 'Invoices per month', value: formatLimit(plan?.invoices_per_month) },
+            {
+                label: 'RFQs per month',
+                value: formatLimit(plan?.rfqs_per_month),
+            },
+            {
+                label: 'Invoices per month',
+                value: formatLimit(plan?.invoices_per_month),
+            },
             { label: 'Seats', value: formatLimit(plan?.users_max) },
             { label: 'Storage', value: formatLimit(plan?.storage_gb, ' GB') },
         ];
@@ -266,13 +299,17 @@ export function BillingSettingsPage() {
             return 'Plan pending';
         }
 
-        if (currentPlan.price_usd === null || Number(currentPlan.price_usd) === 0) {
+        if (
+            currentPlan.price_usd === null ||
+            Number(currentPlan.price_usd) === 0
+        ) {
             return 'Included';
         }
 
-        const amount = typeof currentPlan.price_usd === 'number'
-            ? currentPlan.price_usd
-            : Number(currentPlan.price_usd ?? 0);
+        const amount =
+            typeof currentPlan.price_usd === 'number'
+                ? currentPlan.price_usd
+                : Number(currentPlan.price_usd ?? 0);
 
         if (Number.isNaN(amount) || amount <= 0) {
             return 'Contact sales';
@@ -288,11 +325,12 @@ export function BillingSettingsPage() {
     const planFeatureStates = useMemo(() => {
         return PLAN_FEATURES.map((feature) => {
             const flagValue = featureFlags[feature.key as string];
-            const resolved = typeof flagValue === 'boolean'
-                ? flagValue
-                : currentPlan
-                    ? Boolean(currentPlan[feature.key])
-                    : false;
+            const resolved =
+                typeof flagValue === 'boolean'
+                    ? flagValue
+                    : currentPlan
+                      ? Boolean(currentPlan[feature.key])
+                      : false;
 
             return {
                 ...feature,
@@ -318,14 +356,16 @@ export function BillingSettingsPage() {
     const billingStatusDetail = useMemo(() => {
         const defaultDetail = {
             label: 'Subscription pending',
-            description: 'Add a payment method to unlock billing-managed modules.',
+            description:
+                'Add a payment method to unlock billing-managed modules.',
             tone: 'neutral' as BillingStatusTone,
         };
 
         if (billingStatus === 'active') {
             return {
                 label: 'Subscription active',
-                description: 'Payments are current and all workflows are unlocked.',
+                description:
+                    'Payments are current and all workflows are unlocked.',
                 tone: 'success' as BillingStatusTone,
             };
         }
@@ -333,7 +373,8 @@ export function BillingSettingsPage() {
         if (billingStatus === 'trialing') {
             return {
                 label: 'Trialing',
-                description: 'Trial access remains active until billing is configured.',
+                description:
+                    'Trial access remains active until billing is configured.',
                 tone: 'success' as BillingStatusTone,
             };
         }
@@ -363,13 +404,20 @@ export function BillingSettingsPage() {
         if (billingStatus === 'cancelled') {
             return {
                 label: 'Subscription cancelled',
-                description: 'Reactivate billing to resume purchasing workflows.',
+                description:
+                    'Reactivate billing to resume purchasing workflows.',
                 tone: 'warning' as BillingStatusTone,
             };
         }
 
         return defaultDetail;
-    }, [billingGraceEndsAt, billingLockAt, billingReadOnly, billingStatus, formatDate]);
+    }, [
+        billingGraceEndsAt,
+        billingLockAt,
+        billingReadOnly,
+        billingStatus,
+        formatDate,
+    ]);
 
     const handleOpenBillingPortal = useCallback(async () => {
         setPortalError(null);
@@ -385,10 +433,15 @@ export function BillingSettingsPage() {
                 credentials: 'include',
             });
 
-            const payload = (await response.json().catch(() => ({}))) as BillingPortalEnvelope;
+            const payload = (await response
+                .json()
+                .catch(() => ({}))) as BillingPortalEnvelope;
 
             if (!response.ok || payload?.status !== 'success') {
-                setPortalError(payload?.message ?? 'Unable to open the billing portal right now.');
+                setPortalError(
+                    payload?.message ??
+                        'Unable to open the billing portal right now.',
+                );
                 const fallback = payload?.errors?.fallback_url ?? null;
                 if (fallback) {
                     setPortalFallbackUrl(fallback);
@@ -406,13 +459,18 @@ export function BillingSettingsPage() {
             window.location.assign(portalUrl);
         } catch (error) {
             console.error('Failed to open billing portal', error);
-            setPortalError('Unable to reach the billing portal service. Please try again in a moment.');
+            setPortalError(
+                'Unable to reach the billing portal service. Please try again in a moment.',
+            );
         } finally {
             setIsLaunchingPortal(false);
         }
     }, []);
 
-    const showFeatureSkeleton = isLoadingPlans && !currentPlan && Object.keys(featureFlags).length === 0;
+    const showFeatureSkeleton =
+        isLoadingPlans &&
+        !currentPlan &&
+        Object.keys(featureFlags).length === 0;
 
     const renderStatusIcon = () => {
         if (billingStatusDetail.tone === 'success') {
@@ -422,32 +480,44 @@ export function BillingSettingsPage() {
             return <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-500" />;
         }
         if (billingStatusDetail.tone === 'danger') {
-            return <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />;
+            return (
+                <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
+            );
         }
         return <CreditCard className="mt-0.5 h-5 w-5 text-muted-foreground" />;
     };
 
-    const readOnlyDeadline = billingGraceEndsAt ? formatDate(billingGraceEndsAt, { dateStyle: 'medium' }) : null;
-    const lockedDate = billingLockAt ? formatDate(billingLockAt, { dateStyle: 'medium' }) : null;
+    const readOnlyDeadline = billingGraceEndsAt
+        ? formatDate(billingGraceEndsAt, { dateStyle: 'medium' })
+        : null;
+    const lockedDate = billingLockAt
+        ? formatDate(billingLockAt, { dateStyle: 'medium' })
+        : null;
 
-    const formatInvoiceAmount = useCallback((minor?: number | null, currency?: string | null) => {
-        if (typeof minor !== 'number') {
-            return '—';
-        }
-        return formatMoney(minor / 100, {
-            currency: currency ?? undefined,
-            fallback: '—',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    }, [formatMoney]);
+    const formatInvoiceAmount = useCallback(
+        (minor?: number | null, currency?: string | null) => {
+            if (typeof minor !== 'number') {
+                return '—';
+            }
+            return formatMoney(minor / 100, {
+                currency: currency ?? undefined,
+                fallback: '—',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+        },
+        [formatMoney],
+    );
 
-    const formatInvoiceDate = useCallback((value?: string | null) => {
-        if (!value) {
-            return '—';
-        }
-        return formatDate(value, { dateStyle: 'medium' });
-    }, [formatDate]);
+    const formatInvoiceDate = useCallback(
+        (value?: string | null) => {
+            if (!value) {
+                return '—';
+            }
+            return formatDate(value, { dateStyle: 'medium' });
+        },
+        [formatDate],
+    );
 
     const renderInvoiceStatus = useCallback((status?: string | null) => {
         if (!status) {
@@ -462,7 +532,8 @@ export function BillingSettingsPage() {
             uncollectible: 'bg-destructive/10 text-destructive',
             void: 'bg-muted text-foreground/80',
         };
-        const className = toneClasses[lower] ?? 'bg-secondary text-secondary-foreground';
+        const className =
+            toneClasses[lower] ?? 'bg-secondary text-secondary-foreground';
         const variant = lower === 'uncollectible' ? 'destructive' : 'secondary';
         return (
             <Badge variant={variant} className={className}>
@@ -476,12 +547,19 @@ export function BillingSettingsPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <p className="text-sm text-muted-foreground">Workspace</p>
-                    <h1 className="text-2xl font-semibold tracking-tight">Billing & plan</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        Billing & plan
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Review your current plan, feature entitlements, and limits tied to this workspace.
+                        Review your current plan, feature entitlements, and
+                        limits tied to this workspace.
                     </p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/app/settings')}>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/app/settings')}
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to settings
                 </Button>
             </div>
@@ -491,7 +569,8 @@ export function BillingSettingsPage() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Plan catalog unavailable</AlertTitle>
                     <AlertDescription>
-                        {loadError} Please refresh the page or contact support if the issue persists.
+                        {loadError} Please refresh the page or contact support
+                        if the issue persists.
                     </AlertDescription>
                 </Alert>
             ) : null}
@@ -500,9 +579,13 @@ export function BillingSettingsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between gap-4">
                         <div>
-                            <CardTitle className="text-xl">Current plan</CardTitle>
+                            <CardTitle className="text-xl">
+                                Current plan
+                            </CardTitle>
                             <CardDescription>
-                                {currentPlan ? `${currentPlan.name} • ${planPriceLabel}` : 'Plan selection pending'}
+                                {currentPlan
+                                    ? `${currentPlan.name} • ${planPriceLabel}`
+                                    : 'Plan selection pending'}
                             </CardDescription>
                         </div>
                         <Badge variant="outline" className="capitalize">
@@ -512,24 +595,46 @@ export function BillingSettingsPage() {
                     <CardContent className="space-y-6">
                         <div className="grid gap-4 sm:grid-cols-2">
                             {allowances.map((allowance) => (
-                                <div key={allowance.label} className="rounded-lg border bg-muted/40 px-4 py-3">
-                                    <p className="text-xs uppercase text-muted-foreground">{allowance.label}</p>
-                                    <p className="text-lg font-semibold text-foreground">{allowance.value}</p>
+                                <div
+                                    key={allowance.label}
+                                    className="rounded-lg border bg-muted/40 px-4 py-3"
+                                >
+                                    <p className="text-xs text-muted-foreground uppercase">
+                                        {allowance.label}
+                                    </p>
+                                    <p className="text-lg font-semibold text-foreground">
+                                        {allowance.value}
+                                    </p>
                                 </div>
                             ))}
                         </div>
                         <Separator />
                         <div className="flex flex-wrap items-center gap-3">
-                            <Button onClick={() => navigate('/app/setup/plan?mode=change')}>
-                                <Sparkles className="mr-2 h-4 w-4" /> Change plan
+                            <Button
+                                onClick={() =>
+                                    navigate('/app/setup/plan?mode=change')
+                                }
+                            >
+                                <Sparkles className="mr-2 h-4 w-4" /> Change
+                                plan
                             </Button>
-                            <Button variant="outline" onClick={handleRefreshProfile} disabled={isRefreshingProfile}>
+                            <Button
+                                variant="outline"
+                                onClick={handleRefreshProfile}
+                                disabled={isRefreshingProfile}
+                            >
                                 <RefreshCcw className="mr-2 h-4 w-4" />
-                                {isRefreshingProfile ? 'Refreshing…' : 'Refresh entitlements'}
+                                {isRefreshingProfile
+                                    ? 'Refreshing…'
+                                    : 'Refresh entitlements'}
                             </Button>
                             <Button asChild variant="ghost">
-                                <a href="mailto:billing@elements.supply" className="inline-flex items-center">
-                                    <Shield className="mr-2 h-4 w-4" /> Contact billing
+                                <a
+                                    href="mailto:billing@elements.supply"
+                                    className="inline-flex items-center"
+                                >
+                                    <Shield className="mr-2 h-4 w-4" /> Contact
+                                    billing
                                 </a>
                             </Button>
                         </div>
@@ -538,15 +643,22 @@ export function BillingSettingsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Payment status</CardTitle>
-                        <CardDescription>Check subscription health and launch the Stripe billing portal.</CardDescription>
+                        <CardDescription>
+                            Check subscription health and launch the Stripe
+                            billing portal.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="rounded-lg border bg-muted/40 px-4 py-4">
                             <div className="flex items-start gap-3">
                                 {renderStatusIcon()}
                                 <div>
-                                    <p className="font-medium">{billingStatusDetail.label}</p>
-                                    <p className="text-sm text-muted-foreground">{billingStatusDetail.description}</p>
+                                    <p className="font-medium">
+                                        {billingStatusDetail.label}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {billingStatusDetail.description}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -592,13 +704,24 @@ export function BillingSettingsPage() {
                             </Alert>
                         ) : null}
                         <div className="flex flex-col gap-3">
-                            <Button onClick={handleOpenBillingPortal} disabled={isLaunchingPortal}>
+                            <Button
+                                onClick={handleOpenBillingPortal}
+                                disabled={isLaunchingPortal}
+                            >
                                 <CreditCard className="mr-2 h-4 w-4" />
-                                {isLaunchingPortal ? 'Opening portal…' : 'Open billing portal'}
+                                {isLaunchingPortal
+                                    ? 'Opening portal…'
+                                    : 'Open billing portal'}
                             </Button>
                             <p className="text-xs text-muted-foreground">
-                                Need help updating payment methods or invoices? Email{' '}
-                                <a className="underline" href="mailto:billing@elements.supply">billing@elements.supply</a>{' '}
+                                Need help updating payment methods or invoices?
+                                Email{' '}
+                                <a
+                                    className="underline"
+                                    href="mailto:billing@elements.supply"
+                                >
+                                    billing@elements.supply
+                                </a>{' '}
                                 with your workspace URL.
                             </p>
                         </div>
@@ -609,13 +732,18 @@ export function BillingSettingsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Feature access</CardTitle>
-                    <CardDescription>Live view of which modules are unlocked by your plan.</CardDescription>
+                    <CardDescription>
+                        Live view of which modules are unlocked by your plan.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {showFeatureSkeleton ? (
                         <div className="grid gap-3 md:grid-cols-2">
                             {Array.from({ length: 6 }).map((_, index) => (
-                                <Skeleton key={index} className="h-16 rounded-lg" />
+                                <Skeleton
+                                    key={index}
+                                    className="h-16 rounded-lg"
+                                />
                             ))}
                         </div>
                     ) : (
@@ -631,8 +759,12 @@ export function BillingSettingsPage() {
                                         <Lock className="mt-0.5 h-5 w-5 text-muted-foreground" />
                                     )}
                                     <div>
-                                        <p className="font-medium text-foreground">{feature.label}</p>
-                                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                                        <p className="font-medium text-foreground">
+                                            {feature.label}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {feature.description}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
@@ -644,7 +776,10 @@ export function BillingSettingsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Invoice history</CardTitle>
-                    <CardDescription>Recent Stripe invoices with quick access to hosted links and PDFs.</CardDescription>
+                    <CardDescription>
+                        Recent Stripe invoices with quick access to hosted links
+                        and PDFs.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {invoiceError ? (
@@ -656,111 +791,165 @@ export function BillingSettingsPage() {
                     ) : null}
                     <div className="overflow-x-auto rounded-lg border">
                         <table className="min-w-full divide-y text-sm">
-                            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                            <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-medium">Invoice</th>
-                                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                                    <th className="px-4 py-3 text-right font-medium">Total</th>
-                                    <th className="px-4 py-3 text-right font-medium">Amount due</th>
-                                    <th className="px-4 py-3 text-left font-medium">Due date</th>
-                                    <th className="px-4 py-3 text-left font-medium">Actions</th>
+                                    <th className="px-4 py-3 text-left font-medium">
+                                        Invoice
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-medium">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 text-right font-medium">
+                                        Total
+                                    </th>
+                                    <th className="px-4 py-3 text-right font-medium">
+                                        Amount due
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-medium">
+                                        Due date
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-medium">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
-                                {isLoadingInvoices
-                                    ? Array.from({ length: 3 }).map((_, index) => (
-                                          <tr key={`invoice-skeleton-${index}`}>
-                                              <td className="px-4 py-4">
-                                                  <Skeleton className="h-4 w-32" />
-                                                  <Skeleton className="mt-2 h-3 w-20" />
-                                              </td>
-                                              <td className="px-4 py-4">
-                                                  <Skeleton className="h-5 w-16" />
-                                              </td>
-                                              <td className="px-4 py-4 text-right">
-                                                  <Skeleton className="ml-auto h-4 w-20" />
-                                              </td>
-                                              <td className="px-4 py-4 text-right">
-                                                  <Skeleton className="ml-auto h-4 w-20" />
-                                              </td>
-                                              <td className="px-4 py-4">
-                                                  <Skeleton className="h-4 w-24" />
-                                              </td>
-                                              <td className="px-4 py-4">
-                                                  <Skeleton className="h-8 w-32" />
-                                              </td>
-                                          </tr>
-                                      ))
-                                    : invoices.length > 0
-                                      ? invoices.map((invoice, index) => (
-                                          <tr
-                                            key={invoice.id ?? invoice.number ?? invoice.created_at ?? `invoice-${index}`}
-                                          >
-                                                <td className="px-4 py-4 align-top">
-                                                    <div className="font-medium text-foreground">
-                                                        {invoice.number ?? invoice.id ?? '—'}
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        Issued {formatInvoiceDate(invoice.created_at)}
-                                                    </div>
+                                {isLoadingInvoices ? (
+                                    Array.from({ length: 3 }).map(
+                                        (_, index) => (
+                                            <tr
+                                                key={`invoice-skeleton-${index}`}
+                                            >
+                                                <td className="px-4 py-4">
+                                                    <Skeleton className="h-4 w-32" />
+                                                    <Skeleton className="mt-2 h-3 w-20" />
                                                 </td>
-                                                <td className="px-4 py-4 align-top">{renderInvoiceStatus(invoice.status)}</td>
-                                                <td className="px-4 py-4 text-right align-top">
-                                                    {formatInvoiceAmount(invoice.total, invoice.currency ?? undefined)}
+                                                <td className="px-4 py-4">
+                                                    <Skeleton className="h-5 w-16" />
                                                 </td>
-                                                <td className="px-4 py-4 text-right align-top">
-                                                    {formatInvoiceAmount(
-                                                        invoice.amount_remaining ?? invoice.amount_due,
-                                                        invoice.currency ?? undefined,
+                                                <td className="px-4 py-4 text-right">
+                                                    <Skeleton className="ml-auto h-4 w-20" />
+                                                </td>
+                                                <td className="px-4 py-4 text-right">
+                                                    <Skeleton className="ml-auto h-4 w-20" />
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <Skeleton className="h-4 w-24" />
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <Skeleton className="h-8 w-32" />
+                                                </td>
+                                            </tr>
+                                        ),
+                                    )
+                                ) : invoices.length > 0 ? (
+                                    invoices.map((invoice, index) => (
+                                        <tr
+                                            key={
+                                                invoice.id ??
+                                                invoice.number ??
+                                                invoice.created_at ??
+                                                `invoice-${index}`
+                                            }
+                                        >
+                                            <td className="px-4 py-4 align-top">
+                                                <div className="font-medium text-foreground">
+                                                    {invoice.number ??
+                                                        invoice.id ??
+                                                        '—'}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Issued{' '}
+                                                    {formatInvoiceDate(
+                                                        invoice.created_at,
                                                     )}
-                                                </td>
-                                                <td className="px-4 py-4 align-top">
-                                                    {formatInvoiceDate(invoice.due_at)}
-                                                </td>
-                                                <td className="px-4 py-4 align-top">
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {invoice.hosted_invoice_url ? (
-                                                            <Button asChild variant="outline" size="sm">
-                                                                <a
-                                                                    href={invoice.hosted_invoice_url}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                >
-                                                                    <ExternalLink className="mr-1 h-3.5 w-3.5" />
-                                                                    View
-                                                                </a>
-                                                            </Button>
-                                                        ) : null}
-                                                        {invoice.invoice_pdf ? (
-                                                            <Button asChild variant="ghost" size="sm">
-                                                                <a
-                                                                    href={invoice.invoice_pdf}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                >
-                                                                    <FileText className="mr-1 h-3.5 w-3.5" />
-                                                                    PDF
-                                                                </a>
-                                                            </Button>
-                                                        ) : null}
-                                                        {!invoice.hosted_invoice_url && !invoice.invoice_pdf ? (
-                                                            <span className="text-xs text-muted-foreground">
-                                                                No files available
-                                                            </span>
-                                                        ) : null}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                      : (
-                                            <tr>
-                                                <td className="px-4 py-8 text-center text-sm text-muted-foreground" colSpan={6}>
-                                                    {invoiceError
-                                                        ? 'Invoice history is unavailable right now.'
-                                                        : 'No Stripe invoices have been generated yet.'}
-                                                </td>
-                                            </tr>
-                                        )}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                {renderInvoiceStatus(
+                                                    invoice.status,
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-4 text-right align-top">
+                                                {formatInvoiceAmount(
+                                                    invoice.total,
+                                                    invoice.currency ??
+                                                        undefined,
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-4 text-right align-top">
+                                                {formatInvoiceAmount(
+                                                    invoice.amount_remaining ??
+                                                        invoice.amount_due,
+                                                    invoice.currency ??
+                                                        undefined,
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                {formatInvoiceDate(
+                                                    invoice.due_at,
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-4 align-top">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {invoice.hosted_invoice_url ? (
+                                                        <Button
+                                                            asChild
+                                                            variant="outline"
+                                                            size="sm"
+                                                        >
+                                                            <a
+                                                                href={
+                                                                    invoice.hosted_invoice_url
+                                                                }
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                                                                View
+                                                            </a>
+                                                        </Button>
+                                                    ) : null}
+                                                    {invoice.invoice_pdf ? (
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="sm"
+                                                        >
+                                                            <a
+                                                                href={
+                                                                    invoice.invoice_pdf
+                                                                }
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                <FileText className="mr-1 h-3.5 w-3.5" />
+                                                                PDF
+                                                            </a>
+                                                        </Button>
+                                                    ) : null}
+                                                    {!invoice.hosted_invoice_url &&
+                                                    !invoice.invoice_pdf ? (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            No files available
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td
+                                            className="px-4 py-8 text-center text-sm text-muted-foreground"
+                                            colSpan={6}
+                                        >
+                                            {invoiceError
+                                                ? 'Invoice history is unavailable right now.'
+                                                : 'No Stripe invoices have been generated yet.'}
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,23 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PoChangeOrder } from './PoChangeOrder';
-import {
-    PoChangeOrderFromJSON,
-    PoChangeOrderFromJSONTyped,
-    PoChangeOrderToJSON,
-    PoChangeOrderToJSONTyped,
-} from './PoChangeOrder';
+import { PoChangeOrderFromJSON, PoChangeOrderToJSON } from './PoChangeOrder';
 
 /**
- * 
+ *
  * @export
  * @interface ListPurchaseOrderChangeOrders200ResponseAllOfData
  */
 export interface ListPurchaseOrderChangeOrders200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<PoChangeOrder>}
      * @memberof ListPurchaseOrderChangeOrders200ResponseAllOfData
      */
@@ -38,37 +32,52 @@ export interface ListPurchaseOrderChangeOrders200ResponseAllOfData {
 /**
  * Check if a given object implements the ListPurchaseOrderChangeOrders200ResponseAllOfData interface.
  */
-export function instanceOfListPurchaseOrderChangeOrders200ResponseAllOfData(value: object): value is ListPurchaseOrderChangeOrders200ResponseAllOfData {
+export function instanceOfListPurchaseOrderChangeOrders200ResponseAllOfData(
+    value: object,
+): value is ListPurchaseOrderChangeOrders200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     return true;
 }
 
-export function ListPurchaseOrderChangeOrders200ResponseAllOfDataFromJSON(json: any): ListPurchaseOrderChangeOrders200ResponseAllOfData {
-    return ListPurchaseOrderChangeOrders200ResponseAllOfDataFromJSONTyped(json, false);
+export function ListPurchaseOrderChangeOrders200ResponseAllOfDataFromJSON(
+    json: any,
+): ListPurchaseOrderChangeOrders200ResponseAllOfData {
+    return ListPurchaseOrderChangeOrders200ResponseAllOfDataFromJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListPurchaseOrderChangeOrders200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListPurchaseOrderChangeOrders200ResponseAllOfData {
+export function ListPurchaseOrderChangeOrders200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListPurchaseOrderChangeOrders200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(PoChangeOrderFromJSON)),
+        items: (json['items'] as Array<any>).map(PoChangeOrderFromJSON),
     };
 }
 
-export function ListPurchaseOrderChangeOrders200ResponseAllOfDataToJSON(json: any): ListPurchaseOrderChangeOrders200ResponseAllOfData {
-    return ListPurchaseOrderChangeOrders200ResponseAllOfDataToJSONTyped(json, false);
+export function ListPurchaseOrderChangeOrders200ResponseAllOfDataToJSON(
+    json: any,
+): ListPurchaseOrderChangeOrders200ResponseAllOfData {
+    return ListPurchaseOrderChangeOrders200ResponseAllOfDataToJSONTyped(
+        json,
+        false,
+    );
 }
 
-export function ListPurchaseOrderChangeOrders200ResponseAllOfDataToJSONTyped(value?: ListPurchaseOrderChangeOrders200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListPurchaseOrderChangeOrders200ResponseAllOfDataToJSONTyped(
+    value?: ListPurchaseOrderChangeOrders200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(PoChangeOrderToJSON)),
+        items: (value['items'] as Array<any>).map(PoChangeOrderToJSON),
     };
 }
-

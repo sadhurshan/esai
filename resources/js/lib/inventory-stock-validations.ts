@@ -1,4 +1,7 @@
-import type { InventoryItemSummary, InventoryLocationOption } from '@/types/inventory';
+import type {
+    InventoryItemSummary,
+    InventoryLocationOption,
+} from '@/types/inventory';
 
 type MovementType = 'RECEIPT' | 'ISSUE' | 'TRANSFER' | 'ADJUST';
 
@@ -20,9 +23,13 @@ export interface ValidateMovementStockParams {
     locationsById: Map<string, InventoryLocationOption>;
 }
 
-const qtyFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 });
+const qtyFormatter = new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 3,
+});
 
-export function validateMovementStock(params: ValidateMovementStockParams): MovementStockViolation[] {
+export function validateMovementStock(
+    params: ValidateMovementStockParams,
+): MovementStockViolation[] {
     const { lines, movementType, itemsById, locationsById } = params;
 
     if (movementType !== 'ISSUE' && movementType !== 'TRANSFER') {
@@ -37,12 +44,16 @@ export function validateMovementStock(params: ValidateMovementStockParams): Move
             return;
         }
 
-        const qtyValue = typeof line.qty === 'number' ? line.qty : Number(line.qty);
+        const qtyValue =
+            typeof line.qty === 'number' ? line.qty : Number(line.qty);
         if (!Number.isFinite(qtyValue) || qtyValue <= 0) {
             return;
         }
 
-        const locationId = typeof line.fromLocationId === 'string' ? line.fromLocationId : undefined;
+        const locationId =
+            typeof line.fromLocationId === 'string'
+                ? line.fromLocationId
+                : undefined;
         if (!locationId) {
             return;
         }
@@ -68,9 +79,10 @@ export function validateMovementStock(params: ValidateMovementStockParams): Move
             const unitLabel = item?.defaultUom ? ` ${item.defaultUom}` : '';
             violations.push({
                 index,
-                message: remaining > 0
-                    ? `Only ${formattedRemaining}${unitLabel} available to issue for this SKU.`
-                    : `No remaining on-hand stock for this SKU at the selected location.`,
+                message:
+                    remaining > 0
+                        ? `Only ${formattedRemaining}${unitLabel} available to issue for this SKU.`
+                        : `No remaining on-hand stock for this SKU at the selected location.`,
             });
             return;
         }

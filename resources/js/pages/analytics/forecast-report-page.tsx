@@ -1,6 +1,3 @@
-import { useEffect, useMemo, useState, useCallback, type KeyboardEvent } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link, useNavigate } from 'react-router-dom';
 import {
     AlertTriangle,
     CalendarRange,
@@ -13,33 +10,54 @@ import {
     TrendingUp,
     X,
 } from 'lucide-react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type KeyboardEvent,
+} from 'react';
+import { Helmet } from 'react-helmet-async';
+import { Link, useNavigate } from 'react-router-dom';
 
+import { ForecastLineChart } from '@/components/analytics/forecast-line-chart';
+import { MetricsTable } from '@/components/analytics/metrics-table';
+import { MiniChart } from '@/components/analytics/mini-chart';
+import type { DataTableColumn } from '@/components/data-table';
+import { EmptyState } from '@/components/empty-state';
+import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
 import {
     useForecastReport,
     type ForecastReportParams,
     type ForecastReportRow,
-    type ForecastReportSeries,
 } from '@/hooks/api/analytics/use-analytics';
 import { useItems } from '@/hooks/api/inventory/use-items';
 import { useLocations } from '@/hooks/api/inventory/use-locations';
-import { MiniChart } from '@/components/analytics/mini-chart';
-import { ForecastLineChart } from '@/components/analytics/forecast-line-chart';
-import { MetricsTable } from '@/components/analytics/metrics-table';
-import { EmptyState } from '@/components/empty-state';
-import { PlanUpgradeBanner } from '@/components/plan-upgrade-banner';
-import type { DataTableColumn } from '@/components/data-table';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import { isForbiddenError, type ApiError } from '@/lib/api';
+import { cn } from '@/lib/utils';
 
 interface FilterFormState {
     startDate: string;
@@ -91,9 +109,16 @@ export function ForecastReportPage() {
     const { formatNumber, formatDate } = useFormatting();
     const analyticsEnabled = hasFeature('analytics.access');
 
-    const [filterDraft, setFilterDraft] = useState<FilterFormState>(() => createDefaultFilters());
-    const [appliedFilters, setAppliedFilters] = useState<FilterFormState>(() => createDefaultFilters());
-    const [tableSort, setTableSort] = useState<{ key: ForecastSortableKey; direction: 'asc' | 'desc' }>({
+    const [filterDraft, setFilterDraft] = useState<FilterFormState>(() =>
+        createDefaultFilters(),
+    );
+    const [appliedFilters, setAppliedFilters] = useState<FilterFormState>(() =>
+        createDefaultFilters(),
+    );
+    const [tableSort, setTableSort] = useState<{
+        key: ForecastSortableKey;
+        direction: 'asc' | 'desc';
+    }>({
         key: 'totalActual',
         direction: 'desc',
     });
@@ -102,7 +127,8 @@ export function ForecastReportPage() {
         if (!analyticsEnabled) {
             notifyPlanLimit({
                 featureKey: 'analytics.access',
-                message: 'Upgrade your plan to unlock the inventory forecast workspace.',
+                message:
+                    'Upgrade your plan to unlock the inventory forecast workspace.',
             });
 
             return () => {
@@ -113,16 +139,29 @@ export function ForecastReportPage() {
         return undefined;
     }, [analyticsEnabled, clearPlanLimit, notifyPlanLimit]);
 
-    const forecastParams = useMemo(() => mapFiltersToParams(appliedFilters), [appliedFilters]);
-    const forecastQuery = useForecastReport(forecastParams, { enabled: analyticsEnabled });
-    const planForbidden = forecastQuery.isError && isForbiddenError(forecastQuery.error, 'analytics_upgrade_required');
-    const permissionDenied = forecastQuery.isError && isForbiddenError(
-        forecastQuery.error,
-        'forecast_permission_required',
+    const forecastParams = useMemo(
+        () => mapFiltersToParams(appliedFilters),
+        [appliedFilters],
     );
+    const forecastQuery = useForecastReport(forecastParams, {
+        enabled: analyticsEnabled,
+    });
+    const planForbidden =
+        forecastQuery.isError &&
+        isForbiddenError(forecastQuery.error, 'analytics_upgrade_required');
+    const permissionDenied =
+        forecastQuery.isError &&
+        isForbiddenError(forecastQuery.error, 'forecast_permission_required');
 
-    const itemsQuery = useItems({ perPage: FILTER_PICKER_PAGE_SIZE, status: 'active', enabled: analyticsEnabled });
-    const locationsQuery = useLocations({ perPage: FILTER_PICKER_PAGE_SIZE, enabled: analyticsEnabled });
+    const itemsQuery = useItems({
+        perPage: FILTER_PICKER_PAGE_SIZE,
+        status: 'active',
+        enabled: analyticsEnabled,
+    });
+    const locationsQuery = useLocations({
+        perPage: FILTER_PICKER_PAGE_SIZE,
+        enabled: analyticsEnabled,
+    });
 
     const partOptions = useMemo<FilterMultiSelectOption[]>(() => {
         return (itemsQuery.data?.items ?? []).map((item) => ({
@@ -175,7 +214,10 @@ export function ForecastReportPage() {
     const report = forecastQuery.data?.report;
     const summary = forecastQuery.data?.summary;
 
-    const varianceData = useMemo(() => buildVarianceComparison(report?.table ?? []), [report?.table]);
+    const varianceData = useMemo(
+        () => buildVarianceComparison(report?.table ?? []),
+        [report?.table],
+    );
 
     const tableRows = useMemo<EnrichedForecastRow[]>(() => {
         if (!report?.table) {
@@ -183,12 +225,21 @@ export function ForecastReportPage() {
         }
 
         return [...report.table]
-            .map((row) => ({ ...row, variance: row.totalActual - row.totalForecast }))
-            .sort((a, b) => sortByMetric(a, b, tableSort.key, tableSort.direction));
-    }, [report?.table, tableSort]);
+            .map((row) => ({
+                ...row,
+                variance: row.totalActual - row.totalForecast,
+            }))
+            .sort((a, b) =>
+                sortByMetric(a, b, tableSort.key, tableSort.direction),
+            );
+    }, [report, tableSort]);
 
     const filterChips = useMemo<FilterSummaryChip[]>(() => {
-        return buildFilterChips(appliedFilters, partLabelLookup, locationLabelLookup);
+        return buildFilterChips(
+            appliedFilters,
+            partLabelLookup,
+            locationLabelLookup,
+        );
     }, [appliedFilters, partLabelLookup, locationLabelLookup]);
 
     const aggregateStats = useMemo(
@@ -196,19 +247,28 @@ export function ForecastReportPage() {
             {
                 key: 'totalActual',
                 label: 'Observed demand',
-                value: formatNumber(report?.aggregates.totalActual ?? 0, { maximumFractionDigits: 0, fallback: '—' }),
+                value: formatNumber(report?.aggregates.totalActual ?? 0, {
+                    maximumFractionDigits: 0,
+                    fallback: '—',
+                }),
                 helper: 'Units consumed in window',
             },
             {
                 key: 'totalForecast',
                 label: 'Forecast demand',
-                value: formatNumber(report?.aggregates.totalForecast ?? 0, { maximumFractionDigits: 0, fallback: '—' }),
+                value: formatNumber(report?.aggregates.totalForecast ?? 0, {
+                    maximumFractionDigits: 0,
+                    fallback: '—',
+                }),
                 helper: 'Projected units across parts',
             },
             {
                 key: 'avgDailyDemand',
                 label: 'Avg daily demand',
-                value: formatNumber(report?.aggregates.avgDailyDemand ?? 0, { maximumFractionDigits: 1, fallback: '—' }),
+                value: formatNumber(report?.aggregates.avgDailyDemand ?? 0, {
+                    maximumFractionDigits: 1,
+                    fallback: '—',
+                }),
                 helper: 'Rolling mean consumption',
             },
             {
@@ -220,34 +280,48 @@ export function ForecastReportPage() {
             {
                 key: 'mae',
                 label: 'MAE',
-                value: formatNumber(report?.aggregates.mae ?? 0, { maximumFractionDigits: 1, fallback: '—' }),
+                value: formatNumber(report?.aggregates.mae ?? 0, {
+                    maximumFractionDigits: 1,
+                    fallback: '—',
+                }),
                 helper: 'Mean absolute error',
             },
             {
                 key: 'recommendedReorderPoint',
                 label: 'Recommended reorder',
-                value: formatNumber(report?.aggregates.recommendedReorderPoint ?? 0, {
-                    maximumFractionDigits: 0,
-                    fallback: '—',
-                }),
+                value: formatNumber(
+                    report?.aggregates.recommendedReorderPoint ?? 0,
+                    {
+                        maximumFractionDigits: 0,
+                        fallback: '—',
+                    },
+                ),
                 helper: 'System suggested trigger',
             },
             {
                 key: 'recommendedSafetyStock',
                 label: 'Recommended safety stock',
-                value: formatNumber(report?.aggregates.recommendedSafetyStock ?? 0, {
-                    maximumFractionDigits: 0,
-                    fallback: '—',
-                }),
+                value: formatNumber(
+                    report?.aggregates.recommendedSafetyStock ?? 0,
+                    {
+                        maximumFractionDigits: 0,
+                        fallback: '—',
+                    },
+                ),
                 helper: 'Buffer to absorb volatility',
             },
         ],
         [report?.aggregates, formatNumber],
     );
 
-    const isLoading = forecastQuery.isLoading || forecastQuery.isPlaceholderData;
-    const hasData = Boolean(report && (report.table.length > 0 || report.series.length > 0));
-    const errorMessage = forecastQuery.isError ? buildErrorMessage(forecastQuery.error) : null;
+    const isLoading =
+        forecastQuery.isLoading || forecastQuery.isPlaceholderData;
+    const hasData = Boolean(
+        report && (report.table.length > 0 || report.series.length > 0),
+    );
+    const errorMessage = forecastQuery.isError
+        ? buildErrorMessage(forecastQuery.error)
+        : null;
 
     const handleApplyFilters = useCallback(() => {
         setAppliedFilters(filterDraft);
@@ -259,9 +333,15 @@ export function ForecastReportPage() {
         setAppliedFilters(defaults);
     }, []);
 
-    const handleFilterChange = useCallback(<K extends keyof FilterFormState>(key: K, value: FilterFormState[K]) => {
-        setFilterDraft((prev) => ({ ...prev, [key]: value }));
-    }, []);
+    const handleFilterChange = useCallback(
+        <K extends keyof FilterFormState>(
+            key: K,
+            value: FilterFormState[K],
+        ) => {
+            setFilterDraft((prev) => ({ ...prev, [key]: value }));
+        },
+        [],
+    );
 
     const handleSortChange = useCallback((columnKey: string) => {
         if (!isForecastSortableKey(columnKey)) {
@@ -271,7 +351,10 @@ export function ForecastReportPage() {
         const nextKey = columnKey as ForecastSortableKey;
         setTableSort((prev) => {
             if (prev.key === nextKey) {
-                return { key: nextKey, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+                return {
+                    key: nextKey,
+                    direction: prev.direction === 'asc' ? 'desc' : 'asc',
+                };
             }
             return { key: nextKey, direction: 'desc' };
         });
@@ -284,10 +367,12 @@ export function ForecastReportPage() {
                     <title>Inventory Forecast</title>
                 </Helmet>
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-foreground">Inventory forecast</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Inventory forecast
+                    </h1>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        Unlock AI summaries, seasonality detection, and reorder proposals by upgrading to a plan with
-                        analytics access.
+                        Unlock AI summaries, seasonality detection, and reorder
+                        proposals by upgrading to a plan with analytics access.
                     </p>
                 </div>
                 <PlanUpgradeBanner />
@@ -296,7 +381,10 @@ export function ForecastReportPage() {
                     title="Forecasting is locked"
                     description="Your plan does not include the analytics workspace yet. Upgrade to run demand forecasting and supplier scorecards."
                     ctaLabel="View billing"
-                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        variant: 'outline',
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -309,10 +397,13 @@ export function ForecastReportPage() {
                     <title>Inventory Forecast</title>
                 </Helmet>
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-foreground">Inventory forecast</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Inventory forecast
+                    </h1>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        Your workspace plan currently blocks analytics. Visit billing to restore AI summaries and
-                        forecast accuracy dashboards.
+                        Your workspace plan currently blocks analytics. Visit
+                        billing to restore AI summaries and forecast accuracy
+                        dashboards.
                     </p>
                 </div>
                 <PlanUpgradeBanner />
@@ -321,7 +412,10 @@ export function ForecastReportPage() {
                     title="Plan upgrade required"
                     description="Analytics features are disabled until your company upgrades to a plan that includes forecasting."
                     ctaLabel="View billing"
-                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings/billing') }}
+                    ctaProps={{
+                        variant: 'outline',
+                        onClick: () => navigate('/app/settings/billing'),
+                    }}
                 />
             </div>
         );
@@ -334,9 +428,12 @@ export function ForecastReportPage() {
                     <title>Inventory Forecast</title>
                 </Helmet>
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-foreground">Inventory forecast</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Inventory forecast
+                    </h1>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        You&apos;re signed in, but your role is missing the View forecast reports permission.
+                        You&apos;re signed in, but your role is missing the View
+                        forecast reports permission.
                     </p>
                 </div>
                 <EmptyState
@@ -344,7 +441,10 @@ export function ForecastReportPage() {
                     title="Access denied"
                     description="Ask a workspace admin to grant the View forecast reports permission before running analytics."
                     ctaLabel="Manage members"
-                    ctaProps={{ variant: 'outline', onClick: () => navigate('/app/settings/members') }}
+                    ctaProps={{
+                        variant: 'outline',
+                        onClick: () => navigate('/app/settings/members'),
+                    }}
                 />
             </div>
         );
@@ -357,10 +457,13 @@ export function ForecastReportPage() {
             </Helmet>
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-foreground">Inventory forecast</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Inventory forecast
+                    </h1>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        Monitor demand accuracy, AI reorder guidance, and item-level deltas to course-correct your
-                        replenishment plan before shortages land.
+                        Monitor demand accuracy, AI reorder guidance, and
+                        item-level deltas to course-correct your replenishment
+                        plan before shortages land.
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -385,8 +488,13 @@ export function ForecastReportPage() {
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                         <Filter className="h-4 w-4" /> Filters
                     </div>
-                    <CardTitle className="text-base">Configure the forecast window</CardTitle>
-                    <CardDescription>Focus the AI summary and charts on the SKUs and locations you care about.</CardDescription>
+                    <CardTitle className="text-base">
+                        Configure the forecast window
+                    </CardTitle>
+                    <CardDescription>
+                        Focus the AI summary and charts on the SKUs and
+                        locations you care about.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
                     <div className="space-y-2">
@@ -395,7 +503,12 @@ export function ForecastReportPage() {
                             id="start-date"
                             type="date"
                             value={filterDraft.startDate}
-                            onChange={(event) => handleFilterChange('startDate', event.target.value)}
+                            onChange={(event) =>
+                                handleFilterChange(
+                                    'startDate',
+                                    event.target.value,
+                                )
+                            }
                             max={filterDraft.endDate}
                         />
                     </div>
@@ -405,7 +518,12 @@ export function ForecastReportPage() {
                             id="end-date"
                             type="date"
                             value={filterDraft.endDate}
-                            onChange={(event) => handleFilterChange('endDate', event.target.value)}
+                            onChange={(event) =>
+                                handleFilterChange(
+                                    'endDate',
+                                    event.target.value,
+                                )
+                            }
                             min={filterDraft.startDate}
                         />
                     </div>
@@ -415,7 +533,9 @@ export function ForecastReportPage() {
                             placeholder="All parts"
                             options={partOptions}
                             value={filterDraft.partIds}
-                            onChange={(value) => handleFilterChange('partIds', value)}
+                            onChange={(value) =>
+                                handleFilterChange('partIds', value)
+                            }
                             loading={itemsQuery.isLoading}
                         />
                     </div>
@@ -425,7 +545,9 @@ export function ForecastReportPage() {
                             placeholder="All locations"
                             options={locationOptions}
                             value={filterDraft.locationIds}
-                            onChange={(value) => handleFilterChange('locationIds', value)}
+                            onChange={(value) =>
+                                handleFilterChange('locationIds', value)
+                            }
                             loading={locationsQuery.isLoading}
                         />
                     </div>
@@ -433,12 +555,18 @@ export function ForecastReportPage() {
                         <Label>Categories</Label>
                         <CategoryTokenInput
                             value={filterDraft.categoryIds}
-                            onChange={(value) => handleFilterChange('categoryIds', value)}
+                            onChange={(value) =>
+                                handleFilterChange('categoryIds', value)
+                            }
                             suggestions={categorySuggestions}
                         />
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2 lg:col-span-2 xl:col-span-3">
-                        <Button type="button" variant="ghost" onClick={handleResetFilters}>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleResetFilters}
+                        >
                             Reset
                         </Button>
                         <Button type="button" onClick={handleApplyFilters}>
@@ -453,14 +581,19 @@ export function ForecastReportPage() {
                     {filterChips.length ? (
                         <div className="mt-2 flex flex-wrap gap-2">
                             {filterChips.map((chip) => (
-                                <Badge key={chip.key} variant="outline" className="text-xs font-medium">
+                                <Badge
+                                    key={chip.key}
+                                    variant="outline"
+                                    className="text-xs font-medium"
+                                >
                                     {chip.label}
                                 </Badge>
                             ))}
                         </div>
                     ) : (
                         <span className="text-sm text-muted-foreground">
-                            Using the default 90 day window across every SKU and location.
+                            Using the default 90 day window across every SKU and
+                            location.
                         </span>
                     )}
                 </AlertDescription>
@@ -470,7 +603,10 @@ export function ForecastReportPage() {
                 <EmptyState
                     icon={<AlertTriangle className="h-6 w-6" />}
                     title="Unable to build the forecast"
-                    description={errorMessage ?? 'The analytics service did not return a forecast report. Try again shortly.'}
+                    description={
+                        errorMessage ??
+                        'The analytics service did not return a forecast report. Try again shortly.'
+                    }
                     ctaLabel="Retry"
                     ctaProps={{ onClick: () => forecastQuery.refetch() }}
                 />
@@ -482,46 +618,72 @@ export function ForecastReportPage() {
                                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                                     <Sparkles className="h-4 w-4" /> AI synopsis
                                 </div>
-                                <CardTitle className="text-base">Demand storyline</CardTitle>
+                                <CardTitle className="text-base">
+                                    Demand storyline
+                                </CardTitle>
                                 <CardDescription>
-                                    Narrative summary powered by {summary?.provider ?? 'deterministic heuristics'} using the selected filters.
+                                    Narrative summary powered by{' '}
+                                    {summary?.provider ??
+                                        'deterministic heuristics'}{' '}
+                                    using the selected filters.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {isLoading ? (
                                     <Skeleton className="h-32 w-full" />
-                                ) : summary && (summary.summaryMarkdown || summary.bullets.length) ? (
+                                ) : summary &&
+                                  (summary.summaryMarkdown ||
+                                      summary.bullets.length) ? (
                                     <div className="space-y-4">
                                         {summary.summaryMarkdown ? (
                                             <p className="text-sm text-foreground/90">
-                                                {stripMarkdown(summary.summaryMarkdown)}
+                                                {stripMarkdown(
+                                                    summary.summaryMarkdown,
+                                                )}
                                             </p>
                                         ) : null}
                                         {summary.bullets.length ? (
                                             <ul className="list-disc space-y-2 pl-4 text-sm text-muted-foreground">
-                                                {summary.bullets.map((bullet, index) => (
-                                                    <li key={`${bullet}-${index}`}>{bullet}</li>
-                                                ))}
+                                                {summary.bullets.map(
+                                                    (bullet, index) => (
+                                                        <li
+                                                            key={`${bullet}-${index}`}
+                                                        >
+                                                            {bullet}
+                                                        </li>
+                                                    ),
+                                                )}
                                             </ul>
                                         ) : null}
                                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                                            <Badge variant="secondary" className="bg-secondary/40 text-secondary-foreground">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-secondary/40 text-secondary-foreground"
+                                            >
                                                 {summary.provider}
                                             </Badge>
-                                            <span className="text-muted-foreground/80">Source: {summary.source}</span>
+                                            <span className="text-muted-foreground/80">
+                                                Source: {summary.source}
+                                            </span>
                                         </div>
                                     </div>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No AI notes yet. Run a new forecast to populate the storyline.
+                                        No AI notes yet. Run a new forecast to
+                                        populate the storyline.
                                     </p>
                                 )}
                             </CardContent>
                         </Card>
                         <Card className="h-full">
                             <CardHeader className="space-y-1">
-                                <CardTitle className="text-base">Aggregates</CardTitle>
-                                <CardDescription>Blended demand and error metrics for the current filters.</CardDescription>
+                                <CardTitle className="text-base">
+                                    Aggregates
+                                </CardTitle>
+                                <CardDescription>
+                                    Blended demand and error metrics for the
+                                    current filters.
+                                </CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-3">
                                 {aggregateStats.map((stat) => (
@@ -529,12 +691,20 @@ export function ForecastReportPage() {
                                         key={stat.key}
                                         className="rounded-lg border border-sidebar-border/50 bg-muted/30 p-3"
                                     >
-                                        <p className="text-xs text-muted-foreground">{stat.label}</p>
-                                        <p className="text-lg font-semibold text-foreground">{stat.value}</p>
-                                        <p className="text-xs text-muted-foreground">{stat.helper}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {stat.label}
+                                        </p>
+                                        <p className="text-lg font-semibold text-foreground">
+                                            {stat.value}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {stat.helper}
+                                        </p>
                                     </div>
                                 ))}
-                                <ConfidenceBadge mape={report?.aggregates.mape ?? 0} />
+                                <ConfidenceBadge
+                                    mape={report?.aggregates.mape ?? 0}
+                                />
                             </CardContent>
                         </Card>
                     </div>
@@ -542,15 +712,29 @@ export function ForecastReportPage() {
                     <div className="grid gap-4 lg:grid-cols-2">
                         <Card className="h-full">
                             <CardHeader className="space-y-1">
-                                <CardTitle className="text-base">Actual vs forecast trend</CardTitle>
-                                <CardDescription>Compare observed units against the model output in the selected window.</CardDescription>
+                                <CardTitle className="text-base">
+                                    Actual vs forecast trend
+                                </CardTitle>
+                                <CardDescription>
+                                    Compare observed units against the model
+                                    output in the selected window.
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ForecastLineChart
                                     series={report?.series ?? []}
                                     isLoading={isLoading}
-                                    labelFormatter={(value) => formatDate(value, { month: 'short', day: 'numeric' })}
-                                    valueFormatter={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+                                    labelFormatter={(value) =>
+                                        formatDate(value, {
+                                            month: 'short',
+                                            day: 'numeric',
+                                        })
+                                    }
+                                    valueFormatter={(value) =>
+                                        formatNumber(value, {
+                                            maximumFractionDigits: 0,
+                                        })
+                                    }
                                 />
                             </CardContent>
                         </Card>
@@ -559,10 +743,24 @@ export function ForecastReportPage() {
                             description="Top parts ranked by absolute variance between forecast and actuals."
                             data={varianceData}
                             series={[
-                                { key: 'actual', label: 'Actual', type: 'bar', color: '#16a34a' },
-                                { key: 'forecast', label: 'Forecast', type: 'bar', color: '#2563eb' },
+                                {
+                                    key: 'actual',
+                                    label: 'Actual',
+                                    type: 'bar',
+                                    color: '#16a34a',
+                                },
+                                {
+                                    key: 'forecast',
+                                    label: 'Forecast',
+                                    type: 'bar',
+                                    color: '#2563eb',
+                                },
                             ]}
-                            valueFormatter={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+                            valueFormatter={(value) =>
+                                formatNumber(value, {
+                                    maximumFractionDigits: 0,
+                                })
+                            }
                             isLoading={isLoading}
                             height={280}
                         />
@@ -572,14 +770,23 @@ export function ForecastReportPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between gap-3">
                                 <div>
-                                    <CardTitle className="text-base">Part-level breakdown</CardTitle>
+                                    <CardTitle className="text-base">
+                                        Part-level breakdown
+                                    </CardTitle>
                                     <CardDescription>
-                                        Forecast accuracy, reorder guidance, and safety stock per SKU.
+                                        Forecast accuracy, reorder guidance, and
+                                        safety stock per SKU.
                                     </CardDescription>
                                 </div>
-                                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                                <Badge
+                                    variant="secondary"
+                                    className="flex items-center gap-1 text-xs"
+                                >
                                     <CalendarRange className="h-3.5 w-3.5" />
-                                    {BUCKET_LABELS[report?.filtersUsed.bucket ?? DEFAULT_FILTER_BUCKET] ?? 'Daily buckets'}
+                                    {BUCKET_LABELS[
+                                        report?.filtersUsed.bucket ??
+                                            DEFAULT_FILTER_BUCKET
+                                    ] ?? 'Daily buckets'}
                                 </Badge>
                             </div>
                         </CardHeader>
@@ -590,10 +797,14 @@ export function ForecastReportPage() {
                                 isLoading={isLoading && tableRows.length === 0}
                                 emptyState={
                                     hasData ? (
-                                        <p className="text-sm text-muted-foreground">No rows match the applied filters.</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            No rows match the applied filters.
+                                        </p>
                                     ) : (
                                         <EmptyState
-                                            icon={<TrendingUp className="h-5 w-5" />}
+                                            icon={
+                                                <TrendingUp className="h-5 w-5" />
+                                            }
                                             title="No parts to compare"
                                             description="Upload usage history or broaden your filters to populate the forecast table."
                                         />
@@ -620,8 +831,12 @@ function buildColumns(
             title: 'Part',
             render: (row) => (
                 <div>
-                    <p className="font-medium text-foreground">{row.partName}</p>
-                    <p className="text-xs text-muted-foreground">ID #{row.partId}</p>
+                    <p className="font-medium text-foreground">
+                        {row.partName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        ID #{row.partId}
+                    </p>
                 </div>
             ),
         },
@@ -630,21 +845,33 @@ function buildColumns(
             title: 'Actual demand',
             align: 'right',
             render: (row) => (
-                <span className="font-medium">{formatNumber(row.totalActual, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium">
+                    {formatNumber(row.totalActual, {
+                        maximumFractionDigits: 0,
+                    })}
+                </span>
             ),
         },
         {
             key: 'totalForecast',
             title: 'Forecast demand',
             align: 'right',
-            render: (row) => formatNumber(row.totalForecast, { maximumFractionDigits: 0 }),
+            render: (row) =>
+                formatNumber(row.totalForecast, { maximumFractionDigits: 0 }),
         },
         {
             key: 'variance',
             title: 'Variance',
             align: 'right',
             render: (row) => (
-                <span className={cn('font-medium', row.variance >= 0 ? 'text-emerald-600' : 'text-destructive')}>
+                <span
+                    className={cn(
+                        'font-medium',
+                        row.variance >= 0
+                            ? 'text-emerald-600'
+                            : 'text-destructive',
+                    )}
+                >
                     {formatNumber(row.variance, { maximumFractionDigits: 0 })}
                 </span>
             ),
@@ -659,19 +886,22 @@ function buildColumns(
             key: 'mae',
             title: 'MAE',
             align: 'right',
-            render: (row) => formatNumber(row.mae, { maximumFractionDigits: 1 }),
+            render: (row) =>
+                formatNumber(row.mae, { maximumFractionDigits: 1 }),
         },
         {
             key: 'reorderPoint',
             title: 'Reorder point',
             align: 'right',
-            render: (row) => formatNumber(row.reorderPoint, { maximumFractionDigits: 0 }),
+            render: (row) =>
+                formatNumber(row.reorderPoint, { maximumFractionDigits: 0 }),
         },
         {
             key: 'safetyStock',
             title: 'Safety stock',
             align: 'right',
-            render: (row) => formatNumber(row.safetyStock, { maximumFractionDigits: 0 }),
+            render: (row) =>
+                formatNumber(row.safetyStock, { maximumFractionDigits: 0 }),
         },
     ];
 }
@@ -684,7 +914,9 @@ function buildFilterChips(
     const chips: FilterSummaryChip[] = [];
 
     if (filters.startDate || filters.endDate) {
-        const label = [filters.startDate, filters.endDate].filter(Boolean).join(' → ');
+        const label = [filters.startDate, filters.endDate]
+            .filter(Boolean)
+            .join(' → ');
         chips.push({ key: 'date-range', label: label || 'Custom range' });
     }
 
@@ -692,10 +924,18 @@ function buildFilterChips(
         const names = filters.partIds
             .map((id) => {
                 const numericId = Number(id);
-                return partLookup.get(Number.isFinite(numericId) ? numericId : -1) ?? `Part ${id}`;
+                return (
+                    partLookup.get(
+                        Number.isFinite(numericId) ? numericId : -1,
+                    ) ?? `Part ${id}`
+                );
             })
             .slice(0, 3);
-        const label = names.join(', ') + (filters.partIds.length > 3 ? ` +${filters.partIds.length - 3}` : '');
+        const label =
+            names.join(', ') +
+            (filters.partIds.length > 3
+                ? ` +${filters.partIds.length - 3}`
+                : '');
         chips.push({ key: 'parts', label: `Parts: ${label}` });
     }
 
@@ -703,10 +943,18 @@ function buildFilterChips(
         const names = filters.locationIds
             .map((id) => {
                 const numericId = Number(id);
-                return locationLookup.get(Number.isFinite(numericId) ? numericId : -1) ?? `Location ${id}`;
+                return (
+                    locationLookup.get(
+                        Number.isFinite(numericId) ? numericId : -1,
+                    ) ?? `Location ${id}`
+                );
             })
             .slice(0, 3);
-        const label = names.join(', ') + (filters.locationIds.length > 3 ? ` +${filters.locationIds.length - 3}` : '');
+        const label =
+            names.join(', ') +
+            (filters.locationIds.length > 3
+                ? ` +${filters.locationIds.length - 3}`
+                : '');
         chips.push({ key: 'locations', label: `Locations: ${label}` });
     }
 
@@ -723,7 +971,11 @@ function buildFilterChips(
 
 function buildVarianceComparison(rows: ForecastReportRow[]) {
     return [...rows]
-        .sort((a, b) => Math.abs(b.totalActual - b.totalForecast) - Math.abs(a.totalActual - a.totalForecast))
+        .sort(
+            (a, b) =>
+                Math.abs(b.totalActual - b.totalForecast) -
+                Math.abs(a.totalActual - a.totalForecast),
+        )
         .slice(0, 8)
         .map((row) => ({
             label: row.partName,
@@ -749,13 +1001,18 @@ function extractApiErrorDetail(error: ApiError): string | null {
         return null;
     }
 
-    for (const entry of Object.values(error.errors as Record<string, unknown>)) {
+    for (const entry of Object.values(
+        error.errors as Record<string, unknown>,
+    )) {
         if (typeof entry === 'string' && entry.trim().length > 0) {
             return entry;
         }
 
         if (Array.isArray(entry)) {
-            const match = entry.find((value): value is string => typeof value === 'string' && value.trim().length > 0);
+            const match = entry.find(
+                (value): value is string =>
+                    typeof value === 'string' && value.trim().length > 0,
+            );
             if (match) {
                 return match;
             }
@@ -841,14 +1098,22 @@ interface FilterMultiSelectProps {
     loading?: boolean;
 }
 
-function FilterMultiSelect({ placeholder, options, value, onChange, loading }: FilterMultiSelectProps) {
+function FilterMultiSelect({
+    placeholder,
+    options,
+    value,
+    onChange,
+    loading,
+}: FilterMultiSelectProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredOptions = useMemo(() => {
         if (!searchTerm.trim()) {
             return options;
         }
-        return options.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
+        return options.filter((option) =>
+            option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
     }, [options, searchTerm]);
 
     const handleToggle = (item: string, checked: boolean) => {
@@ -863,39 +1128,61 @@ function FilterMultiSelect({ placeholder, options, value, onChange, loading }: F
         <div className="space-y-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="outline" className="w-full justify-between">
-                        <span>{value.length ? `${value.length} selected` : placeholder}</span>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-between"
+                    >
+                        <span>
+                            {value.length
+                                ? `${value.length} selected`
+                                : placeholder}
+                        </span>
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-72 max-h-72 overflow-y-auto">
+                <DropdownMenuContent
+                    align="start"
+                    className="max-h-72 w-72 overflow-y-auto"
+                >
                     <DropdownMenuLabel className="flex items-center gap-2">
                         <Input
                             placeholder="Search"
                             value={searchTerm}
-                            onChange={(event) => setSearchTerm(event.target.value)}
+                            onChange={(event) =>
+                                setSearchTerm(event.target.value)
+                            }
                             className="h-8"
                         />
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {loading ? (
                         <div className="flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" /> Loading options…
+                            <Loader2 className="h-4 w-4 animate-spin" /> Loading
+                            options…
                         </div>
                     ) : filteredOptions.length === 0 ? (
-                        <p className="px-2 py-1.5 text-sm text-muted-foreground">No matches.</p>
+                        <p className="px-2 py-1.5 text-sm text-muted-foreground">
+                            No matches.
+                        </p>
                     ) : (
                         filteredOptions.map((option) => (
                             <DropdownMenuCheckboxItem
                                 key={option.value}
                                 checked={value.includes(option.value)}
-                                onCheckedChange={(checked) => handleToggle(option.value, Boolean(checked))}
+                                onCheckedChange={(checked) =>
+                                    handleToggle(option.value, Boolean(checked))
+                                }
                                 className="flex items-start gap-2"
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-foreground">{option.label}</span>
+                                    <span className="text-sm font-medium text-foreground">
+                                        {option.label}
+                                    </span>
                                     {option.description ? (
-                                        <span className="text-xs text-muted-foreground">{option.description}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {option.description}
+                                        </span>
                                     ) : null}
                                 </div>
                             </DropdownMenuCheckboxItem>
@@ -906,8 +1193,16 @@ function FilterMultiSelect({ placeholder, options, value, onChange, loading }: F
             {value.length ? (
                 <div className="flex flex-wrap gap-2">
                     {value.map((selected) => (
-                        <Badge key={selected} variant="outline" className="gap-1">
-                            <span>{options.find((option) => option.value === selected)?.label ?? selected}</span>
+                        <Badge
+                            key={selected}
+                            variant="outline"
+                            className="gap-1"
+                        >
+                            <span>
+                                {options.find(
+                                    (option) => option.value === selected,
+                                )?.label ?? selected}
+                            </span>
                             <button
                                 type="button"
                                 onClick={() => handleToggle(selected, false)}
@@ -920,7 +1215,9 @@ function FilterMultiSelect({ placeholder, options, value, onChange, loading }: F
                     ))}
                 </div>
             ) : (
-                <p className="text-xs text-muted-foreground">No filters applied.</p>
+                <p className="text-xs text-muted-foreground">
+                    No filters applied.
+                </p>
             )}
         </div>
     );
@@ -932,7 +1229,11 @@ interface CategoryTokenInputProps {
     suggestions?: string[];
 }
 
-function CategoryTokenInput({ value, onChange, suggestions = [] }: CategoryTokenInputProps) {
+function CategoryTokenInput({
+    value,
+    onChange,
+    suggestions = [],
+}: CategoryTokenInputProps) {
     const [input, setInput] = useState('');
 
     const handleAdd = () => {
@@ -964,7 +1265,12 @@ function CategoryTokenInput({ value, onChange, suggestions = [] }: CategoryToken
                     onKeyDown={handleKeyDown}
                     placeholder="Type a category and press Enter"
                 />
-                <Button type="button" variant="secondary" onClick={handleAdd} disabled={!input.trim()}>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleAdd}
+                    disabled={!input.trim()}
+                >
                     Add
                 </Button>
             </div>
@@ -985,7 +1291,9 @@ function CategoryTokenInput({ value, onChange, suggestions = [] }: CategoryToken
                     ))}
                 </div>
             ) : (
-                <p className="text-xs text-muted-foreground">All categories included.</p>
+                <p className="text-xs text-muted-foreground">
+                    All categories included.
+                </p>
             )}
             {suggestions.length ? (
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -994,7 +1302,11 @@ function CategoryTokenInput({ value, onChange, suggestions = [] }: CategoryToken
                         <button
                             key={suggestion}
                             type="button"
-                            onClick={() => onChange(Array.from(new Set([...value, suggestion])))}
+                            onClick={() =>
+                                onChange(
+                                    Array.from(new Set([...value, suggestion])),
+                                )
+                            }
                             className="rounded-full border border-dashed border-sidebar-border/60 px-2 py-1 text-foreground transition-colors hover:bg-muted/50"
                         >
                             {suggestion}
@@ -1028,12 +1340,16 @@ function ConfidenceBadge({ mape }: ConfidenceBadgeProps) {
 
     return (
         <div className="rounded-lg border border-sidebar-border/50 bg-background/60 p-3 text-sm">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Confidence</p>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                Confidence
+            </p>
             <div className="flex items-center gap-2">
                 <Badge className={descriptor.className} variant="outline">
                     {descriptor.label}
                 </Badge>
-                <span className="text-xs text-muted-foreground">MAPE {formatPercent(mape)}</span>
+                <span className="text-xs text-muted-foreground">
+                    MAPE {formatPercent(mape)}
+                </span>
             </div>
         </div>
     );
@@ -1041,13 +1357,25 @@ function ConfidenceBadge({ mape }: ConfidenceBadgeProps) {
 
 function getConfidenceDescriptor(mape: number) {
     if (!Number.isFinite(mape)) {
-        return { label: 'Unknown', className: 'border-muted text-muted-foreground' };
+        return {
+            label: 'Unknown',
+            className: 'border-muted text-muted-foreground',
+        };
     }
     if (mape <= 10) {
-        return { label: 'High confidence', className: 'border-emerald-600 text-emerald-700 bg-emerald-500/10' };
+        return {
+            label: 'High confidence',
+            className: 'border-emerald-600 text-emerald-700 bg-emerald-500/10',
+        };
     }
     if (mape <= 20) {
-        return { label: 'Moderate confidence', className: 'border-amber-500 text-amber-600 bg-amber-500/10' };
+        return {
+            label: 'Moderate confidence',
+            className: 'border-amber-500 text-amber-600 bg-amber-500/10',
+        };
     }
-    return { label: 'Low confidence', className: 'border-destructive text-destructive bg-destructive/10' };
+    return {
+        label: 'Low confidence',
+        className: 'border-destructive text-destructive bg-destructive/10',
+    };
 }

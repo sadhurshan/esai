@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
@@ -35,14 +39,27 @@ interface CreateInvoicePayload {
     }>;
 }
 
-export function useCreateInvoice(): UseMutationResult<InvoiceDetail, ApiError | Error, CreateInvoiceInput> {
+export function useCreateInvoice(): UseMutationResult<
+    InvoiceDetail,
+    ApiError | Error,
+    CreateInvoiceInput
+> {
     const { notifyPlanLimit } = useAuth();
     const queryClient = useQueryClient();
 
     return useMutation<InvoiceDetail, ApiError | Error, CreateInvoiceInput>({
-        mutationFn: async ({ poId, supplierId, invoiceNumber, invoiceDate, currency, lines }) => {
+        mutationFn: async ({
+            poId,
+            supplierId,
+            invoiceNumber,
+            invoiceDate,
+            currency,
+            lines,
+        }) => {
             if (!Number.isFinite(poId) || poId <= 0) {
-                throw new Error('A valid purchase order is required to create an invoice.');
+                throw new Error(
+                    'A valid purchase order is required to create an invoice.',
+                );
             }
 
             const trimmedNumber = invoiceNumber.trim();
@@ -56,7 +73,9 @@ export function useCreateInvoice(): UseMutationResult<InvoiceDetail, ApiError | 
 
             const payload: CreateInvoicePayload = {
                 po_id: poId,
-                supplier_id: Number.isFinite(supplierId ?? NaN) ? Number(supplierId) : undefined,
+                supplier_id: Number.isFinite(supplierId ?? NaN)
+                    ? Number(supplierId)
+                    : undefined,
                 invoice_number: trimmedNumber,
                 invoice_date: invoiceDate?.trim() || undefined,
                 currency: currency.trim().toUpperCase(),
@@ -67,7 +86,10 @@ export function useCreateInvoice(): UseMutationResult<InvoiceDetail, ApiError | 
                 })),
             };
 
-            const response = (await api.post<Record<string, unknown>>('/invoices/from-po', payload)) as unknown as Record<string, unknown>;
+            const response = (await api.post<Record<string, unknown>>(
+                '/invoices/from-po',
+                payload,
+            )) as unknown as Record<string, unknown>;
 
             return mapInvoiceDetail(response);
         },
@@ -80,22 +102,37 @@ export function useCreateInvoice(): UseMutationResult<InvoiceDetail, ApiError | 
 
             const poId = invoice.purchaseOrderId;
             if (poId) {
-                void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.detail(poId) });
-                void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.events(poId) });
-            }
-
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.list() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.invoices.detail(invoice.id) });
-        },
-        onError: (error) => {
-            if (error instanceof ApiError && (error.status === 402 || error.status === 403)) {
-                notifyPlanLimit({
-                    code: 'invoices',
-                    message: error.message ?? 'Upgrade required to create invoices.',
+                void queryClient.invalidateQueries({
+                    queryKey: queryKeys.purchaseOrders.detail(poId),
+                });
+                void queryClient.invalidateQueries({
+                    queryKey: queryKeys.purchaseOrders.events(poId),
                 });
             }
 
-            const message = error instanceof ApiError ? error.message : error.message ?? 'Unable to create invoice.';
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.list(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.invoices.detail(invoice.id),
+            });
+        },
+        onError: (error) => {
+            if (
+                error instanceof ApiError &&
+                (error.status === 402 || error.status === 403)
+            ) {
+                notifyPlanLimit({
+                    code: 'invoices',
+                    message:
+                        error.message ?? 'Upgrade required to create invoices.',
+                });
+            }
+
+            const message =
+                error instanceof ApiError
+                    ? error.message
+                    : (error.message ?? 'Unable to create invoice.');
 
             publishToast({
                 variant: 'destructive',

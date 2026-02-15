@@ -1,9 +1,13 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
-import { SettingsApi, type CompanyAddress as ApiCompanyAddress, type CompanySettings as ApiCompanySettings } from '@/sdk';
 import type { ApiError } from '@/lib/api';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+    SettingsApi,
+    type CompanyAddress as ApiCompanyAddress,
+    type CompanySettings as ApiCompanySettings,
+} from '@/sdk';
 import type { CompanyAddress, CompanySettings } from '@/types/settings';
 
 const defaultAddress: CompanyAddress = {
@@ -27,7 +31,9 @@ function mapAddress(payload?: ApiCompanyAddress | null): CompanyAddress {
     };
 }
 
-export function mapCompanySettings(payload: ApiCompanySettings): CompanySettings {
+export function mapCompanySettings(
+    payload: ApiCompanySettings,
+): CompanySettings {
     return {
         legalName: payload.legalName,
         displayName: payload.displayName,
@@ -42,7 +48,10 @@ export function mapCompanySettings(payload: ApiCompanySettings): CompanySettings
     };
 }
 
-export function useCompanySettings(): UseQueryResult<CompanySettings, ApiError> {
+export function useCompanySettings(): UseQueryResult<
+    CompanySettings,
+    ApiError
+> {
     const settingsApi = useSdkClient(SettingsApi);
 
     return useQuery<CompanySettings, ApiError>({

@@ -7,6 +7,7 @@ use App\Enums\DocumentKind;
 use App\Models\Document;
 use App\Models\RFQ;
 use App\Models\User;
+use App\Services\DigitalTwin\DigitalTwinLinkService;
 use App\Services\RfqVersionService;
 use App\Support\Audit\AuditLogger;
 use App\Support\Documents\DocumentStorer;
@@ -20,6 +21,7 @@ class SyncRfqCadDocumentAction
         private readonly VirusScanner $virusScanner,
         private readonly AuditLogger $auditLogger,
         private readonly RfqVersionService $rfqVersionService,
+        private readonly DigitalTwinLinkService $digitalTwinLinkService,
     ) {}
 
     public function attach(RFQ $rfq, UploadedFile $file, User $user): Document
@@ -61,6 +63,8 @@ class SyncRfqCadDocumentAction
         $this->rfqVersionService->bump($rfq, null, 'rfq_cad_document_attached', [
             'document_id' => $document->id,
         ]);
+
+        $this->digitalTwinLinkService->linkRfqDocument($rfq, $document, $user, 'rfq_cad');
 
         return $document;
     }

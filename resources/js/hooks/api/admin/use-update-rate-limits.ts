@@ -1,13 +1,25 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
-import { successToast, errorToast } from '@/components/toasts';
+import { errorToast, successToast } from '@/components/toasts';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { useAuth } from '@/contexts/auth-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { AdminApi, type AdminCreateRateLimitRequest, type AdminUpdateRateLimitRequest } from '@/sdk';
+import {
+    AdminApi,
+    type AdminCreateRateLimitRequest,
+    type AdminUpdateRateLimitRequest,
+} from '@/sdk';
 import type { SyncRateLimitPayload } from '@/types/admin';
 
-export function useUpdateRateLimits(): UseMutationResult<void, unknown, SyncRateLimitPayload> {
+export function useUpdateRateLimits(): UseMutationResult<
+    void,
+    unknown,
+    SyncRateLimitPayload
+> {
     const adminApi = useSdkClient(AdminApi);
     const queryClient = useQueryClient();
     const { state } = useAuth();
@@ -55,11 +67,19 @@ export function useUpdateRateLimits(): UseMutationResult<void, unknown, SyncRate
             }
         },
         onSuccess: () => {
-            successToast('Rate limits updated', 'Throttle rules synced successfully.');
-            queryClient.invalidateQueries({ queryKey: queryKeys.admin.rateLimits() });
+            successToast(
+                'Rate limits updated',
+                'Throttle rules synced successfully.',
+            );
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.admin.rateLimits(),
+            });
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unable to sync rate limits.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to sync rate limits.';
             errorToast('Rate limit sync failed', message);
         },
     });

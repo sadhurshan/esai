@@ -1,6 +1,10 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
-import { successToast, errorToast } from '@/components/toasts';
+import { errorToast, successToast } from '@/components/toasts';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { useAuth } from '@/contexts/auth-context';
 import { queryKeys } from '@/lib/queryKeys';
@@ -13,7 +17,11 @@ export interface CreateApiKeyInput {
     expiresAt?: string | Date | null;
 }
 
-export function useCreateApiKey(): UseMutationResult<ApiKeyIssueResult, unknown, CreateApiKeyInput> {
+export function useCreateApiKey(): UseMutationResult<
+    ApiKeyIssueResult,
+    unknown,
+    CreateApiKeyInput
+> {
     const adminApi = useSdkClient(AdminApi);
     const queryClient = useQueryClient();
     const { state } = useAuth();
@@ -22,7 +30,9 @@ export function useCreateApiKey(): UseMutationResult<ApiKeyIssueResult, unknown,
     return useMutation<ApiKeyIssueResult, unknown, CreateApiKeyInput>({
         mutationFn: async ({ name, scopes, expiresAt }) => {
             if (!companyId) {
-                throw new Error('Missing company context for API key creation.');
+                throw new Error(
+                    'Missing company context for API key creation.',
+                );
             }
 
             const payload: AdminCreateApiKeyRequest = {
@@ -32,7 +42,8 @@ export function useCreateApiKey(): UseMutationResult<ApiKeyIssueResult, unknown,
             };
 
             if (expiresAt) {
-                payload.expiresAt = expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
+                payload.expiresAt =
+                    expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
             }
 
             const response = await adminApi.adminCreateApiKey({
@@ -46,13 +57,21 @@ export function useCreateApiKey(): UseMutationResult<ApiKeyIssueResult, unknown,
                 throw new Error('API key response missing secret or resource.');
             }
 
-            successToast('API key created', 'Copy the token now; it will not be shown again.');
-            queryClient.invalidateQueries({ queryKey: queryKeys.admin.apiKeys() });
+            successToast(
+                'API key created',
+                'Copy the token now; it will not be shown again.',
+            );
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.admin.apiKeys(),
+            });
 
             return { token, apiKey };
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unable to create API key.';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to create API key.';
             errorToast('API key creation failed', message);
         },
     });

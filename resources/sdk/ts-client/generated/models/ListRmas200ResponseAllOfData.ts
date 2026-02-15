@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { Rma } from './Rma';
-import {
-    RmaFromJSON,
-    RmaFromJSONTyped,
-    RmaToJSON,
-    RmaToJSONTyped,
-} from './Rma';
+import { RmaFromJSON, RmaToJSON } from './Rma';
 
 /**
- * 
+ *
  * @export
  * @interface ListRmas200ResponseAllOfData
  */
 export interface ListRmas200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<Rma>}
      * @memberof ListRmas200ResponseAllOfData
      */
     items: Array<Rma>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof ListRmas200ResponseAllOfData
      */
@@ -51,39 +40,48 @@ export interface ListRmas200ResponseAllOfData {
 /**
  * Check if a given object implements the ListRmas200ResponseAllOfData interface.
  */
-export function instanceOfListRmas200ResponseAllOfData(value: object): value is ListRmas200ResponseAllOfData {
+export function instanceOfListRmas200ResponseAllOfData(
+    value: object,
+): value is ListRmas200ResponseAllOfData {
     if (!('items' in value) || value['items'] === undefined) return false;
     return true;
 }
 
-export function ListRmas200ResponseAllOfDataFromJSON(json: any): ListRmas200ResponseAllOfData {
+export function ListRmas200ResponseAllOfDataFromJSON(
+    json: any,
+): ListRmas200ResponseAllOfData {
     return ListRmas200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ListRmas200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListRmas200ResponseAllOfData {
+export function ListRmas200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ListRmas200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': ((json['items'] as Array<any>).map(RmaFromJSON)),
-        'meta': json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
+        items: (json['items'] as Array<any>).map(RmaFromJSON),
+        meta: json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
     };
 }
 
-export function ListRmas200ResponseAllOfDataToJSON(json: any): ListRmas200ResponseAllOfData {
+export function ListRmas200ResponseAllOfDataToJSON(
+    json: any,
+): ListRmas200ResponseAllOfData {
     return ListRmas200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ListRmas200ResponseAllOfDataToJSONTyped(value?: ListRmas200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ListRmas200ResponseAllOfDataToJSONTyped(
+    value?: ListRmas200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': ((value['items'] as Array<any>).map(RmaToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items: (value['items'] as Array<any>).map(RmaToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

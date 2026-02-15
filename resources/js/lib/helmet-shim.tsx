@@ -1,5 +1,10 @@
+import {
+    type PropsWithChildren,
+    type ReactNode,
+    useEffect,
+    useState,
+} from 'react';
 import { createPortal } from 'react-dom';
-import { type PropsWithChildren, type ReactNode, useEffect, useState } from 'react';
 
 interface HelmetProps {
     children?: ReactNode;

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,36 +12,25 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { PageMeta } from './PageMeta';
-import {
-    PageMetaFromJSON,
-    PageMetaFromJSONTyped,
-    PageMetaToJSON,
-    PageMetaToJSONTyped,
-} from './PageMeta';
+import { PageMetaFromJSON, PageMetaToJSON } from './PageMeta';
 import type { RateLimitRule } from './RateLimitRule';
-import {
-    RateLimitRuleFromJSON,
-    RateLimitRuleFromJSONTyped,
-    RateLimitRuleToJSON,
-    RateLimitRuleToJSONTyped,
-} from './RateLimitRule';
+import { RateLimitRuleFromJSON, RateLimitRuleToJSON } from './RateLimitRule';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListRateLimits200ResponseAllOfData
  */
 export interface AdminListRateLimits200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {Array<RateLimitRule>}
      * @memberof AdminListRateLimits200ResponseAllOfData
      */
     items?: Array<RateLimitRule>;
     /**
-     * 
+     *
      * @type {PageMeta}
      * @memberof AdminListRateLimits200ResponseAllOfData
      */
@@ -51,38 +40,53 @@ export interface AdminListRateLimits200ResponseAllOfData {
 /**
  * Check if a given object implements the AdminListRateLimits200ResponseAllOfData interface.
  */
-export function instanceOfAdminListRateLimits200ResponseAllOfData(value: object): value is AdminListRateLimits200ResponseAllOfData {
+export function instanceOfAdminListRateLimits200ResponseAllOfData(
+    value: object,
+): value is AdminListRateLimits200ResponseAllOfData {
     return true;
 }
 
-export function AdminListRateLimits200ResponseAllOfDataFromJSON(json: any): AdminListRateLimits200ResponseAllOfData {
+export function AdminListRateLimits200ResponseAllOfDataFromJSON(
+    json: any,
+): AdminListRateLimits200ResponseAllOfData {
     return AdminListRateLimits200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function AdminListRateLimits200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListRateLimits200ResponseAllOfData {
+export function AdminListRateLimits200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListRateLimits200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(RateLimitRuleFromJSON)),
-        'meta': json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
+        items:
+            json['items'] == null
+                ? undefined
+                : (json['items'] as Array<any>).map(RateLimitRuleFromJSON),
+        meta: json['meta'] == null ? undefined : PageMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminListRateLimits200ResponseAllOfDataToJSON(json: any): AdminListRateLimits200ResponseAllOfData {
+export function AdminListRateLimits200ResponseAllOfDataToJSON(
+    json: any,
+): AdminListRateLimits200ResponseAllOfData {
     return AdminListRateLimits200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function AdminListRateLimits200ResponseAllOfDataToJSONTyped(value?: AdminListRateLimits200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListRateLimits200ResponseAllOfDataToJSONTyped(
+    value?: AdminListRateLimits200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(RateLimitRuleToJSON)),
-        'meta': PageMetaToJSON(value['meta']),
+        items:
+            value['items'] == null
+                ? undefined
+                : (value['items'] as Array<any>).map(RateLimitRuleToJSON),
+        meta: PageMetaToJSON(value['meta']),
     };
 }
-

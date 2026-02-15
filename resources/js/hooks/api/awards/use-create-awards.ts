@@ -1,10 +1,14 @@
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQueryClient,
+    type UseMutationResult,
+} from '@tanstack/react-query';
 
 import { publishToast } from '@/components/ui/use-toast';
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { RFQsApi } from '@/sdk';
 import type { RfqItemAwardSummary } from '@/sdk';
+import { RFQsApi } from '@/sdk';
 
 export interface AwardSelectionInput {
     rfqId: number;
@@ -15,7 +19,11 @@ export interface AwardSelectionInput {
     }>;
 }
 
-export function useCreateAwards(): UseMutationResult<RfqItemAwardSummary[], unknown, AwardSelectionInput> {
+export function useCreateAwards(): UseMutationResult<
+    RfqItemAwardSummary[],
+    unknown,
+    AwardSelectionInput
+> {
     const rfqsApi = useSdkClient(RFQsApi);
     const queryClient = useQueryClient();
 
@@ -41,14 +49,30 @@ export function useCreateAwards(): UseMutationResult<RfqItemAwardSummary[], unkn
                 description: 'Selections persisted for this RFQ.',
             });
 
-            void queryClient.invalidateQueries({ queryKey: queryKeys.awards.candidates(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.awards.summary(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.detail(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.lines(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.rfqs.quotes(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.quotes.rfq(rfqId) });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.quotes.root() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrders.root() });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.awards.candidates(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.awards.summary(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.detail(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.lines(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.rfqs.quotes(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.quotes.rfq(rfqId),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.quotes.root(),
+            });
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseOrders.root(),
+            });
         },
     });
 }

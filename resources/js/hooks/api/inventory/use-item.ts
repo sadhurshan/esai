@@ -2,8 +2,8 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import type { InventoryItemDetail } from '@/types/inventory';
 import { HttpError, InventoryModuleApi } from '@/sdk';
+import type { InventoryItemDetail } from '@/types/inventory';
 
 import { mapInventoryItemDetail } from './mappers';
 
@@ -17,9 +17,14 @@ export function useItem(
 ): UseQueryResult<InventoryItemDetail, HttpError | Error> {
     const inventoryApi = useSdkClient(InventoryModuleApi);
     const enabled = (options.enabled ?? true) && Boolean(itemId);
-    const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+        typeof value === 'object' && value !== null;
 
-    return useQuery<Record<string, unknown>, HttpError | Error, InventoryItemDetail>({
+    return useQuery<
+        Record<string, unknown>,
+        HttpError | Error,
+        InventoryItemDetail
+    >({
         queryKey: queryKeys.inventory.item(itemId ? String(itemId) : 'new'),
         enabled,
         staleTime: 30_000,
@@ -27,7 +32,10 @@ export function useItem(
             if (!itemId) {
                 throw new Error('itemId is required');
             }
-            return (await inventoryApi.showItem(itemId)) as Record<string, unknown>;
+            return (await inventoryApi.showItem(itemId)) as Record<
+                string,
+                unknown
+            >;
         },
         select: (response) => {
             const payload = isRecord(response.item) ? response.item : response;

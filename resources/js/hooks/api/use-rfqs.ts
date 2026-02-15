@@ -1,16 +1,26 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+    keepPreviousData,
+    useQuery,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useApiClientContext } from '@/contexts/api-client-context';
 import {
+    ListRfqs200ResponseFromJSON,
     ListRfqsSortDirectionEnum,
     ListRfqsSortEnum,
     ListRfqsStatusEnum,
     type ListRfqs200Response,
     type Rfq,
-    ListRfqs200ResponseFromJSON,
 } from '@/sdk';
 
-export type RfqStatusFilter = 'all' | 'draft' | 'open' | 'closed' | 'awarded' | 'cancelled';
+export type RfqStatusFilter =
+    | 'all'
+    | 'draft'
+    | 'open'
+    | 'closed'
+    | 'awarded'
+    | 'cancelled';
 
 export type RfqAudience = 'buyer' | 'supplier';
 
@@ -37,7 +47,10 @@ export type UseRfqsResult = UseQueryResult<ListRfqs200Response, unknown> & {
     cursor?: CursorState;
 };
 
-const STATUS_MAP: Record<Exclude<RfqStatusFilter, 'all'>, ListRfqsStatusEnum> = {
+const STATUS_MAP: Record<
+    Exclude<RfqStatusFilter, 'all'>,
+    ListRfqsStatusEnum
+> = {
     draft: ListRfqsStatusEnum.Draft,
     open: ListRfqsStatusEnum.Open,
     closed: ListRfqsStatusEnum.Closed,
@@ -45,7 +58,9 @@ const STATUS_MAP: Record<Exclude<RfqStatusFilter, 'all'>, ListRfqsStatusEnum> = 
     cancelled: ListRfqsStatusEnum.Cancelled,
 };
 
-function normalizeStatusFilters(status: RfqStatusFilter): ListRfqsStatusEnum[] | undefined {
+function normalizeStatusFilters(
+    status: RfqStatusFilter,
+): ListRfqsStatusEnum[] | undefined {
     if (status === 'all') {
         return undefined;
     }
@@ -76,7 +91,11 @@ function extractCursorState(meta?: unknown): CursorState | undefined {
 
     const pagination = record.pagination;
     if (pagination && typeof pagination === 'object') {
-        const perPage = readNumber(pagination as Record<string, unknown>, 'per_page', 'perPage');
+        const perPage = readNumber(
+            pagination as Record<string, unknown>,
+            'per_page',
+            'perPage',
+        );
         if (perPage !== undefined) {
             return { perPage };
         }
@@ -85,7 +104,9 @@ function extractCursorState(meta?: unknown): CursorState | undefined {
     return undefined;
 }
 
-function readCursorMeta(record: Record<string, unknown>): CursorState | undefined {
+function readCursorMeta(
+    record: Record<string, unknown>,
+): CursorState | undefined {
     const nextCursor = readString(record, 'next_cursor', 'nextCursor');
     const prevCursor = readString(record, 'prev_cursor', 'prevCursor');
     const perPage = readNumber(record, 'per_page', 'perPage');
@@ -97,7 +118,10 @@ function readCursorMeta(record: Record<string, unknown>): CursorState | undefine
     return undefined;
 }
 
-function readString(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+function readString(
+    record: Record<string, unknown>,
+    ...keys: string[]
+): string | undefined {
     for (const key of keys) {
         const value = record[key];
         if (typeof value === 'string') {
@@ -107,7 +131,10 @@ function readString(record: Record<string, unknown>, ...keys: string[]): string 
     return undefined;
 }
 
-function readNumber(record: Record<string, unknown>, ...keys: string[]): number | undefined {
+function readNumber(
+    record: Record<string, unknown>,
+    ...keys: string[]
+): number | undefined {
     for (const key of keys) {
         const value = record[key];
         if (typeof value === 'number') {
@@ -133,10 +160,24 @@ export function useRfqs(params: UseRfqsParams = {}): UseRfqsResult {
 
     const sanitizedSearch = search?.trim() || undefined;
     const statusFilters = normalizeStatusFilters(status);
-    const endpoint = audience === 'supplier' ? '/api/supplier/rfqs' : '/api/rfqs';
+    const endpoint =
+        audience === 'supplier' ? '/api/supplier/rfqs' : '/api/rfqs';
 
     const query = useQuery<ListRfqs200Response>({
-        queryKey: ['rfqs', { perPage, status, sanitizedSearch, dueFrom, dueTo, cursor, openBidding, method, audience }],
+        queryKey: [
+            'rfqs',
+            {
+                perPage,
+                status,
+                sanitizedSearch,
+                dueFrom,
+                dueTo,
+                cursor,
+                openBidding,
+                method,
+                audience,
+            },
+        ],
         queryFn: async () => {
             const fetchApi = configuration.fetchApi ?? fetch;
             const queryString = buildQueryString({

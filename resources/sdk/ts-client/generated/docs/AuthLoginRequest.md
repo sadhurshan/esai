@@ -1,38 +1,34 @@
-
 # AuthLoginRequest
-
 
 ## Properties
 
-Name | Type
------------- | -------------
-`email` | string
-`password` | string
-`remember` | boolean
+| Name       | Type    |
+| ---------- | ------- |
+| `email`    | string  |
+| `password` | string  |
+| `remember` | boolean |
 
 ## Example
 
 ```typescript
-import type { AuthLoginRequest } from ''
+import type { AuthLoginRequest } from '';
 
 // TODO: Update the object below with actual values
 const example = {
-  "email": null,
-  "password": null,
-  "remember": null,
-} satisfies AuthLoginRequest
+    email: null,
+    password: null,
+    remember: null,
+} satisfies AuthLoginRequest;
 
-console.log(example)
+console.log(example);
 
 // Convert the instance to a JSON string
-const exampleJSON: string = JSON.stringify(example)
-console.log(exampleJSON)
+const exampleJSON: string = JSON.stringify(example);
+console.log(exampleJSON);
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as AuthLoginRequest
-console.log(exampleParsed)
+const exampleParsed = JSON.parse(exampleJSON) as AuthLoginRequest;
+console.log(exampleParsed);
 ```
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-
-

@@ -7,7 +7,7 @@ import {
     type UseQueryResult,
 } from '@tanstack/react-query';
 
-import { api, type ApiError, buildQuery } from '@/lib/api';
+import { api, buildQuery, type ApiError } from '@/lib/api';
 import { toCursorMeta, type CursorPaginationMeta } from '@/lib/pagination';
 import { queryKeys } from '@/lib/queryKeys';
 import type {
@@ -68,8 +68,12 @@ function mapInvitation(payload: ApiCompanyInvitation): CompanyInvitation {
     };
 }
 
-function normalizeCollection(response: CompanyInvitationCollectionResponse): CompanyInvitationCollection {
-    const items = Array.isArray(response.items) ? response.items.map(mapInvitation) : [];
+function normalizeCollection(
+    response: CompanyInvitationCollectionResponse,
+): CompanyInvitationCollection {
+    const items = Array.isArray(response.items)
+        ? response.items.map(mapInvitation)
+        : [];
     const meta = toCursorMeta(response.meta ?? undefined);
     return { items, meta };
 }
@@ -92,9 +96,10 @@ export function useCompanyInvitations(
         queryKey: queryKeys.companyInvitations.list(queryParams),
         queryFn: async () => {
             const query = buildQuery(queryParams);
-            const response = (await api.get<CompanyInvitationCollectionResponse>(
-                `/company-invitations${query}`,
-            )) as unknown as CompanyInvitationCollectionResponse;
+            const response =
+                (await api.get<CompanyInvitationCollectionResponse>(
+                    `/company-invitations${query}`,
+                )) as unknown as CompanyInvitationCollectionResponse;
 
             return normalizeCollection(response);
         },
@@ -103,30 +108,48 @@ export function useCompanyInvitations(
     });
 }
 
-export function useSendCompanyInvitations(): UseMutationResult<CompanyInvitationCollection, ApiError, InvitationDraft[]> {
+export function useSendCompanyInvitations(): UseMutationResult<
+    CompanyInvitationCollection,
+    ApiError,
+    InvitationDraft[]
+> {
     const queryClient = useQueryClient();
 
-    return useMutation<CompanyInvitationCollection, ApiError, InvitationDraft[]>({
+    return useMutation<
+        CompanyInvitationCollection,
+        ApiError,
+        InvitationDraft[]
+    >({
         mutationFn: async (drafts) => {
-            const response = (await api.post<CompanyInvitationCollectionResponse>('/company-invitations', {
-                invitations: drafts.map((draft) => ({
-                    email: draft.email,
-                    role: draft.role,
-                    expires_at: draft.expiresAt ?? null,
-                    message: draft.message ?? null,
-                })),
-            })) as unknown as CompanyInvitationCollectionResponse;
+            const response =
+                (await api.post<CompanyInvitationCollectionResponse>(
+                    '/company-invitations',
+                    {
+                        invitations: drafts.map((draft) => ({
+                            email: draft.email,
+                            role: draft.role,
+                            expires_at: draft.expiresAt ?? null,
+                            message: draft.message ?? null,
+                        })),
+                    },
+                )) as unknown as CompanyInvitationCollectionResponse;
 
             return normalizeCollection(response);
         },
         onSuccess: async (data) => {
-            await queryClient.invalidateQueries({ queryKey: ['company-invitations', 'list'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['company-invitations', 'list'],
+            });
             queryClient.setQueryData(queryKeys.companyInvitations.list(), data);
         },
     });
 }
 
-export function useRevokeCompanyInvitation(): UseMutationResult<void, ApiError, number> {
+export function useRevokeCompanyInvitation(): UseMutationResult<
+    void,
+    ApiError,
+    number
+> {
     const queryClient = useQueryClient();
 
     return useMutation<void, ApiError, number>({
@@ -134,7 +157,9 @@ export function useRevokeCompanyInvitation(): UseMutationResult<void, ApiError, 
             await api.delete(`/company-invitations/${invitationId}`);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['company-invitations', 'list'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['company-invitations', 'list'],
+            });
         },
     });
 }
@@ -144,7 +169,9 @@ export function useAcceptCompanyInvitation(
 ): UseMutationResult<CompanyInvitation, ApiError, string> {
     return useMutation<CompanyInvitation, ApiError, string>({
         mutationFn: async (token: string) => {
-            const response = (await api.post<ApiCompanyInvitation>(`/company-invitations/${token}/accept`)) as unknown as ApiCompanyInvitation;
+            const response = (await api.post<ApiCompanyInvitation>(
+                `/company-invitations/${token}/accept`,
+            )) as unknown as ApiCompanyInvitation;
             return mapInvitation(response);
         },
         ...options,

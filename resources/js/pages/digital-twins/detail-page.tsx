@@ -1,6 +1,15 @@
+import {
+    ArrowLeft,
+    BadgeInfo,
+    Download,
+    FileText,
+    Layers,
+    Loader2,
+    Package,
+    Tags,
+} from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BadgeInfo, Download, FileText, Layers, Loader2, Package, Tags } from 'lucide-react';
 
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
@@ -11,12 +20,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { publishToast } from '@/components/ui/use-toast';
 import { useDigitalTwin, useUseForRfq } from '@/hooks/api/digital-twins';
-import type { DigitalTwinLibraryAsset, DigitalTwinLibraryDetail, DigitalTwinLibrarySpec } from '@/sdk';
+import type {
+    DigitalTwinLibraryAsset,
+    DigitalTwinLibraryDetail,
+    DigitalTwinLibrarySpec,
+} from '@/sdk';
 
 export function DigitalTwinDetailPage() {
     const navigate = useNavigate();
     const params = useParams<{ id: string }>();
-    const { digitalTwin, isLoading, isError, refetch } = useDigitalTwin(params.id);
+    const { digitalTwin, isLoading, isError, refetch } = useDigitalTwin(
+        params.id,
+    );
 
     const useForRfq = useUseForRfq({
         onSuccess: (response) => {
@@ -25,7 +40,8 @@ export function DigitalTwinDetailPage() {
                 publishToast({
                     variant: 'destructive',
                     title: 'Unable to launch RFQ',
-                    description: 'The draft payload was missing from the response.',
+                    description:
+                        'The draft payload was missing from the response.',
                 });
                 return;
             }
@@ -33,7 +49,8 @@ export function DigitalTwinDetailPage() {
             publishToast({
                 variant: 'success',
                 title: 'Digital twin attached',
-                description: 'Opening the RFQ wizard with the draft prefilled from this twin.',
+                description:
+                    'Opening the RFQ wizard with the draft prefilled from this twin.',
             });
 
             navigate('/app/rfqs/new', {
@@ -44,7 +61,8 @@ export function DigitalTwinDetailPage() {
             publishToast({
                 variant: 'destructive',
                 title: 'Unable to use digital twin',
-                description: 'Try again shortly or download the assets manually.',
+                description:
+                    'Try again shortly or download the assets manually.',
             });
         },
     });
@@ -81,7 +99,9 @@ export function DigitalTwinDetailPage() {
                     description="This digital twin may have been removed or you no longer have access to it."
                     icon={<Layers className="h-12 w-12" />}
                     ctaLabel="Back to library"
-                    ctaProps={{ onClick: () => navigate('/app/library/digital-twins') }}
+                    ctaProps={{
+                        onClick: () => navigate('/app/library/digital-twins'),
+                    }}
                 />
             </section>
         );
@@ -97,27 +117,54 @@ export function DigitalTwinDetailPage() {
             </Helmet>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate(-1)}>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => navigate(-1)}
+                >
                     <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
                 <div className="flex flex-wrap gap-2">
-                    {digitalTwin.category?.name && <Badge variant="outline">{digitalTwin.category.name}</Badge>}
-                    {digitalTwin.version && <Badge variant="secondary">v{digitalTwin.version}</Badge>}
-                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-500/90">Published</Badge>
+                    {digitalTwin.category?.name && (
+                        <Badge variant="outline">
+                            {digitalTwin.category.name}
+                        </Badge>
+                    )}
+                    {digitalTwin.version && (
+                        <Badge variant="secondary">
+                            v{digitalTwin.version}
+                        </Badge>
+                    )}
+                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-500/90">
+                        Published
+                    </Badge>
                 </div>
             </div>
 
             <header className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Last updated {formattedUpdatedAt}</p>
-                        <h1 className="text-3xl font-semibold tracking-tight">{digitalTwin.title}</h1>
-                        {digitalTwin.summary && <p className="text-base text-muted-foreground">{digitalTwin.summary}</p>}
+                        <p className="text-sm text-muted-foreground">
+                            Last updated {formattedUpdatedAt}
+                        </p>
+                        <h1 className="text-3xl font-semibold tracking-tight">
+                            {digitalTwin.title}
+                        </h1>
+                        {digitalTwin.summary && (
+                            <p className="text-base text-muted-foreground">
+                                {digitalTwin.summary}
+                            </p>
+                        )}
                     </div>
                     {tagList.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                             {tagList.map((tag) => (
-                                <Badge key={tag} variant="outline" className="text-xs">
+                                <Badge
+                                    key={tag}
+                                    variant="outline"
+                                    className="text-xs"
+                                >
                                     {tag}
                                 </Badge>
                             ))}
@@ -128,16 +175,36 @@ export function DigitalTwinDetailPage() {
                             variant="secondary"
                             size="sm"
                             className="gap-2"
-                            onClick={() => useForRfq.mutate({ digitalTwinId: digitalTwin.id })}
+                            onClick={() =>
+                                useForRfq.mutate({
+                                    digitalTwinId: digitalTwin.id,
+                                })
+                            }
                             disabled={useForRfq.isPending}
                         >
-                            {useForRfq.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
+                            {useForRfq.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Package className="h-4 w-4" />
+                            )}
                             Use for RFQ
                         </Button>
                         {digitalTwin.primary_asset?.download_url && (
-                            <Button asChild variant="outline" size="sm" className="gap-2">
-                                <a href={digitalTwin.primary_asset.download_url} target="_blank" rel="noreferrer">
-                                    <Download className="h-4 w-4" /> Primary asset
+                            <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
+                                <a
+                                    href={
+                                        digitalTwin.primary_asset.download_url
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <Download className="h-4 w-4" /> Primary
+                                    asset
                                 </a>
                             </Button>
                         )}
@@ -188,7 +255,9 @@ export function DigitalTwinDetailPage() {
                         </CardHeader>
                         <CardContent>
                             {digitalTwin.revision_notes ? (
-                                <p className="whitespace-pre-line text-sm text-muted-foreground">{digitalTwin.revision_notes}</p>
+                                <p className="text-sm whitespace-pre-line text-muted-foreground">
+                                    {digitalTwin.revision_notes}
+                                </p>
                             ) : (
                                 <EmptyState
                                     title="No notes provided"
@@ -209,14 +278,17 @@ interface PreviewPanelProps {
 }
 
 function PreviewPanel({ digitalTwin }: PreviewPanelProps) {
-    const thumbnail = digitalTwin.thumbnail_url ?? digitalTwin.primary_asset?.download_url;
+    const thumbnail =
+        digitalTwin.thumbnail_url ?? digitalTwin.primary_asset?.download_url;
 
     if (!thumbnail) {
         return (
             <Card className="h-full">
                 <CardContent className="flex h-full flex-col items-center justify-center gap-3 text-center">
                     <Layers className="h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">No preview available</p>
+                    <p className="text-sm text-muted-foreground">
+                        No preview available
+                    </p>
                 </CardContent>
             </Card>
         );
@@ -225,7 +297,12 @@ function PreviewPanel({ digitalTwin }: PreviewPanelProps) {
     return (
         <Card className="h-full overflow-hidden">
             <div className="relative h-full min-h-[220px] bg-muted">
-                <img src={thumbnail} alt={`${digitalTwin.title} preview`} className="h-full w-full object-cover" loading="lazy" />
+                <img
+                    src={thumbnail}
+                    alt={`${digitalTwin.title} preview`}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                />
             </div>
         </Card>
     );
@@ -249,11 +326,18 @@ function SpecTable({ specs }: SpecTableProps) {
     return (
         <div className="divide-y rounded-lg border">
             {specs.map((spec) => (
-                <div key={spec.id} className="grid gap-3 p-4 text-sm md:grid-cols-[220px_1fr]">
+                <div
+                    key={spec.id}
+                    className="grid gap-3 p-4 text-sm md:grid-cols-[220px_1fr]"
+                >
                     <div className="font-medium">{spec.name}</div>
                     <div className="text-muted-foreground">
                         {spec.value ?? '—'}
-                        {spec.uom && <span className="ml-2 text-xs uppercase text-muted-foreground/80">{spec.uom}</span>}
+                        {spec.uom && (
+                            <span className="ml-2 text-xs text-muted-foreground/80 uppercase">
+                                {spec.uom}
+                            </span>
+                        )}
                     </div>
                 </div>
             ))}
@@ -308,7 +392,11 @@ function AssetRow({ asset }: AssetRowProps) {
             </div>
             {asset.download_url && (
                 <Button asChild variant="ghost" size="sm" className="gap-1">
-                    <a href={asset.download_url} target="_blank" rel="noreferrer">
+                    <a
+                        href={asset.download_url}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
                         <Download className="h-4 w-4" /> Download
                     </a>
                 </Button>
@@ -343,7 +431,10 @@ function formatFileSize(bytes?: number | null): string {
     }
 
     const units = ['B', 'KB', 'MB', 'GB'];
-    const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const exponent = Math.min(
+        Math.floor(Math.log(bytes) / Math.log(1024)),
+        units.length - 1,
+    );
     const value = bytes / Math.pow(1024, exponent);
     return `${value.toFixed(1)} ${units[exponent]}`;
 }
@@ -358,5 +449,7 @@ function formatDate(value?: string | null): string {
         return 'recently';
     }
 
-    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(parsed);
+    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(
+        parsed,
+    );
 }

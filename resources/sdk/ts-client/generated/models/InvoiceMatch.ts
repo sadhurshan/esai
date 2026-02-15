@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,57 +12,55 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface InvoiceMatch
  */
 export interface InvoiceMatch {
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatch
      */
     id: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatch
      */
     invoiceId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatch
      */
     purchaseOrderId?: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof InvoiceMatch
      */
     goodsReceiptNoteId?: number;
     /**
-     * 
+     *
      * @type {string}
      * @memberof InvoiceMatch
      */
     result: InvoiceMatchResultEnum;
     /**
-     * 
+     *
      * @type {object}
      * @memberof InvoiceMatch
      */
     details?: object;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof InvoiceMatch
      */
     createdAt?: Date;
 }
-
 
 /**
  * @export
@@ -71,10 +69,10 @@ export const InvoiceMatchResultEnum = {
     Matched: 'matched',
     QtyMismatch: 'qty_mismatch',
     PriceMismatch: 'price_mismatch',
-    Unmatched: 'unmatched'
+    Unmatched: 'unmatched',
 } as const;
-export type InvoiceMatchResultEnum = typeof InvoiceMatchResultEnum[keyof typeof InvoiceMatchResultEnum];
-
+export type InvoiceMatchResultEnum =
+    (typeof InvoiceMatchResultEnum)[keyof typeof InvoiceMatchResultEnum];
 
 /**
  * Check if a given object implements the InvoiceMatch interface.
@@ -89,19 +87,30 @@ export function InvoiceMatchFromJSON(json: any): InvoiceMatch {
     return InvoiceMatchFromJSONTyped(json, false);
 }
 
-export function InvoiceMatchFromJSONTyped(json: any, ignoreDiscriminator: boolean): InvoiceMatch {
+export function InvoiceMatchFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): InvoiceMatch {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': json['id'],
-        'invoiceId': json['invoice_id'] == null ? undefined : json['invoice_id'],
-        'purchaseOrderId': json['purchase_order_id'] == null ? undefined : json['purchase_order_id'],
-        'goodsReceiptNoteId': json['goods_receipt_note_id'] == null ? undefined : json['goods_receipt_note_id'],
-        'result': json['result'],
-        'details': json['details'] == null ? undefined : json['details'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
+        id: json['id'],
+        invoiceId: json['invoice_id'] == null ? undefined : json['invoice_id'],
+        purchaseOrderId:
+            json['purchase_order_id'] == null
+                ? undefined
+                : json['purchase_order_id'],
+        goodsReceiptNoteId:
+            json['goods_receipt_note_id'] == null
+                ? undefined
+                : json['goods_receipt_note_id'],
+        result: json['result'],
+        details: json['details'] == null ? undefined : json['details'],
+        createdAt:
+            json['created_at'] == null
+                ? undefined
+                : new Date(json['created_at']),
     };
 }
 
@@ -109,20 +118,24 @@ export function InvoiceMatchToJSON(json: any): InvoiceMatch {
     return InvoiceMatchToJSONTyped(json, false);
 }
 
-export function InvoiceMatchToJSONTyped(value?: InvoiceMatch | null, ignoreDiscriminator: boolean = false): any {
+export function InvoiceMatchToJSONTyped(
+    value?: InvoiceMatch | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': value['id'],
-        'invoice_id': value['invoiceId'],
-        'purchase_order_id': value['purchaseOrderId'],
-        'goods_receipt_note_id': value['goodsReceiptNoteId'],
-        'result': value['result'],
-        'details': value['details'],
-        'created_at': value['createdAt'] == null ? value['createdAt'] : value['createdAt'].toISOString(),
+        id: value['id'],
+        invoice_id: value['invoiceId'],
+        purchase_order_id: value['purchaseOrderId'],
+        goods_receipt_note_id: value['goodsReceiptNoteId'],
+        result: value['result'],
+        details: value['details'],
+        created_at:
+            value['createdAt'] == null
+                ? value['createdAt']
+                : value['createdAt'].toISOString(),
     };
 }
-

@@ -325,6 +325,23 @@ def test_build_rfq_draft_uses_name_alias_for_title() -> None:
     assert payload["rfq_title"] == "Rotar Blades"
 
 
+def test_build_rfq_draft_extracts_structured_fields_from_query_prompt() -> None:
+    prompt = (
+        "Draft an RFQ for custom rotor blades, qty 500, material aluminum 7075, "
+        "lead time 21 days, delivery to Dubai, include QA cert requirements."
+    )
+
+    payload = build_rfq_draft([], {"query": prompt})
+
+    assert payload["rfq_title"] == "custom rotor blades"
+    assert payload["line_items"][0]["quantity"] == 500.0
+    assert "Material: aluminum 7075" in payload["line_items"][0]["description"]
+    assert any("Requested lead time: 21 days" == term for term in payload["terms_and_conditions"])
+    assert any("Delivery location: Dubai" == term for term in payload["terms_and_conditions"])
+    assert any("QA certification" in term for term in payload["terms_and_conditions"])
+    assert any("QA certification" in question for question in payload["questions_for_suppliers"])
+
+
 def test_forecast_spend_returns_confidence_interval_and_drivers() -> None:
     context = [
         {

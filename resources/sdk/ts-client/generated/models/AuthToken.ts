@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,9 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AuthToken
  */
@@ -32,22 +31,21 @@ export interface AuthToken {
      */
     type: AuthTokenTypeEnum;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof AuthToken
      */
     expiresAt: Date;
 }
 
-
 /**
  * @export
  */
 export const AuthTokenTypeEnum = {
-    Bearer: 'Bearer'
+    Bearer: 'Bearer',
 } as const;
-export type AuthTokenTypeEnum = typeof AuthTokenTypeEnum[keyof typeof AuthTokenTypeEnum];
-
+export type AuthTokenTypeEnum =
+    (typeof AuthTokenTypeEnum)[keyof typeof AuthTokenTypeEnum];
 
 /**
  * Check if a given object implements the AuthToken interface.
@@ -55,7 +53,8 @@ export type AuthTokenTypeEnum = typeof AuthTokenTypeEnum[keyof typeof AuthTokenT
 export function instanceOfAuthToken(value: object): value is AuthToken {
     if (!('token' in value) || value['token'] === undefined) return false;
     if (!('type' in value) || value['type'] === undefined) return false;
-    if (!('expiresAt' in value) || value['expiresAt'] === undefined) return false;
+    if (!('expiresAt' in value) || value['expiresAt'] === undefined)
+        return false;
     return true;
 }
 
@@ -63,15 +62,17 @@ export function AuthTokenFromJSON(json: any): AuthToken {
     return AuthTokenFromJSONTyped(json, false);
 }
 
-export function AuthTokenFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthToken {
+export function AuthTokenFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthToken {
     if (json == null) {
         return json;
     }
     return {
-        
-        'token': json['token'],
-        'type': json['type'],
-        'expiresAt': (new Date(json['expires_at'])),
+        token: json['token'],
+        type: json['type'],
+        expiresAt: new Date(json['expires_at']),
     };
 }
 
@@ -79,16 +80,17 @@ export function AuthTokenToJSON(json: any): AuthToken {
     return AuthTokenToJSONTyped(json, false);
 }
 
-export function AuthTokenToJSONTyped(value?: AuthToken | null, ignoreDiscriminator: boolean = false): any {
+export function AuthTokenToJSONTyped(
+    value?: AuthToken | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'token': value['token'],
-        'type': value['type'],
-        'expires_at': value['expiresAt'].toISOString(),
+        token: value['token'],
+        type: value['type'],
+        expires_at: value['expiresAt'].toISOString(),
     };
 }
-

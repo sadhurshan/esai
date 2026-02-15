@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface ConvertQuantityForPart200ResponseAllOfData
  */
 export interface ConvertQuantityForPart200ResponseAllOfData {
     /**
-     * 
+     *
      * @type {string}
      * @memberof ConvertQuantityForPart200ResponseAllOfData
      */
     qtyConverted: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ConvertQuantityForPart200ResponseAllOfData
      */
     baseQty: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof ConvertQuantityForPart200ResponseAllOfData
      */
@@ -42,43 +41,53 @@ export interface ConvertQuantityForPart200ResponseAllOfData {
 /**
  * Check if a given object implements the ConvertQuantityForPart200ResponseAllOfData interface.
  */
-export function instanceOfConvertQuantityForPart200ResponseAllOfData(value: object): value is ConvertQuantityForPart200ResponseAllOfData {
-    if (!('qtyConverted' in value) || value['qtyConverted'] === undefined) return false;
+export function instanceOfConvertQuantityForPart200ResponseAllOfData(
+    value: object,
+): value is ConvertQuantityForPart200ResponseAllOfData {
+    if (!('qtyConverted' in value) || value['qtyConverted'] === undefined)
+        return false;
     if (!('baseQty' in value) || value['baseQty'] === undefined) return false;
     if (!('baseUom' in value) || value['baseUom'] === undefined) return false;
     return true;
 }
 
-export function ConvertQuantityForPart200ResponseAllOfDataFromJSON(json: any): ConvertQuantityForPart200ResponseAllOfData {
+export function ConvertQuantityForPart200ResponseAllOfDataFromJSON(
+    json: any,
+): ConvertQuantityForPart200ResponseAllOfData {
     return ConvertQuantityForPart200ResponseAllOfDataFromJSONTyped(json, false);
 }
 
-export function ConvertQuantityForPart200ResponseAllOfDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): ConvertQuantityForPart200ResponseAllOfData {
+export function ConvertQuantityForPart200ResponseAllOfDataFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): ConvertQuantityForPart200ResponseAllOfData {
     if (json == null) {
         return json;
     }
     return {
-        
-        'qtyConverted': json['qty_converted'],
-        'baseQty': json['base_qty'],
-        'baseUom': json['base_uom'],
+        qtyConverted: json['qty_converted'],
+        baseQty: json['base_qty'],
+        baseUom: json['base_uom'],
     };
 }
 
-export function ConvertQuantityForPart200ResponseAllOfDataToJSON(json: any): ConvertQuantityForPart200ResponseAllOfData {
+export function ConvertQuantityForPart200ResponseAllOfDataToJSON(
+    json: any,
+): ConvertQuantityForPart200ResponseAllOfData {
     return ConvertQuantityForPart200ResponseAllOfDataToJSONTyped(json, false);
 }
 
-export function ConvertQuantityForPart200ResponseAllOfDataToJSONTyped(value?: ConvertQuantityForPart200ResponseAllOfData | null, ignoreDiscriminator: boolean = false): any {
+export function ConvertQuantityForPart200ResponseAllOfDataToJSONTyped(
+    value?: ConvertQuantityForPart200ResponseAllOfData | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'qty_converted': value['qtyConverted'],
-        'base_qty': value['baseQty'],
-        'base_uom': value['baseUom'],
+        qty_converted: value['qtyConverted'],
+        base_qty: value['baseQty'],
+        base_uom: value['baseUom'],
     };
 }
-

@@ -13,7 +13,9 @@ export function useWebhookDeliveries(
     params: ListWebhookDeliveriesParams = {},
 ): UseQueryResult<CursorPaginatedResponse<WebhookDeliveryItem>> {
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
-    const subscriptionKey = params.subscriptionId ? String(params.subscriptionId) : 'all';
+    const subscriptionKey = params.subscriptionId
+        ? String(params.subscriptionId)
+        : 'all';
 
     return useQuery<CursorPaginatedResponse<WebhookDeliveryItem>>({
         queryKey: queryKeys.admin.webhookDeliveries(subscriptionKey, params),

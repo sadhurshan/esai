@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,9 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface AuthResetPasswordRequest
  */
@@ -26,13 +25,13 @@ export interface AuthResetPasswordRequest {
      */
     token: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthResetPasswordRequest
      */
     email: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AuthResetPasswordRequest
      */
@@ -48,46 +47,59 @@ export interface AuthResetPasswordRequest {
 /**
  * Check if a given object implements the AuthResetPasswordRequest interface.
  */
-export function instanceOfAuthResetPasswordRequest(value: object): value is AuthResetPasswordRequest {
+export function instanceOfAuthResetPasswordRequest(
+    value: object,
+): value is AuthResetPasswordRequest {
     if (!('token' in value) || value['token'] === undefined) return false;
     if (!('email' in value) || value['email'] === undefined) return false;
     if (!('password' in value) || value['password'] === undefined) return false;
-    if (!('passwordConfirmation' in value) || value['passwordConfirmation'] === undefined) return false;
+    if (
+        !('passwordConfirmation' in value) ||
+        value['passwordConfirmation'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function AuthResetPasswordRequestFromJSON(json: any): AuthResetPasswordRequest {
+export function AuthResetPasswordRequestFromJSON(
+    json: any,
+): AuthResetPasswordRequest {
     return AuthResetPasswordRequestFromJSONTyped(json, false);
 }
 
-export function AuthResetPasswordRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthResetPasswordRequest {
+export function AuthResetPasswordRequestFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AuthResetPasswordRequest {
     if (json == null) {
         return json;
     }
     return {
-        
-        'token': json['token'],
-        'email': json['email'],
-        'password': json['password'],
-        'passwordConfirmation': json['password_confirmation'],
+        token: json['token'],
+        email: json['email'],
+        password: json['password'],
+        passwordConfirmation: json['password_confirmation'],
     };
 }
 
-export function AuthResetPasswordRequestToJSON(json: any): AuthResetPasswordRequest {
+export function AuthResetPasswordRequestToJSON(
+    json: any,
+): AuthResetPasswordRequest {
     return AuthResetPasswordRequestToJSONTyped(json, false);
 }
 
-export function AuthResetPasswordRequestToJSONTyped(value?: AuthResetPasswordRequest | null, ignoreDiscriminator: boolean = false): any {
+export function AuthResetPasswordRequestToJSONTyped(
+    value?: AuthResetPasswordRequest | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'token': value['token'],
-        'email': value['email'],
-        'password': value['password'],
-        'password_confirmation': value['passwordConfirmation'],
+        token: value['token'],
+        email: value['email'],
+        password: value['password'],
+        password_confirmation: value['passwordConfirmation'],
     };
 }
-

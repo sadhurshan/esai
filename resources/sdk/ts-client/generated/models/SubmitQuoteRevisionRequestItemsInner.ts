@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,27 +12,26 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
- * 
+ *
  * @export
  * @interface SubmitQuoteRevisionRequestItemsInner
  */
 export interface SubmitQuoteRevisionRequestItemsInner {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SubmitQuoteRevisionRequestItemsInner
      */
     rfqItemId: string;
     /**
-     * 
+     *
      * @type {number}
      * @memberof SubmitQuoteRevisionRequestItemsInner
      */
     quantity: number;
     /**
-     * 
+     *
      * @type {number}
      * @memberof SubmitQuoteRevisionRequestItemsInner
      */
@@ -42,43 +41,54 @@ export interface SubmitQuoteRevisionRequestItemsInner {
 /**
  * Check if a given object implements the SubmitQuoteRevisionRequestItemsInner interface.
  */
-export function instanceOfSubmitQuoteRevisionRequestItemsInner(value: object): value is SubmitQuoteRevisionRequestItemsInner {
-    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined) return false;
+export function instanceOfSubmitQuoteRevisionRequestItemsInner(
+    value: object,
+): value is SubmitQuoteRevisionRequestItemsInner {
+    if (!('rfqItemId' in value) || value['rfqItemId'] === undefined)
+        return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
-    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined) return false;
+    if (!('unitPriceMinor' in value) || value['unitPriceMinor'] === undefined)
+        return false;
     return true;
 }
 
-export function SubmitQuoteRevisionRequestItemsInnerFromJSON(json: any): SubmitQuoteRevisionRequestItemsInner {
+export function SubmitQuoteRevisionRequestItemsInnerFromJSON(
+    json: any,
+): SubmitQuoteRevisionRequestItemsInner {
     return SubmitQuoteRevisionRequestItemsInnerFromJSONTyped(json, false);
 }
 
-export function SubmitQuoteRevisionRequestItemsInnerFromJSONTyped(json: any, ignoreDiscriminator: boolean): SubmitQuoteRevisionRequestItemsInner {
+export function SubmitQuoteRevisionRequestItemsInnerFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SubmitQuoteRevisionRequestItemsInner {
     if (json == null) {
         return json;
     }
     return {
-        
-        'rfqItemId': json['rfq_item_id'],
-        'quantity': json['quantity'],
-        'unitPriceMinor': json['unit_price_minor'],
+        rfqItemId: json['rfq_item_id'],
+        quantity: json['quantity'],
+        unitPriceMinor: json['unit_price_minor'],
     };
 }
 
-export function SubmitQuoteRevisionRequestItemsInnerToJSON(json: any): SubmitQuoteRevisionRequestItemsInner {
+export function SubmitQuoteRevisionRequestItemsInnerToJSON(
+    json: any,
+): SubmitQuoteRevisionRequestItemsInner {
     return SubmitQuoteRevisionRequestItemsInnerToJSONTyped(json, false);
 }
 
-export function SubmitQuoteRevisionRequestItemsInnerToJSONTyped(value?: SubmitQuoteRevisionRequestItemsInner | null, ignoreDiscriminator: boolean = false): any {
+export function SubmitQuoteRevisionRequestItemsInnerToJSONTyped(
+    value?: SubmitQuoteRevisionRequestItemsInner | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'rfq_item_id': value['rfqItemId'],
-        'quantity': value['quantity'],
-        'unit_price_minor': value['unitPriceMinor'],
+        rfq_item_id: value['rfqItemId'],
+        quantity: value['quantity'],
+        unit_price_minor: value['unitPriceMinor'],
     };
 }
-

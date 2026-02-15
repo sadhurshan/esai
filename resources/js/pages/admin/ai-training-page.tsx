@@ -1,5 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import {
     Activity,
     Brain,
@@ -12,29 +11,55 @@ import {
     UploadCloud,
     Workflow,
 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import type { Dispatch, SetStateAction } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 
+import { EmptyState } from '@/components/empty-state';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import { publishToast } from '@/components/ui/use-toast';
-import { EmptyState } from '@/components/empty-state';
+import { useSdkClient } from '@/contexts/api-client-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useFormatting } from '@/contexts/formatting-context';
-import { useSdkClient } from '@/contexts/api-client-context';
 import { useAiTrainingJobs } from '@/hooks/api/admin/use-ai-training-jobs';
-import { AdminConsoleApi } from '@/sdk';
-import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
-import type { ModelTrainingJob, ModelTrainingJobFilters, StartAiTrainingPayload } from '@/types/admin';
 import { cn } from '@/lib/utils';
+import { AccessDeniedPage } from '@/pages/errors/access-denied-page';
+import { AdminConsoleApi } from '@/sdk';
+import type {
+    ModelTrainingJob,
+    ModelTrainingJobFilters,
+    StartAiTrainingPayload,
+    UploadAiTrainingDatasetResponse,
+} from '@/types/admin';
 
 const FEATURE_CARDS = [
     {
@@ -148,24 +173,43 @@ export function AdminAiTrainingPage() {
     const { formatDate, formatNumber } = useFormatting();
     const adminConsoleApi = useSdkClient(AdminConsoleApi);
     const [autoRefresh, setAutoRefresh] = useState(true);
-    const [filters, setFilters] = useState<ModelTrainingJobFilters>({ perPage: 50 });
+    const [filters, setFilters] = useState<ModelTrainingJobFilters>({
+        perPage: 50,
+    });
     const [filterForm, setFilterForm] = useState(DEFAULT_FILTER_FORM);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [trainingForm, setTrainingForm] = useState<TrainingFormState>(DEFAULT_FORM_VALUES);
-    const [scheduleForm, setScheduleForm] = useState<ScheduleFormState>(DEFAULT_SCHEDULE_FORM);
-    const [savedSchedules, setSavedSchedules] = useState<ScheduleFormState[]>([]);
+    const [trainingForm, setTrainingForm] =
+        useState<TrainingFormState>(DEFAULT_FORM_VALUES);
+    const [scheduleForm, setScheduleForm] = useState<ScheduleFormState>(
+        DEFAULT_SCHEDULE_FORM,
+    );
+    const [savedSchedules, setSavedSchedules] = useState<ScheduleFormState[]>(
+        [],
+    );
 
-    const { data, isLoading, isFetching, refetch } = useAiTrainingJobs(filters, {
-        enabled: canTrainAi,
-        refetchInterval: canTrainAi && autoRefresh ? 10_000 : false,
-    });
+    const { data, isLoading, isFetching, refetch } = useAiTrainingJobs(
+        filters,
+        {
+            enabled: canTrainAi,
+            refetchInterval: canTrainAi && autoRefresh ? 10_000 : false,
+        },
+    );
 
-    const jobs = data?.items ?? [];
+    const jobs = useMemo(() => data?.items ?? [], [data?.items]);
     const latestByFeature = useMemo(() => deriveLatestByFeature(jobs), [jobs]);
-    const runningJobIds = useMemo(() => new Set(jobs.filter((job) => job.status === 'running').map((job) => job.id)), [jobs]);
+    const runningJobIds = useMemo(
+        () =>
+            new Set(
+                jobs
+                    .filter((job) => job.status === 'running')
+                    .map((job) => job.id),
+            ),
+        [jobs],
+    );
 
     const startTraining = useMutation({
-        mutationFn: (payload: StartAiTrainingPayload) => adminConsoleApi.startAiTraining(payload),
+        mutationFn: (payload: StartAiTrainingPayload) =>
+            adminConsoleApi.startAiTraining(payload),
         onSuccess: (job) => {
             publishToast({
                 title: 'Training started',
@@ -179,22 +223,53 @@ export function AdminAiTrainingPage() {
         onError: (error) => {
             publishToast({
                 title: 'Unable to start training',
-                description: error instanceof Error ? error.message : 'Unexpected error',
+                description:
+                    error instanceof Error ? error.message : 'Unexpected error',
+                variant: 'destructive',
+            });
+        },
+    });
+
+    const uploadDataset = useMutation({
+        mutationFn: (payload: { companyId: number; dataset: File }) =>
+            adminConsoleApi.uploadAiTrainingDataset(payload),
+        onSuccess: (data) => {
+            setTrainingForm((prev) => ({
+                ...prev,
+                datasetUploadId: data.datasetUploadId,
+            }));
+            publishToast({
+                title: 'Dataset uploaded',
+                description: `Stored ${data.filename}.`,
+                variant: 'success',
+            });
+        },
+        onError: (error) => {
+            publishToast({
+                title: 'Dataset upload failed',
+                description:
+                    error instanceof Error ? error.message : 'Unexpected error',
                 variant: 'destructive',
             });
         },
     });
 
     const refreshJob = useMutation({
-        mutationFn: (jobId: string) => adminConsoleApi.refreshAiTrainingJob(jobId),
+        mutationFn: (jobId: string) =>
+            adminConsoleApi.refreshAiTrainingJob(jobId),
         onSuccess: () => {
-            publishToast({ title: 'Status updated', description: 'Remote snapshot synced.', variant: 'success' });
+            publishToast({
+                title: 'Status updated',
+                description: 'Remote snapshot synced.',
+                variant: 'success',
+            });
             void refetch();
         },
         onError: (error) => {
             publishToast({
                 title: 'Refresh failed',
-                description: error instanceof Error ? error.message : 'Unexpected error',
+                description:
+                    error instanceof Error ? error.message : 'Unexpected error',
                 variant: 'destructive',
             });
         },
@@ -206,8 +281,10 @@ export function AdminAiTrainingPage() {
 
     const applyFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const normalizedFeature = filterForm.feature === FILTER_ANY_VALUE ? '' : filterForm.feature;
-        const normalizedStatus = filterForm.status === FILTER_ANY_VALUE ? '' : filterForm.status;
+        const normalizedFeature =
+            filterForm.feature === FILTER_ANY_VALUE ? '' : filterForm.feature;
+        const normalizedStatus =
+            filterForm.status === FILTER_ANY_VALUE ? '' : filterForm.status;
 
         setFilters({
             perPage: filters.perPage ?? 50,
@@ -233,12 +310,16 @@ export function AdminAiTrainingPage() {
         setDialogOpen(true);
     };
 
-    const handleTrainingSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleTrainingSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const companyId = normalizeNumber(trainingForm.companyId);
 
         if (!companyId) {
-            publishToast({ title: 'Company required', description: 'Enter a valid company ID.', variant: 'destructive' });
+            publishToast({
+                title: 'Company required',
+                description: 'Enter a valid company ID.',
+                variant: 'destructive',
+            });
             return;
         }
 
@@ -247,14 +328,30 @@ export function AdminAiTrainingPage() {
             return;
         }
 
+        let datasetUploadId = normalizeFilter(trainingForm.datasetUploadId);
+        if (trainingForm.datasetFile) {
+            try {
+                const uploadResponse: UploadAiTrainingDatasetResponse =
+                    await uploadDataset.mutateAsync({
+                        companyId,
+                        dataset: trainingForm.datasetFile,
+                    });
+                datasetUploadId = uploadResponse.datasetUploadId;
+            } catch {
+                return;
+            }
+        }
+
         const payload: StartAiTrainingPayload = {
             feature: trainingForm.feature,
             companyId,
             startDate: normalizeFilter(trainingForm.startDate),
             endDate: normalizeFilter(trainingForm.endDate),
-            horizon: trainingForm.horizon ? Number(trainingForm.horizon) : undefined,
+            horizon: trainingForm.horizon
+                ? Number(trainingForm.horizon)
+                : undefined,
             reindexAll: trainingForm.reindexAll,
-            datasetUploadId: normalizeFilter(trainingForm.datasetUploadId),
+            datasetUploadId,
             parameters: parameterPayload,
         };
 
@@ -284,16 +381,34 @@ export function AdminAiTrainingPage() {
                     description="Orchestrate retraining runs, inspect telemetry, and keep copilots healthy."
                 />
                 <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="uppercase tracking-wide">
+                    <Badge
+                        variant="outline"
+                        className="tracking-wide uppercase"
+                    >
                         Super admin
                     </Badge>
                     <div className="flex items-center gap-2 rounded-md border px-3 py-1 text-sm">
-                        <Checkbox id="auto-refresh" checked={autoRefresh} onCheckedChange={(value) => setAutoRefresh(Boolean(value))} />
-                        <Label htmlFor="auto-refresh" className="cursor-pointer select-none text-xs font-medium uppercase tracking-wide">
+                        <Checkbox
+                            id="auto-refresh"
+                            checked={autoRefresh}
+                            onCheckedChange={(value) =>
+                                setAutoRefresh(Boolean(value))
+                            }
+                        />
+                        <Label
+                            htmlFor="auto-refresh"
+                            className="cursor-pointer text-xs font-medium tracking-wide uppercase select-none"
+                        >
                             Auto-refresh 10s
                         </Label>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                    >
                         <RefreshCcw className="h-4 w-4" aria-hidden />
                         <span className="sr-only">Refresh</span>
                     </Button>
@@ -302,28 +417,56 @@ export function AdminAiTrainingPage() {
 
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {FEATURE_CARDS.map((card) => (
-                    <Card key={card.key} className="flex flex-col justify-between">
+                    <Card
+                        key={card.key}
+                        className="flex flex-col justify-between"
+                    >
                         <CardHeader className="space-y-1">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <card.icon className="h-4 w-4" aria-hidden />
                                 {card.label}
                             </div>
-                            <CardTitle className="text-xl text-foreground">{summarizeStatus(latestByFeature.get(card.key)?.status)}</CardTitle>
-                            <CardDescription>{card.description}</CardDescription>
+                            <CardTitle className="text-xl text-foreground">
+                                {summarizeStatus(
+                                    latestByFeature.get(card.key)?.status,
+                                )}
+                            </CardTitle>
+                            <CardDescription>
+                                {card.description}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <MetricList job={latestByFeature.get(card.key)} metricKeys={card.metricKeys} formatNumber={formatNumber} />
+                            <MetricList
+                                job={latestByFeature.get(card.key)}
+                                metricKeys={card.metricKeys}
+                                formatNumber={formatNumber}
+                            />
                             <div className="text-sm text-muted-foreground">
                                 Last trained:{' '}
-                                {formatDate(latestByFeature.get(card.key)?.finished_at ?? latestByFeature.get(card.key)?.started_at, {
-                                    dateStyle: 'medium',
-                                    timeStyle: 'short',
-                                }) ?? 'Never'}
+                                {formatDate(
+                                    latestByFeature.get(card.key)
+                                        ?.finished_at ??
+                                        latestByFeature.get(card.key)
+                                            ?.started_at,
+                                    {
+                                        dateStyle: 'medium',
+                                        timeStyle: 'short',
+                                    },
+                                ) ?? 'Never'}
                             </div>
                         </CardContent>
                         <CardFooter className="flex items-center justify-between">
-                            <StatusBadge status={latestByFeature.get(card.key)?.status} running={runningJobIds.has(latestByFeature.get(card.key)?.id ?? '')} />
-                            <Button type="button" size="sm" onClick={() => openDialogForFeature(card.key)}>
+                            <StatusBadge
+                                status={latestByFeature.get(card.key)?.status}
+                                running={runningJobIds.has(
+                                    latestByFeature.get(card.key)?.id ?? '',
+                                )}
+                            />
+                            <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => openDialogForFeature(card.key)}
+                            >
                                 Train now
                             </Button>
                         </CardFooter>
@@ -335,24 +478,41 @@ export function AdminAiTrainingPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Manual filters</CardTitle>
-                        <CardDescription>Scope job history by feature, tenant, and time window.</CardDescription>
+                        <CardDescription>
+                            Scope job history by feature, tenant, and time
+                            window.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form className="grid gap-4" onSubmit={applyFilters}>
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-feature">Feature</Label>
+                                    <Label htmlFor="filter-feature">
+                                        Feature
+                                    </Label>
                                     <Select
                                         value={filterForm.feature}
-                                        onValueChange={(value) => setFilterForm((prev) => ({ ...prev, feature: value }))}
+                                        onValueChange={(value) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                feature: value,
+                                            }))
+                                        }
                                     >
                                         <SelectTrigger id="filter-feature">
                                             <SelectValue placeholder="Any" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value={FILTER_ANY_VALUE}>Any</SelectItem>
+                                            <SelectItem
+                                                value={FILTER_ANY_VALUE}
+                                            >
+                                                Any
+                                            </SelectItem>
                                             {FEATURE_CARDS.map((card) => (
-                                                <SelectItem key={card.key} value={card.key}>
+                                                <SelectItem
+                                                    key={card.key}
+                                                    value={card.key}
+                                                >
                                                     {card.label}
                                                 </SelectItem>
                                             ))}
@@ -360,81 +520,146 @@ export function AdminAiTrainingPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-status">Status</Label>
+                                    <Label htmlFor="filter-status">
+                                        Status
+                                    </Label>
                                     <Select
                                         value={filterForm.status}
-                                        onValueChange={(value) => setFilterForm((prev) => ({ ...prev, status: value }))}
+                                        onValueChange={(value) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                status: value,
+                                            }))
+                                        }
                                     >
                                         <SelectTrigger id="filter-status">
                                             <SelectValue placeholder="Any" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value={FILTER_ANY_VALUE}>Any</SelectItem>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="running">Running</SelectItem>
-                                            <SelectItem value="completed">Completed</SelectItem>
-                                            <SelectItem value="failed">Failed</SelectItem>
+                                            <SelectItem
+                                                value={FILTER_ANY_VALUE}
+                                            >
+                                                Any
+                                            </SelectItem>
+                                            <SelectItem value="pending">
+                                                Pending
+                                            </SelectItem>
+                                            <SelectItem value="running">
+                                                Running
+                                            </SelectItem>
+                                            <SelectItem value="completed">
+                                                Completed
+                                            </SelectItem>
+                                            <SelectItem value="failed">
+                                                Failed
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-company">Company ID</Label>
+                                    <Label htmlFor="filter-company">
+                                        Company ID
+                                    </Label>
                                     <Input
                                         id="filter-company"
                                         type="number"
                                         placeholder="123"
                                         value={filterForm.companyId}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, companyId: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                companyId: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-job">Microservice job ID</Label>
+                                    <Label htmlFor="filter-job">
+                                        Microservice job ID
+                                    </Label>
                                     <Input
                                         id="filter-job"
                                         placeholder="job_abc123"
                                         value={filterForm.jobId}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, jobId: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                jobId: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-start-from">Started from</Label>
+                                    <Label htmlFor="filter-start-from">
+                                        Started from
+                                    </Label>
                                     <Input
                                         id="filter-start-from"
                                         type="date"
                                         value={filterForm.startedFrom}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, startedFrom: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                startedFrom: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-start-to">Started to</Label>
+                                    <Label htmlFor="filter-start-to">
+                                        Started to
+                                    </Label>
                                     <Input
                                         id="filter-start-to"
                                         type="date"
                                         value={filterForm.startedTo}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, startedTo: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                startedTo: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-created-from">Created from</Label>
+                                    <Label htmlFor="filter-created-from">
+                                        Created from
+                                    </Label>
                                     <Input
                                         id="filter-created-from"
                                         type="date"
                                         value={filterForm.createdFrom}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, createdFrom: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                createdFrom: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="filter-created-to">Created to</Label>
+                                    <Label htmlFor="filter-created-to">
+                                        Created to
+                                    </Label>
                                     <Input
                                         id="filter-created-to"
                                         type="date"
                                         value={filterForm.createdTo}
-                                        onChange={(event) => setFilterForm((prev) => ({ ...prev, createdTo: event.target.value }))}
+                                        onChange={(event) =>
+                                            setFilterForm((prev) => ({
+                                                ...prev,
+                                                createdTo: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                <Button type="button" variant="outline" onClick={clearFilters}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                >
                                     Reset
                                 </Button>
                                 <Button type="submit">Apply</Button>
@@ -445,23 +670,38 @@ export function AdminAiTrainingPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Recurring schedule</CardTitle>
-                        <CardDescription>Queue future re-trains on a cadence.</CardDescription>
+                        <CardDescription>
+                            Queue future re-trains on a cadence.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form className="grid gap-3" onSubmit={handleScheduleSubmit}>
+                        <form
+                            className="grid gap-3"
+                            onSubmit={handleScheduleSubmit}
+                        >
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="schedule-feature">Feature</Label>
+                                    <Label htmlFor="schedule-feature">
+                                        Feature
+                                    </Label>
                                     <Select
                                         value={scheduleForm.feature}
-                                        onValueChange={(value) => setScheduleForm((prev) => ({ ...prev, feature: value as FeatureKey }))}
+                                        onValueChange={(value) =>
+                                            setScheduleForm((prev) => ({
+                                                ...prev,
+                                                feature: value as FeatureKey,
+                                            }))
+                                        }
                                     >
                                         <SelectTrigger id="schedule-feature">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {FEATURE_CARDS.map((card) => (
-                                                <SelectItem key={card.key} value={card.key}>
+                                                <SelectItem
+                                                    key={card.key}
+                                                    value={card.key}
+                                                >
                                                     {card.label}
                                                 </SelectItem>
                                             ))}
@@ -469,81 +709,146 @@ export function AdminAiTrainingPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="schedule-company">Company ID</Label>
+                                    <Label htmlFor="schedule-company">
+                                        Company ID
+                                    </Label>
                                     <Input
                                         id="schedule-company"
                                         placeholder="Tenant ID"
                                         value={scheduleForm.companyId}
-                                        onChange={(event) => setScheduleForm((prev) => ({ ...prev, companyId: event.target.value }))}
+                                        onChange={(event) =>
+                                            setScheduleForm((prev) => ({
+                                                ...prev,
+                                                companyId: event.target.value,
+                                            }))
+                                        }
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="schedule-cadence">Cadence</Label>
+                                <Label htmlFor="schedule-cadence">
+                                    Cadence
+                                </Label>
                                 <Select
                                     value={scheduleForm.cadence}
                                     onValueChange={(value) =>
-                                        setScheduleForm((prev) => ({ ...prev, cadence: value as ScheduleFormState['cadence'] }))
+                                        setScheduleForm((prev) => ({
+                                            ...prev,
+                                            cadence:
+                                                value as ScheduleFormState['cadence'],
+                                        }))
                                     }
                                 >
                                     <SelectTrigger id="schedule-cadence">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="daily">Daily</SelectItem>
-                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                        <SelectItem value="daily">
+                                            Daily
+                                        </SelectItem>
+                                        <SelectItem value="weekly">
+                                            Weekly
+                                        </SelectItem>
+                                        <SelectItem value="monthly">
+                                            Monthly
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             {scheduleForm.cadence === 'weekly' ? (
                                 <div className="space-y-2">
-                                    <Label htmlFor="schedule-day">Day of week</Label>
+                                    <Label htmlFor="schedule-day">
+                                        Day of week
+                                    </Label>
                                     <Select
                                         value={scheduleForm.dayOfWeek}
-                                        onValueChange={(value) => setScheduleForm((prev) => ({ ...prev, dayOfWeek: value }))}
+                                        onValueChange={(value) =>
+                                            setScheduleForm((prev) => ({
+                                                ...prev,
+                                                dayOfWeek: value,
+                                            }))
+                                        }
                                     >
                                         <SelectTrigger id="schedule-day">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="monday">Monday</SelectItem>
-                                            <SelectItem value="tuesday">Tuesday</SelectItem>
-                                            <SelectItem value="wednesday">Wednesday</SelectItem>
-                                            <SelectItem value="thursday">Thursday</SelectItem>
-                                            <SelectItem value="friday">Friday</SelectItem>
-                                            <SelectItem value="saturday">Saturday</SelectItem>
-                                            <SelectItem value="sunday">Sunday</SelectItem>
+                                            <SelectItem value="monday">
+                                                Monday
+                                            </SelectItem>
+                                            <SelectItem value="tuesday">
+                                                Tuesday
+                                            </SelectItem>
+                                            <SelectItem value="wednesday">
+                                                Wednesday
+                                            </SelectItem>
+                                            <SelectItem value="thursday">
+                                                Thursday
+                                            </SelectItem>
+                                            <SelectItem value="friday">
+                                                Friday
+                                            </SelectItem>
+                                            <SelectItem value="saturday">
+                                                Saturday
+                                            </SelectItem>
+                                            <SelectItem value="sunday">
+                                                Sunday
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             ) : null}
                             <div className="space-y-2">
-                                <Label htmlFor="schedule-time">Time (UTC)</Label>
+                                <Label htmlFor="schedule-time">
+                                    Time (UTC)
+                                </Label>
                                 <Input
                                     id="schedule-time"
                                     type="time"
                                     value={scheduleForm.time}
-                                    onChange={(event) => setScheduleForm((prev) => ({ ...prev, time: event.target.value }))}
+                                    onChange={(event) =>
+                                        setScheduleForm((prev) => ({
+                                            ...prev,
+                                            time: event.target.value,
+                                        }))
+                                    }
                                 />
                             </div>
-                            <Button type="submit" className="flex items-center gap-2">
-                                <CalendarClock className="h-4 w-4" aria-hidden />
+                            <Button
+                                type="submit"
+                                className="flex items-center gap-2"
+                            >
+                                <CalendarClock
+                                    className="h-4 w-4"
+                                    aria-hidden
+                                />
                                 Save schedule
                             </Button>
                             {savedSchedules.length ? (
                                 <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
-                                    <div className="font-semibold text-foreground">Upcoming templates</div>
+                                    <div className="font-semibold text-foreground">
+                                        Upcoming templates
+                                    </div>
                                     <ul className="mt-2 space-y-1">
-                                        {savedSchedules.slice(-3).map((schedule, index) => (
-                                            <li key={`${schedule.feature}-${index}`} className="flex items-center gap-2">
-                                                <Badge variant="outline">{schedule.feature}</Badge>
-                                                <span>
-                                                    {schedule.cadence} @ {schedule.time} UTC
-                                                    {schedule.dayOfWeek ? ` (${schedule.dayOfWeek})` : ''}
-                                                </span>
-                                            </li>
-                                        ))}
+                                        {savedSchedules
+                                            .slice(-3)
+                                            .map((schedule, index) => (
+                                                <li
+                                                    key={`${schedule.feature}-${index}`}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Badge variant="outline">
+                                                        {schedule.feature}
+                                                    </Badge>
+                                                    <span>
+                                                        {schedule.cadence} @{' '}
+                                                        {schedule.time} UTC
+                                                        {schedule.dayOfWeek
+                                                            ? ` (${schedule.dayOfWeek})`
+                                                            : ''}
+                                                    </span>
+                                                </li>
+                                            ))}
                                     </ul>
                                 </div>
                             ) : null}
@@ -553,7 +858,9 @@ export function AdminAiTrainingPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Active jobs</CardTitle>
-                        <CardDescription>Jobs still pending or running.</CardDescription>
+                        <CardDescription>
+                            Jobs still pending or running.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {runningJobIds.size ? (
@@ -561,16 +868,28 @@ export function AdminAiTrainingPage() {
                                 {jobs
                                     .filter((job) => runningJobIds.has(job.id))
                                     .map((job) => (
-                                        <li key={job.id} className="rounded-md border bg-muted/40 p-3">
+                                        <li
+                                            key={job.id}
+                                            className="rounded-md border bg-muted/40 p-3"
+                                        >
                                             <div className="flex items-center justify-between gap-3">
                                                 <div>
-                                                    <div className="font-semibold text-foreground">{job.feature}</div>
-                                                    <div className="text-xs text-muted-foreground">Company #{job.company_id}</div>
+                                                    <div className="font-semibold text-foreground">
+                                                        {job.feature}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        Company #
+                                                        {job.company_id}
+                                                    </div>
                                                 </div>
                                                 <Spinner className="h-5 w-5" />
                                             </div>
                                             <div className="mt-2 text-xs text-muted-foreground">
-                                                Started {formatDate(job.started_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
+                                                Started{' '}
+                                                {formatDate(job.started_at, {
+                                                    dateStyle: 'medium',
+                                                    timeStyle: 'short',
+                                                }) ?? '—'}
                                             </div>
                                         </li>
                                     ))}
@@ -590,20 +909,26 @@ export function AdminAiTrainingPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Training history</CardTitle>
-                    <CardDescription>Latest {jobs.length} rows (cursor pagination enabled).</CardDescription>
+                    <CardDescription>
+                        Latest {jobs.length} rows (cursor pagination enabled).
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                     {isLoading ? (
-                        <div className="py-12 text-center text-sm text-muted-foreground">Loading jobs…</div>
+                        <div className="py-12 text-center text-sm text-muted-foreground">
+                            Loading jobs…
+                        </div>
                     ) : jobs.length === 0 ? (
                         <EmptyState
-                            icon={<UploadCloud className="h-8 w-8" aria-hidden />}
+                            icon={
+                                <UploadCloud className="h-8 w-8" aria-hidden />
+                            }
                             title="No jobs yet"
                             description="Kick off a training run to populate telemetry."
                         />
                     ) : (
                         <table className="w-full table-auto text-sm">
-                            <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                            <thead className="text-left text-xs tracking-wide text-muted-foreground uppercase">
                                 <tr>
                                     <th className="px-4 py-2">Job</th>
                                     <th className="px-4 py-2">Feature</th>
@@ -613,30 +938,51 @@ export function AdminAiTrainingPage() {
                                     <th className="px-4 py-2">Finished</th>
                                     <th className="px-4 py-2">Duration</th>
                                     <th className="px-4 py-2">Result</th>
-                                    <th className="px-4 py-2 text-right">Actions</th>
+                                    <th className="px-4 py-2 text-right">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {jobs.map((job) => (
                                     <tr key={job.id} className="border-t">
                                         <td className="px-4 py-3">
-                                            <div className="font-semibold text-foreground">#{job.id}</div>
-                                            <div className="text-xs text-muted-foreground truncate max-w-[140px]">
+                                            <div className="font-semibold text-foreground">
+                                                #{job.id}
+                                            </div>
+                                            <div className="max-w-[140px] truncate text-xs text-muted-foreground">
                                                 {job.microservice_job_id ?? '—'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 capitalize">{job.feature}</td>
-                                        <td className="px-4 py-3">#{job.company_id}</td>
-                                        <td className="px-4 py-3">
-                                            <StatusBadge status={job.status} running={runningJobIds.has(job.id)} />
+                                        <td className="px-4 py-3 capitalize">
+                                            {job.feature}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {formatDate(job.started_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
+                                            #{job.company_id}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {formatDate(job.finished_at, { dateStyle: 'medium', timeStyle: 'short' }) ?? '—'}
+                                            <StatusBadge
+                                                status={job.status}
+                                                running={runningJobIds.has(
+                                                    job.id,
+                                                )}
+                                            />
                                         </td>
-                                        <td className="px-4 py-3">{formatDuration(job)}</td>
+                                        <td className="px-4 py-3">
+                                            {formatDate(job.started_at, {
+                                                dateStyle: 'medium',
+                                                timeStyle: 'short',
+                                            }) ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {formatDate(job.finished_at, {
+                                                dateStyle: 'medium',
+                                                timeStyle: 'short',
+                                            }) ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {formatDuration(job)}
+                                        </td>
                                         <td className="px-4 py-3 text-xs text-muted-foreground">
                                             {summarizeResult(job.result) ?? '—'}
                                         </td>
@@ -645,7 +991,9 @@ export function AdminAiTrainingPage() {
                                                 type="button"
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => refreshJob.mutate(job.id)}
+                                                onClick={() =>
+                                                    refreshJob.mutate(job.id)
+                                                }
                                                 disabled={refreshJob.isPending}
                                             >
                                                 Refresh
@@ -658,10 +1006,29 @@ export function AdminAiTrainingPage() {
                     )}
                 </CardContent>
                 <CardFooter className="flex items-center gap-2">
-                    <Button type="button" variant="outline" disabled={!prevCursor} onClick={() => setFilters((prev) => ({ ...prev, cursor: prevCursor }))}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!prevCursor}
+                        onClick={() =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                cursor: prevCursor,
+                            }))
+                        }
+                    >
                         Previous
                     </Button>
-                    <Button type="button" disabled={!nextCursor} onClick={() => setFilters((prev) => ({ ...prev, cursor: nextCursor }))}>
+                    <Button
+                        type="button"
+                        disabled={!nextCursor}
+                        onClick={() =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                cursor: nextCursor,
+                            }))
+                        }
+                    >
                         Next
                     </Button>
                 </CardFooter>
@@ -673,28 +1040,48 @@ export function AdminAiTrainingPage() {
                 formValues={trainingForm}
                 onFormChange={setTrainingForm}
                 onSubmit={handleTrainingSubmit}
-                isSubmitting={startTraining.isPending}
+                isSubmitting={
+                    startTraining.isPending || uploadDataset.isPending
+                }
             />
         </div>
     );
 }
 
-function StatusBadge({ status, running }: { status?: string; running: boolean }) {
+function StatusBadge({
+    status,
+    running,
+}: {
+    status?: string;
+    running: boolean;
+}) {
     if (!status) {
-        return <Badge variant="outline" className="uppercase tracking-wide">unknown</Badge>;
+        return (
+            <Badge variant="outline" className="tracking-wide uppercase">
+                unknown
+            </Badge>
+        );
     }
 
     if (running || status === 'running') {
         return (
             <span className="inline-flex items-center gap-2">
                 <Spinner className="h-4 w-4" />
-                <span className="text-sm font-semibold text-primary">Running</span>
+                <span className="text-sm font-semibold text-primary">
+                    Running
+                </span>
             </span>
         );
     }
 
     return (
-        <Badge variant="outline" className={cn('uppercase tracking-wide border', STATUS_VARIANTS[status] ?? '')}>
+        <Badge
+            variant="outline"
+            className={cn(
+                'border tracking-wide uppercase',
+                STATUS_VARIANTS[status] ?? '',
+            )}
+        >
             {status}
         </Badge>
     );
@@ -713,15 +1100,26 @@ function MetricList({
     const keys = metricKeys.length ? metricKeys : Object.keys(metrics ?? {});
 
     if (!job || !metrics || keys.length === 0) {
-        return <div className="text-sm text-muted-foreground">No metrics captured yet.</div>;
+        return (
+            <div className="text-sm text-muted-foreground">
+                No metrics captured yet.
+            </div>
+        );
     }
 
     return (
         <dl className="grid gap-2">
             {keys.slice(0, 3).map((key) => (
-                <div key={key} className="flex items-center justify-between text-sm">
-                    <dt className="text-muted-foreground">{formatMetricLabel(key)}</dt>
-                    <dd className="font-semibold text-foreground">{formatMetricValue(metrics[key], formatNumber)}</dd>
+                <div
+                    key={key}
+                    className="flex items-center justify-between text-sm"
+                >
+                    <dt className="text-muted-foreground">
+                        {formatMetricLabel(key)}
+                    </dt>
+                    <dd className="font-semibold text-foreground">
+                        {formatMetricValue(metrics[key], formatNumber)}
+                    </dd>
                 </div>
             ))}
         </dl>
@@ -748,7 +1146,9 @@ function TrainingDialog({
             <DialogContent className="max-w-2xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Train {formValues.feature} models</DialogTitle>
-                    <DialogDescription>Provide tenant + optional window constraints.</DialogDescription>
+                    <DialogDescription>
+                        Provide tenant + optional window constraints.
+                    </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4" onSubmit={onSubmit}>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -760,12 +1160,17 @@ function TrainingDialog({
                                 placeholder="Tenant ID"
                                 value={formValues.companyId}
                                 onChange={(event) =>
-                                    onFormChange((prev) => ({ ...prev, companyId: event.target.value }))
+                                    onFormChange((prev) => ({
+                                        ...prev,
+                                        companyId: event.target.value,
+                                    }))
                                 }
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="train-horizon">Forecast horizon (days)</Label>
+                            <Label htmlFor="train-horizon">
+                                Forecast horizon (days)
+                            </Label>
                             <Input
                                 id="train-horizon"
                                 type="number"
@@ -773,7 +1178,10 @@ function TrainingDialog({
                                 max={365}
                                 value={formValues.horizon}
                                 onChange={(event) =>
-                                    onFormChange((prev) => ({ ...prev, horizon: event.target.value }))
+                                    onFormChange((prev) => ({
+                                        ...prev,
+                                        horizon: event.target.value,
+                                    }))
                                 }
                             />
                         </div>
@@ -784,7 +1192,10 @@ function TrainingDialog({
                                 type="date"
                                 value={formValues.startDate}
                                 onChange={(event) =>
-                                    onFormChange((prev) => ({ ...prev, startDate: event.target.value }))
+                                    onFormChange((prev) => ({
+                                        ...prev,
+                                        startDate: event.target.value,
+                                    }))
                                 }
                             />
                         </div>
@@ -794,34 +1205,49 @@ function TrainingDialog({
                                 id="train-end"
                                 type="date"
                                 value={formValues.endDate}
-                                onChange={(event) => onFormChange((prev) => ({ ...prev, endDate: event.target.value }))}
+                                onChange={(event) =>
+                                    onFormChange((prev) => ({
+                                        ...prev,
+                                        endDate: event.target.value,
+                                    }))
+                                }
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="train-dataset">Dataset upload ID</Label>
+                            <Label htmlFor="train-dataset">
+                                Dataset upload ID
+                            </Label>
                             <Input
                                 id="train-dataset"
                                 placeholder="document_abc123"
                                 value={formValues.datasetUploadId}
                                 onChange={(event) =>
-                                    onFormChange((prev) => ({ ...prev, datasetUploadId: event.target.value }))
+                                    onFormChange((prev) => ({
+                                        ...prev,
+                                        datasetUploadId: event.target.value,
+                                    }))
                                 }
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="train-file">Attach dataset (optional)</Label>
+                            <Label htmlFor="train-file">
+                                Attach dataset (optional)
+                            </Label>
                             <Input
                                 id="train-file"
                                 type="file"
+                                accept=".jsonl,.csv,.zip"
                                 onChange={(event) =>
                                     onFormChange((prev) => ({
                                         ...prev,
-                                        datasetFile: event.target.files?.[0] ?? null,
+                                        datasetFile:
+                                            event.target.files?.[0] ?? null,
                                     }))
                                 }
                             />
                             <p className="text-xs text-muted-foreground">
-                                File metadata is persisted with the job. Upload plumbing will bind to dataset_upload_id when available.
+                                Uploading a file will generate a dataset ID
+                                automatically.
                             </p>
                         </div>
                     </div>
@@ -830,25 +1256,39 @@ function TrainingDialog({
                             id="train-reindex"
                             checked={formValues.reindexAll}
                             onCheckedChange={(value) =>
-                                onFormChange((prev) => ({ ...prev, reindexAll: Boolean(value) }))
+                                onFormChange((prev) => ({
+                                    ...prev,
+                                    reindexAll: Boolean(value),
+                                }))
                             }
                         />
-                        <Label htmlFor="train-reindex">Force full re-index (RAG only)</Label>
+                        <Label htmlFor="train-reindex">
+                            Force full re-index (RAG only)
+                        </Label>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="train-extra">Additional parameters (JSON)</Label>
+                        <Label htmlFor="train-extra">
+                            Additional parameters (JSON)
+                        </Label>
                         <Textarea
                             id="train-extra"
                             rows={4}
                             placeholder='{"window_days": 45}'
                             value={formValues.additionalParams}
                             onChange={(event) =>
-                                onFormChange((prev) => ({ ...prev, additionalParams: event.target.value }))
+                                onFormChange((prev) => ({
+                                    ...prev,
+                                    additionalParams: event.target.value,
+                                }))
                             }
                         />
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => onOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
@@ -869,7 +1309,9 @@ function summarizeStatus(status?: string) {
     return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function deriveLatestByFeature(jobs: ModelTrainingJob[]): Map<string, ModelTrainingJob> {
+function deriveLatestByFeature(
+    jobs: ModelTrainingJob[],
+): Map<string, ModelTrainingJob> {
     const map = new Map<string, ModelTrainingJob>();
 
     for (const job of jobs) {
@@ -880,9 +1322,14 @@ function deriveLatestByFeature(jobs: ModelTrainingJob[]): Map<string, ModelTrain
             continue;
         }
 
-        const currentTimestamp = new Date(job.finished_at ?? job.started_at ?? job.created_at ?? 0).getTime();
+        const currentTimestamp = new Date(
+            job.finished_at ?? job.started_at ?? job.created_at ?? 0,
+        ).getTime();
         const existingTimestamp = new Date(
-            existing.finished_at ?? existing.started_at ?? existing.created_at ?? 0,
+            existing.finished_at ??
+                existing.started_at ??
+                existing.created_at ??
+                0,
         ).getTime();
 
         if (currentTimestamp > existingTimestamp) {
@@ -909,15 +1356,23 @@ function formatDuration(job: ModelTrainingJob): string {
     return `${minutes.toFixed(1)}m`;
 }
 
-function summarizeResult(result?: Record<string, unknown> | null): string | null {
+function summarizeResult(
+    result?: Record<string, unknown> | null,
+): string | null {
     if (!result) {
         return null;
     }
 
     const entries = Object.entries(result)
-        .filter(([_, value]) => typeof value === 'string' || typeof value === 'number')
+        .filter(
+            ([, value]) =>
+                typeof value === 'string' || typeof value === 'number',
+        )
         .slice(0, 2)
-        .map(([key, value]) => `${formatMetricLabel(key)}: ${typeof value === 'number' ? value.toFixed(2) : value}`);
+        .map(
+            ([key, value]) =>
+                `${formatMetricLabel(key)}: ${typeof value === 'number' ? value.toFixed(2) : value}`,
+        );
 
     return entries.length ? entries.join(' • ') : null;
 }
@@ -944,7 +1399,10 @@ function formatMetricLabel(label: string): string {
     return label.replace(/_/g, ' ');
 }
 
-function formatMetricValue(value: unknown, formatNumber: ReturnType<typeof useFormatting>['formatNumber']): string {
+function formatMetricValue(
+    value: unknown,
+    formatNumber: ReturnType<typeof useFormatting>['formatNumber'],
+): string {
     if (typeof value === 'number') {
         return formatNumber(value, { maximumFractionDigits: 3 });
     }
@@ -956,7 +1414,9 @@ function formatMetricValue(value: unknown, formatNumber: ReturnType<typeof useFo
     return '—';
 }
 
-function buildParameterPayload(form: TrainingFormState): Record<string, unknown> | undefined | null {
+function buildParameterPayload(
+    form: TrainingFormState,
+): Record<string, unknown> | undefined | null {
     const payload: Record<string, unknown> = {};
 
     if (form.additionalParams.trim()) {

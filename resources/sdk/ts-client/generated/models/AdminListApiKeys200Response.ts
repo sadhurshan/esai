@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
 import type { AdminListApiKeys200ResponseAllOfData } from './AdminListApiKeys200ResponseAllOfData';
 import {
     AdminListApiKeys200ResponseAllOfDataFromJSON,
-    AdminListApiKeys200ResponseAllOfDataFromJSONTyped,
     AdminListApiKeys200ResponseAllOfDataToJSON,
-    AdminListApiKeys200ResponseAllOfDataToJSONTyped,
 } from './AdminListApiKeys200ResponseAllOfData';
+import type { RequestMeta } from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 
 /**
- * 
+ *
  * @export
  * @interface AdminListApiKeys200Response
  */
 export interface AdminListApiKeys200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminListApiKeys200Response
      */
     status: AdminListApiKeys200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof AdminListApiKeys200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {AdminListApiKeys200ResponseAllOfData}
      * @memberof AdminListApiKeys200Response
      */
     data: AdminListApiKeys200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof AdminListApiKeys200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const AdminListApiKeys200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type AdminListApiKeys200ResponseStatusEnum = typeof AdminListApiKeys200ResponseStatusEnum[keyof typeof AdminListApiKeys200ResponseStatusEnum];
-
+export type AdminListApiKeys200ResponseStatusEnum =
+    (typeof AdminListApiKeys200ResponseStatusEnum)[keyof typeof AdminListApiKeys200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the AdminListApiKeys200Response interface.
  */
-export function instanceOfAdminListApiKeys200Response(value: object): value is AdminListApiKeys200Response {
+export function instanceOfAdminListApiKeys200Response(
+    value: object,
+): value is AdminListApiKeys200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function AdminListApiKeys200ResponseFromJSON(json: any): AdminListApiKeys200Response {
+export function AdminListApiKeys200ResponseFromJSON(
+    json: any,
+): AdminListApiKeys200Response {
     return AdminListApiKeys200ResponseFromJSONTyped(json, false);
 }
 
-export function AdminListApiKeys200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminListApiKeys200Response {
+export function AdminListApiKeys200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): AdminListApiKeys200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': AdminListApiKeys200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: AdminListApiKeys200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminListApiKeys200ResponseToJSON(json: any): AdminListApiKeys200Response {
+export function AdminListApiKeys200ResponseToJSON(
+    json: any,
+): AdminListApiKeys200Response {
     return AdminListApiKeys200ResponseToJSONTyped(json, false);
 }
 
-export function AdminListApiKeys200ResponseToJSONTyped(value?: AdminListApiKeys200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminListApiKeys200ResponseToJSONTyped(
+    value?: AdminListApiKeys200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': AdminListApiKeys200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: AdminListApiKeys200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-

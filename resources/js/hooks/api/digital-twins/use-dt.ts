@@ -1,17 +1,26 @@
-import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query';
+import {
+    useQuery,
+    type UseQueryOptions,
+    type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { useSdkClient } from '@/contexts/api-client-context';
 import { queryKeys } from '@/lib/queryKeys';
-import { DigitalTwinLibraryApi, type DigitalTwinLibraryDetail, type DigitalTwinLibraryDetailResponse } from '@/sdk';
+import {
+    DigitalTwinLibraryApi,
+    type DigitalTwinLibraryDetail,
+    type DigitalTwinLibraryDetailResponse,
+} from '@/sdk';
 
 export type UseDigitalTwinOptions = Pick<
     UseQueryOptions<DigitalTwinLibraryDetailResponse>,
     'enabled' | 'staleTime' | 'gcTime' | 'refetchOnWindowFocus'
 >;
 
-export type UseDigitalTwinResult = UseQueryResult<DigitalTwinLibraryDetailResponse> & {
-    digitalTwin?: DigitalTwinLibraryDetail;
-};
+export type UseDigitalTwinResult =
+    UseQueryResult<DigitalTwinLibraryDetailResponse> & {
+        digitalTwin?: DigitalTwinLibraryDetail;
+    };
 
 function normalizeId(digitalTwinId?: number | string): string | undefined {
     if (digitalTwinId == null) {
@@ -27,7 +36,9 @@ export function useDigitalTwin(
 ): UseDigitalTwinResult {
     const api = useSdkClient(DigitalTwinLibraryApi);
     const resolvedId = normalizeId(digitalTwinId);
-    const queryKey = queryKeys.digitalTwins.libraryDetail(resolvedId ?? 'pending');
+    const queryKey = queryKeys.digitalTwins.libraryDetail(
+        resolvedId ?? 'pending',
+    );
 
     const query = useQuery<DigitalTwinLibraryDetailResponse>({
         queryKey,

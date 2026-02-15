@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Elements Supply API
- * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console. 
+ * Elements Supply is a multi-tenant sourcing and procurement platform that exposes a single public API for authenticated buyers, suppliers, and platform administrators. All responses are wrapped in the standard envelope documented in `/docs/API_ENVELOPE.md` and conform to the schemas defined in this spec. Unless noted otherwise, every path requires either a bearer token (Sanctum personal access token) or an API key issued by the platform admin console.
  *
  * The version of the OpenAPI document: 2025.11.0
  * Contact: support@elements-supply.ai
@@ -12,105 +12,108 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { RequestMeta } from './RequestMeta';
-import {
-    RequestMetaFromJSON,
-    RequestMetaFromJSONTyped,
-    RequestMetaToJSON,
-    RequestMetaToJSONTyped,
-} from './RequestMeta';
+import { RequestMetaFromJSON, RequestMetaToJSON } from './RequestMeta';
 import type { SearchGlobal200ResponseAllOfData } from './SearchGlobal200ResponseAllOfData';
 import {
     SearchGlobal200ResponseAllOfDataFromJSON,
-    SearchGlobal200ResponseAllOfDataFromJSONTyped,
     SearchGlobal200ResponseAllOfDataToJSON,
-    SearchGlobal200ResponseAllOfDataToJSONTyped,
 } from './SearchGlobal200ResponseAllOfData';
 
 /**
- * 
+ *
  * @export
  * @interface SearchGlobal200Response
  */
 export interface SearchGlobal200Response {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchGlobal200Response
      */
     status: SearchGlobal200ResponseStatusEnum;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SearchGlobal200Response
      */
     message?: string;
     /**
-     * 
+     *
      * @type {SearchGlobal200ResponseAllOfData}
      * @memberof SearchGlobal200Response
      */
     data: SearchGlobal200ResponseAllOfData;
     /**
-     * 
+     *
      * @type {RequestMeta}
      * @memberof SearchGlobal200Response
      */
     meta?: RequestMeta;
 }
 
-
 /**
  * @export
  */
 export const SearchGlobal200ResponseStatusEnum = {
-    Success: 'success'
+    Success: 'success',
 } as const;
-export type SearchGlobal200ResponseStatusEnum = typeof SearchGlobal200ResponseStatusEnum[keyof typeof SearchGlobal200ResponseStatusEnum];
-
+export type SearchGlobal200ResponseStatusEnum =
+    (typeof SearchGlobal200ResponseStatusEnum)[keyof typeof SearchGlobal200ResponseStatusEnum];
 
 /**
  * Check if a given object implements the SearchGlobal200Response interface.
  */
-export function instanceOfSearchGlobal200Response(value: object): value is SearchGlobal200Response {
+export function instanceOfSearchGlobal200Response(
+    value: object,
+): value is SearchGlobal200Response {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
 
-export function SearchGlobal200ResponseFromJSON(json: any): SearchGlobal200Response {
+export function SearchGlobal200ResponseFromJSON(
+    json: any,
+): SearchGlobal200Response {
     return SearchGlobal200ResponseFromJSONTyped(json, false);
 }
 
-export function SearchGlobal200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): SearchGlobal200Response {
+export function SearchGlobal200ResponseFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean,
+): SearchGlobal200Response {
     if (json == null) {
         return json;
     }
     return {
-        
-        'status': json['status'],
-        'message': json['message'] == null ? undefined : json['message'],
-        'data': SearchGlobal200ResponseAllOfDataFromJSON(json['data']),
-        'meta': json['meta'] == null ? undefined : RequestMetaFromJSON(json['meta']),
+        status: json['status'],
+        message: json['message'] == null ? undefined : json['message'],
+        data: SearchGlobal200ResponseAllOfDataFromJSON(json['data']),
+        meta:
+            json['meta'] == null
+                ? undefined
+                : RequestMetaFromJSON(json['meta']),
     };
 }
 
-export function SearchGlobal200ResponseToJSON(json: any): SearchGlobal200Response {
+export function SearchGlobal200ResponseToJSON(
+    json: any,
+): SearchGlobal200Response {
     return SearchGlobal200ResponseToJSONTyped(json, false);
 }
 
-export function SearchGlobal200ResponseToJSONTyped(value?: SearchGlobal200Response | null, ignoreDiscriminator: boolean = false): any {
+export function SearchGlobal200ResponseToJSONTyped(
+    value?: SearchGlobal200Response | null,
+    ignoreDiscriminator: boolean = false,
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'status': value['status'],
-        'message': value['message'],
-        'data': SearchGlobal200ResponseAllOfDataToJSON(value['data']),
-        'meta': RequestMetaToJSON(value['meta']),
+        status: value['status'],
+        message: value['message'],
+        data: SearchGlobal200ResponseAllOfDataToJSON(value['data']),
+        meta: RequestMetaToJSON(value['meta']),
     };
 }
-
